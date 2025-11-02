@@ -1,0 +1,22 @@
+{
+    "A fresh verification link has been sent to your email address.": "Нове посилання для підтвердження надіслано на вашу електронну адресу.",
+    "Before proceeding, please check your email for a verification link.": "Перш ніж продовжити, перевірте, чи на вашу електронну пошту надійшло посилання для підтвердження.",
+    "click here to request another": "натисніть тут для запиту іншого посилання",
+    "Confirm Password": "Підтвердити пароль",
+    "Dashboard": "Головна",
+    "Email Address": "Електронна адреса",
+    "Forgot Your Password?": "Забули пароль?",
+    "If you did not receive the email": "Якщо ви не отримали листа",
+    "Login": "Увійти",
+    "Logout": "Вийти",
+    "Name": "Ім'я",
+    "Password": "Пароль",
+    "Please confirm your password before continuing.": "Перш ніж продовжити, підтвердьте свій пароль.",
+    "Register": "Реєстрація",
+    "Remember Me": "Запам'ятати мене",
+    "Reset Password": "Скинути пароль",
+    "Send Password Reset Link": "Надіслати посилання для скидання пароля",
+    "Toggle navigation": "Перемкнути навігацію",
+    "Verify Your Email Address": "Підтвердьте свою електронну адресу",
+    "You are logged in!": "Ви успішно увійшли в систему!"
+}

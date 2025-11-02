@@ -1,0 +1,42 @@
+name: Deploy Laravel Project
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, bcmath, intl, pdo, mysql
+          tools: composer
+
+      - name: Install dependencies
+        run: composer install --no-dev --optimize-autoloader
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          port: 22
+          script: |
+            cd /var/www/ai-bot
+            git pull origin main
+            composer install --no-dev --optimize-autoloader
+            npm install
+            npm run build
+            php artisan migrate --force
+            php artisan config:cache
+            php artisan route:cache
+            php artisan view:cache

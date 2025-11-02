@@ -1,0 +1,281 @@
+{
+  "auth": {
+    "loginTitle": "欢迎回来",
+    "loginSubtitle": "登录您的账户以继续",
+    "registerTitle": "创建账户",
+    "registerSubtitle": "加入我们，开始使用我们的创意工具",
+    "email": "电子邮件",
+    "password": "密码",
+    "passwordConfirmation": "确认密码",
+    "name": "全名",
+    "rememberMe": "记住我",
+    "forgotPassword": "忘记密码？",
+    "loginButton": "登录",
+    "registerButton": "创建账户",
+    "noAccount": "没有账户？",
+    "haveAccount": "已有账户？",
+    "registerLink": "立即注册",
+    "loginLink": "登录",
+    "logoutLink": "登出",
+    "profile": "个人资料",
+    "subscriptions": "我的订阅",
+    "orContinueWith": "或继续使用",
+    "authenticating": "正在验证身份...",
+    "google": "使用 Google 登录",
+    "telegram": "使用 Telegram 登录",
+    "forgotPasswordTitle": "忘记密码？",
+    "forgotPasswordSubtitle": "输入您的电子邮件以接收密码重置链接。",
+    "forgotPasswordSubmit": "发送链接",
+    "guide": "请检查您的电子邮件以获取密码重置链接。",
+    "forgotPasswordSuccess": "密码重置链接已发送至您的电子邮件。",
+    "resetPasswordTitle": "重置密码",
+    "resetPasswordSubtitle": "输入新密码以重置您的账户。",
+    "resetPasswordSubmit": "重置密码",
+    "resetPasswordSuccess": "密码已成功重置。"
+  },
+  "services": {
+    "title": "选择您的 <span class='gradient-text bg-gradient-2'>创意</span> 工具",
+    "card": {
+      "show_more": "显示更多",
+      "back_to_front_side": "点击卡片返回"
+    },
+    "page": {
+      "back": "返回"
+    }
+  },
+  "perMonth": "每月",
+  "plans": {
+    "price_monthly": "<strong>{price} {currency}</strong> 每月",
+    "add_to_cart": "添加到购物车",
+    "go_to_checkout": "前往结算",
+    "open": "打开浏览器",
+    "get_trial": "获取试用",
+    "trial_period": "{price} 试用"
+  },
+  "profile": {
+    "title": "我的资料",
+    "name": "姓名",
+    "namePlaceholder": "输入您的名字",
+    "email": "电子邮件",
+    "emailPlaceholder": "输入您的电子邮件",
+    "password": "密码",
+    "passwordPlaceholder": "如果要更改密码，请输入新密码",
+    "confirmPassword": "确认密码",
+    "confirmPasswordPlaceholder": "确认您的新密码",
+    "saveButton": "保存",
+    "success": "您的资料已成功更新！",
+    "keyboard": {
+      "title": "键盘语言",
+      "hint": "由 SubCloudy 浏览器扩展使用。英语始终启用。",
+      "codes": {
+        "en": "US",
+        "es": "ES",
+        "ru": "RU",
+        "uk": "UA",
+        "zh": "CN"
+      }
+    }
+  },
+  "checkout": {
+    "title": "结账",
+    "empty": "您的购物车是空的。开始添加一些商品吧！",
+    "payment_method": "支付方式",
+    "payment_method_placeholder": "选择支付方式",
+    "submit": "提交订单",
+    "crypto": "加密货币",
+    "crypto_placeholder": "热门：BTC、ETH、USDT",
+    "default": "默认",
+    "credit_card": "信用卡",
+    "credit_card_placeholder": "Apple Pay、Visa、MasterCard 等",
+    "total": "应付总额",
+    "pay": "支付",
+    "month": "月",
+    "total_amount": "总金额",
+    "trial_services": "试用服务",
+    "premium_services": "高级服务",
+    "payment_error": "支付过程中发生错误，请重试。",
+    "success": "付款成功！感谢您的购买。",
+    "free_success": "免费访问已激活！请尽情使用。",
+    "activating_admin": "正在激活订阅（管理员）...",
+    "admin_success": "订阅已成功手动激活。",
+    "admin_error": "手动激活订阅时发生错误。",
+    "trial_badge": "试用版",
+    "premium_badge": "完整版",
+    "next_payments": "「即将进行的服务付款」",
+    "original_total": "原始总额",
+    "discount": "折扣",
+    "upsell_generic": "再添加 {0} 个服务 \n 即可获得折扣",
+    "promocode_placeholder": "优惠码",
+    "promocode_apply_aria": "应用优惠码",
+    "promocode_clear_aria": "清除优惠码",
+    "promocode_discount": "优惠码折扣",
+    "promocode_discount_empty_cart": "优惠码已应用：结账时生效。请先将服务添加到购物车以查看优惠。",
+    "free_via_promocode": "使用优惠码免费 {days} 天",
+    "promocode_empty_hint": "或者在下方输入优惠码"
+  },
+  "subscriptions": {
+    "title": "我的订阅",
+    "empty_active": "你没有活跃的订阅。",
+    "empty_inactive": "你没有非活跃的订阅。",
+    "title_sub": "订阅 {name}",
+    "status_active": "活跃",
+    "status_ended": "已结束",
+    "status_canceled": "非活跃",
+    "payment_method": "支付方式：{method}",
+    "created_at": "创建时间：{date}",
+    "next_payment_at": "下次付款时间：{date}",
+    "active_tab": "活跃",
+    "inactive_tab": "非活跃",
+    "empty": "你目前没有任何订阅。",
+    "cancel": "取消订阅",
+    "renew": "恢复订阅",
+    "toggle_confirm_title_cancel": "取消订阅？",
+    "toggle_confirm_text_cancel": "您确定要取消订阅吗？",
+    "toggle_confirm_title_renew": "恢复订阅？",
+    "toggle_confirm_text_renew": "您确定要恢复订阅吗？",
+    "toggle_confirm_yes": "是的，确认",
+    "toggle_confirm_no": "取消",
+    "toggled_success": "订阅设置已更新",
+    "toggled_error": "更新订阅时出错",
+    "end_at": "<strong>自动续订已关闭</strong>，订阅有效至 {date}"
+  },
+  "hero": {
+    "title": "以低至<span class='gradient-text bg-gradient-1'>80%</span>的价格获取<span class='gradient-text'>热门线上服务</span>的订阅",
+    "description": "SubCloudy 是一个平台，您可以以折扣价格访问 ChatGPT、Midjourney、AdSpy、TGStat、Canva 等服务。下单 <span class='text-custom-blue'>$</span>1 试用订阅，立即体验便捷性。",
+    "button": "选择您的服务"
+  },
+  "about": {
+    "title": "我们是谁",
+    "description": "SubCloudy 是一个提供快速访问顶级数字工具的服务：ChatGPT、Midjourney、TGStat、Canva、AdSpy 等。我们提供：✅ 便捷订阅 ✅ 试用期 ✅ 付款后立即激活 我们的目标：让现代工具对所有人来说都易于访问——没有额外成本和复杂性。"
+  },
+  "promote": {
+    "title": "为什么选择 <span class='gradient-text'>SubCloudy</span>",
+    "access": {
+      "title": "可靠访问",
+      "description": "我们提供快速且有保证的访问，在付款后访问 ChatGPT、Midjourney、TGStat、Canva、AdSpy 和其他服务。"
+    },
+    "pricing": {
+      "title": "灵活定价",
+      "description": "我们为每个人提供方便的定价。您可以选择最适合您的。"
+    },
+    "refund": {
+      "title": "退款保证",
+      "description": "选择 $1 的试用期或全月订阅。没有合同，没有承诺。"
+    },
+    "activation": {
+      "title": "快速激活",
+      "description": "如果您在指定时间内没有收到访问权限，我们将退还您的钱——无需麻烦。"
+    },
+    "support": {
+      "title": "24/7 支持",
+      "description": "我们的团队24/7在线——可用英语、乌克兰语和俄语。"
+    },
+    "payment": {
+      "title": "安全支付",
+      "description": "您的付款通过行业标准加密安全处理。"
+    }
+  },
+  "steps": {
+    "title": "三步轻松开始使用 <br><span class='gradient-text'>SubCloudy</span>",
+    "description": "连接您需要的工具，快速又简单！",
+    "step1": {
+      "title": "如何运作",
+      "description1": "🚀 1. 选择您需要的在线服务",
+      "subdescription1": "ChatGPT、Midjourney、Canva、TGStat、AdSpy 等等 — 全部集于一个平台。",
+      "description2": "💸 2. 以优惠价格订阅",
+      "subdescription2": "您仅支付官方订阅价格的一部分。我们通过共享账户提供访问权限。",
+      "description3": "✅ 3. 获取访问权限并开始使用",
+      "subdescription3": "支付完成后，您将通过安全的个人账户立即获得访问。无需技术操作 — 一切即开即用。"
+    },
+    "step2": {
+      "title": "为什么划算",
+      "description1": "💰 最多节省 80% — 完整访问，价格更低。",
+      "description2": "🔄 自动续订 — 订阅按月自动续费。",
+      "description3": "✅ 条款透明 — 无隐藏费用，无强制套餐。",
+      "description4": "⚡️ 即时访问 — 付款后立即开始使用服务。",
+      "description5": "🧠 按需付费 — 只为您真正使用的服务买单。"
+    },
+    "step3": {
+      "title": "适合谁？",
+      "description1": "🎨 自由职业者 — 低价访问 ChatGPT、Midjourney、Canva 等平台。",
+      "description2": "📈 营销人员与广告投手 — 快速创建内容，开展分析。",
+      "description3": "📚 学生与学龄儿童 — 用于学习、项目和演示文稿。",
+      "description4": "🧾 中小企业主与创业者 — 节省订阅成本。",
+      "description5": "💡 设计师与创作者 — 轻松使用 Midjourney 和 Canva 创作视觉内容。"
+    }
+  },
+  "footer": {
+    "address": "FOP Knysh Alla Oleksandrivna 08297 Kyiv region, Bucha district, Bucha city, Shose Nove, building 42",
+    "copyright": "SubCloudy 2025 © All rights reserved"
+  },
+  "reviews": {
+    "title": "您的满意是我们成长的动力！"
+  },
+  "subscribe": {
+    "title": "订阅",
+    "description": "订阅 SubCloudy，第一时间了解独家折扣、特别优惠和最新工具！",
+    "button": "订阅",
+    "error": "请输入有效的电子邮件地址",
+    "required": "电子邮件为必填项",
+    "success": "感谢您的订阅！"
+  },
+  "notifications": {
+    "dropdown_title": "通知",
+    "empty": "您没有通知",
+    "dropdown_button": "加载更多"
+  },
+  "cookie": {
+    "title": "Cookie 政策",
+    "message": "我们使用 cookies 来改善您的体验。继续使用本网站，即表示您同意我们使用 cookies。",
+    "button": "接受"
+  },
+  "alert": {
+    "title": "通知",
+    "text": "操作已成功完成",
+    "ok": "确定"
+  },
+  "plugin": {
+    "not_installed": {
+      "title": "正确运行的扩展",
+      "message": "扩展对于服务会话的正确运行以及快速访问服务和设置是必需的。",
+      "install_button": "安装",
+      "later_button": "跳过",
+      "waiting": "正在安装扩展...",
+      "wait_instructions": "请安装扩展程序并返回此标签页。",
+      "auto_check_hint": "我们将自动检测安装。"
+    }
+  },
+  "confirm": {
+    "title": "你确定吗？",
+    "text": "此操作无法撤销。",
+    "yes": "是的",
+    "cancel": "取消"
+  },
+  "cart": {
+    "confirm": {
+      "remove_single": {
+        "title": "删除商品？",
+        "text": "你确定要从购物车中删除此商品吗？",
+        "confirm": "是的，删除",
+        "cancel": "取消"
+      }
+    }
+  },
+  "loader": {
+    "starting": "启动系统",
+    "checking_plugin": "检查浏览器扩展",
+    "preparing": "准备环境",
+    "syncing": "同步数据",
+    "browser": "启动浏览器"
+  },
+  "articles":{
+    "title": "<span class='gradient-text'>实用</span>文章",
+    "allArticles": "所有文章",
+    "readMore": "阅读更多",
+    "description": "浏览实用指南、教程与最新资讯。使用分类和筛选，快速找到所需内容。"
+  },
+  "savings": {
+    "title": "您在订阅中的<span class='gradient-text'>节省</span>",
+    "description": "少花钱 — 获得同样的服务，无需多付。"
+  }
+}

@@ -1,0 +1,281 @@
+{
+  "auth": {
+    "loginTitle": "Bienvenido de nuevo",
+    "loginSubtitle": "Inicia sesión en tu cuenta para continuar",
+    "registerTitle": "Crear una cuenta",
+    "registerSubtitle": "Únete a nosotros y comienza a utilizar nuestras herramientas creativas",
+    "email": "Correo electrónico",
+    "password": "Contraseña",
+    "passwordConfirmation": "Confirmar contraseña",
+    "name": "Nombre completo",
+    "rememberMe": "Recuérdame",
+    "forgotPassword": "¿Olvidaste tu contraseña?",
+    "loginButton": "Iniciar sesión",
+    "registerButton": "Crear cuenta",
+    "noAccount": "¿No tienes una cuenta?",
+    "haveAccount": "¿Ya tienes una cuenta?",
+    "registerLink": "Crear una",
+    "loginLink": "Iniciar sesión",
+    "logoutLink": "Cerrar sesión",
+    "profile": "Perfil",
+    "subscriptions": "Mis suscripciones",
+    "orContinueWith": "O continuar con",
+    "authenticating": "Autenticando...",
+    "google": "Iniciar con Google",
+    "telegram": "Iniciar con Telegram",
+    "forgotPasswordTitle": "¿Olvidaste tu contraseña?",
+    "forgotPasswordSubtitle": "Introduce tu correo electrónico para recibir un enlace de restablecimiento de contraseña.",
+    "forgotPasswordSubmit": "Enviar enlace",
+    "guide": "Por favor, comprueba tu correo electrónico para un enlace de restablecimiento de contraseña.",
+    "forgotPasswordSuccess": "Un enlace de restablecimiento de contraseña ha sido enviado a tu correo electrónico.",
+    "resetPasswordTitle": "Restablecer contraseña",
+    "resetPasswordSubtitle": "Introduce una nueva contraseña para tu cuenta.",
+    "resetPasswordSubmit": "Restablecer contraseña",
+    "resetPasswordSuccess": "Contraseña restablecida con éxito."
+  },
+  "services": {
+    "title": "Selecciona tu herramienta <span class='gradient-text bg-gradient-2'>creativa</span>",
+    "card": {
+      "show_more": "Mostrar más",
+      "back_to_front_side": "Toca la tarjeta para volver"
+    },
+    "page": {
+      "back": "Atrás"
+    }
+  },
+  "perMonth": "por mes",
+  "plans": {
+    "price_monthly": "<strong>{price} {currency}</strong> por mes",
+    "add_to_cart": "Añadir al carrito",
+    "go_to_checkout": "Ir a caja",
+    "open": "Abrir navegador",
+    "get_trial": "Probar",
+    "trial_period": "{price} de prueba"
+  },
+  "profile": {
+    "title": "Mi perfil",
+    "name": "Nombre",
+    "namePlaceholder": "Ingresa tu nombre",
+    "email": "Correo electrónico",
+    "emailPlaceholder": "Ingresa tu correo electrónico",
+    "password": "Contraseña",
+    "passwordPlaceholder": "Ingresa una nueva contraseña si deseas cambiarla",
+    "confirmPassword": "Confirmar contraseña",
+    "confirmPasswordPlaceholder": "Confirma tu nueva contraseña",
+    "saveButton": "Guardar",
+    "success": "¡Tu perfil ha sido actualizado con éxito!",
+    "keyboard": {
+      "title": "Idiomas del teclado",
+      "hint": "Usado por la extensión de navegador SubCloudy. El inglés siempre está activado.",
+      "codes": {
+        "en": "US",
+        "es": "ES",
+        "ru": "RU",
+        "uk": "UA",
+        "zh": "CN"
+      }
+    }
+  },
+  "checkout": {
+    "title": "Pagar",
+    "empty": "Tu carrito está vacío. ¡Empieza a añadir artículos!",
+    "payment_method": "Método de pago",
+    "payment_method_placeholder": "Selecciona un método de pago",
+    "submit": "Realizar pedido",
+    "crypto": "Cripto",
+    "crypto_placeholder": "Populares: BTC, ETH, USDT",
+    "default": "Predeterminado",
+    "credit_card": "Tarjeta de crédito",
+    "credit_card_placeholder": "Apple Pay, Visa, MasterCard y otros",
+    "total": "Total a pagar",
+    "pay": "Pagar",
+    "month": "mes",
+    "total_amount": "Total a pagar",
+    "trial_services": "servicios de prueba",
+    "premium_services": "servicios premium",
+    "payment_error": "Se produjo un error durante el pago. Por favor, inténtalo de nuevo.",
+    "success": "¡El pago se realizó con éxito! Gracias por tu compra.",
+    "free_success": "¡Acceso gratuito activado! Disfruta de tus servicios.",
+    "activating_admin": "Activando suscripción (admin)...",
+    "admin_success": "La suscripción fue activada manualmente con éxito.",
+    "admin_error": "Se produjo un error al activar la suscripción manualmente.",
+    "trial_badge": "Versión de prueba",
+    "premium_badge": "Versión completa",
+    "next_payments": "Próximos pagos de servicios",
+    "original_total": "Total original",
+    "discount": "Descuento",
+    "upsell_generic": "Agrega {0} servicio más \n y obtén un descuento",
+    "promocode_placeholder": "Código promocional",
+    "promocode_apply_aria": "Aplicar código promocional",
+    "promocode_clear_aria": "Borrar código promocional",
+    "promocode_discount": "Descuento por código",
+    "promocode_discount_empty_cart": "Código aplicado: el descuento se usará en el pago. Añade servicios al carrito para ver el ahorro.",
+    "free_via_promocode": "Gratis con código por {days} días",
+    "promocode_empty_hint": "O introduce un código promocional abajo"
+  },
+  "subscriptions": {
+    "title": "Mis suscripciones",
+    "empty_active": "No tienes suscripciones activas.",
+    "empty_inactive": "No tienes suscripciones inactivas.",
+    "title_sub": "Suscripción a {name}",
+    "status_active": "Activa",
+    "status_ended": "Finalizada",
+    "status_canceled": "Inactiva",
+    "payment_method": "Método de pago: {method}",
+    "created_at": "Creado el: {date}",
+    "next_payment_at": "Próximo pago el: {date}",
+    "active_tab": "Activas",
+    "inactive_tab": "Inactivas",
+    "empty": "No tienes ninguna suscripción.",
+    "cancel": "Cancelar suscripción",
+    "renew": "Reanudar suscripción",
+    "toggle_confirm_title_cancel": "¿Cancelar la suscripción?",
+    "toggle_confirm_text_cancel": "¿Estás seguro de que deseas cancelar la suscripción?",
+    "toggle_confirm_title_renew": "¿Reanudar la suscripción?",
+    "toggle_confirm_text_renew": "¿Estás seguro de que deseas reanudar la suscripción?",
+    "toggle_confirm_yes": "Sí, confirmar",
+    "toggle_confirm_no": "Cancelar",
+    "toggled_success": "Configuración de suscripción actualizada",
+    "toggled_error": "Error al actualizar la suscripción",
+    "end_at": "<strong>La renovación automática está desactivada</strong>, la suscripción está activa hasta {date}"
+  },
+  "hero": {
+    "title": "Obtén suscripciones a <span class='gradient-text'>los principales servicios online</span> con hasta un <span class='gradient-text bg-gradient-1'>80%</span> de descuento",
+    "description": "SubCloudy es una plataforma donde puedes acceder a ChatGPT, Midjourney, AdSpy, TGStat, Canva y otros servicios a un precio reducido. Activa una suscripción de prueba por <span class='text-custom-blue'>$</span>1 y descubre la comodidad hoy mismo.",
+    "button": "Elige tu servicio"
+  },
+  "about": {
+    "title": "¿Quiénes somos?",
+    "description": "SubCloudy es un servicio que proporciona acceso rápido a las mejores herramientas digitales: ChatGPT, Midjourney, TGStat, Canva, AdSpy y más. ¿Qué ofrecemos? ✅ Suscripciones convenientes ✅ Tarifas de prueba ✅ Activación instantánea después de pago Nuestra meta: Hacer que las herramientas modernas sean accesibles para todos — sin costos adicionales y sin complicaciones."
+  },
+  "promote": {
+    "title": "¿Por qué elegir <span class='gradient-text'>SubCloudy</span>?",
+    "access": {
+      "title": "Acceso confiable",
+      "description": "Ofrecemos acceso rápido y garantizado a ChatGPT, Midjourney, TGStat, Canva, AdSpy y otros servicios después de pago."
+    },
+    "pricing": {
+      "title": "Precios flexibles",
+      "description": "Puedes elegir un período de prueba de $1 o una suscripción mensual sin compromiso."
+    },
+    "refund": {
+      "title": "Garantía de reembolso",
+      "description": "Si no recibes el acceso en el tiempo indicado, te reembolsaremos el dinero."
+    },
+    "activation": {
+      "title": "Activación rápida",
+      "description": "Si no recibes el acceso en el tiempo indicado, te reembolsaremos el dinero."
+    },
+    "support": {
+      "title": "Soporte 24/7",
+      "description": "Nuestro equipo está en línea 24/7 — disponible en inglés, ucraniano y ruso."
+    },
+    "payment": {
+      "title": "Pagos seguros",
+      "description": "Nuestro equipo está en línea 24/7 — disponible en inglés, ucraniano y ruso."
+    }
+  },
+  "steps": {
+    "title": "Comienza con <br><span class='gradient-text'>SubCloudy</span> en 3 pasos",
+    "description": "¡Conectar tus herramientas es rápido y sencillo!",
+    "step1": {
+      "title": "Cómo funciona",
+      "description1": "🚀 1. Usted elige el servicio en línea que necesita",
+      "subdescription1": "ChatGPT, Midjourney, Canva, TGStat, AdSpy y otros — todo en una sola plataforma.",
+      "description2": "💸 2. Se suscribe a un precio reducido",
+      "subdescription2": "Solo paga una parte del precio oficial. Proporcionamos acceso mediante el uso compartido de una cuenta.",
+      "description3": "✅ 3. Obtiene acceso y comienza a usarlo",
+      "subdescription3": "Después del pago, recibe acceso inmediato a través de una cuenta personal segura. Sin complicaciones técnicas: todo funciona “listo para usar”."
+    },
+    "step2": {
+      "title": "¿Por qué es rentable?",
+      "description1": "💰 Ahorro de hasta el 80% — Disfrute de acceso completo pagando mucho menos.",
+      "description2": "🔄 Renovación automática — Su suscripción continúa cada mes.",
+      "description3": "✅ Términos transparentes — Sin cargos ocultos ni paquetes forzados.",
+      "description4": "⚡️ Acceso instantáneo — Use el servicio de inmediato.",
+      "description5": "🧠 Solo lo que necesita — Paga solo por lo que realmente usa."
+    },
+    "step3": {
+      "title": "¿Para quién es este servicio?",
+      "description1": "🎨 Freelancers — acceso a herramientas como ChatGPT, Midjourney, Canva, sin gastar demasiado.",
+      "description2": "📈 Marketeros y publicistas — campañas, análisis y creación rápida.",
+      "description3": "📚 Estudiantes y escolares — herramientas para tareas, proyectos y presentaciones.",
+      "description4": "🧾 Pequeños empresarios — acceda a herramientas clave sin pagar de más.",
+      "description5": "💡 Diseñadores y creativos — contenido visual fácil con Midjourney y Canva."
+    }
+  },
+  "footer": {
+    "address": "FOP Knysh Alla Oleksandrivna 08297 Kyiv region, Bucha district, Bucha city, Shose Nove, building 42",
+    "copyright": "SubCloudy 2025 © Todos los derechos reservados"
+  },
+  "reviews": {
+    "title": "¡Tu satisfacción nos impulsa a crecer!"
+  },
+  "subscribe": {
+    "title": "Suscribirse",
+    "description": "Suscríbete a SubCloudy y sé el primero en enterarte de descuentos exclusivos, ofertas especiales y las herramientas más recientes.",
+    "button": "Suscribirse",
+    "error": "Por favor, introduce una dirección de correo electrónico válida",
+    "required": "El correo electrónico es obligatorio",
+    "success": "¡Gracias por suscribirte!"
+  },
+  "notifications": {
+    "dropdown_title": "Notificaciones",
+    "empty": "No tienes notificaciones",
+    "dropdown_button": "Cargar más"
+  },
+  "cookie": {
+    "title": "Política de cookies",
+    "message": "Usamos cookies para mejorar su experiencia. Al continuar navegando, acepta nuestro uso de cookies.",
+    "button": "Aceptar"
+  },
+  "alert": {
+    "title": "Aviso",
+    "text": "Operación completada con éxito",
+    "ok": "OK"
+  },
+  "plugin": {
+    "not_installed": {
+      "title": "Extensión para funcionamiento correcto",
+      "message": "La extensión es necesaria para el funcionamiento correcto de la sesión de servicios y para el acceso rápido a los servicios y configuraciones.",
+      "install_button": "Instalar",
+      "later_button": "Omitir",
+      "waiting": "Instalando extensión...",
+      "wait_instructions": "Instala la extensión y regresa a esta pestaña.",
+      "auto_check_hint": "Detectaremos la instalación automáticamente."
+    }
+  },
+  "confirm": {
+    "title": "¿Estás seguro?",
+    "text": "Esta acción no se puede deshacer.",
+    "yes": "Sí",
+    "cancel": "Cancelar"
+  },
+  "cart": {
+    "confirm": {
+      "remove_single": {
+        "title": "¿Eliminar artículo?",
+        "text": "¿Estás seguro de que deseas eliminar este artículo de tu carrito?",
+        "confirm": "Sí, eliminar",
+        "cancel": "Cancelar"
+      }
+    }
+  },
+  "loader": {
+    "starting": "Iniciando el sistema",
+    "checking_plugin": "Verificando extensión del navegador",
+    "preparing": "Preparando el entorno",
+    "syncing": "Sincronizando datos",
+    "browser": "Iniciando el navegador"
+  },
+  "articles": {
+    "title": "Artículos <span class='gradient-text'>útiles</span>",
+    "allArticles": "Todos los artículos",
+    "readMore": "Leer más",
+    "description": "Guías, tutoriales y noticias útiles. Usa categorías y filtros para encontrar rápido lo que necesitas."
+  },
+  "savings": {
+    "title": "Tus <span class='gradient-text'>ahorros</span> en suscripciones",
+    "description": "Paga menos y obtén los mismos servicios sin pagar de más."
+  }
+}

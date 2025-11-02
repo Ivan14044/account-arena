@@ -1,0 +1,202 @@
+@extends('adminlte::page')
+
+@section('title', 'Add service')
+
+@section('content_header')
+    <h1>Add service</h1>
+@stop
+
+@section('content')
+    <div class="row">
+        <div class="col-xl-6">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Service data</h3>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ route('admin.services.store') }}" enctype="multipart/form-data">
+                        @csrf
+
+                        <div class="form-group">
+                            <label for="code">Code</label>
+                            <input type="text" name="code" id="code" class="form-control @error('code') is-invalid @enderror" value="{{ old('code') }}">
+                            @error('code')
+                                <div class="invalid-feedback d-block">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <div class="form-group">
+                            <label for="is_active">Status</label>
+                            <select name="is_active" id="is_active" class="form-control @error('is_active') is-invalid @enderror">
+                                <option value="1" {{ old('is_active', 1) == 1 ? 'selected' : '' }}>Active</option>
+                                <option value="0" {{ old('is_active', 1) == 0 ? 'selected' : '' }}>Inactive</option>
+                            </select>
+                            @error('is_active')
+                                <div class="invalid-feedback d-block">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <div class="form-group">
+                            <label for="amount">Amount</label>
+                            <input type="number" step="0.1" name="amount" id="amount" class="form-control @error('amount') is-invalid @enderror" value="{{ old('amount') }}">
+                            @error('amount')
+                                <div class="invalid-feedback d-block">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <div class="form-group">
+                            <label for="trial_amount">Trial amount</label>
+                            <input type="number" step="0.1" name="trial_amount" id="trial_amount" class="form-control @error('trial_amount') is-invalid @enderror" value="{{ old('trial_amount') }}">
+                            @error('trial_amount')
+                                <div class="invalid-feedback d-block">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <div class="form-group">
+                            <label for="position">Position</label>
+                            <input type="number" step="1" name="position" id="position" class="form-control @error('position') is-invalid @enderror" value="{{ old('position', \App\Models\Service::nextPosition()) }}">
+                            @error('position')
+                                <div class="invalid-feedback d-block">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <div class="form-group">
+                            <label for="logo">Logo</label>
+                            <input type="file" accept="image/*" class="form-control-file @error('logo') is-invalid @enderror" id="logo" name="logo">
+                            @error('logo')
+                                <div class="invalid-feedback d-block">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <hr>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">Browser settings</h3>
+                            </div>
+                            <div class="card-body p-3">
+                                <div class="form-group">
+                                    <label for="params_link">Service link (URL)</label>
+                                    <input type="url" name="params[link]" id="params_link" class="form-control @error('params.link') is-invalid @enderror" value="{{ old('params.link') }}" placeholder="https://example.com">
+                                    @error('params.link')
+                                        <div class="invalid-feedback d-block">{{ $message }}</div>
+                                    @enderror
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="params_title">Window title</label>
+                                    <input type="text" name="params[title]" id="params_title" class="form-control @error('params.title') is-invalid @enderror" value="{{ old('params.title') }}" placeholder="Title">
+                                    @error('params.title')
+                                        <div class="invalid-feedback d-block">{{ $message }}</div>
+                                    @enderror
+                                </div>
+
+                                
+
+                                <div class="form-group">
+                                    <label for="params_icon">Window icon (favicon)</label>
+                                    <input type="file" accept="image/*" class="form-control-file @error('params_icon') is-invalid @enderror" id="params_icon" name="params_icon">
+                                    @error('params_icon')
+                                        <div class="invalid-feedback d-block">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header no-border border-0 p-0">
+                                <ul class="nav nav-tabs" id="custom-tabs-one-tab" role="tablist">
+                                    @foreach(config('langs') as $code => $flag)
+                                        @php($hasError = $errors->has('name.' . $code) || $errors->has('description.' . $code))
+                                        <li class="nav-item">
+                                            <a class="nav-link @if($hasError) text-danger @endif {{ $code == 'ru' ? 'active' : null }}"
+                                               id="tab_{{ $code }}" data-toggle="pill" href="#content_{{ $code }}" role="tab">
+                                                <span class="flag-icon flag-icon-{{ $flag }} mr-1"></span> {{ strtoupper($code) }}  @if($hasError)*@endif
+                                            </a>
+                                        </li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                            <div class="card-body">
+                                <div class="tab-content">
+                                    @foreach(config('langs') as $code => $flag)
+                                        <div class="tab-pane fade show {{ $code == 'ru' ? 'active' : null }}" id="content_{{ $code }}" role="tabpanel">
+                                            <div class="form-group">
+                                                <label for="name_{{ $code }}">Name</label>
+                                                <input type="text" name="name[{{ $code }}]" id="name_{{ $code }}"
+                                                       class="form-control @error('name.' . $code) is-invalid @enderror"
+                                                       value="{{ old('name.' . $code) }}">
+                                                @error('name.' . $code)
+                                                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                                                @enderror
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="subtitle_{{ $code }}">Subtitle</label>
+                                                <input type="text" name="subtitle[{{ $code }}]" id="subtitle_{{ $code }}"
+                                                       class="form-control @error('subtitle.' . $code) is-invalid @enderror"
+                                                       value="{{ old('subtitle.' . $code) }}">
+                                                @error('subtitle.' . $code)
+                                                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                                                @enderror
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="short_description_card_{{ $code }}">Short description (card)</label>
+                                                <textarea style="height: 210px"
+                                                          name="short_description_card[{{ $code }}]"
+                                                          class="ckeditor form-control @error('short_description_card.' . $code) is-invalid @enderror"
+                                                          id="short_description_card_{{ $code }}">{!! old('short_description_card.' . $code) !!}</textarea>
+                                                @error('short_description_card.' . $code)
+                                                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                                                @enderror
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="short_description_checkout_{{ $code }}">Short description (checkout)</label>
+                                                <textarea style="height: 210px"
+                                                          name="short_description_checkout[{{ $code }}]"
+                                                          class="ckeditor form-control @error('short_description_checkout.' . $code) is-invalid @enderror"
+                                                          id="short_description_checkout_{{ $code }}">{!! old('short_description_checkout.' . $code) !!}</textarea>
+                                                @error('short_description_checkout.' . $code)
+                                                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                                                @enderror
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="full_description_{{ $code }}">Full Description</label>
+                                                <textarea style="height: 210px"
+                                                          name="full_description[{{ $code }}]"
+                                                          class="ckeditor form-control @error('full_description.' . $code) is-invalid @enderror"
+                                                          id="full_description_{{ $code }}">{!! old('full_description.' . $code) !!}</textarea>
+                                                @error('full_description.' . $code)
+                                                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                                                @enderror
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Create</button>
+                        <a href="{{ route('admin.services.index') }}" class="btn btn-secondary">Cancel</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+@endsection
+
+@section('js')
+    <script>
+        document.querySelectorAll('.ckeditor').forEach(function (textarea) {
+            ClassicEditor
+                .create(textarea)
+                .then(editor => {
+                    editor.editing.view.change(writer => {
+                        writer.setStyle('height', '170px', editor.editing.view.document.getRoot());
+                    });
+                })
+                .catch(error => {
+                    console.error(error);
+                });
+        });
+    </script>
+@endsection

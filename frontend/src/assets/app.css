@@ -1,0 +1,187 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Подключение шрифтов SFT Schrifted Sans */
+@font-face {
+    font-family: 'SFT Schrifted Sans';
+    src: url('/fonts/SFTSchriftedSansTRIAL-ExtraLight.ttf') format('truetype');
+    font-weight: 200;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'SFT Schrifted Sans';
+    src: url('/fonts/SFTSchriftedSansTRIAL-Light.ttf') format('truetype');
+    font-weight: 300;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'SFT Schrifted Sans';
+    src: url('/fonts/SFTSchriftedSansTRIAL-Regular.ttf') format('truetype');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'SFT Schrifted Sans';
+    src: url('/fonts/SFTSchriftedSansTRIAL-Medium.ttf') format('truetype');
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'SFT Schrifted Sans';
+    src: url('/fonts/SFTSchriftedSansTRIAL-Bold.ttf') format('truetype');
+    font-weight: 600;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'SFT Schrifted Sans';
+    src: url('/fonts/SFTSchriftedSansTRIAL-Bold.ttf') format('truetype');
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'SFT Schrifted Sans';
+    src: url('/fonts/SFTSchriftedSansTRIAL-ExtraBold.ttf') format('truetype');
+    font-weight: 800;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'SFT Schrifted Sans';
+    src: url('/fonts/SFTSchriftedSansTRIAL-Black.ttf') format('truetype');
+    font-weight: 900;
+    font-style: normal;
+    font-display: swap;
+}
+
+*:focus {
+    outline: none;
+}
+
+header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 60px;
+    width: 100%;
+    z-index: 2;
+    transition: box-shadow 0.5s ease;
+}
+
+.top-3 {
+    top: 10px;
+}
+
+html, body {
+    overflow-x: hidden;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+button.swal2-confirm {
+    color: #ffffff !important;
+}
+
+button.swal2-cancel {
+    color: #000 !important;
+}
+
+.gradient-text {
+    background: linear-gradient(90deg, #ff6a00, #ff00cc, #00aaff, #007bff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    display: inline;
+}
+
+.bg-gradient-1 {
+    background: linear-gradient(90deg, #a032f5, #e440bf, #007bff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.bg-gradient-2 {
+    background: linear-gradient(90deg, #ff6a00, #ff00cc, #00aaff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.text-custom-blue {
+    color: #007bff !important;
+}
+
+@keyframes spin-slow-reverse {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(-360deg);
+    }
+}
+
+.spin-slow-reverse {
+    animation: spin-slow-reverse 2.5s linear infinite;
+}
+
+::-webkit-scrollbar {
+    width: 3px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: rgba(100, 100, 100, 0.8);
+    border-radius: 3px;
+}
+
+* {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(100, 100, 100, 0.8) transparent;
+}
+
+.glass-card {
+    backdrop-filter: blur(10px);
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.glass-button {
+    backdrop-filter: blur(10px);
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.cta-button {
+    display: inline-block;
+    padding: 0.9rem 3rem;
+    border: 1px solid #0047ff;
+    text-decoration: none;
+    font-size: 18px;
+    border-radius: 10px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.cta-button:hover {
+    background-color: #0047ff;
+    color: #fff;
+    transition: all 0.2s ease;
+}
