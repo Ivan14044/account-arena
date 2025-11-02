@@ -1,0 +1,57 @@
+# ПЕРЕМЕННЫЕ ОКРУЖЕНИЯ ДЛЯ RAILWAY
+# Скопируйте это в Railway Dashboard → Variables → Raw Editor
+
+APP_NAME=SubCloudy
+APP_ENV=production
+APP_DEBUG=false
+APP_KEY=base64:wSNAqDS5GNkKUfEFP6Vh3egkGfC1JIGHBr1VLJ2BhN8=
+APP_URL=${{RAILWAY_PUBLIC_DOMAIN}}
+
+# Database (Railway автоматически заполнит при добавлении MySQL)
+DB_CONNECTION=mysql
+DB_HOST=${{MYSQL_HOST}}
+DB_PORT=${{MYSQL_PORT}}
+DB_DATABASE=${{MYSQL_DATABASE}}
+DB_USERNAME=${{MYSQL_USER}}
+DB_PASSWORD=${{MYSQL_PASSWORD}}
+
+# Session & Cache
+SESSION_DRIVER=database
+SESSION_LIFETIME=120
+CACHE_DRIVER=database
+QUEUE_CONNECTION=database
+
+# Frontend
+FRONTEND_URL=https://ivan14044.github.io
+
+# CORS
+SANCTUM_STATEFUL_DOMAINS=ivan14044.github.io
+
+# Google OAuth (заполните своими ключами)
+GOOGLE_CLIENT_ID=ваш_google_client_id
+GOOGLE_CLIENT_SECRET=ваш_google_client_secret
+GOOGLE_REDIRECT_URI=${{RAILWAY_PUBLIC_DOMAIN}}/auth/google/callback
+
+# Telegram (заполните своим токеном)
+TELEGRAM_BOT_TOKEN=ваш_telegram_bot_token
+TELEGRAM_BOT_USERNAME=ваш_bot_username
+
+# Payment Systems (заполните своими ключами)
+CRYPTOMUS_API_KEY=ваш_cryptomus_key
+CRYPTOMUS_MERCHANT_ID=ваш_merchant_id
+MONO_API_KEY=ваш_mono_key
+
+# Mail (опционально)
+MAIL_MAILER=smtp
+MAIL_HOST=smtp.mailtrap.io
+MAIL_PORT=2525
+MAIL_USERNAME=null
+MAIL_PASSWORD=null
+MAIL_ENCRYPTION=tls
+MAIL_FROM_ADDRESS=noreply@subcloudy.com
+MAIL_FROM_NAME=SubCloudy
+
+# Logging
+LOG_CHANNEL=stack
+LOG_LEVEL=error
+
