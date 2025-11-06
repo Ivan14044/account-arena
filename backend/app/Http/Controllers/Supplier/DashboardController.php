@@ -87,6 +87,11 @@ class DashboardController extends Controller
         
         $unreadCount = $supplier->supplierNotifications()->unread()->count();
         
+        // Рейтинг поставщика
+        $rating = $supplier->supplier_rating ?? 100.00;
+        $ratingLevel = $supplier->getRatingLevel();
+        $ratingDetails = $supplier->getRatingDetails();
+        
         return view('supplier.dashboard', compact(
             'supplier',
             'totalProducts',
@@ -100,7 +105,10 @@ class DashboardController extends Controller
             'topProducts',
             'lowStockProducts',
             'unreadNotifications',
-            'unreadCount'
+            'unreadCount',
+            'rating',
+            'ratingLevel',
+            'ratingDetails'
         ));
     }
 }

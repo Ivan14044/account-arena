@@ -31,7 +31,7 @@
                                 @elseif($voucher->is_active)
                                     <span class="badge badge-success">Активен</span>
                                 @else
-                                    <span class="badge badge-warning">Неактивен</span>
+                                    <span class="badge badge-warning"></span>
                                 @endif
                             </td>
                         </tr>
@@ -60,11 +60,9 @@
 
                     <div class="mt-3">
                         <a href="{{ route('admin.vouchers.edit', $voucher) }}" class="btn btn-warning">
-                            <i class="fas fa-edit"></i> Редактировать
-                        </a>
+                            <i class="fas fa-edit"></i>Редактировать</a>
                         <a href="{{ route('admin.vouchers.index') }}" class="btn btn-secondary">
-                            <i class="fas fa-arrow-left"></i> Назад
-                        </a>
+                            <i class="fas fa-arrow-left"></i>Назад</a>
                     </div>
                 </div>
             </div>

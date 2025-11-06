@@ -32,7 +32,7 @@
             <div class="text-center mb-8 relative z-2">
                 <h2
                     class="text-[32px] md:text-[48px] lg:text-[64px]m text-gray-900 dark:text-white mt-3 leading-none"
-                    v-html="$t('steps.title')"
+                    v-html="stepsTitle"
                 ></h2>
             </div>
 
@@ -78,7 +78,7 @@
             <div class="text-center mb-16">
                 <h2
                     class="text-[32px] md:text-[48px] lg:text-[64px] font-medium text-gray-900 dark:text-white mt-3"
-                    v-html="$t('promote.title')"
+                    v-html="promoteTitle"
                 ></h2>
             </div>
 
@@ -93,6 +93,10 @@
 </template>
 
 <script setup lang="ts">
+import { computed, onMounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { useSiteContentStore } from '@/stores/siteContent';
+import { useContentsStore } from '@/stores/contents';
 import AboutSection from '../components/home/AboutSection.vue';
 import ArticleSection from '../components/home/ArticleSection.vue';
 import HeroSection from '../components/home/HeroSection.vue';
@@ -102,13 +106,12 @@ import SubscribeSection from '../components/home/SubscribeSection.vue';
 import SavingsOn from '../components/home/SavingsOn.vue';
 import AccountSection from '../components/home/AccountSection.vue';
 import CatalogSection from '../components/home/CatalogSection.vue';
-import { computed, onMounted, ref } from 'vue';
-import { useI18n } from 'vue-i18n';
-import { useContentsStore } from '@/stores/contents';
 
-const { locale } = useI18n();
+const { t, locale } = useI18n();
+const siteContentStore = useSiteContentStore();
 const contents = useContentsStore();
 
+// Filters for products
 const filters = ref({
     categoryId: null as number | null,
     hideOutOfStock: false,
@@ -126,8 +129,22 @@ const handleFilterChange = (newFilters: {
 };
 
 onMounted(() => {
+    // Load site content
+    siteContentStore.loadContent();
     // Ensure content is fetched so we can decide visibility
     contents.fetchContent('saving_on_subscriptions', locale.value);
+});
+
+// Get dynamic content with fallback to i18n
+const promoteContent = computed(() => siteContentStore.promote(locale.value));
+const stepsContent = computed(() => siteContentStore.steps(locale.value));
+
+const promoteTitle = computed(() => {
+    return promoteContent.value?.title || t('promote.title');
+});
+
+const stepsTitle = computed(() => {
+    return stepsContent.value?.title || t('steps.title');
 });
 
 const hasSavings = computed(() => {

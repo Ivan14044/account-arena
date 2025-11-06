@@ -66,30 +66,117 @@
     "success": "Ваш профиль был успешно обновлен!",
     "keyboard": {
       "title": "Языки клавиатуры",
-      "hint": "Используется расширением браузера SubCloudy. Английский всегда включён.",
+      "hint": "Используется расширением браузера Account Arena. Английский всегда включён.",
       "codes": {
         "en": "US",
-        "es": "ES",
         "ru": "RU",
-        "uk": "UA",
-        "zh": "CN"
+        "uk": "UA"
       }
     },
     "balance": "Ваш баланс",
+    "voucher": {
+      "title": "Активировать ваучер",
+      "description": "Введите код ваучера, чтобы пополнить баланс аккаунта",
+      "placeholder": "ВВЕДИТЕ КОД ВАУЧЕРА",
+      "activate": "Активировать",
+      "activating": "Активация...",
+      "success": "Ваучер успешно активирован!",
+      "error": "Ошибка активации ваучера"
+    },
     "purchases": {
       "title": "История покупок",
       "loading": "Загрузка...",
       "no_purchases": "У вас пока нет покупок",
       "no_service": "Без названия",
+      "filters": {
+        "period": "Период",
+        "status": "Статус",
+        "payment_method": "Способ оплаты",
+        "date_from": "С даты",
+        "date_to": "По дату",
+        "apply": "Применить",
+        "reset": "Сбросить",
+        "all": "Все"
+      },
       "methods": {
         "card": "Банковская карта",
         "crypto": "Криптовалюта",
         "free": "Бесплатно",
-        "admin": "Администратор"
+        "admin": "Администратор",
+        "credit_card": "Банковская карта",
+        "balance": "Баланс"
+      },
+      "statuses": {
+        "completed": "Успешно",
+        "pending": "В обработке",
+        "failed": "Неуспешно",
+        "refunded": "Возврат средств"
+      },
+      "quantity": "Количество",
+      "pcs": "шт.",
+      "show_data": "Показать данные товара",
+      "hide_data": "Скрыть данные товара",
+      "copy": "Копировать",
+      "download": "Скачать",
+      "download_all": "Скачать все аккаунты",
+      "account": "Аккаунт",
+      "copy_success": "Скопировано в буфер обмена!",
+      "copy_error": "Ошибка при копировании",
+      "download_success": "Файл скачан!",
+      "order_number": "Номер заказа",
+      "order": "Заказ",
+      "amount": "Сумма",
+      "disputes": {
+        "title": "Претензии",
+        "create_button": "Сообщить о проблеме",
+        "create_title": "Создать претензию",
+        "reason": "Причина",
+        "select_reason": "Выберите причину",
+        "description": "Описание проблемы",
+        "description_placeholder": "Опишите проблему подробно...",
+        "submit": "Отправить",
+        "cancel": "Отмена",
+        "success": "Претензия успешно создана",
+        "error": "Ошибка при создании претензии",
+        "cannot_create": "Невозможно создать претензию",
+        "already_exists": "Претензия уже создана",
+        "expired": "Срок подачи претензии истек",
+        "reasons": {
+          "invalid_account": "Невалидный аккаунт",
+          "wrong_data": "Неверные данные",
+          "not_working": "Не работает",
+          "already_used": "Уже использован",
+          "banned": "Заблокирован",
+          "other": "Другое"
+        },
+        "status": {
+          "new": "Новая",
+          "in_review": "На рассмотрении",
+          "resolved": "Решена",
+          "rejected": "Отклонена"
+        },
+        "decision": {
+          "refund": "Возврат средств",
+          "replacement": "Замена товара",
+          "rejected": "Отклонено"
+        },
+        "my_disputes": "Мои претензии",
+        "no_disputes": "У вас нет претензий",
+        "view_details": "Подробнее",
+        "created_at": "Создана",
+        "admin_comment": "Комментарий администратора"
       }
     }
   },
   "checkout": {
+    "agree_with": "Я принимаю",
+    "purchase_rules": "Правила покупки",
+    "agree": "Согласен",
+    "close": "Закрыть",
+    "must_agree_rules": "Для оформления заказа необходимо принять правила покупки",
+    "select_payment_method": "Пожалуйста, выберите способ оплаты",
+    "trial_crypto_not_allowed": "Криптовалюта недоступна для пробных подписок",
+    "rules_not_available": "Правила покупки временно недоступны",
     "title": "Оформление заказа",
     "empty": "Ваша корзина пуста. Начните добавлять товары!",
     "payment_method": "Способ оплаты",
@@ -97,6 +184,10 @@
     "submit": "Оформить заказ",
     "crypto": "Криптовалюта",
     "crypto_placeholder": "Популярные: BTC, ETH, USDT",
+    "balance": "С баланса",
+    "balance_placeholder": "Оплата с баланса аккаунта",
+    "insufficient_balance": "Недостаточно средств на балансе",
+    "balance_success": "Оплата с баланса прошла успешно!",
     "default": "По умолчанию",
     "credit_card": "Кредитная карта",
     "credit_card_placeholder": "Apple Pay, Visa, MasterCard и другие",
@@ -196,7 +287,7 @@
     }
   },
   "steps": {
-    "title": "Как <br><span class='gradient-text'>купить</span> товар в 3 шага",
+    "title": "Как <span class='gradient-text'>купить</span> товар в 3 шага",
     "description": "Процесс покупки простой и понятный!",
     "step1": {
       "title": "Как это работает",
@@ -226,14 +317,14 @@
   },
   "footer": {
     "address": "ФОП Книш Алла Александровна 08297, Киевская обл., Бучанский р-н, г. Буча, шоссе Новое, дом 42",
-    "copyright": "SubCloudy 2025 © Все права защищены"
+    "copyright": "Account Arena 2025 © Все права защищены"
   },
   "reviews": {
     "title": "Ваше удовлетворение — наш стимул для роста!"
   },
   "subscribe": {
     "title": "Подписаться",
-    "description": "Подпишитесь на SubCloudy и первыми узнавайте об эксклюзивных скидках, специальных предложениях и новейших инструментах!",
+    "description": "Подпишитесь на Account Arena и первыми узнавайте об эксклюзивных скидках, специальных предложениях и новейших инструментах!",
     "button": "Подписаться",
     "error": "Пожалуйста, введите корректный email адрес",
     "required": "Email обязателен для заполнения",
@@ -271,6 +362,32 @@
     "yes": "Да",
     "cancel": "Отмена"
   },
+  "balance_topup": {
+    "title": "Пополнение баланса",
+    "subtitle": "Выберите сумму и способ пополнения вашего баланса",
+    "current_balance": "Текущий баланс",
+    "history_link": "История операций →",
+    "amount_section": "Сумма пополнения",
+    "enter_amount": "Или введите свою сумму",
+    "amount_placeholder": "Введите сумму",
+    "min_amount": "Минимальная сумма пополнения",
+    "payment_method_section": "Способ оплаты",
+    "payment_card": "Банковская карта",
+    "payment_card_desc": "Visa, Mastercard, Google Pay, Apple Pay",
+    "payment_crypto": "Криптовалюта",
+    "payment_crypto_desc": "Bitcoin, Ethereum, USDT и другие",
+    "info_title": "Важная информация:",
+    "info_instant": "Средства зачисляются автоматически после подтверждения платежа",
+    "info_time": "Время зачисления: карта - мгновенно, криптовалюта - до 30 минут",
+    "info_commission": "Комиссия платежной системы может быть учтена при оплате",
+    "cancel_button": "Отмена",
+    "topup_button": "Пополнить на",
+    "processing": "Обработка...",
+    "auth_required": "Для пополнения баланса необходимо войти в систему",
+    "error_create_payment": "Ошибка при создании платежа",
+    "success": "Баланс успешно пополнен!",
+    "failed_to_load": "Не удалось загрузить актуальный баланс. Попробуйте обновить страницу."
+  },
   "cart": {
     "confirm": {
       "remove_single": {
@@ -289,14 +406,44 @@
     "in_stock": "В наличии",
     "out_of_stock": "Нет в наличии",
     "show_all": "Показать все товары",
-    "stock_unit": "шт."
+    "stock_unit": "шт.",
+    "detail": {
+      "home": "Главная",
+      "back_to_catalog": "Назад к каталогу",
+      "product": "Товар",
+      "loading": "Загрузка...",
+      "add_to_favorites": "Добавить в избранное",
+      "remove_from_favorites": "Удалить из избранного",
+      "added_to_favorites": "Добавлено в избранное",
+      "removed_from_favorites": "Удалено из избранного",
+      "sku": "Артикул",
+      "sku_copied": "Артикул скопирован в буфер обмена",
+      "click_to_copy": "нажмите для копирования",
+      "price": "Цена",
+      "quantity": "Количество",
+      "in_stock_count": "В наличии: {count} шт.",
+      "no_stock": "Нет в наличии",
+      "add_to_cart": "Добавить в корзину",
+      "buy_now": "Купить сейчас",
+      "added_to_cart": "Товар добавлен в корзину ({count} шт.)",
+      "out_of_stock_error": "Товар отсутствует на складе",
+      "description_title": "Описание товара",
+      "no_description": "Описание отсутствует",
+      "category": "Категория",
+      "supplier": "Поставщик",
+      "rating": "Рейтинг",
+      "go_to_product": "Перейти к {title}",
+      "price_per_unit": "{price} × {quantity} шт.",
+      "available_only": "Доступно только {count} шт.",
+      "product_added_to_cart": "{title} ({quantity} шт.) добавлен в корзину"
+    }
   },
   "catalog": {
     "title": "Каталог товаров",
     "subtitle": "Выберите подходящие категории из нашего каталога",
     "hide_out_of_stock": "Скрыть товары не в наличии",
     "show_favorites_only": "Показать только избранные товары",
-    "search_placeholder": "Поиск товаров…"
+    "search_placeholder": "Поиск по названию, описанию или артикулу…"
   },
   "loader": {
     "starting": "Запуск системы",
@@ -314,5 +461,9 @@
   "savings": {
     "title": "Ваша <span class='gradient-text'>экономия</span> с нами",
     "description": "Покупайте цифровые товары по выгодным ценам — без переплат и скрытых комиссий."
+  },
+  "order_success": {
+    "title": "Заказ оформлен успешно!",
+    "subtitle": "Спасибо за покупку! Ваши товары доступны для скачивания ниже."
   }
 }

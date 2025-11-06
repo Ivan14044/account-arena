@@ -19,7 +19,7 @@
                         <span
                             class="text-black dark:!text-white mt-1 text-sm font-semibold leading-none"
                         >
-                            SubCloudy
+                            Account Arena
                         </span>
                     </router-link>
                 </div>
@@ -127,16 +127,37 @@ const redirectQuery = route.query.redirect as string | undefined;
 // Removed inline register navigation button; registration link remains below the form
 
 const handleSubmit = async () => {
-    const success = await authStore.login({
-        email: email.value,
-        password: password.value,
-        remember: remember.value
-    });
-    errors.value = authStore.errors;
+    console.log('[LOGIN PAGE] Начало обработки формы логина');
+    console.log('[LOGIN PAGE] Email:', email.value);
+    
+    try {
+        const success = await authStore.login({
+            email: email.value,
+            password: password.value,
+            remember: remember.value
+        });
+        
+        console.log('[LOGIN PAGE] Результат авторизации:', success);
+        errors.value = authStore.errors;
 
-    if (success) {
-        const redirectTo = route.query.redirect as string;
-        router.push(redirectTo || '/');
+        if (success) {
+            console.log('[LOGIN PAGE] Авторизация успешна, подготовка к редиректу...');
+            
+            // Небольшая задержка для гарантии сохранения данных
+            await new Promise(resolve => setTimeout(resolve, 50));
+            
+            const redirectTo = route.query.redirect as string;
+            console.log('[LOGIN PAGE] Редирект на:', redirectTo || '/');
+            
+            await router.push(redirectTo || '/');
+            console.log('[LOGIN PAGE] Редирект выполнен');
+        } else {
+            console.log('[LOGIN PAGE] Авторизация не удалась');
+            console.log('[LOGIN PAGE] Ошибки:', errors.value);
+        }
+    } catch (error) {
+        console.error('[LOGIN PAGE] Критическая ошибка:', error);
+        errors.value = authStore.errors || {};
     }
 };
 </script>

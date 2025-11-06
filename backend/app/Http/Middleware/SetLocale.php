@@ -45,11 +45,9 @@ class SetLocale
     {
         if (!$locale) return null;
         $l = strtolower($locale);
+        // Нормализация для украинского языка
         if ($l === 'ua') {
             return 'uk';
-        }
-        if (str_starts_with($l, 'zh')) {
-            return 'zh';
         }
         return $l;
     }

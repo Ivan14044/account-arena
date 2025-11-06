@@ -64,8 +64,7 @@
                         </div>
                     </div>
                     <div class="mt-3">
-                        <a href="{{ route('admin.service-accounts.index') }}" class="text-primary text-decoration-none">
-                            Подробнее <i class="fas fa-arrow-right"></i>
+                        <a href="{{ route('admin.service-accounts.index') }}" class="text-primary text-decoration-none">{{ __('Подробнее') }}<i class="fas fa-arrow-right"></i>
                         </a>
                     </div>
                 </div>
@@ -85,8 +84,7 @@
                         </div>
                     </div>
                     <div class="mt-3">
-                        <a href="{{ route('admin.service-accounts.index') }}" class="text-success text-decoration-none">
-                            Подробнее <i class="fas fa-arrow-right"></i>
+                        <a href="{{ route('admin.service-accounts.index') }}" class="text-success text-decoration-none">{{ __('Подробнее') }}<i class="fas fa-arrow-right"></i>
                         </a>
                     </div>
                 </div>
@@ -106,8 +104,7 @@
                         </div>
                     </div>
                     <div class="mt-3">
-                        <a href="{{ route('admin.subscriptions.index') }}" class="text-danger text-decoration-none">
-                            Подробнее <i class="fas fa-arrow-right"></i>
+                        <a href="{{ route('admin.purchases.index') }}" class="text-danger text-decoration-none">{{ __('Подробнее') }}<i class="fas fa-arrow-right"></i>
                         </a>
                     </div>
                 </div>
@@ -128,8 +125,7 @@
                         </div>
                     </div>
                     <div class="mt-3">
-                        <a href="{{ route('admin.subscriptions.index') }}" class="text-info text-decoration-none">
-                            Подробнее <i class="fas fa-arrow-right"></i>
+                        <a href="{{ route('admin.purchases.index') }}" class="text-info text-decoration-none">{{ __('Подробнее') }}<i class="fas fa-arrow-right"></i>
                         </a>
                     </div>
                 </div>
@@ -150,7 +146,7 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <div class="text-muted text-uppercase small font-weight-bold">Покупки</div>
+                            <div class="text-muted text-uppercase small font-weight-bold">Покупки товаров</div>
                             <div class="h4 mb-0 font-weight-bold text-success">{{ $purchasesToday }}</div>
                         </div>
                         <div class="p-3 rounded" style="background-color: rgba(40,167,69,0.1);">
@@ -158,8 +154,7 @@
                         </div>
                     </div>
                     <div class="mt-3">
-                        <a href="{{ route('admin.subscriptions.index') }}" class="text-success text-decoration-none">
-                            Подробнее <i class="fas fa-arrow-right"></i>
+                        <a href="{{ route('admin.purchases.index') }}" class="text-success text-decoration-none">{{ __('Подробнее') }}<i class="fas fa-arrow-right"></i>
                         </a>
                     </div>
                 </div>
@@ -180,8 +175,7 @@
                         </div>
                     </div>
                     <div class="mt-3">
-                        <a href="{{ route('admin.subscriptions.index') }}" class="text-warning text-decoration-none">
-                            Подробнее <i class="fas fa-arrow-right"></i>
+                        <a href="{{ route('admin.purchases.index') }}" class="text-warning text-decoration-none">{{ __('Подробнее') }}<i class="fas fa-arrow-right"></i>
                         </a>
                     </div>
                 </div>
@@ -202,8 +196,7 @@
                         </div>
                     </div>
                     <div class="mt-3">
-                        <a href="{{ route('admin.service-accounts.index') }}" class="text-secondary text-decoration-none">
-                            Подробнее <i class="fas fa-arrow-right"></i>
+                        <a href="{{ route('admin.service-accounts.index') }}" class="text-secondary text-decoration-none">{{ __('Подробнее') }}<i class="fas fa-arrow-right"></i>
                         </a>
                     </div>
                 </div>
@@ -223,8 +216,7 @@
                         </div>
                     </div>
                     <div class="mt-3">
-                        <a href="{{ route('admin.users.index') }}" class="text-primary text-decoration-none">
-                            Подробнее <i class="fas fa-arrow-right"></i>
+                        <a href="{{ route('admin.users.index') }}" class="text-primary text-decoration-none">{{ __('Подробнее') }}<i class="fas fa-arrow-right"></i>
                         </a>
                     </div>
                 </div>

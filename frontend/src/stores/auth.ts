@@ -14,9 +14,35 @@ export const useAuthStore = defineStore('auth', {
     state: () => ({
         user: (() => {
             const raw = localStorage.getItem('user');
+            const token = localStorage.getItem('token');
+            
             try {
-                return raw ? JSON.parse(raw) : null;
-            } catch {
+                if (!raw || !token) {
+                    console.log('[AUTH STORE] Инициализация: нет данных в localStorage');
+                    return null;
+                }
+                
+                const parsed = JSON.parse(raw);
+                
+                // Проверка валидности данных пользователя
+                if (!parsed || typeof parsed !== 'object' || !parsed.email) {
+                    console.warn('[AUTH STORE] Инициализация: некорректные данные пользователя, очистка');
+                    localStorage.removeItem('user');
+                    localStorage.removeItem('token');
+                    return null;
+                }
+                
+                console.log('[AUTH STORE] Инициализация: пользователь загружен из localStorage', {
+                    email: parsed.email,
+                    name: parsed.name,
+                    hasBalance: 'balance' in parsed
+                });
+                
+                return parsed;
+            } catch (error) {
+                console.error('[AUTH STORE] Ошибка парсинга данных пользователя:', error);
+                localStorage.removeItem('user');
+                localStorage.removeItem('token');
                 return null;
             }
         })(),
@@ -26,7 +52,12 @@ export const useAuthStore = defineStore('auth', {
     }),
 
     getters: {
-        isAuthenticated: state => !!state.token && !!state.user,
+        // ИСПРАВЛЕНО: Более строгая проверка авторизации
+        isAuthenticated: state => {
+            const hasToken = !!state.token && state.token.length > 0;
+            const hasUser = !!state.user && typeof state.user === 'object' && !!state.user.email;
+            return hasToken && hasUser;
+        },
         hasSession: state => !!state.token
     },
 
@@ -82,10 +113,30 @@ export const useAuthStore = defineStore('auth', {
             loadingStore.start();
 
             try {
+                console.log('[AUTH] Отправка запроса на авторизацию...', { email: formData.email });
                 const response = await axios.post('/login', formData);
+                
+                console.log('[AUTH] Ответ получен:', response.data);
+
+                if (!response.data.token) {
+                    console.error('[AUTH] Токен не получен!');
+                    this.errors = { email: ['Ошибка авторизации: токен не получен'] };
+                    return false;
+                }
+
+                if (!response.data.user) {
+                    console.error('[AUTH] Данные пользователя не получены!');
+                    this.errors = { email: ['Ошибка авторизации: данные пользователя не получены'] };
+                    return false;
+                }
 
                 this.token = response.data.token;
                 this.user = response.data.user;
+
+                console.log('[AUTH] Сохранение токена и пользователя...', {
+                    token: this.token.substring(0, 20) + '...',
+                    user: this.user.email
+                });
 
                 localStorage.setItem('token', this.token);
                 localStorage.setItem('user', JSON.stringify(this.user));
@@ -98,13 +149,30 @@ export const useAuthStore = defineStore('auth', {
                 }
 
                 this.userLoaded = true;
+                
+                console.log('[AUTH] Авторизация успешна!', {
+                    isAuthenticated: this.isAuthenticated,
+                    hasUser: !!this.user,
+                    hasToken: !!this.token
+                });
+                
                 return true;
             } catch (error: any) {
-                if (
+                console.error('[AUTH] Ошибка авторизации:', error);
+                console.error('[AUTH] Response:', error.response);
+                
+                // Обработка rate limiting (429 Too Many Requests)
+                if (error.response?.status === 429) {
+                    this.errors = { 
+                        email: ['Слишком много попыток входа. Пожалуйста, подождите минуту и попробуйте снова.'] 
+                    };
+                } else if (
                     error.response?.data?.errors &&
                     typeof error.response.data.errors === 'object'
                 ) {
                     this.errors = error.response.data.errors;
+                } else {
+                    this.errors = { email: [error.response?.data?.message || 'Ошибка авторизации'] };
                 }
                 return false;
             } finally {

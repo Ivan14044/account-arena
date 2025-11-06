@@ -67,13 +67,11 @@ import { useI18n } from 'vue-i18n';
 import { Globe, ChevronDown } from 'lucide-vue-next';
 import { useAuthStore } from '@/stores/auth';
 
-// TODO: Add other languages
+// Доступные языки интерфейса
 const languages = [
     { code: 'en', name: 'English' },
     { code: 'uk', name: 'Українська' },
-    { code: 'ru', name: 'Русский' },
-    { code: 'zh', name: '中文' },
-    { code: 'es', name: 'Español' }
+    { code: 'ru', name: 'Русский' }
 ];
 
 const { locale } = useI18n();

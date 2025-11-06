@@ -16,10 +16,6 @@ export function pluralizeDays(count: number, locale: string = 'ru'): string {
         }
         case 'en':
             return count === 1 ? `${count} day` : `${count} days`;
-        case 'es':
-            return count === 1 ? `${count} día` : `${count} días`;
-        case 'zh':
-            return `${count} 天`;
         default:
             return `${count} days`;
     }

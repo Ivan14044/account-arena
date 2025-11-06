@@ -23,17 +23,17 @@ class AuthServiceProvider extends ServiceProvider
     {
         // Gate для админов
         Gate::define('admin-only', function ($user) {
-            return $user->is_admin === true;
+            return $user->is_admin == true;
         });
 
         // Gate для поставщиков
         Gate::define('supplier-only', function ($user) {
-            return $user->is_supplier === true && !$user->is_admin;
+            return $user->is_supplier == true && !$user->is_admin;
         });
 
         // Gate для главного админа
         Gate::define('main-admin', function ($user) {
-            return $user->is_admin === true && $user->id === 1;
+            return $user->is_admin == true && $user->id === 1;
         });
     }
 }

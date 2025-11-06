@@ -63,7 +63,7 @@ const isScrolled = ref(false);
 const headerStore = useHeaderStore();
 const isReady = computed(() => headerStore.isReady);
 const printedText = computed(() => headerStore.printedText);
-const fullText = 'SubCloudy';
+const fullText = 'Account Arena';
 
 const handleScroll = () => {
     isScrolled.value = window.scrollY > 0;

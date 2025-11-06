@@ -15,7 +15,7 @@
 
             <div class="card">
                 <div class="card-header">
-                    <h3 class="card-title">Список статей</h3>
+                    <h3 class="card-title"></h3>
                     <a href="{{ route('admin.articles.create') }}" class="btn btn-primary float-right">+ Добавить</a>
                 </div>
                 <div class="card-body">
@@ -25,7 +25,7 @@
                             <th style="width: 40px">ID</th>
                             <th>Название</th>
                             <th>Категория</th>
-                            <th>Изображение</th>
+                            <th></th>
                             <th>Статус</th>
                             <th>Дата создания</th>
                             <th style="width: 90px">Действия</th>
@@ -54,9 +54,9 @@
                                 </td>
                                 <td>
                                     @if ($article->status === 'published')
-                                        <span class="badge badge-success">Опубликовано</span>
+                                        <span class="badge badge-success"></span>
                                     @else
-                                        <span class="badge badge-warning text-dark">Черновик</span>
+                                        <span class="badge badge-warning text-dark"></span>
                                     @endif
                                 </td>
                                 <td data-order="{{ strtotime($article->created_at) }}">
@@ -87,7 +87,7 @@
                                                     </button>
                                                 </div>
                                                 <div class="modal-body">
-                                                    Вы уверены, что хотите удалить эту статью?
+                                                    
                                                 </div>
                                                 <div class="modal-footer">
                                                     <form
@@ -99,8 +99,7 @@
                                                         </button>
                                                     </form>
                                                     <button type="button" class="btn btn-secondary"
-                                                            data-dismiss="modal">Отмена
-                                                    </button>
+                                                            data-dismiss="modal">Отмена</button>
                                                 </div>
                                             </div>
                                         </div>

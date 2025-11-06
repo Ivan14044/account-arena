@@ -7,13 +7,17 @@ use App\Models\Subscription;
 use App\Models\Transaction;
 use App\Models\Option;
 use App\Models\User;
+use App\Models\ServiceAccount;
+use App\Models\Purchase;
 use App\Services\NotificationTemplateService;
 use App\Services\MonoPaymentService;
 use App\Services\EmailService;
 use App\Services\NotifierService;
 use App\Services\PromocodeValidationService;
+use App\Services\BalanceService;
 use App\Models\Promocode;
 use App\Models\PromocodeUsage;
+use App\Http\Controllers\GuestCartController;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -156,6 +160,16 @@ class MonoController extends Controller
             return response()->json(['success' => false], 403);
         }
 
+        // Проверяем, это пополнение баланса?
+        if ($request->has('is_topup') && $request->is_topup == '1') {
+            return $this->handleTopUpWebhook($request);
+        }
+
+        // Проверяем, это гостевой платеж?
+        if ($request->has('is_guest') && $request->is_guest == '1') {
+            return $this->handleGuestWebhook($request);
+        }
+
         $user = User::find($request->user_id);
         if (!$user) {
             return response()->json(['success' => false, 'message' => 'User not found'], 404);
@@ -282,9 +296,392 @@ class MonoController extends Controller
         return response()->json(['success' => true]);
     }
 
+    /**
+     * Создание платежа для гостевой покупки (без авторизации)
+     * Только для товаров, не для подписок
+     */
+    public function createGuestPayment(Request $request, PromocodeValidationService $promoService): JsonResponse
+    {
+        $request->validate([
+            'guest_email' => 'required|email',
+            'products' => 'required|array|min:1',
+            'products.*.id' => 'required|integer|exists:service_accounts,id',
+            'products.*.quantity' => 'required|integer|min:1',
+            'promocode' => 'nullable|string',
+        ]);
+
+        $guestEmail = strtolower(trim($request->guest_email));
+
+        // Рассчитываем общую стоимость товаров
+        $productsData = [];
+        $totalAmount = 0;
+
+        foreach ($request->products as $productItem) {
+            $product = ServiceAccount::find($productItem['id']);
+            if (!$product) {
+                return response()->json(['success' => false, 'message' => 'Product not found'], 404);
+            }
+            
+            $quantity = $productItem['quantity'];
+            $available = $product->getAvailableStock();
+            
+            if ($available < $quantity) {
+                return response()->json([
+                    'success' => false, 
+                    'message' => "Insufficient stock for {$product->title}"
+                ], 422);
+            }
+            
+            $price = $product->getCurrentPrice();
+            $itemTotal = $price * $quantity;
+            $totalAmount += $itemTotal;
+            
+            $productsData[] = [
+                'product_id' => $product->id,
+                'quantity' => $quantity,
+                'price' => $price,
+                'total' => $itemTotal,
+            ];
+        }
+
+        // Apply promocode if provided
+        $promoData = null;
+        $promocodeParam = trim((string) $request->promocode);
+        if ($promocodeParam !== '') {
+            $promoData = $promoService->validate($promocodeParam, null); // null = гость
+            if (!($promoData['ok'] ?? false)) {
+                return response()->json(['success' => false, 'message' => $promoData['message'] ?? 'Invalid promocode'], 422);
+            }
+
+            // Применяем скидку по промокоду
+            if (($promoData['type'] ?? '') === 'discount') {
+                $discountPercent = (int)($promoData['discount_percent'] ?? 0);
+                $discountAmount = round($totalAmount * $discountPercent / 100, 2);
+                $totalAmount = round($totalAmount - $discountAmount, 2);
+            }
+        }
+
+        $totalAmount = max($totalAmount, 0.01); // Минимальная сумма
+
+        // Создаем invoice через Mono
+        $invoice = MonoPaymentService::createInvoice(
+            amount: $totalAmount,
+            redirectUrl: config('app.url') . '/checkout?success=true',
+            webhookUrl: config('app.url') . '/api/mono/webhook?' . http_build_query([
+                'is_guest' => '1',
+                'guest_email' => $guestEmail,
+                'products_data' => base64_encode(json_encode($productsData)),
+                'promocode' => $promocodeParam,
+            ]),
+            walletId: 'wallet_guest_' . md5($guestEmail),
+        );
+
+        if (isset($invoice['pageUrl'])) {
+            return response()->json(['success' => true, 'url' => $invoice['pageUrl']]);
+        }
+
+        return response()->json(['success' => false, 'message' => 'Failed to create payment'], 422);
+    }
+
     private function invoiceAlreadyProcessed(string $invoiceId): bool
     {
-        return Subscription::where('order_id', $invoiceId)->exists();
+        return Subscription::where('order_id', $invoiceId)->exists() ||
+               Transaction::where('payment_method', 'credit_card')
+                   ->where('status', 'completed')
+                   ->where('created_at', '>', now()->subMinutes(5))
+                   ->exists();
+    }
+
+    /**
+     * Обработка webhook для пополнения баланса через банковскую карту
+     * 
+     * Этот метод вызывается платежной системой Monobank после успешной оплаты.
+     * Используется BalanceService для безопасного зачисления средств на баланс.
+     * 
+     * @param Request $request
+     * @return JsonResponse
+     */
+    private function handleTopUpWebhook(Request $request): JsonResponse
+    {
+        // Получаем ID invoice из webhook
+        $invoiceId = $request->invoiceId ?? null;
+        if (!$invoiceId) {
+            Log::error('Webhook пополнения баланса: отсутствует invoice_id', [
+                'request' => $request->all(),
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Missing invoice_id'
+            ], 400);
+        }
+
+        // Получаем пользователя
+        $userId = $request->user_id;
+        if (!$userId) {
+            Log::error('Webhook пополнения баланса: отсутствует user_id', [
+                'invoice_id' => $invoiceId,
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Missing user_id'
+            ], 400);
+        }
+
+        $user = User::find($userId);
+        if (!$user) {
+            Log::error('Webhook пополнения баланса: пользователь не найден', [
+                'user_id' => $userId,
+                'invoice_id' => $invoiceId,
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'User not found'
+            ], 404);
+        }
+
+        // Получаем и валидируем сумму
+        $amount = round((float)$request->amount, 2);
+        if ($amount <= 0) {
+            Log::error('Webhook пополнения баланса: недопустимая сумма', [
+                'amount' => $request->amount,
+                'invoice_id' => $invoiceId,
+                'user_id' => $userId,
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid amount'
+            ], 400);
+        }
+
+        try {
+            // Используем BalanceService для безопасного пополнения баланса
+            // BalanceService автоматически проверит дубликаты по invoice_id
+            $balanceService = app(BalanceService::class);
+            
+            $balanceTransaction = $balanceService->topUp(
+                user: $user,
+                amount: $amount,
+                type: BalanceService::TYPE_TOPUP_CARD,
+                metadata: [
+                    'invoice_id' => $invoiceId,
+                    'payment_method' => 'monobank',
+                    'payment_system' => 'monobank',
+                    'webhook_received_at' => now()->toDateTimeString(),
+                ]
+            );
+
+            // Проверяем, была ли операция выполнена или это дубликат
+            if ($balanceTransaction) {
+                Log::info('Баланс успешно пополнен через Monobank', [
+                    'user_id' => $user->id,
+                    'user_email' => $user->email,
+                    'amount' => $amount,
+                    'invoice_id' => $invoiceId,
+                    'balance_transaction_id' => $balanceTransaction->id,
+                    'balance_after' => $balanceTransaction->balance_after,
+                ]);
+
+                // Отправляем уведомление администратору
+                NotifierService::send(
+                    'balance_topup',
+                    'Баланс пополнен',
+                    "Пользователь {$user->name} ({$user->email}) пополнил баланс на {$amount} " . Option::get('currency', 'USD') . " через Monobank"
+                );
+
+                return response()->json(['success' => true]);
+            }
+
+            // Если вернулся null, значит операция уже была обработана ранее
+            Log::info('Webhook пополнения баланса: дубликат операции', [
+                'user_id' => $user->id,
+                'invoice_id' => $invoiceId,
+                'amount' => $amount,
+            ]);
+
+            return response()->json(['success' => true, 'message' => 'Already processed']);
+
+        } catch (\InvalidArgumentException $e) {
+            Log::error('Webhook пополнения баланса: ошибка валидации', [
+                'error' => $e->getMessage(),
+                'user_id' => $user->id,
+                'invoice_id' => $invoiceId,
+                'amount' => $amount,
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 400);
+
+        } catch (\Exception $e) {
+            Log::error('Webhook пополнения баланса: критическая ошибка', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'user_id' => $user->id,
+                'invoice_id' => $invoiceId,
+                'amount' => $amount,
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Processing failed'
+            ], 500);
+        }
+    }
+
+    /**
+     * Обработка webhook для гостевого платежа
+     */
+    private function handleGuestWebhook(Request $request): JsonResponse
+    {
+        $guestEmail = trim((string)$request->guest_email);
+        if (!$guestEmail || !filter_var($guestEmail, FILTER_VALIDATE_EMAIL)) {
+            return response()->json(['success' => false, 'message' => 'Invalid guest email'], 400);
+        }
+
+        $productsDataEncoded = $request->products_data ?? '';
+        $productsData = json_decode(base64_decode($productsDataEncoded), true);
+        
+        if (!is_array($productsData) || empty($productsData)) {
+            return response()->json(['success' => false, 'message' => 'Invalid products data'], 400);
+        }
+
+        $promocode = trim((string)($request->promocode ?? ''));
+
+        try {
+            // Создаем покупки для гостя
+            GuestCartController::createGuestPurchases($guestEmail, $productsData, $promocode);
+
+            // Отправляем уведомление на email гостя
+            // TODO: добавить email с информацией о покупке
+
+            Log::info('Guest purchase completed', [
+                'guest_email' => $guestEmail,
+                'invoice_id' => $request->invoiceId,
+                'products_count' => count($productsData),
+            ]);
+
+            // Записываем использование промокода если есть
+            if ($promocode !== '') {
+                DB::transaction(function () use ($promocode, $guestEmail, $request) {
+                    $promo = Promocode::where('code', $promocode)->lockForUpdate()->first();
+                    if ($promo) {
+                        PromocodeUsage::create([
+                            'promocode_id' => $promo->id,
+                            'user_id' => null, // Гостевая покупка
+                            'order_id' => (string)$request->invoiceId,
+                        ]);
+                        if ((int)$promo->usage_limit > 0 && (int)$promo->usage_count < (int)$promo->usage_limit) {
+                            $promo->usage_count = (int)$promo->usage_count + 1;
+                            $promo->save();
+                        }
+                    }
+                });
+            }
+
+            return response()->json(['success' => true]);
+        } catch (\Exception $e) {
+            Log::error('Guest webhook processing failed', [
+                'error' => $e->getMessage(),
+                'guest_email' => $guestEmail,
+            ]);
+            return response()->json(['success' => false, 'message' => 'Processing failed'], 500);
+        }
+    }
+
+    /**
+     * Создание платежа для пополнения баланса через банковскую карту
+     * 
+     * Этот метод создает invoice в платежной системе Monobank для пополнения баланса.
+     * После успешной оплаты средства автоматически зачислятся через webhook.
+     * 
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function createTopUpPayment(Request $request): JsonResponse
+    {
+        // Валидация входных данных
+        $validated = $request->validate([
+            'amount' => 'required|numeric|min:1|max:100000',
+        ]);
+
+        // Получаем авторизованного пользователя
+        $user = $this->getApiUser($request);
+        if (!$user) {
+            Log::warning('Попытка пополнения баланса без авторизации', [
+                'ip' => $request->ip(),
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Требуется авторизация'
+            ], 401);
+        }
+
+        // Округляем сумму до 2 знаков после запятой
+        $amount = round((float)$validated['amount'], 2);
+
+        // Проверка разумности суммы (защита от ошибок ввода)
+        if ($amount < 1) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Минимальная сумма пополнения: 1 ' . Option::get('currency', 'USD')
+            ], 422);
+        }
+
+        try {
+            // Создаем invoice в платежной системе Monobank
+            $invoice = MonoPaymentService::createInvoice(
+                amount: $amount,
+                redirectUrl: config('app.url') . '/profile?topup=success',
+                webhookUrl: config('app.url') . '/api/mono/webhook?' . http_build_query([
+                    'is_topup' => '1',
+                    'user_id' => $user->id,
+                    'amount' => $amount,
+                ]),
+                walletId: 'wallet_topup_' . $user->id . '_' . time(),
+            );
+
+            // Проверяем, что invoice создан успешно
+            if (isset($invoice['pageUrl']) && isset($invoice['invoiceId'])) {
+                Log::info('Создан платеж для пополнения баланса', [
+                    'user_id' => $user->id,
+                    'user_email' => $user->email,
+                    'amount' => $amount,
+                    'currency' => Option::get('currency', 'USD'),
+                    'invoice_id' => $invoice['invoiceId'],
+                    'ip' => $request->ip(),
+                ]);
+
+                return response()->json([
+                    'success' => true,
+                    'url' => $invoice['pageUrl'],
+                    'invoice_id' => $invoice['invoiceId'],
+                ]);
+            }
+
+            // Если invoice не создан, возвращаем ошибку
+            Log::error('Не удалось создать invoice для пополнения баланса', [
+                'user_id' => $user->id,
+                'amount' => $amount,
+                'response' => $invoice,
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Не удалось создать платеж. Попробуйте позже.'
+            ], 422);
+
+        } catch (\Exception $e) {
+            Log::error('Ошибка при создании платежа для пополнения баланса', [
+                'user_id' => $user->id,
+                'amount' => $amount,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Произошла ошибка при создании платежа'
+            ], 500);
+        }
     }
 
     private function notifyUserOnSubscription(User $user, Service $service, Carbon $nextPaymentDate): void

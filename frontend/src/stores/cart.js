@@ -90,17 +90,34 @@ export const useCartStore = defineStore('cart', {
             loadingStore.start();
 
             try {
-                const token = localStorage.getItem('token');
+                // ИСПРАВЛЕНИЕ: Используем authStore вместо прямого доступа к localStorage
+                const { useAuthStore } = await import('@/stores/auth');
+                const authStore = useAuthStore();
+                const token = authStore.token;
+                
+                if (!token) {
+                    throw new Error('No authentication token found');
+                }
 
                 const servicesData = this.items.map(item => ({
                     id: item.id,
                     subscription_type: this.subscriptionTypes[item.id] || 'trial'
                 }));
 
+                // Получаем товары из productCartStore
+                const { useProductCartStore } = await import('@/stores/productCart');
+                const productCartStore = useProductCartStore();
+                
+                const productsData = productCartStore.items.map(item => ({
+                    id: item.id,
+                    quantity: item.quantity
+                }));
+
                 await axios.post(
                     '/cart',
                     {
-                        services: servicesData,
+                        services: servicesData.length > 0 ? servicesData : undefined,
+                        products: productsData.length > 0 ? productsData : undefined,
                         payment_method: paymentMethod,
                         ...(promocode ? { promocode } : {})
                     },
@@ -110,7 +127,10 @@ export const useCartStore = defineStore('cart', {
                         }
                     }
                 );
+                
+                // Очищаем обе корзины
                 this.clearCart();
+                productCartStore.clearCart();
             } catch (error) {
                 console.error('Failed to submit cart:', error);
                 throw error;

@@ -2,6 +2,9 @@
 
 @section('title', 'Панель поставщика')
 
+@section('plugins.Datatables', true)
+@section('plugins.Select2', true)
+
 @section('content_header')
     <div class="d-flex justify-content-between align-items-center">
         <h1>Панель поставщика</h1>
@@ -17,6 +20,84 @@
             @if(session('success'))
                 <div class="alert alert-success">{{ session('success') }}</div>
             @endif
+        </div>
+        
+        <!-- Rating Card - НОВАЯ КАРТОЧКА РЕЙТИНГА -->
+        <div class="col-lg-12 col-12 mb-4">
+            <div class="card card-{{ $ratingLevel['class'] }}">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-star mr-2"></i>Ваш рейтинг качества товаров
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 text-center border-right">
+                            <h1 class="display-3 mb-0" style="font-size: 5rem; font-weight: bold;">
+                                {{ $rating }}%
+                            </h1>
+                            <h4 class="text-muted mb-3">{{ $ratingLevel['icon'] }} {{ $ratingLevel['name'] }} уровень</h4>
+                            <div class="mb-3">
+                                @for($i = 0; $i < 5; $i++)
+                                    @if($i < $ratingLevel['stars'])
+                                        <i class="fas fa-star text-warning" style="font-size: 2rem"></i>
+                                    @else
+                                        <i class="far fa-star text-muted" style="font-size: 2rem"></i>
+                                    @endif
+                                @endfor
+                            </div>
+                            @if($ratingLevel['badge'])
+                                <span class="badge badge-{{ $ratingLevel['class'] }} badge-lg p-2">
+                                    {{ $ratingLevel['badge'] }}
+                                </span>
+                            @endif
+                        </div>
+                        <div class="col-md-4 border-right">
+                            <h5 class="mb-3">Статистика (90 дней):</h5>
+                            <dl class="row mb-0">
+                                <dt class="col-7">Всего продаж:</dt>
+                                <dd class="col-5">{{ $ratingDetails['total_sales'] }}</dd>
+                                
+                                <dt class="col-7 text-success">✅ Валидных:</dt>
+                                <dd class="col-5 text-success font-weight-bold">
+                                    {{ $ratingDetails['valid_sales'] }}
+                                </dd>
+                                
+                                <dt class="col-7 text-danger">❌ Невалидных:</dt>
+                                <dd class="col-5 text-danger">
+                                    {{ $ratingDetails['invalid_sales'] }}
+                                </dd>
+                                
+                                <dt class="col-9">└ Возвратов:</dt>
+                                <dd class="col-3">{{ $ratingDetails['refunds'] }}</dd>
+                                
+                                <dt class="col-9">└ Замен:</dt>
+                                <dd class="col-3">{{ $ratingDetails['replacements'] }}</dd>
+                            </dl>
+                        </div>
+                        <div class="col-md-4">
+                            <h5 class="mb-3">Процент валида:</h5>
+                            <div class="progress mb-3" style="height: 30px;">
+                                <div class="progress-bar bg-{{ $ratingLevel['class'] }}" 
+                                     style="width: {{ $rating }}%">
+                                    <strong>{{ $rating }}%</strong>
+                                </div>
+                            </div>
+                            
+                            <div class="alert alert-{{ $ratingLevel['class'] }} mb-3">
+                                <strong>{{ $ratingDetails['valid_percent'] }}%</strong> ваших товаров валидны!
+                            </div>
+                            
+                            <h6>💡 Как повысить рейтинг:</h6>
+                            <ul class="small mb-0">
+                                <li>Проверяйте товары перед загрузкой</li>
+                                <li>Обновляйте товары регулярно</li>
+                                <li>Удаляйте невалидные товары</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
         
         <!-- Stats Cards -->

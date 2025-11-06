@@ -63,12 +63,11 @@ import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { ChevronDown, Globe } from 'lucide-vue-next';
 
+// Доступные языки интерфейса
 const languages = [
     { code: 'en', name: 'English' },
     { code: 'uk', name: 'Українська' },
-    { code: 'ru', name: 'Русский' },
-    { code: 'zh', name: '中文' },
-    { code: 'es', name: 'Español' }
+    { code: 'ru', name: 'Русский' }
 ];
 
 const { locale } = useI18n();

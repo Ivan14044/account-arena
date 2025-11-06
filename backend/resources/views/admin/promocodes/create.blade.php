@@ -3,160 +3,172 @@
 @section('title', 'Добавить промокод')
 
 @section('content_header')
-    <h1>Добавить промокод</h1>
+    <div class="content-header-modern">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="m-0 font-weight-light">
+                    <i class="fas fa-plus-circle text-primary"></i> Создание промокода
+                </h1>
+                <p class="text-muted mb-0 mt-1">Добавьте новый промокод для скидок или бесплатного доступа к сервисам</p>
+            </div>
+            <div>
+                <a href="{{ route('admin.promocodes.index') }}" class="btn btn-outline-secondary btn-modern">
+                    <i class="fas fa-arrow-left mr-2"></i>Назад к списку
+                </a>
+            </div>
+        </div>
+    </div>
 @stop
 
 @section('content')
+    @if(session('success'))
+        <div class="alert alert-modern alert-success alert-dismissible fade show">
+            <i class="fas fa-check-circle mr-2"></i>{{ session('success') }}
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+        </div>
+    @endif
+
+    @if ($errors->any())
+        <div class="alert alert-modern alert-danger alert-dismissible fade show">
+            <i class="fas fa-exclamation-circle mr-2"></i><strong>Ошибка!</strong> Проверьте правильность заполнения полей.
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+        </div>
+    @endif
+
     <div class="row">
-        <div class="col-xl-6">
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title">Данные промокода</h3>
+        <div class="col-lg-8">
+            <div class="card card-modern">
+                <div class="card-header-modern">
+                    <h5 class="mb-0">
+                        <i class="fas fa-tag mr-2"></i>Основные данные
+                    </h5>
                 </div>
-                <div class="card-body">
+                <div class="card-body-modern" style="padding: 1.5rem;">
                     <form method="POST" action="{{ route('admin.promocodes.store') }}">
                         @csrf
+                        
+                        {{-- Скрытое поле для quantity - всегда создаем только 1 промокод --}}
+                        <input type="hidden" name="quantity" value="1">
 
-                        <div class="form-group">
-                            <label for="quantity">Количество</label>
-                            <input type="number" min="1" max="1000" name="quantity" id="quantity" class="form-control @error('quantity') is-invalid @enderror" value="{{ old('quantity', 1) }}">
-                            @error('quantity')
-                                <div class="invalid-feedback d-block">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <div class="form-group" id="batch_id_group">
-                            <label for="batch_id">Партия</label>
-                            <input type="text" name="batch_id" id="batch_id" class="form-control @error('batch_id') is-invalid @enderror" value="{{ old('batch_id') }}" placeholder="Оставьте пустым для автоматической генерации">
-                            @error('batch_id')
-                                <div class="invalid-feedback d-block">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <div class="form-group">
-                            <label for="prefix">Префикс</label>
-                            <input type="text" name="prefix" id="prefix" class="form-control @error('prefix') is-invalid @enderror" value="{{ old('prefix') }}">
-                            @error('prefix')
-                                <div class="invalid-feedback d-block">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <div class="form-group">
-                            <label for="code">Код</label>
+                        <div class="form-group-modern">
+                            <label for="code" class="form-label-modern">
+                                <i class="fas fa-barcode mr-1"></i>Код промокода <span class="text-danger">*</span>
+                            </label>
                             <div class="input-group">
-                                <input type="text" name="code" id="code" class="form-control @error('code') is-invalid @enderror" value="{{ old('code') }}">
+                                <input type="text" name="code" id="code" class="form-control form-control-modern @error('code') is-invalid @enderror" value="{{ old('code') }}" required placeholder="Например: SALE2024">
                                 <div class="input-group-append">
-                                    <button type="button" class="btn btn-secondary" id="generate-code" title="Сгенерировать">Сгенерировать</button>
+                                    <button type="button" class="btn btn-outline-secondary btn-modern" id="generate-code" title="Сгенерировать случайный код">
+                                        <i class="fas fa-random"></i>
+                                    </button>
                                 </div>
                             </div>
                             @error('code')
                                 <div class="invalid-feedback d-block">{{ $message }}</div>
                             @enderror
+                            <small class="form-text text-muted">
+                                <i class="fas fa-info-circle"></i> Введите уникальный код или нажмите <i class="fas fa-random"></i> для генерации
+                            </small>
                         </div>
 
-                        <div class="form-group">
-                            <label for="type">Тип</label>
-                            <select name="type" id="type" class="form-control @error('type') is-invalid @enderror">
-                                <option value="discount" {{ old('type', 'discount') == 'discount' ? 'selected' : '' }}>Скидка</option>
-                                <option value="free_access" {{ old('type') == 'free_access' ? 'selected' : '' }}>Бесплатный доступ</option>
-                            </select>
-                            @error('type')
-                                <div class="invalid-feedback d-block">{{ $message }}</div>
-                            @enderror
-                        </div>
+                        {{-- Скрытое поле типа - всегда discount для маркетплейса товаров --}}
+                        <input type="hidden" name="type" value="discount">
 
-                        <div class="form-group">
-                            <label for="percent_discount">Процент скидки</label>
-                            <input type="number" min="0" max="100" name="percent_discount" id="percent_discount" class="form-control @error('percent_discount') is-invalid @enderror" value="{{ old('percent_discount', 0) }}">
+                        <div class="form-group-modern">
+                            <label for="percent_discount" class="form-label-modern">
+                                <i class="fas fa-percent mr-1"></i>Процент скидки <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                <input type="number" min="0" max="100" step="1" name="percent_discount" id="percent_discount" class="form-control form-control-modern @error('percent_discount') is-invalid @enderror" value="{{ old('percent_discount', 10) }}" placeholder="10">
+                                <div class="input-group-append">
+                                    <span class="input-group-text bg-light"><i class="fas fa-percent"></i></span>
+                                </div>
+                            </div>
                             @error('percent_discount')
                                 <div class="invalid-feedback d-block">{{ $message }}</div>
                             @enderror
+                            <small class="form-text text-muted">
+                                <i class="fas fa-info-circle"></i> Укажите процент скидки от 0 до 100
+                            </small>
                         </div>
 
-                        <div class="table-responsive">
-                            <table class="table table-sm">
-                                <thead>
-                                <tr>
-                                    <th style="width: 40px">
-                                        <input type="checkbox" id="select-all-services">
-                                    </th>
-                                    <th>Сервис</th>
-                                    <th style="width: 160px">Бесплатные дни</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                @foreach($services as $service)
-                                    <tr class="{{ $service->is_active ? '' : 'table-warning' }}">
-                                        <td>
-                                            <input type="checkbox" name="services[{{ $service->id }}][selected]" value="1" {{ old('services.'.$service->id.'.selected') ? 'checked' : '' }}>
-                                            <input type="hidden" name="services[{{ $service->id }}][id]" value="{{ $service->id }}">
-                                        </td>
-                                        <td>
-                                            {{ $service->getTranslation('name', 'ru') ?? $service->admin_name ?? ('Сервис #'.$service->id) }}
-                                            @unless($service->is_active)
-                                                <span class="badge badge-secondary ml-2">Неактивен</span>
-                                            @endunless
-                                        </td>
-                                        <td>
-                                            @php($errKey = 'services.' . $service->id . '.free_days')
-                                            <input type="number" min="0" class="form-control {{ $errors->has($errKey) ? 'is-invalid' : '' }}" name="services[{{ $service->id }}][free_days]" value="{{ old('services.'.$service->id.'.free_days', 0) }}">
-                                            @if($errors->has($errKey))
-                                                <div class="invalid-feedback d-block">{{ $errors->first($errKey) }}</div>
-                                            @endif
-                                        </td>
-                                    </tr>
-                                @endforeach
-                                </tbody>
-                            </table>
+                        <div class="section-divider mt-4 mb-4">
+                            <h5 class="section-title">
+                                <i class="fas fa-sliders-h mr-2"></i>Ограничения использования
+                            </h5>
                         </div>
 
-                        <div class="form-group">
-                            <label for="per_user_limit">Лимит использования на пользователя</label>
-                            <input type="number" min="0" name="per_user_limit" id="per_user_limit" class="form-control @error('per_user_limit') is-invalid @enderror" value="{{ old('per_user_limit', 1) }}">
-                            @error('per_user_limit')
-                                <div class="invalid-feedback d-block">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <div class="form-group">
-                            <label for="usage_limit">Лимит использования (0 - безлимит)</label>
-                            <input type="number" min="0" name="usage_limit" id="usage_limit" class="form-control @error('usage_limit') is-invalid @enderror" value="{{ old('usage_limit', 0) }}">
-                            @error('usage_limit')
-                                <div class="invalid-feedback d-block">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <div class="form-row">
-                            <div class="form-group col-md-6">
-                                <label for="starts_at">Действует с</label>
-                                <input type="datetime-local" name="starts_at" id="starts_at" class="form-control @error('starts_at') is-invalid @enderror" value="{{ old('starts_at') }}">
-                                @error('starts_at')
-                                    <div class="invalid-feedback d-block">{{ $message }}</div>
-                                @enderror
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group-modern">
+                                    <label for="per_user_limit" class="form-label-modern">
+                                        <i class="fas fa-user-clock mr-1"></i>Лимит на одного пользователя <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="number" min="1" step="1" name="per_user_limit" id="per_user_limit" class="form-control form-control-modern @error('per_user_limit') is-invalid @enderror" value="{{ old('per_user_limit', 1) }}" required placeholder="1">
+                                    @error('per_user_limit')
+                                        <div class="invalid-feedback d-block">{{ $message }}</div>
+                                    @enderror
+                                    <small class="form-text text-muted">
+                                        <i class="fas fa-info-circle"></i> Сколько раз один пользователь может использовать промокод
+                                    </small>
+                                </div>
                             </div>
-                            <div class="form-group col-md-6">
-                                <label for="expires_at">Действует до</label>
-                                <input type="datetime-local" name="expires_at" id="expires_at" class="form-control @error('expires_at') is-invalid @enderror" value="{{ old('expires_at') }}">
-                                @error('expires_at')
-                                    <div class="invalid-feedback d-block">{{ $message }}</div>
-                                @enderror
+
+                            <div class="col-md-6">
+                                <div class="form-group-modern">
+                                    <label for="usage_limit" class="form-label-modern">
+                                        <i class="fas fa-chart-line mr-1"></i>Общий лимит использования <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="number" min="0" step="1" name="usage_limit" id="usage_limit" class="form-control form-control-modern @error('usage_limit') is-invalid @enderror" value="{{ old('usage_limit', 0) }}" required placeholder="0">
+                                    @error('usage_limit')
+                                        <div class="invalid-feedback d-block">{{ $message }}</div>
+                                    @enderror
+                                    <small class="form-text text-muted">
+                                        <i class="fas fa-info-circle"></i> Общее количество использований (0 = безлимит)
+                                    </small>
+                                </div>
                             </div>
                         </div>
 
-                        <div class="form-group">
-                            <label for="is_active">Статус</label>
-                            <select name="is_active" id="is_active" class="form-control @error('is_active') is-invalid @enderror">
-                                <option value="1" {{ old('is_active', 1) == 1 ? 'selected' : '' }}>Активен</option>
-                                <option value="0" {{ old('is_active', 1) == 0 ? 'selected' : '' }}>Неактивен</option>
+                        <div class="form-group-modern">
+                            <label for="expires_at" class="form-label-modern">
+                                <i class="fas fa-calendar-times mr-1"></i>Дата окончания действия
+                            </label>
+                            <input type="datetime-local" name="expires_at" id="expires_at" class="form-control form-control-modern @error('expires_at') is-invalid @enderror" value="{{ old('expires_at') }}">
+                            @error('expires_at')
+                                <div class="invalid-feedback d-block">{{ $message }}</div>
+                            @enderror
+                            <small class="form-text text-muted">
+                                <i class="fas fa-info-circle"></i> Оставьте пустым, если промокод бессрочный
+                            </small>
+                        </div>
+
+                        <div class="form-group-modern">
+                            <label for="is_active" class="form-label-modern">
+                                <i class="fas fa-toggle-on mr-1"></i>Статус <span class="text-danger">*</span>
+                            </label>
+                            <select name="is_active" id="is_active" class="form-control form-control-modern @error('is_active') is-invalid @enderror" required>
+                                <option value="1" {{ old('is_active', 1) == 1 ? 'selected' : '' }}>
+                                    <i class="fas fa-check-circle"></i> ✅ Активен
+                                </option>
+                                <option value="0" {{ old('is_active', 1) == 0 ? 'selected' : '' }}>
+                                    <i class="fas fa-times-circle"></i> ⛔ Неактивен
+                                </option>
                             </select>
                             @error('is_active')
                                 <div class="invalid-feedback d-block">{{ $message }}</div>
                             @enderror
+                            <small class="form-text text-muted">
+                                <i class="fas fa-info-circle"></i> Только активные промокоды могут быть использованы клиентами
+                            </small>
                         </div>
 
-                        <div class="mt-3">
-                            <button type="submit" class="btn btn-primary">Создать</button>
-                            <a href="{{ route('admin.promocodes.index') }}" class="btn btn-secondary">Отмена</a>
+                        <div class="form-actions mt-4 pt-3 border-top">
+                            <button type="submit" class="btn btn-primary btn-modern btn-lg">
+                                <i class="fas fa-save mr-2"></i>Создать промокод
+                            </button>
+                            <a href="{{ route('admin.promocodes.index') }}" class="btn btn-outline-secondary btn-modern btn-lg">
+                                <i class="fas fa-times mr-2"></i>Отмена
+                            </a>
                         </div>
                     </form>
                 </div>
@@ -165,51 +177,181 @@
     </div>
 @endsection
 
+@section('css')
+    @include('admin.layouts.modern-styles')
+    
+    <style>
+        /* ============================================
+           ДОПОЛНИТЕЛЬНЫЕ СТИЛИ ДЛЯ СОЗДАНИЯ ПРОМОКОДА
+           ============================================ */
+        
+        /* АНИМАЦИЯ ПЕРЕКЛЮЧЕНИЯ ПОЛЕЙ */
+        #discount-field, #services-field {
+            transition: all 0.3s ease-in-out;
+        }
+        
+        /* ФОРМА ДЕЙСТВИЙ */
+        .form-actions {
+            background: #f8f9fc;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            margin-left: -1.5rem;
+            margin-right: -1.5rem;
+            margin-bottom: -1.5rem;
+            border-top: 2px solid #e3e6f0;
+        }
+        
+        /* ЧЕКБОКСЫ В ТАБЛИЦЕ СЕРВИСОВ */
+        .custom-control-input:checked ~ .custom-control-label::before {
+            background-color: #4e73df;
+            border-color: #4e73df;
+        }
+        
+        .custom-control-label {
+            cursor: pointer;
+        }
+        
+        /* INPUT GROUP */
+        .input-group-text {
+            background-color: #f8f9fc;
+            border: 1px solid #d1d3e2;
+            color: #5a6c7d;
+            font-weight: 500;
+        }
+        
+        .input-group-append .btn {
+            border-top-left-radius: 0;
+            border-bottom-left-radius: 0;
+        }
+        
+        /* PLACEHOLDER */
+        .form-control-modern::placeholder {
+            color: #a8b1bd;
+            font-style: italic;
+        }
+        
+        /* ТАБЛИЦА СЕРВИСОВ */
+        .table-responsive.bg-modern {
+            border: 1px solid #e3e6f0;
+        }
+        
+        .table-responsive.bg-modern table {
+            margin-bottom: 0;
+        }
+        
+        .table-bordered {
+            border-color: #e3e6f0;
+        }
+        
+        .table-bordered th,
+        .table-bordered td {
+            border-color: #e3e6f0;
+        }
+        
+        .thead-light th {
+            background-color: #f8f9fc;
+            color: #5a6c7d;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.5px;
+        }
+        
+        /* ПОДСКАЗКИ */
+        .form-text.text-muted {
+            font-size: 0.8125rem;
+            margin-top: 0.5rem;
+            color: #858796;
+        }
+        
+        .form-text.text-muted i {
+            opacity: 0.8;
+        }
+        
+        /* РАЗДЕЛИТЕЛЬ СЕКЦИЙ */
+        .section-divider {
+            position: relative;
+            margin: 2rem 0;
+        }
+        
+        .section-divider .section-title {
+            background: white;
+            padding: 0 1rem 0.75rem 0;
+            display: inline-block;
+            border-bottom: 2px solid #e3e6f0;
+            width: 100%;
+        }
+        
+        /* ОШИБКИ ВАЛИДАЦИИ */
+        .invalid-feedback {
+            font-size: 0.8125rem;
+            margin-top: 0.5rem;
+        }
+        
+        .is-invalid {
+            border-color: #e74a3b !important;
+        }
+        
+        .is-invalid:focus {
+            border-color: #e74a3b !important;
+            box-shadow: 0 0 0 0.2rem rgba(231, 74, 59, 0.1) !important;
+        }
+        
+        /* АДАПТИВНОСТЬ */
+        @media (max-width: 991px) {
+            .col-lg-8 {
+                max-width: 100%;
+            }
+        }
+    </style>
+@endsection
+
 @section('js')
-    <script>
-        $(function () {
-            $('#select-all-services').on('change', function () {
-                const checked = this.checked;
-                $('input[type="checkbox"][name$="[selected]"]').prop('checked', checked);
-            });
-
-            function generateCode(length) {
-                const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-                let out = '';
-                for (let i = 0; i < length; i++) {
-                    out += chars.charAt(Math.floor(Math.random() * chars.length));
-                }
-                return out;
+<script>
+    $(function () {
+        // ========================================
+        // Генерация случайного кода промокода
+        // ========================================
+        function generateCode(length) {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let code = '';
+            for (let i = 0; i < length; i++) {
+                code += chars.charAt(Math.floor(Math.random() * chars.length));
             }
+            return code;
+        }
 
-            $('#generate-code').on('click', function () {
-                $('#code').val(generateCode(8));
-            });
-
-            function toggleByType() {
-                const type = $('#type').val();
-                const isDiscount = type === 'discount';
-                // Percent field visible only for discount
-                $('#percent_discount').closest('.form-group').toggle(isDiscount);
-                // Services matrix visible only for free_access
-                const showServices = !isDiscount;
-                $('#select-all-services').closest('table').closest('.table-responsive').toggle(showServices);
-            }
-
-            function toggleByQuantity() {
-                const qty = parseInt($('#quantity').val() || '1', 10);
-                const isSingle = qty <= 1;
-                $('#code').closest('.form-group').toggle(isSingle);
-                $('#prefix').closest('.form-group').toggle(!isSingle);
-                $('#batch_id_group').toggle(!isSingle);
-            }
-
-            toggleByType();
-            toggleByQuantity();
-            $('#type').on('change', toggleByType);
-            $('#quantity').on('input change', toggleByQuantity);
+        $('#generate-code').on('click', function () {
+            const newCode = generateCode(8);
+            $('#code').val(newCode);
+            
+            // Визуальная обратная связь
+            $(this).html('<i class="fas fa-check"></i>').addClass('btn-success').removeClass('btn-outline-secondary');
+            setTimeout(() => {
+                $(this).html('<i class="fas fa-random"></i>').removeClass('btn-success').addClass('btn-outline-secondary');
+            }, 1000);
         });
-    </script>
+
+        // ========================================
+        // Подтверждение перед отменой
+        // ========================================
+        $('a[href*="promocodes.index"]').on('click', function(e) {
+            const hasData = $('#code').val();
+            if (hasData) {
+                if (!confirm('Вы уверены, что хотите отменить создание промокода? Все введенные данные будут потеряны.')) {
+                    e.preventDefault();
+                }
+            }
+        });
+
+        // ========================================
+        // Индикатор загрузки при отправке формы
+        // ========================================
+        $('form').on('submit', function() {
+            $(this).find('button[type="submit"]').prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-2"></i>Создание...');
+        });
+    });
+</script>
 @endsection
 
 

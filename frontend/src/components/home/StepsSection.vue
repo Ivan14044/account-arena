@@ -1,6 +1,6 @@
 <template>
     <p class="text-center mb-10 text-lg leading-6 text-gray-700 dark:text-gray-300">
-        {{ $t('steps.description') }}
+        {{ stepsDescription }}
     </p>
 
     <div
@@ -114,9 +114,21 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { useSiteContentStore } from '@/stores/siteContent';
 import eyesIcon from '@/assets/img/eyes.png';
 import pencilIcon from '@/assets/img/pencil.png';
 import fireIcon from '@/assets/img/fire.png';
+
+const { t, locale } = useI18n();
+const siteContentStore = useSiteContentStore();
+
+const stepsContent = computed(() => siteContentStore.steps(locale.value));
+
+const stepsDescription = computed(() => {
+    return stepsContent.value?.description || t('steps.description');
+});
 </script>
 
 <style scoped>

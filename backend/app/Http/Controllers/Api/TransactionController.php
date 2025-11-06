@@ -15,10 +15,29 @@ class TransactionController extends Controller
             return response()->json(['error' => 'Unauthorized'], 401);
         }
 
-        $transactions = $user->transactions()
-            ->with('subscription.service')
-            ->orderBy('created_at', 'desc')
-            ->get();
+        $query = $user->transactions()
+            ->with('subscription.service', 'serviceAccount');
+
+        // Filter by status
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        // Filter by date range
+        if ($request->filled('date_from')) {
+            $query->whereDate('created_at', '>=', $request->date_from);
+        }
+
+        if ($request->filled('date_to')) {
+            $query->whereDate('created_at', '<=', $request->date_to);
+        }
+
+        // Filter by payment method
+        if ($request->filled('payment_method')) {
+            $query->where('payment_method', $request->payment_method);
+        }
+
+        $transactions = $query->orderBy('created_at', 'desc')->get();
 
         $data = $transactions->map(function ($transaction) {
             return [
@@ -26,7 +45,10 @@ class TransactionController extends Controller
                 'amount' => $transaction->amount,
                 'currency' => $transaction->currency,
                 'payment_method' => $transaction->payment_method,
-                'service_name' => $transaction->subscription?->service?->name ?? null,
+                'status' => $transaction->status ?? 'completed', // Default to completed for old records
+                'service_name' => $transaction->subscription?->service?->name 
+                    ?? $transaction->serviceAccount?->title 
+                    ?? null,
                 'created_at' => $transaction->created_at->toISOString(),
             ];
         });

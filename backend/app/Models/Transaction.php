@@ -8,22 +8,19 @@ class Transaction extends Model
 {
     protected $fillable = [
         'user_id',
+        'guest_email', // Email для гостевых транзакций
         'amount',
         'currency',
         'payment_method',
-        'subscription_id',
         'service_account_id',
         'status',
+        'metadata', // Дополнительные метаданные транзакции (JSON)
     ];
 
     protected $casts = [
         'amount' => 'decimal:2',
+        'metadata' => 'array', // Автоматическое преобразование JSON в массив и обратно
     ];
-
-    public function subscription()
-    {
-        return $this->belongsTo(Subscription::class);
-    }
 
     public function user()
     {
@@ -33,5 +30,10 @@ class Transaction extends Model
     public function serviceAccount()
     {
         return $this->belongsTo(ServiceAccount::class);
+    }
+
+    public function dispute()
+    {
+        return $this->hasOne(ProductDispute::class);
     }
 }

@@ -66,30 +66,117 @@
     "success": "Ваш профіль було успішно оновлено!",
     "keyboard": {
       "title": "Мови клавіатури",
-      "hint": "Використовується розширенням браузера SubCloudy. Англійська завжди увімкнена.",
+      "hint": "Використовується розширенням браузера Account Arena. Англійська завжди увімкнена.",
       "codes": {
         "en": "US",
-        "es": "ES",
         "ru": "RU",
-        "uk": "UA",
-        "zh": "CN"
+        "uk": "UA"
       }
     },
     "balance": "Ваш баланс",
+    "voucher": {
+      "title": "Активувати ваучер",
+      "description": "Введіть код ваучера, щоб поповнити баланс облікового запису",
+      "placeholder": "ВВЕДІТЬ КОД ВАУЧЕРА",
+      "activate": "Активувати",
+      "activating": "Активація...",
+      "success": "Ваучер успішно активовано!",
+      "error": "Помилка активації ваучера"
+    },
     "purchases": {
       "title": "Історія покупок",
       "loading": "Завантаження...",
       "no_purchases": "У вас поки немає покупок",
       "no_service": "Без назви",
+      "filters": {
+        "period": "Період",
+        "status": "Статус",
+        "payment_method": "Спосіб оплати",
+        "date_from": "З дати",
+        "date_to": "По дату",
+        "apply": "Застосувати",
+        "reset": "Скинути",
+        "all": "Всі"
+      },
       "methods": {
         "card": "Банківська картка",
         "crypto": "Криптовалюта",
         "free": "Безкоштовно",
-        "admin": "Адміністратор"
+        "admin": "Адміністратор",
+        "credit_card": "Банківська картка",
+        "balance": "Баланс"
+      },
+      "statuses": {
+        "completed": "Успішно",
+        "pending": "В обробці",
+        "failed": "Невдалий",
+        "refunded": "Повернення коштів"
+      },
+      "quantity": "Кількість",
+      "pcs": "шт.",
+      "show_data": "Показати дані товару",
+      "hide_data": "Сховати дані товару",
+      "copy": "Копіювати",
+      "download": "Завантажити",
+      "download_all": "Завантажити всі акаунти",
+      "account": "Акаунт",
+      "copy_success": "Скопійовано в буфер обміну!",
+      "copy_error": "Помилка при копіюванні",
+      "download_success": "Файл завантажено!",
+      "order_number": "Номер замовлення",
+      "order": "Замовлення",
+      "amount": "Сума",
+      "disputes": {
+        "title": "Претензії",
+        "create_button": "Повідомити про проблему",
+        "create_title": "Створити претензію",
+        "reason": "Причина",
+        "select_reason": "Оберіть причину",
+        "description": "Опис проблеми",
+        "description_placeholder": "Опишіть проблему детально...",
+        "submit": "Відправити",
+        "cancel": "Скасувати",
+        "success": "Претензія успішно створена",
+        "error": "Помилка при створенні претензії",
+        "cannot_create": "Неможливо створити претензію",
+        "already_exists": "Претензія вже створена",
+        "expired": "Термін подачі претензії минув",
+        "reasons": {
+          "invalid_account": "Невалідний аккаунт",
+          "wrong_data": "Невірні дані",
+          "not_working": "Не працює",
+          "already_used": "Вже використаний",
+          "banned": "Заблокований",
+          "other": "Інше"
+        },
+        "status": {
+          "new": "Нова",
+          "in_review": "На розгляді",
+          "resolved": "Вирішена",
+          "rejected": "Відхилена"
+        },
+        "decision": {
+          "refund": "Повернення коштів",
+          "replacement": "Заміна товару",
+          "rejected": "Відхилено"
+        },
+        "my_disputes": "Мої претензії",
+        "no_disputes": "У вас немає претензій",
+        "view_details": "Детальніше",
+        "created_at": "Створена",
+        "admin_comment": "Коментар адміністратора"
       }
     }
   },
   "checkout": {
+    "agree_with": "Я приймаю",
+    "purchase_rules": "Правила покупки",
+    "agree": "Згоден",
+    "close": "Закрити",
+    "must_agree_rules": "Для оформлення замовлення необхідно прийняти правила покупки",
+    "select_payment_method": "Будь ласка, оберіть спосіб оплати",
+    "trial_crypto_not_allowed": "Криптовалюта недоступна для пробних підписок",
+    "rules_not_available": "Правила покупки тимчасово недоступні",
     "title": "Оформлення замовлення",
     "empty": "Ваш кошик порожній. Почніть додавати товари!",
     "payment_method": "Спосіб оплати",
@@ -97,6 +184,10 @@
     "submit": "Оформити замовлення",
     "crypto": "Криптовалюта",
     "crypto_placeholder": "Популярні: BTC, ETH, USDT",
+    "balance": "З балансу",
+    "balance_placeholder": "Оплата з балансу акаунта",
+    "insufficient_balance": "Недостатньо коштів на балансі",
+    "balance_success": "Оплата з балансу успішна!",
     "default": "Типовий",
     "credit_card": "Кредитна картка",
     "credit_card_placeholder": "Apple Pay, Visa, MasterCard та інші",
@@ -196,7 +287,7 @@
     }
   },
   "steps": {
-    "title": "Як <br><span class='gradient-text'>купити</span> товар за 3 кроки",
+    "title": "Як <span class='gradient-text'>купити</span> товар за 3 кроки",
     "description": "Процес покупки простий і зрозумілий!",
     "step1": {
       "title": "Як це працює",
@@ -226,14 +317,14 @@
   },
   "footer": {
     "address": "ФОП Книш Алла Олександрівна 08297, Київська обл., Бучанський р-н, м. Буча, шосе Нове, будинок 42",
-    "copyright": "SubCloudy 2025 © Всі права захищені"
+    "copyright": "Account Arena 2025 © Всі права захищені"
   },
   "reviews": {
     "title": "Ваше задоволення спонукає нас до розвитку!"
   },
   "subscribe": {
     "title": "Підписатися",
-    "description": "Підпишіться на SubCloudy та першими дізнавайтеся про ексклюзивні знижки, спеціальні пропозиції та найновіші інструменти!",
+    "description": "Підпишіться на Account Arena та першими дізнавайтеся про ексклюзивні знижки, спеціальні пропозиції та найновіші інструменти!",
     "button": "Підписатися",
     "error": "Будь ласка, введіть коректну електронну адресу",
     "required": "Електронна пошта обов'язкова для заповнення",
@@ -271,6 +362,32 @@
     "yes": "Так",
     "cancel": "Скасувати"
   },
+  "balance_topup": {
+    "title": "Поповнення балансу",
+    "subtitle": "Оберіть суму та спосіб поповнення вашого балансу",
+    "current_balance": "Поточний баланс",
+    "history_link": "Історія операцій →",
+    "amount_section": "Сума поповнення",
+    "enter_amount": "Або введіть свою суму",
+    "amount_placeholder": "Введіть суму",
+    "min_amount": "Мінімальна сума поповнення",
+    "payment_method_section": "Спосіб оплати",
+    "payment_card": "Банківська картка",
+    "payment_card_desc": "Visa, Mastercard, Google Pay, Apple Pay",
+    "payment_crypto": "Криптовалюта",
+    "payment_crypto_desc": "Bitcoin, Ethereum, USDT та інші",
+    "info_title": "Важлива інформація:",
+    "info_instant": "Кошти зараховуються автоматично після підтвердження платежу",
+    "info_time": "Час зарахування: картка - миттєво, криптовалюта - до 30 хвилин",
+    "info_commission": "Комісія платіжної системи може бути врахована при оплаті",
+    "cancel_button": "Скасувати",
+    "topup_button": "Поповнити на",
+    "processing": "Обробка...",
+    "auth_required": "Для поповнення балансу необхідно увійти в систему",
+    "error_create_payment": "Помилка при створенні платежу",
+    "success": "Баланс успішно поповнено!",
+    "failed_to_load": "Не вдалося завантажити актуальний баланс. Спробуйте оновити сторінку."
+  },
   "cart": {
     "confirm": {
       "remove_single": {
@@ -306,13 +423,47 @@
     "in_stock": "В наявності",
     "out_of_stock": "Немає в наявності",
     "show_all": "Показати всі товари",
-    "stock_unit": "шт."
+    "stock_unit": "шт.",
+    "detail": {
+      "home": "Головна",
+      "back_to_catalog": "Назад до каталогу",
+      "product": "Товар",
+      "loading": "Завантаження...",
+      "add_to_favorites": "Додати до обраного",
+      "remove_from_favorites": "Видалити з обраного",
+      "added_to_favorites": "Додано до обраного",
+      "removed_from_favorites": "Видалено з обраного",
+      "sku": "Артикул",
+      "sku_copied": "Артикул скопійовано в буфер обміну",
+      "click_to_copy": "натисніть для копіювання",
+      "price": "Ціна",
+      "quantity": "Кількість",
+      "in_stock_count": "В наявності: {count} шт.",
+      "no_stock": "Немає в наявності",
+      "add_to_cart": "Додати в кошик",
+      "buy_now": "Купити зараз",
+      "added_to_cart": "Товар додано в кошик ({count} шт.)",
+      "out_of_stock_error": "Товар відсутній на складі",
+      "description_title": "Опис товару",
+      "no_description": "Опис відсутній",
+      "category": "Категорія",
+      "supplier": "Постачальник",
+      "rating": "Рейтинг",
+      "go_to_product": "Перейти до {title}",
+      "price_per_unit": "{price} × {quantity} шт.",
+      "available_only": "Доступно лише {count} шт.",
+      "product_added_to_cart": "{title} ({quantity} шт.) додано в кошик"
+    }
   },
   "catalog": {
     "title": "Каталог товарів",
     "subtitle": "Виберіть підходящі категорії з нашого каталогу",
     "hide_out_of_stock": "Приховати товари не в наявності",
     "show_favorites_only": "Показати лише обрані товари",
-    "search_placeholder": "Пошук товарів…"
+    "search_placeholder": "Пошук за назвою, описом або артикулом…"
+  },
+  "order_success": {
+    "title": "Замовлення оформлено успішно!",
+    "subtitle": "Дякуємо за покупку! Ваші товари доступні для завантаження нижче."
   }
 }

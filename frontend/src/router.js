@@ -9,12 +9,14 @@ import SessionStart from './pages/SessionStart.vue';
 import ForgotPasswordPage from './components/auth/ForgotPasswordPage.vue';
 import ResetPasswordPage from './components/auth/ResetPasswordPage.vue';
 import CheckoutPage from './pages/CheckoutPage.vue';
+import OrderSuccessPage from './pages/OrderSuccessPage.vue';
 import ContentPage from './pages/ContentPage.vue';
 import NotFound from './pages/NotFound.vue';
 import ArticlesAll from './pages/articles/ArticlesAll.vue';
 import ArticleDetails from './pages/articles/ArticleDetails.vue';
 import { useAuthStore } from './stores/auth';
 import { usePageStore } from './stores/pages';
+import { useLoadingStore } from './stores/loading';
 
 const routes = [
     { path: '/', component: MainPage },
@@ -43,6 +45,11 @@ const routes = [
     {
         path: '/profile',
         component: ProfilePage,
+        meta: { requiresAuth: true }
+    },
+    {
+        path: '/balance/topup',
+        component: () => import('./pages/BalanceTopUpPage.vue'),
         meta: { requiresAuth: true }
     },
     {
@@ -75,7 +82,12 @@ const routes = [
     },
     {
         path: '/checkout',
-        component: CheckoutPage,
+        component: CheckoutPage
+        // Убрано requiresAuth: теперь гости могут покупать товары
+    },
+    {
+        path: '/order-success',
+        component: OrderSuccessPage,
         meta: { requiresAuth: true }
     },
     {
@@ -130,18 +142,71 @@ const router = createRouter({
 
 router.beforeEach(async (to, from, next) => {
     const authStore = useAuthStore();
+    const loadingStore = useLoadingStore();
+    
+    // УЛУЧШЕНИЕ: Показываем прелоадер при переходе между страницами
+    // Исключаем переходы на главную и небольшие навигационные переходы
+    if (from.path !== to.path && to.path !== '/') {
+        loadingStore.start();
+    }
+    
+    console.log('[ROUTER] ============================================');
+    console.log('[ROUTER] Переход:', from.path, '->', to.path);
+    console.log('[ROUTER] Требует авторизацию:', to.meta.requiresAuth);
+    console.log('[ROUTER] Требует гостя:', to.meta.requiresGuest);
+    console.log('[ROUTER] Auth состояние:', {
+        hasUser: !!authStore.user,
+        hasToken: !!authStore.token,
+        isAuthenticated: authStore.isAuthenticated,
+        userEmail: authStore.user?.email,
+        userName: authStore.user?.name
+    });
+    
+    // ИСПРАВЛЕНО: Загружаем пользователя если есть токен, но нет данных пользователя
     if (!authStore.user && authStore.token) {
-        await authStore.fetchUser();
+        console.log('[ROUTER] Обнаружен токен без пользователя, загружаем данные...');
+        try {
+            await authStore.fetchUser();
+            console.log('[ROUTER] Пользователь успешно загружен:', {
+                email: authStore.user?.email,
+                name: authStore.user?.name,
+                balance: authStore.user?.balance
+            });
+        } catch (error) {
+            console.error('[ROUTER] Ошибка загрузки пользователя:', error);
+            // Если не удалось загрузить пользователя, очищаем токен
+            await authStore.logout();
+        }
     }
 
-    if (to.meta.requiresAuth && !authStore.user) {
-        return next({
-            path: '/login',
-            query: { redirect: to.fullPath }
-        });
-    } else if (to.meta.requiresGuest && authStore.user) {
-        return next('/');
+    // Проверка для страниц, требующих авторизации
+    if (to.meta.requiresAuth) {
+        // ИСПРАВЛЕНО: Используем isAuthenticated вместо только проверки user
+        if (!authStore.isAuthenticated) {
+            console.log('[ROUTER] ❌ Доступ запрещен: требуется авторизация');
+            console.log('[ROUTER] Редирект на /login');
+            return next({
+                path: '/login',
+                query: { redirect: to.fullPath }
+            });
+        }
+        console.log('[ROUTER] ✅ Доступ разрешен: пользователь авторизован');
     }
+    
+    // Проверка для страниц только для гостей (login, register и т.д.)
+    if (to.meta.requiresGuest) {
+        if (authStore.isAuthenticated) {
+            console.log('[ROUTER] Пользователь уже авторизован, редирект на /');
+            // Не делаем редирект если уже на /
+            if (to.path === '/') {
+                return next();
+            }
+            return next('/');
+        }
+    }
+    
+    console.log('[ROUTER] Переход разрешен');
+    console.log('[ROUTER] ============================================');
 
     // Save the route user came from when first entering articles/categories list
     try {
@@ -171,6 +236,18 @@ router.beforeEach(async (to, from, next) => {
     }
 
     next();
+});
+
+// УЛУЧШЕНИЕ: Останавливаем прелоадер после завершения перехода
+router.afterEach((to, from) => {
+    const loadingStore = useLoadingStore();
+    
+    // Небольшая задержка для плавности (чтобы страница успела отрендериться)
+    setTimeout(() => {
+        loadingStore.stop();
+    }, 100);
+    
+    console.log('[ROUTER] Переход завершен:', to.path);
 });
 
 export default router;

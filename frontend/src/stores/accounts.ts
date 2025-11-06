@@ -3,6 +3,7 @@ import axios from '@/bootstrap';
 
 export interface AccountItem {
   id: number;
+  sku?: string; // Артикул товара
   title: string;
   title_en?: string;
   title_uk?: string;
@@ -14,6 +15,7 @@ export interface AccountItem {
   quantity?: number;
   total_quantity?: number;
   sold?: number;
+  views?: number; // Количество просмотров
   created_at?: string;
   category?: {
     id?: number;
@@ -34,6 +36,7 @@ export const useAccountsStore = defineStore('accounts', {
       const priceNum = typeof raw.price === 'number' ? raw.price : Number.parseFloat(String(raw.price ?? '0'));
       return {
         id: Number(raw.id),
+        sku: raw.sku, // Артикул товара
         title: raw.title ?? '',
         title_en: raw.title_en,
         title_uk: raw.title_uk,
@@ -45,6 +48,7 @@ export const useAccountsStore = defineStore('accounts', {
         quantity: Number(raw.quantity ?? 0),
         total_quantity: Number(raw.total_quantity ?? 0),
         sold: Number(raw.sold ?? 0),
+        views: Number(raw.views ?? 0), // Количество просмотров
         created_at: raw.created_at,
         category: raw.category || null,
       };
@@ -66,15 +70,26 @@ export const useAccountsStore = defineStore('accounts', {
       this.loaded = true;
     },
 
-    async fetchById(id: number, force = false): Promise<AccountItem | null> {
-      const key = Number(id);
-      if (!force && this.byId[key]) return this.byId[key];
-      const { data } = await axios.get(`/accounts/${key}`);
+    async fetchById(idOrSku: string | number, force = false): Promise<AccountItem | null> {
+      // Пытаемся преобразовать в число, если это ID
+      const numericId = Number(idOrSku);
+      const cacheKey = Number.isFinite(numericId) ? numericId : 0;
+      
+      // Проверяем кэш только для числовых ID
+      if (!force && cacheKey > 0 && this.byId[cacheKey]) {
+        return this.byId[cacheKey];
+      }
+      
+      // Делаем запрос к API (поддерживает и ID, и артикул)
+      const { data } = await axios.get(`/accounts/${idOrSku}`);
       const t = this.transform(data);
-      if (t) {
-        this.byId[key] = t;
+      
+      if (t && Number.isFinite(t.id)) {
+        // Кэшируем по числовому ID
+        this.byId[t.id] = t;
         return t;
       }
+      
       return null;
     },
   },

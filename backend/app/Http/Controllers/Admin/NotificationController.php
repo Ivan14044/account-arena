@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\Service;
-use App\Models\Subscription;
 use App\Models\Notification;
 use App\Models\NotificationTemplate;
 use Illuminate\Http\Request;
@@ -73,10 +72,6 @@ class NotificationController extends Controller
             'target' => 'required',
         ];
 
-        if (in_array(request('target'), ['active_subscribers', 'inactive_subscribers'])) {
-            $rules['service_id'] = ['required', 'exists:services,id'];
-        }
-
         foreach (config('langs') as $lang => $flag) {
             $rules['title.' . $lang] = ['required', 'string'];
             $rules['message.' . $lang] = ['required', 'string'];
@@ -87,23 +82,8 @@ class NotificationController extends Controller
 
     protected function getTargetUsers(string $filter, ?int $serviceId = null)
     {
+        // Для маркетплейса цифровых товаров отправляем уведомления всем пользователям
         return match ($filter) {
-            'active_subscribers' => User::whereHas('subscriptions', function ($q) use ($serviceId) {
-                $q->where('status', Subscription::STATUS_ACTIVE);
-                if ($serviceId) {
-                    $q->where('service_id', $serviceId);
-                }
-            })->get(),
-
-            'inactive_subscribers' => User::whereHas('subscriptions', function ($q) use ($serviceId) {
-                $q->where('status', Subscription::STATUS_CANCELED);
-                if ($serviceId) {
-                    $q->where('service_id', $serviceId);
-                }
-            })->get(),
-
-            'never_subscribed' => User::whereDoesntHave('subscriptions')->get(),
-
             default => User::all(),
         };
     }

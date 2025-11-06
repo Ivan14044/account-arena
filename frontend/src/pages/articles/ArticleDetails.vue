@@ -57,6 +57,7 @@ import { computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { useArticlesStore } from '../../stores/articles';
+import { useLoadingStore } from '@/stores/loading';
 import BackLink from '../../components/layout/BackLink.vue';
 import ImageWithFallback from '../../components/ImageWithFallback.vue';
 import type { Category } from '../../types/article';
@@ -65,18 +66,26 @@ const route = useRoute();
 const router = useRouter();
 const id = Number(route.params.id);
 const articlesStore = useArticlesStore();
+const loadingStore = useLoadingStore();
 const { locale } = useI18n();
 
 onMounted(async () => {
-    if (!Number.isFinite(id)) {
-        return router.replace('/404');
-    }
+    // УЛУЧШЕНИЕ: Показываем прелоадер при загрузке статьи
+    loadingStore.start();
+    
     try {
+        if (!Number.isFinite(id)) {
+            return router.replace('/404');
+        }
+        
         await articlesStore.fetchArticleById(id);
     } catch (err: any) {
         if (err?.message === '404') {
             return router.replace('/404');
         }
+    } finally {
+        // Останавливаем прелоадер после загрузки
+        loadingStore.stop();
     }
 });
 

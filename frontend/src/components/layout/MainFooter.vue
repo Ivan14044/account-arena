@@ -6,7 +6,7 @@
             class="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 grid md:grid-cols-[1fr_2fr] gap-10"
         >
             <div class="flex flex-col items-start justify-start">
-                <h3 class="text-3xl font-bold mb-7">SubCloudy</h3>
+                <h3 class="text-3xl font-bold mb-7">Account Arena</h3>
                 <p class="address text-gray-500 text-[16px] font-normal mb-3">
                     {{ $t('footer.address') }}
                 </p>

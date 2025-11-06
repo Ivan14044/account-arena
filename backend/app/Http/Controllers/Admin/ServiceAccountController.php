@@ -98,6 +98,7 @@ class ServiceAccountController extends Controller
                 'title' => $title,
                 'title_en' => $request->input('title_en'),
                 'title_uk' => $request->input('title_uk'),
+                // sku генерируется автоматически в модели
                 'price' => (float) $price,
                 'description' => $description,
                 'description_en' => $request->input('description_en'),
@@ -135,8 +136,8 @@ class ServiceAccountController extends Controller
 
     public function update(Request $request, ServiceAccount $serviceAccount)
     {
-        // Handle accounts_data first
-        $accountsList = [];
+        // ИСПРАВЛЕНО: Правильная обработка аккаунтов с сохранением проданных
+        $newAccountsList = [];
         if ($request->has('accounts_data')) {
             $accountsData = $request->input('accounts_data');
             $lines = array_filter(explode("\n", $accountsData));
@@ -144,7 +145,7 @@ class ServiceAccountController extends Controller
             foreach ($lines as $line) {
                 $line = trim($line);
                 if (!empty($line)) {
-                    $accountsList[] = $line;
+                    $newAccountsList[] = $line;
                 }
             }
         }
@@ -160,8 +161,26 @@ class ServiceAccountController extends Controller
             $validated['image_url'] = Storage::url($path);
         }
         
-        // Always update accounts_data if it was provided in the request
-        $validated['accounts_data'] = $accountsList;
+        // ИСПРАВЛЕНО: Сохраняем проданные аккаунты и добавляем новые
+        $existingAccountsData = is_array($serviceAccount->accounts_data) ? $serviceAccount->accounts_data : [];
+        $usedCount = $serviceAccount->used ?? 0;
+        
+        // Получаем проданные аккаунты (первые $usedCount элементов)
+        $soldAccounts = array_slice($existingAccountsData, 0, $usedCount);
+        
+        // Объединяем: проданные аккаунты + новые аккаунты
+        $finalAccountsList = array_merge($soldAccounts, $newAccountsList);
+        
+        $validated['accounts_data'] = $finalAccountsList;
+        
+        // Логируем для отладки
+        \Log::info('Service Account updated', [
+            'id' => $serviceAccount->id,
+            'sold_accounts' => count($soldAccounts),
+            'new_accounts' => count($newAccountsList),
+            'total_accounts' => count($finalAccountsList),
+            'used' => $usedCount,
+        ]);
         
         $serviceAccount->update($validated);
 
@@ -169,7 +188,13 @@ class ServiceAccountController extends Controller
             ? route('admin.service-accounts.edit', $serviceAccount->id)
             : route('admin.service-accounts.index');
 
-        return redirect($route)->with('success', 'Товар успешно обновлен.');
+        $message = 'Товар успешно обновлен. ';
+        if (count($newAccountsList) > 0) {
+            $message .= 'Добавлено новых аккаунтов: ' . count($newAccountsList) . '. ';
+        }
+        $message .= 'Доступно: ' . (count($finalAccountsList) - $usedCount);
+
+        return redirect($route)->with('success', $message);
     }
 
     public function export(Request $request, ServiceAccount $serviceAccount)
@@ -249,6 +274,7 @@ class ServiceAccountController extends Controller
         return [
             'service_id' => ['nullable', 'exists:services,id'],
             'category_id' => ['nullable', 'exists:categories,id'],
+            // sku убран из правил валидации - генерируется автоматически
             'profile_id' => [
                 'nullable',
                 'string',
@@ -276,5 +302,34 @@ class ServiceAccountController extends Controller
             'meta_description_uk' => ['nullable', 'string'],
             'accounts_data' => ['nullable', 'string'],
         ];
+    }
+
+    /**
+     * Upload image for CKEditor
+     */
+    public function uploadImage(Request $request)
+    {
+        $request->validate([
+            'upload' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:5120', // 5MB max
+        ]);
+
+        if ($request->hasFile('upload')) {
+            $file = $request->file('upload');
+            $path = $file->store('products/descriptions', 'public');
+            $url = Storage::url($path);
+
+            return response()->json([
+                'url' => $url,
+                'uploaded' => 1,
+                'fileName' => $file->getClientOriginalName(),
+            ]);
+        }
+
+        return response()->json([
+            'uploaded' => 0,
+            'error' => [
+                'message' => 'Не удалось загрузить изображение'
+            ]
+        ]);
     }
 }

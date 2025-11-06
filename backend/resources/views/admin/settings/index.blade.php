@@ -1,57 +1,65 @@
 @extends('adminlte::page')
 
-@section('title', 'Settings')
+@section('title', 'Настройки')
 
 @section('content_header')
-    <h1>Settings</h1>
+    <div class="content-header-modern">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="m-0 font-weight-light">
+                    Настройки системы
+                </h1>
+                <p class="text-muted mb-0 mt-1">Конфигурация и управление параметрами платформы</p>
+            </div>
+        </div>
+    </div>
 @stop
 
 @section('content')
-    <div class="row">
-        <div class="col-12">
-            @if (session('success'))
-                <div class="alert alert-success">{{ session('success') }}</div>
-            @endif
+    @if (session('success'))
+        <div class="alert alert-modern alert-success alert-dismissible fade show">
+            <i class="fas fa-check-circle mr-2"></i>{{ session('success') }}
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
         </div>
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header no-border border-0 p-0">
-                    <ul class="nav nav-tabs" id="custom-tabs-one-tab" role="tablist">
-                        <li class="nav-item">
-                            <a class="nav-link active"
-                               id="tab_subscriptions" data-toggle="pill" href="#content_subscriptions" role="tab">
-                                Subscriptions settings
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link"
-                               id="tab_header_menu" data-toggle="pill" href="#content_header_menu" role="tab">
-                                Header menu
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link"
-                               id="tab_footer_menu" data-toggle="pill" href="#content_footer_menu" role="tab">
-                                Footer menu
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link"
-                               id="tab_smtp" data-toggle="pill" href="#content_smtp" role="tab">
-                                SMTP
-                            </a>
-                        </li>
-                        
-                        <li class="nav-item">
-                            <a class="nav-link"
-                               id="tab_cookie" data-toggle="pill" href="#content_cookie" role="tab">
-                                Cookie
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-                <div class="card-body">
-                    <div class="tab-content">
+    @endif
+
+    <div class="card card-modern">
+        <div class="card-header-modern p-0 border-0">
+            <ul class="nav nav-tabs-modern" id="settings-tabs" role="tablist">
+                <li class="nav-item">
+                    <a class="nav-link active" id="tab_subscriptions" data-toggle="pill" href="#content_subscriptions" role="tab">
+                        <i class="fas fa-cog mr-2"></i>Настройки подписок
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="tab_header_menu" data-toggle="pill" href="#content_header_menu" role="tab">
+                        <i class="fas fa-bars mr-2"></i>Меню Header
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="tab_footer_menu" data-toggle="pill" href="#content_footer_menu" role="tab">
+                        <i class="fas fa-th mr-2"></i>Меню Footer
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="tab_smtp" data-toggle="pill" href="#content_smtp" role="tab">
+                        <i class="fas fa-envelope mr-2"></i>SMTP
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="tab_cookie" data-toggle="pill" href="#content_cookie" role="tab">
+                        <i class="fas fa-cookie-bite mr-2"></i>Cookie
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="tab_site_content" data-toggle="pill" href="#content_site_content" role="tab">
+                        <i class="fas fa-file-alt mr-2"></i>Контент сайта
+                    </a>
+                </li>
+            </ul>
+        </div>
+        <div class="card-body">
+            <div class="tab-content">
                         <div class="tab-pane fade show active" id="content_subscriptions" role="tabpanel">
                             <form method="POST" action="{{ route('admin.settings.store') }}">
                                 <input type="hidden" name="form" value="subscriptions">
@@ -316,6 +324,468 @@
                                 <button type="submit" class="btn btn-primary mt-3">Save</button>
                             </form>
                         </div>
+
+                        <div class="tab-pane" id="content_site_content" role="tabpanel">
+                            <form method="POST" action="{{ route('admin.settings.store') }}">
+                                @csrf
+                                <input type="hidden" name="form" value="site_content">
+                                
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle"></i>
+                                    <strong>Информация:</strong> Здесь вы можете редактировать весь текстовый контент главной страницы сайта. 
+                                    HTML теги поддерживаются (например, &lt;span class='gradient-text'&gt;текст&lt;/span&gt;).
+                                </div>
+
+                                <!-- Language Tabs -->
+                                <ul class="nav nav-tabs" id="content-lang-tabs" role="tablist">
+                                    <li class="nav-item">
+                                        <a class="nav-link active" id="lang-ru-tab" data-toggle="tab" href="#lang-ru" role="tab">
+                                            🇷🇺 Русский
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" id="lang-en-tab" data-toggle="tab" href="#lang-en" role="tab">
+                                            🇬🇧 English
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" id="lang-uk-tab" data-toggle="tab" href="#lang-uk" role="tab">
+                                            🇺🇦 Українська
+                                        </a>
+                                    </li>
+                                </ul>
+
+                                <div class="tab-content mt-3">
+                                    <!-- RUSSIAN CONTENT -->
+                                    <div class="tab-pane fade show active" id="lang-ru" role="tabpanel">
+                                        <h5 class="mb-3">Hero секция (Главный заголовок)</h5>
+                                        <div class="form-group">
+                                            <label for="hero_title_ru">Заголовок *</label>
+                                            <textarea name="hero_title_ru" id="hero_title_ru" rows="2"
+                                                   class="form-control @error('hero_title_ru') is-invalid @enderror">{{ old('hero_title_ru', \App\Models\Option::get('hero_title_ru')) }}</textarea>
+                                            @error('hero_title_ru')
+                                                <div class="invalid-feedback d-block">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="hero_description_ru">Описание *</label>
+                                            <textarea name="hero_description_ru" id="hero_description_ru" rows="3"
+                                                   class="form-control @error('hero_description_ru') is-invalid @enderror">{{ old('hero_description_ru', \App\Models\Option::get('hero_description_ru')) }}</textarea>
+                                            @error('hero_description_ru')
+                                                <div class="invalid-feedback d-block">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="hero_button_ru">Текст кнопки *</label>
+                                            <input type="text" name="hero_button_ru" id="hero_button_ru"
+                                                   class="form-control @error('hero_button_ru') is-invalid @enderror"
+                                                   value="{{ old('hero_button_ru', \App\Models\Option::get('hero_button_ru')) }}">
+                                            @error('hero_button_ru')
+                                                <div class="invalid-feedback d-block">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+
+                                        <hr class="my-4">
+                                        <h5 class="mb-3">О нас</h5>
+                                        <div class="form-group">
+                                            <label for="about_title_ru">Заголовок *</label>
+                                            <input type="text" name="about_title_ru" id="about_title_ru"
+                                                   class="form-control @error('about_title_ru') is-invalid @enderror"
+                                                   value="{{ old('about_title_ru', \App\Models\Option::get('about_title_ru')) }}">
+                                            @error('about_title_ru')
+                                                <div class="invalid-feedback d-block">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="about_description_ru">Описание *</label>
+                                            <textarea name="about_description_ru" id="about_description_ru" rows="4"
+                                                   class="form-control @error('about_description_ru') is-invalid @enderror">{{ old('about_description_ru', \App\Models\Option::get('about_description_ru')) }}</textarea>
+                                            @error('about_description_ru')
+                                                <div class="invalid-feedback d-block">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+
+                                        <hr class="my-4">
+                                        <h5 class="mb-3">Почему выбирают нашу платформу</h5>
+                                        <div class="form-group">
+                                            <label for="promote_title_ru">Заголовок секции *</label>
+                                            <textarea name="promote_title_ru" id="promote_title_ru" rows="2"
+                                                   class="form-control @error('promote_title_ru') is-invalid @enderror">{{ old('promote_title_ru', \App\Models\Option::get('promote_title_ru')) }}</textarea>
+                                            @error('promote_title_ru')
+                                                <div class="invalid-feedback d-block">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <h6>1. Мгновенная доставка</h6>
+                                                <div class="form-group">
+                                                    <label for="promote_access_title_ru">Заголовок *</label>
+                                                    <input type="text" name="promote_access_title_ru" id="promote_access_title_ru"
+                                                           class="form-control" value="{{ old('promote_access_title_ru', \App\Models\Option::get('promote_access_title_ru')) }}">
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="promote_access_description_ru">Описание *</label>
+                                                    <textarea name="promote_access_description_ru" id="promote_access_description_ru" rows="2"
+                                                           class="form-control">{{ old('promote_access_description_ru', \App\Models\Option::get('promote_access_description_ru')) }}</textarea>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <h6>2. Лучшие цены</h6>
+                                                <div class="form-group">
+                                                    <label for="promote_pricing_title_ru">Заголовок *</label>
+                                                    <input type="text" name="promote_pricing_title_ru" id="promote_pricing_title_ru"
+                                                           class="form-control" value="{{ old('promote_pricing_title_ru', \App\Models\Option::get('promote_pricing_title_ru')) }}">
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="promote_pricing_description_ru">Описание *</label>
+                                                    <textarea name="promote_pricing_description_ru" id="promote_pricing_description_ru" rows="2"
+                                                           class="form-control">{{ old('promote_pricing_description_ru', \App\Models\Option::get('promote_pricing_description_ru')) }}</textarea>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <h6>3. Гарантия качества</h6>
+                                                <div class="form-group">
+                                                    <label for="promote_refund_title_ru">Заголовок *</label>
+                                                    <input type="text" name="promote_refund_title_ru" id="promote_refund_title_ru"
+                                                           class="form-control" value="{{ old('promote_refund_title_ru', \App\Models\Option::get('promote_refund_title_ru')) }}">
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="promote_refund_description_ru">Описание *</label>
+                                                    <textarea name="promote_refund_description_ru" id="promote_refund_description_ru" rows="2"
+                                                           class="form-control">{{ old('promote_refund_description_ru', \App\Models\Option::get('promote_refund_description_ru')) }}</textarea>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <h6>4. Проверенные товары</h6>
+                                                <div class="form-group">
+                                                    <label for="promote_activation_title_ru">Заголовок *</label>
+                                                    <input type="text" name="promote_activation_title_ru" id="promote_activation_title_ru"
+                                                           class="form-control" value="{{ old('promote_activation_title_ru', \App\Models\Option::get('promote_activation_title_ru')) }}">
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="promote_activation_description_ru">Описание *</label>
+                                                    <textarea name="promote_activation_description_ru" id="promote_activation_description_ru" rows="2"
+                                                           class="form-control">{{ old('promote_activation_description_ru', \App\Models\Option::get('promote_activation_description_ru')) }}</textarea>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <h6>5. Поддержка 24/7</h6>
+                                                <div class="form-group">
+                                                    <label for="promote_support_title_ru">Заголовок *</label>
+                                                    <input type="text" name="promote_support_title_ru" id="promote_support_title_ru"
+                                                           class="form-control" value="{{ old('promote_support_title_ru', \App\Models\Option::get('promote_support_title_ru')) }}">
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="promote_support_description_ru">Описание *</label>
+                                                    <textarea name="promote_support_description_ru" id="promote_support_description_ru" rows="2"
+                                                           class="form-control">{{ old('promote_support_description_ru', \App\Models\Option::get('promote_support_description_ru')) }}</textarea>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <h6>6. Безопасные платежи</h6>
+                                                <div class="form-group">
+                                                    <label for="promote_payment_title_ru">Заголовок *</label>
+                                                    <input type="text" name="promote_payment_title_ru" id="promote_payment_title_ru"
+                                                           class="form-control" value="{{ old('promote_payment_title_ru', \App\Models\Option::get('promote_payment_title_ru')) }}">
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="promote_payment_description_ru">Описание *</label>
+                                                    <textarea name="promote_payment_description_ru" id="promote_payment_description_ru" rows="2"
+                                                           class="form-control">{{ old('promote_payment_description_ru', \App\Models\Option::get('promote_payment_description_ru')) }}</textarea>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <hr class="my-4">
+                                        <h5 class="mb-3">Как купить товар в 3 шага</h5>
+                                        <div class="form-group">
+                                            <label for="steps_title_ru">Заголовок *</label>
+                                            <textarea name="steps_title_ru" id="steps_title_ru" rows="2"
+                                                   class="form-control @error('steps_title_ru') is-invalid @enderror">{{ old('steps_title_ru', \App\Models\Option::get('steps_title_ru')) }}</textarea>
+                                            @error('steps_title_ru')
+                                                <div class="invalid-feedback d-block">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="steps_description_ru">Подзаголовок *</label>
+                                            <input type="text" name="steps_description_ru" id="steps_description_ru"
+                                                   class="form-control @error('steps_description_ru') is-invalid @enderror"
+                                                   value="{{ old('steps_description_ru', \App\Models\Option::get('steps_description_ru')) }}">
+                                            @error('steps_description_ru')
+                                                <div class="invalid-feedback d-block">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+                                    </div>
+
+                                    <!-- ENGLISH CONTENT -->
+                                    <div class="tab-pane fade" id="lang-en" role="tabpanel">
+                                        <h5 class="mb-3">Hero Section</h5>
+                                        <div class="form-group">
+                                            <label for="hero_title_en">Title</label>
+                                            <textarea name="hero_title_en" id="hero_title_en" rows="2"
+                                                   class="form-control">{{ old('hero_title_en', \App\Models\Option::get('hero_title_en')) }}</textarea>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="hero_description_en">Description</label>
+                                            <textarea name="hero_description_en" id="hero_description_en" rows="3"
+                                                   class="form-control">{{ old('hero_description_en', \App\Models\Option::get('hero_description_en')) }}</textarea>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="hero_button_en">Button Text</label>
+                                            <input type="text" name="hero_button_en" id="hero_button_en"
+                                                   class="form-control" value="{{ old('hero_button_en', \App\Models\Option::get('hero_button_en')) }}">
+                                        </div>
+
+                                        <hr class="my-4">
+                                        <h5 class="mb-3">About Us</h5>
+                                        <div class="form-group">
+                                            <label for="about_title_en">Title</label>
+                                            <input type="text" name="about_title_en" id="about_title_en"
+                                                   class="form-control" value="{{ old('about_title_en', \App\Models\Option::get('about_title_en')) }}">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="about_description_en">Description</label>
+                                            <textarea name="about_description_en" id="about_description_en" rows="4"
+                                                   class="form-control">{{ old('about_description_en', \App\Models\Option::get('about_description_en')) }}</textarea>
+                                        </div>
+
+                                        <hr class="my-4">
+                                        <h5 class="mb-3">Why Choose Our Platform</h5>
+                                        <div class="form-group">
+                                            <label for="promote_title_en">Section Title</label>
+                                            <textarea name="promote_title_en" id="promote_title_en" rows="2"
+                                                   class="form-control">{{ old('promote_title_en', \App\Models\Option::get('promote_title_en')) }}</textarea>
+                                        </div>
+
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <h6>1. Instant Delivery</h6>
+                                                <div class="form-group">
+                                                    <input type="text" name="promote_access_title_en" placeholder="Title"
+                                                           class="form-control" value="{{ old('promote_access_title_en', \App\Models\Option::get('promote_access_title_en')) }}">
+                                                </div>
+                                                <div class="form-group">
+                                                    <textarea name="promote_access_description_en" rows="2" placeholder="Description"
+                                                           class="form-control">{{ old('promote_access_description_en', \App\Models\Option::get('promote_access_description_en')) }}</textarea>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <h6>2. Best Prices</h6>
+                                                <div class="form-group">
+                                                    <input type="text" name="promote_pricing_title_en" placeholder="Title"
+                                                           class="form-control" value="{{ old('promote_pricing_title_en', \App\Models\Option::get('promote_pricing_title_en')) }}">
+                                                </div>
+                                                <div class="form-group">
+                                                    <textarea name="promote_pricing_description_en" rows="2" placeholder="Description"
+                                                           class="form-control">{{ old('promote_pricing_description_en', \App\Models\Option::get('promote_pricing_description_en')) }}</textarea>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <h6>3. Quality Guarantee</h6>
+                                                <div class="form-group">
+                                                    <input type="text" name="promote_refund_title_en" placeholder="Title"
+                                                           class="form-control" value="{{ old('promote_refund_title_en', \App\Models\Option::get('promote_refund_title_en')) }}">
+                                                </div>
+                                                <div class="form-group">
+                                                    <textarea name="promote_refund_description_en" rows="2" placeholder="Description"
+                                                           class="form-control">{{ old('promote_refund_description_en', \App\Models\Option::get('promote_refund_description_en')) }}</textarea>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <h6>4. Verified Products</h6>
+                                                <div class="form-group">
+                                                    <input type="text" name="promote_activation_title_en" placeholder="Title"
+                                                           class="form-control" value="{{ old('promote_activation_title_en', \App\Models\Option::get('promote_activation_title_en')) }}">
+                                                </div>
+                                                <div class="form-group">
+                                                    <textarea name="promote_activation_description_en" rows="2" placeholder="Description"
+                                                           class="form-control">{{ old('promote_activation_description_en', \App\Models\Option::get('promote_activation_description_en')) }}</textarea>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <h6>5. 24/7 Support</h6>
+                                                <div class="form-group">
+                                                    <input type="text" name="promote_support_title_en" placeholder="Title"
+                                                           class="form-control" value="{{ old('promote_support_title_en', \App\Models\Option::get('promote_support_title_en')) }}">
+                                                </div>
+                                                <div class="form-group">
+                                                    <textarea name="promote_support_description_en" rows="2" placeholder="Description"
+                                                           class="form-control">{{ old('promote_support_description_en', \App\Models\Option::get('promote_support_description_en')) }}</textarea>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <h6>6. Secure Payments</h6>
+                                                <div class="form-group">
+                                                    <input type="text" name="promote_payment_title_en" placeholder="Title"
+                                                           class="form-control" value="{{ old('promote_payment_title_en', \App\Models\Option::get('promote_payment_title_en')) }}">
+                                                </div>
+                                                <div class="form-group">
+                                                    <textarea name="promote_payment_description_en" rows="2" placeholder="Description"
+                                                           class="form-control">{{ old('promote_payment_description_en', \App\Models\Option::get('promote_payment_description_en')) }}</textarea>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <hr class="my-4">
+                                        <h5 class="mb-3">How to Buy in 3 Steps</h5>
+                                        <div class="form-group">
+                                            <label for="steps_title_en">Title</label>
+                                            <textarea name="steps_title_en" id="steps_title_en" rows="2"
+                                                   class="form-control">{{ old('steps_title_en', \App\Models\Option::get('steps_title_en')) }}</textarea>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="steps_description_en">Subtitle</label>
+                                            <input type="text" name="steps_description_en" id="steps_description_en"
+                                                   class="form-control" value="{{ old('steps_description_en', \App\Models\Option::get('steps_description_en')) }}">
+                                        </div>
+                                    </div>
+
+                                    <!-- UKRAINIAN CONTENT -->
+                                    <div class="tab-pane fade" id="lang-uk" role="tabpanel">
+                                        <h5 class="mb-3">Hero секція</h5>
+                                        <div class="form-group">
+                                            <label for="hero_title_uk">Заголовок</label>
+                                            <textarea name="hero_title_uk" id="hero_title_uk" rows="2"
+                                                   class="form-control">{{ old('hero_title_uk', \App\Models\Option::get('hero_title_uk')) }}</textarea>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="hero_description_uk">Опис</label>
+                                            <textarea name="hero_description_uk" id="hero_description_uk" rows="3"
+                                                   class="form-control">{{ old('hero_description_uk', \App\Models\Option::get('hero_description_uk')) }}</textarea>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="hero_button_uk">Текст кнопки</label>
+                                            <input type="text" name="hero_button_uk" id="hero_button_uk"
+                                                   class="form-control" value="{{ old('hero_button_uk', \App\Models\Option::get('hero_button_uk')) }}">
+                                        </div>
+
+                                        <hr class="my-4">
+                                        <h5 class="mb-3">Про нас</h5>
+                                        <div class="form-group">
+                                            <label for="about_title_uk">Заголовок</label>
+                                            <input type="text" name="about_title_uk" id="about_title_uk"
+                                                   class="form-control" value="{{ old('about_title_uk', \App\Models\Option::get('about_title_uk')) }}">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="about_description_uk">Опис</label>
+                                            <textarea name="about_description_uk" id="about_description_uk" rows="4"
+                                                   class="form-control">{{ old('about_description_uk', \App\Models\Option::get('about_description_uk')) }}</textarea>
+                                        </div>
+
+                                        <hr class="my-4">
+                                        <h5 class="mb-3">Чому обирають нашу платформу</h5>
+                                        <div class="form-group">
+                                            <label for="promote_title_uk">Заголовок секції</label>
+                                            <textarea name="promote_title_uk" id="promote_title_uk" rows="2"
+                                                   class="form-control">{{ old('promote_title_uk', \App\Models\Option::get('promote_title_uk')) }}</textarea>
+                                        </div>
+
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <h6>1. Миттєва доставка</h6>
+                                                <div class="form-group">
+                                                    <input type="text" name="promote_access_title_uk" placeholder="Заголовок"
+                                                           class="form-control" value="{{ old('promote_access_title_uk', \App\Models\Option::get('promote_access_title_uk')) }}">
+                                                </div>
+                                                <div class="form-group">
+                                                    <textarea name="promote_access_description_uk" rows="2" placeholder="Опис"
+                                                           class="form-control">{{ old('promote_access_description_uk', \App\Models\Option::get('promote_access_description_uk')) }}</textarea>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <h6>2. Найкращі ціни</h6>
+                                                <div class="form-group">
+                                                    <input type="text" name="promote_pricing_title_uk" placeholder="Заголовок"
+                                                           class="form-control" value="{{ old('promote_pricing_title_uk', \App\Models\Option::get('promote_pricing_title_uk')) }}">
+                                                </div>
+                                                <div class="form-group">
+                                                    <textarea name="promote_pricing_description_uk" rows="2" placeholder="Опис"
+                                                           class="form-control">{{ old('promote_pricing_description_uk', \App\Models\Option::get('promote_pricing_description_uk')) }}</textarea>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <h6>3. Гарантія якості</h6>
+                                                <div class="form-group">
+                                                    <input type="text" name="promote_refund_title_uk" placeholder="Заголовок"
+                                                           class="form-control" value="{{ old('promote_refund_title_uk', \App\Models\Option::get('promote_refund_title_uk')) }}">
+                                                </div>
+                                                <div class="form-group">
+                                                    <textarea name="promote_refund_description_uk" rows="2" placeholder="Опис"
+                                                           class="form-control">{{ old('promote_refund_description_uk', \App\Models\Option::get('promote_refund_description_uk')) }}</textarea>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <h6>4. Перевірені товари</h6>
+                                                <div class="form-group">
+                                                    <input type="text" name="promote_activation_title_uk" placeholder="Заголовок"
+                                                           class="form-control" value="{{ old('promote_activation_title_uk', \App\Models\Option::get('promote_activation_title_uk')) }}">
+                                                </div>
+                                                <div class="form-group">
+                                                    <textarea name="promote_activation_description_uk" rows="2" placeholder="Опис"
+                                                           class="form-control">{{ old('promote_activation_description_uk', \App\Models\Option::get('promote_activation_description_uk')) }}</textarea>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <h6>5. Підтримка 24/7</h6>
+                                                <div class="form-group">
+                                                    <input type="text" name="promote_support_title_uk" placeholder="Заголовок"
+                                                           class="form-control" value="{{ old('promote_support_title_uk', \App\Models\Option::get('promote_support_title_uk')) }}">
+                                                </div>
+                                                <div class="form-group">
+                                                    <textarea name="promote_support_description_uk" rows="2" placeholder="Опис"
+                                                           class="form-control">{{ old('promote_support_description_uk', \App\Models\Option::get('promote_support_description_uk')) }}</textarea>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <h6>6. Безпечні платежі</h6>
+                                                <div class="form-group">
+                                                    <input type="text" name="promote_payment_title_uk" placeholder="Заголовок"
+                                                           class="form-control" value="{{ old('promote_payment_title_uk', \App\Models\Option::get('promote_payment_title_uk')) }}">
+                                                </div>
+                                                <div class="form-group">
+                                                    <textarea name="promote_payment_description_uk" rows="2" placeholder="Опис"
+                                                           class="form-control">{{ old('promote_payment_description_uk', \App\Models\Option::get('promote_payment_description_uk')) }}</textarea>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <hr class="my-4">
+                                        <h5 class="mb-3">Як купити товар у 3 кроки</h5>
+                                        <div class="form-group">
+                                            <label for="steps_title_uk">Заголовок</label>
+                                            <textarea name="steps_title_uk" id="steps_title_uk" rows="2"
+                                                   class="form-control">{{ old('steps_title_uk', \App\Models\Option::get('steps_title_uk')) }}</textarea>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="steps_description_uk">Підзаголовок</label>
+                                            <input type="text" name="steps_description_uk" id="steps_description_uk"
+                                                   class="form-control" value="{{ old('steps_description_uk', \App\Models\Option::get('steps_description_uk')) }}">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <button type="submit" class="btn btn-primary mt-3">Сохранить изменения</button>
+                            </form>
+                        </div>
                         
                     </div>
                 </div>
@@ -438,4 +908,8 @@
             }
         });
     </script>
+@endsection
+
+@section('css')
+    @include('admin.layouts.modern-styles')
 @endsection

@@ -9,7 +9,7 @@
                 <img
                     :src="logo"
                     alt="Loading..."
-                    class="w-20 h-20 object-contain spin-slow-reverse"
+                    class="w-32 h-32 object-contain loader-pulse"
                 />
                 <div
                     v-if="isStartSessionPage"
@@ -36,7 +36,7 @@ import { useLoadingStore } from '../stores/loading';
 import PluginWarningModal from './PluginWarningModal.vue';
 import { usePluginDetection } from '@/composables/usePluginDetection';
 
-const logo = '/img/logo_trans.png';
+const logo = '/img/logo_trans.webp'; // Новое изображение прелоадера с социальными сетями
 const isStartSessionPage = /^\/session-start(\/\d+)?$/.test(window.location.pathname);
 
 const props = defineProps<{
@@ -157,7 +157,7 @@ if (isStartSessionPage) {
             );
             startLoadingSequence();
         } else {
-            console.warn('SubCloudy plugin not detected. Please install the browser extension first.');
+            console.warn('Account Arena plugin not detected. Please install the browser extension first.');
 
             if (!continueLoading.value) {
                 activeMessageKey.value = 'loader.checking_plugin';
@@ -215,6 +215,22 @@ if (isStartSessionPage) {
 .fade-leave-from { opacity: 1; }
 
 .ellipsis { display: inline-block; width: 3ch; text-align: left; }
+
+/* Плавная анимация пульсации для прелоадера (без вращения) */
+.loader-pulse {
+    animation: loader-pulse 2s ease-in-out infinite;
+}
+
+@keyframes loader-pulse {
+    0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.6;
+        transform: scale(1.15);
+    }
+}
 
 /* smoother crossfade/slide for status text only */
 .text-fade-enter-active,

@@ -1,0 +1,151 @@
+СКОПИРУЙ ЭТО И ВСТАВЬ В PUTTY (ВСЁ СРАЗУ):
+============================================
+
+bash << 'ENDOFSCRIPT'
+set -e
+clear
+echo "🚀 Установка начата..."
+
+# 1. Обновление
+echo "[1/7] Обновление системы..."
+export DEBIAN_FRONTEND=noninteractive
+apt update -y > /dev/null 2>&1
+apt upgrade -y > /dev/null 2>&1
+apt install -y software-properties-common curl wget unzip git ufw zip nano > /dev/null 2>&1
+echo "✅ Готово"
+
+# 2. Nginx
+echo "[2/7] Nginx..."
+apt install -y nginx > /dev/null 2>&1
+systemctl start nginx
+systemctl enable nginx > /dev/null 2>&1
+echo "✅ Готово"
+
+# 3. PHP 8.2
+echo "[3/7] PHP 8.2..."
+add-apt-repository ppa:ondrej/php -y > /dev/null 2>&1
+apt update -y > /dev/null 2>&1
+apt install -y php8.2-fpm php8.2-mysql php8.2-xml php8.2-mbstring php8.2-curl php8.2-zip php8.2-gd php8.2-redis php8.2-bcmath php8.2-intl php8.2-cli > /dev/null 2>&1
+echo "✅ Готово"
+
+# 4. MySQL
+echo "[4/7] MySQL..."
+apt install -y mysql-server > /dev/null 2>&1
+systemctl start mysql
+systemctl enable mysql > /dev/null 2>&1
+MYSQL_PASS=$(openssl rand -base64 32)
+mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '${MYSQL_PASS}';" 2>/dev/null
+echo "${MYSQL_PASS}" > /root/.mysql_pass
+DB_PASS=$(openssl rand -base64 32)
+mysql -uroot -p"${MYSQL_PASS}" -e "CREATE DATABASE IF NOT EXISTS subcloudy CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci; CREATE USER IF NOT EXISTS 'subcloudy'@'localhost' IDENTIFIED BY '${DB_PASS}'; GRANT ALL PRIVILEGES ON subcloudy.* TO 'subcloudy'@'localhost'; FLUSH PRIVILEGES;" 2>/dev/null
+echo -e "DB_HOST=localhost\nDB_PORT=3306\nDB_DATABASE=subcloudy\nDB_USERNAME=subcloudy\nDB_PASSWORD=${DB_PASS}" > /root/.db_creds
+echo "✅ Готово"
+
+# 5. Redis, Composer, Node
+echo "[5/7] Redis, Composer, Node.js..."
+apt install -y redis-server > /dev/null 2>&1
+systemctl start redis-server
+curl -sS https://getcomposer.org/installer | php > /dev/null 2>&1
+mv composer.phar /usr/local/bin/composer 2>/dev/null
+curl -fsSL https://deb.nodesource.com/setup_20.x | bash - > /dev/null 2>&1
+apt install -y nodejs > /dev/null 2>&1
+echo "✅ Готово"
+
+# 6. Структура и файлы
+echo "[6/7] Создание проекта..."
+mkdir -p /var/www/subcloudy/{backend/public,frontend/dist}
+cat > /var/www/subcloudy/backend/public/index.php << 'EOF'
+<?php
+header('Content-Type: application/json');
+header('Access-Control-Allow-Origin: *');
+echo json_encode(['status'=>'success','message'=>'Account Arena API работает!','version'=>'1.0.0','timestamp'=>date('Y-m-d H:i:s'),'php'=>phpversion()],JSON_PRETTY_PRINT);
+EOF
+
+cat > /var/www/subcloudy/frontend/dist/index.html << 'EOF'
+<!DOCTYPE html>
+<html lang="ru">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Account Arena</title>
+<style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:system-ui,-apple-system,sans-serif;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);min-height:100vh;display:flex;align-items:center;justify-content:center;color:#fff}.container{text-align:center;padding:60px 40px;background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);border-radius:20px;max-width:800px}h1{font-size:3em;margin-bottom:20px}.logo{font-size:5em;margin-bottom:20px}.status{display:inline-block;padding:15px 30px;background:rgba(0,255,0,0.3);border-radius:50px;margin:20px 0;font-weight:bold}p{font-size:1.2em;margin:15px 0}.button{display:inline-block;margin-top:20px;padding:15px 40px;background:#fff;color:#667eea;text-decoration:none;border-radius:50px;font-weight:bold;cursor:pointer;border:none;font-size:1.1em}#result{margin-top:20px;padding:20px;background:rgba(0,0,0,0.3);border-radius:10px;font-family:monospace;font-size:0.9em;text-align:left;overflow-x:auto}</style>
+</head>
+<body>
+<div class="container">
+<div class="logo">🎮</div>
+<h1>Account Arena</h1>
+<p class="status">✅ Сервер запущен!</p>
+<p>Добро пожаловать на платформу цифровых товаров</p>
+<p>🚀 Сервер работает на <strong>https://account-arena.com</strong></p>
+<button class="button" onclick="testAPI()">Проверить API</button>
+<div id="result" style="display:none"></div>
+</div>
+<script>
+async function testAPI(){
+const r=document.getElementById('result');
+r.style.display='block';
+r.innerHTML='⏳ Проверка...';
+try{
+const res=await fetch('/api/');
+const data=await res.json();
+r.innerHTML='<div style="color:#4ade80">✅ API работает!</div><pre>'+JSON.stringify(data,null,2)+'</pre>';
+}catch(e){
+r.innerHTML='<div style="color:#fca5a5">❌ Ошибка: '+e.message+'</div>';
+}
+}
+setTimeout(testAPI,1000);
+</script>
+</body>
+</html>
+EOF
+chown -R www-data:www-data /var/www/subcloudy
+chmod -R 755 /var/www/subcloudy
+echo "✅ Готово"
+
+# 7. Nginx конфигурация и SSL
+echo "[7/7] Настройка Nginx и SSL..."
+cat > /etc/nginx/sites-available/account-arena.com << 'EOF'
+server {
+    listen 80;
+    server_name account-arena.com www.account-arena.com;
+    root /var/www/subcloudy/frontend/dist;
+    index index.html;
+    location / { try_files $uri $uri/ /index.html; }
+    location /api {
+        alias /var/www/subcloudy/backend/public;
+        try_files $uri $uri/ @backend;
+        location ~ \.php$ {
+            include fastcgi_params;
+            fastcgi_pass unix:/var/run/php/php8.2-fpm.sock;
+            fastcgi_param SCRIPT_FILENAME /var/www/subcloudy/backend/public/index.php;
+        }
+    }
+    location @backend { rewrite /api/(.*)$ /api/index.php?/$1 last; }
+}
+EOF
+ln -sf /etc/nginx/sites-available/account-arena.com /etc/nginx/sites-enabled/
+rm -f /etc/nginx/sites-enabled/default
+nginx -t > /dev/null 2>&1
+systemctl reload nginx
+apt install -y certbot python3-certbot-nginx > /dev/null 2>&1
+certbot --nginx -d account-arena.com -d www.account-arena.com --non-interactive --agree-tos --email admin@account-arena.com --redirect > /dev/null 2>&1 || echo "SSL: установи позже"
+ufw allow 22/tcp > /dev/null 2>&1
+ufw allow 80/tcp > /dev/null 2>&1
+ufw allow 443/tcp > /dev/null 2>&1
+ufw --force enable > /dev/null 2>&1
+echo "✅ Готово"
+
+clear
+echo ""
+echo "╔══════════════════════════════════════════════════════════════╗"
+echo "║          🎉 УСТАНОВКА ЗАВЕРШЕНА! 🎉                         ║"
+echo "╚══════════════════════════════════════════════════════════════╝"
+echo ""
+echo "🌐 ОТКРОЙ: https://account-arena.com"
+echo ""
+echo "🔐 Пароли сохранены:"
+echo "   MySQL root: cat /root/.mysql_pass"
+echo "   База данных: cat /root/.db_creds"
+echo ""
+
+ENDOFSCRIPT
+
+============================================
+

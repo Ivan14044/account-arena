@@ -49,6 +49,82 @@ class SettingController extends Controller
                 'username' => ['required', 'string'],
                 'password' => ['required', 'string'],
             ],
+            'site_content' => [
+                // Hero
+                'hero_title_ru' => ['required', 'string'],
+                'hero_title_en' => ['nullable', 'string'],
+                'hero_title_uk' => ['nullable', 'string'],
+                'hero_description_ru' => ['required', 'string'],
+                'hero_description_en' => ['nullable', 'string'],
+                'hero_description_uk' => ['nullable', 'string'],
+                'hero_button_ru' => ['required', 'string'],
+                'hero_button_en' => ['nullable', 'string'],
+                'hero_button_uk' => ['nullable', 'string'],
+                
+                // About
+                'about_title_ru' => ['required', 'string'],
+                'about_title_en' => ['nullable', 'string'],
+                'about_title_uk' => ['nullable', 'string'],
+                'about_description_ru' => ['required', 'string'],
+                'about_description_en' => ['nullable', 'string'],
+                'about_description_uk' => ['nullable', 'string'],
+                
+                // Promote Title
+                'promote_title_ru' => ['required', 'string'],
+                'promote_title_en' => ['nullable', 'string'],
+                'promote_title_uk' => ['nullable', 'string'],
+                
+                // Promote blocks (6 items: access, pricing, refund, activation, support, payment)
+                'promote_access_title_ru' => ['required', 'string'],
+                'promote_access_title_en' => ['nullable', 'string'],
+                'promote_access_title_uk' => ['nullable', 'string'],
+                'promote_access_description_ru' => ['required', 'string'],
+                'promote_access_description_en' => ['nullable', 'string'],
+                'promote_access_description_uk' => ['nullable', 'string'],
+                
+                'promote_pricing_title_ru' => ['required', 'string'],
+                'promote_pricing_title_en' => ['nullable', 'string'],
+                'promote_pricing_title_uk' => ['nullable', 'string'],
+                'promote_pricing_description_ru' => ['required', 'string'],
+                'promote_pricing_description_en' => ['nullable', 'string'],
+                'promote_pricing_description_uk' => ['nullable', 'string'],
+                
+                'promote_refund_title_ru' => ['required', 'string'],
+                'promote_refund_title_en' => ['nullable', 'string'],
+                'promote_refund_title_uk' => ['nullable', 'string'],
+                'promote_refund_description_ru' => ['required', 'string'],
+                'promote_refund_description_en' => ['nullable', 'string'],
+                'promote_refund_description_uk' => ['nullable', 'string'],
+                
+                'promote_activation_title_ru' => ['required', 'string'],
+                'promote_activation_title_en' => ['nullable', 'string'],
+                'promote_activation_title_uk' => ['nullable', 'string'],
+                'promote_activation_description_ru' => ['required', 'string'],
+                'promote_activation_description_en' => ['nullable', 'string'],
+                'promote_activation_description_uk' => ['nullable', 'string'],
+                
+                'promote_support_title_ru' => ['required', 'string'],
+                'promote_support_title_en' => ['nullable', 'string'],
+                'promote_support_title_uk' => ['nullable', 'string'],
+                'promote_support_description_ru' => ['required', 'string'],
+                'promote_support_description_en' => ['nullable', 'string'],
+                'promote_support_description_uk' => ['nullable', 'string'],
+                
+                'promote_payment_title_ru' => ['required', 'string'],
+                'promote_payment_title_en' => ['nullable', 'string'],
+                'promote_payment_title_uk' => ['nullable', 'string'],
+                'promote_payment_description_ru' => ['required', 'string'],
+                'promote_payment_description_en' => ['nullable', 'string'],
+                'promote_payment_description_uk' => ['nullable', 'string'],
+                
+                // Steps
+                'steps_title_ru' => ['required', 'string'],
+                'steps_title_en' => ['nullable', 'string'],
+                'steps_title_uk' => ['nullable', 'string'],
+                'steps_description_ru' => ['required', 'string'],
+                'steps_description_en' => ['nullable', 'string'],
+                'steps_description_uk' => ['nullable', 'string'],
+            ],
             default => [
                 'currency' => ['required', 'string'],
                 'trial_days' => ['required', 'integer', 'between:0,30'],

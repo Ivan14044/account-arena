@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>{{ $subject ?? 'SubCloudy' }}</title>
+    <title>{{ $subject ?? 'Account Arena' }}</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
@@ -57,8 +57,8 @@
 <div class="wrapper">
     <div class="logo" style="text-align: center; margin-bottom: 30px;">
         <a href="{{ config('app.url') }}" target="_blank" style="display: inline-block; text-decoration: none; color: inherit;">
-            <img src="{{ url('/img/logo_trans.png') }}" alt="SubCloudy" style="max-height: 40px; vertical-align: middle;">
-            <span style="font-size: 24px; font-weight: bold; color: #000; vertical-align: middle; display: inline-block; margin-left: 10px;">SubCloudy</span>
+            <img src="{{ url('/img/logo_trans.png') }}" alt="Account Arena" style="max-height: 40px; vertical-align: middle;">
+            <span style="font-size: 24px; font-weight: bold; color: #000; vertical-align: middle; display: inline-block; margin-left: 10px;">Account Arena</span>
         </a>
     </div>
 

@@ -17,6 +17,8 @@ import { useOptionStore } from '@/stores/options';
 import { useNotificationStore } from '@/stores/notifications';
 import { useLoadingStore } from '@/stores/loading';
 import { useAuthStore } from '@/stores/auth';
+import { useAccountsStore } from '@/stores/accounts';
+import axios from '@/bootstrap';
 
 import logo from '@/assets/logo.webp';
 
@@ -43,15 +45,32 @@ onMounted(async () => {
     const serviceStore = useServiceStore();
     const optionStore = useOptionStore();
     const notificationStore = useNotificationStore();
+    const accountsStore = useAccountsStore();
 
+    // ОПТИМИЗАЦИЯ: Загружаем все критичные данные параллельно при старте приложения
     const promises = [
         pageStore.fetchData(),
         serviceStore.fetchData(),
         optionStore.fetchData(),
-        notificationStore.fetchData()
+        notificationStore.fetchData(),
+        accountsStore.fetchAll(), // Добавлено: Предзагрузка товаров
     ];
 
-    await Promise.all(promises);
+    // Параллельно загружаем баннеры для предзагрузки изображений
+    const bannersPromise = axios.get('/banners', { params: { position: 'home_top' } })
+        .then(response => {
+            // Предзагружаем изображения баннеров
+            if (Array.isArray(response.data)) {
+                response.data.forEach((banner: any) => {
+                    if (banner.image_url) {
+                        preloadImages([banner.image_url]);
+                    }
+                });
+            }
+        })
+        .catch(err => console.error('Error preloading banners:', err));
+
+    await Promise.all([...promises, bannersPromise]);
 
     preloadImages([logo, `/img/lang/${locale.value}.png`]);
 

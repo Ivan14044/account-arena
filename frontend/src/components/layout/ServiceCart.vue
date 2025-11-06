@@ -8,22 +8,30 @@
             <ShoppingBag class="w-[20px] h-auto" />
 
             <span
-                v-if="cartStore.items.length > 0"
+                v-if="totalItems > 0"
                 class="counter flex items-center justify-center leading-none -top-1 -right-1 text-white"
             >
-                {{ cartStore.items.length > 9 ? '9+' : cartStore.items.length }}
+                {{ totalItems > 9 ? '9+' : totalItems }}
             </span>
         </button>
     </div>
 </template>
 
 <script setup>
+import { computed } from 'vue';
 import { ShoppingBag } from 'lucide-vue-next';
 import { useCartStore } from '@/stores/cart';
+import { useProductCartStore } from '@/stores/productCart';
 import { useRouter } from 'vue-router';
 
 const cartStore = useCartStore();
+const productCartStore = useProductCartStore();
 const router = useRouter();
+
+// Общее количество товаров в обеих корзинах
+const totalItems = computed(() => {
+    return cartStore.items.length + productCartStore.itemCount;
+});
 </script>
 
 <style scoped>

@@ -53,3 +53,20 @@ backend/auth.json
 *.tmp
 tmp/
 
+# Documentation files (кроме основных)
+*.md
+!README.md
+!backend/README.md
+!frontend/README.md
+
+# Deployment scripts
+deploy.sh
+server-setup.sh
+*.bat
+*.ps1
+ПОЛНАЯ_АВТОУСТАНОВКА.sh
+
+# Server setup files
+APP_KEY_FOR_RAILWAY.txt
+RAILWAY_ENV_VARIABLES.txt
+

@@ -11,45 +11,55 @@ class AssignServiceAccount
 {
     public function assignToUser(int $serviceId, User $user): ?ServiceAccount
     {
-        $minExpiry = Carbon::now()->addHours(3);
+        // ИСПРАВЛЕНО: Добавлена транзакция и lockForUpdate для предотвращения race condition
+        return DB::transaction(function () use ($serviceId, $user) {
+            $minExpiry = Carbon::now()->addHours(3);
 
-        $existing = DB::table('user_service_accounts')
-            ->join('service_accounts', 'service_accounts.id', '=', 'user_service_accounts.service_account_id')
-            ->where('user_service_accounts.user_id', $user->id)
-            ->where('service_accounts.service_id', $serviceId)
-            ->where('service_accounts.is_active', true)
-            ->where(function ($q) use ($minExpiry) {
-                $q->whereNull('service_accounts.expiring_at')
-                    ->orWhere('service_accounts.expiring_at', '>=', $minExpiry);
-            })
-            ->select('service_accounts.*')
-            ->first();
+            $existing = DB::table('user_service_accounts')
+                ->join('service_accounts', 'service_accounts.id', '=', 'user_service_accounts.service_account_id')
+                ->where('user_service_accounts.user_id', $user->id)
+                ->where('service_accounts.service_id', $serviceId)
+                ->where('service_accounts.is_active', true)
+                ->where(function ($q) use ($minExpiry) {
+                    $q->whereNull('service_accounts.expiring_at')
+                        ->orWhere('service_accounts.expiring_at', '>=', $minExpiry);
+                })
+                ->select('service_accounts.*')
+                ->first();
 
-        if ($existing) {
-            return ServiceAccount::find($existing->id);
-        }
+            if ($existing) {
+                return ServiceAccount::find($existing->id);
+            }
 
-        $newAccount = ServiceAccount::where('service_id', $serviceId)
-            ->where('is_active', true)
-            ->where(function ($q) use ($minExpiry) {
-                $q->whereNull('expiring_at')
-                    ->orWhere('expiring_at', '>=', $minExpiry);
-            })
-            ->orderBy('used', 'asc')
-            ->orderBy('id', 'asc')
-            ->first();
+            $newAccount = ServiceAccount::where('service_id', $serviceId)
+                ->where('is_active', true)
+                ->where(function ($q) use ($minExpiry) {
+                    $q->whereNull('expiring_at')
+                        ->orWhere('expiring_at', '>=', $minExpiry);
+                })
+                ->orderBy('used', 'asc')
+                ->orderBy('id', 'asc')
+                ->lockForUpdate() // БЛОКИРОВКА ДЛЯ АТОМАРНОСТИ!
+                ->first();
 
-        if (!$newAccount) {
-            return null;
-        }
+            if (!$newAccount) {
+                return null;
+            }
 
-        DB::table('user_service_accounts')->insert([
-            'user_id' => $user->id,
-            'service_account_id' => $newAccount->id
-        ]);
+            // Проверка наличия товара
+            $available = $newAccount->getAvailableStock();
+            if ($available <= 0) {
+                return null;
+            }
 
-        $newAccount->increment('used');
+            DB::table('user_service_accounts')->insert([
+                'user_id' => $user->id,
+                'service_account_id' => $newAccount->id
+            ]);
 
-        return $newAccount;
+            $newAccount->increment('used');
+
+            return $newAccount;
+        });
     }
 }

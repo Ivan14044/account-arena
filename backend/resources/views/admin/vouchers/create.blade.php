@@ -42,7 +42,7 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="quantity">Количество</label>
+                            <label for="quantity"></label>
                             <input type="number" min="1" max="100" name="quantity" id="quantity"
                                    class="form-control @error('quantity') is-invalid @enderror"
                                    value="{{ old('quantity', 1) }}">
@@ -53,7 +53,7 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="code">Код</label>
+                            <label for="code"></label>
                             <div class="input-group">
                                 <input type="text" name="code" id="code"
                                        class="form-control @error('code') is-invalid @enderror"
@@ -81,8 +81,7 @@
                             <i class="fas fa-save"></i> Создать ваучер(ы)
                         </button>
                         <a href="{{ route('admin.vouchers.index') }}" class="btn btn-secondary">
-                            <i class="fas fa-times"></i> Отмена
-                        </a>
+                            <i class="fas fa-times"></i>Отмена</a>
                     </form>
                 </div>
             </div>

@@ -21,27 +21,8 @@
                             <label for="target">Target Users</label>
                             <select name="target" id="target" class="form-control @error('target') is-invalid @enderror">
                                 <option value="all" {{ old('target') == 'all' ? 'selected' : '' }}>All users</option>
-                                <option value="active_subscribers"
-                                        {{ old('target') == 'active_subscribers' ? 'selected' : '' }}>Users with an active subscription</option>
-                                <option value="inactive_subscribers"
-                                        {{ old('target') == 'inactive_subscribers' ? 'selected' : '' }}>Users with inactive subscriptions (expired or canceled)</option>
-                                <option value="never_subscribed"
-                                        {{ old('target') == 'never_subscribed' ? 'selected' : '' }}>Users who never had a subscription</option>
                             </select>
                             @error('target')
-                                <div class="invalid-feedback d-block">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <div class="form-group d-none" id="service-group">
-                            <label for="service_id">Service</label>
-                            <select name="service_id" id="service_id" class="form-control @error('service_id') is-invalid @enderror">
-                                <option value="" {{ old('service_id', '') == '' ? 'selected' : '' }}>All services</option>
-                                @foreach($services as $service)
-                                    <option value="{{ $service->id }}" {{ old('service_id') == $service->id ? 'selected' : '' }}>{{ $service->code }}</option>
-                                @endforeach
-                            </select>
-                            @error('service_id')
                                 <div class="invalid-feedback d-block">{{ $message }}</div>
                             @enderror
                         </div>
@@ -111,20 +92,6 @@
                 .catch(error => {
                     console.error(error);
                 });
-        });
-
-        document.addEventListener('DOMContentLoaded', function () {
-            const targetSelect = document.getElementById('target');
-            const serviceGroup = document.getElementById('service-group');
-
-            function toggleServiceVisibility() {
-                const value = targetSelect.value;
-                const shouldShow = ['active_subscribers', 'inactive_subscribers'].includes(value);
-                serviceGroup.classList.toggle('d-none', !shouldShow);
-            }
-
-            targetSelect.addEventListener('change', toggleServiceVisibility);
-            toggleServiceVisibility();
         });
     </script>
 @endsection

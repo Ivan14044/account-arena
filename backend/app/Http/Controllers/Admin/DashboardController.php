@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Subscription;
 use App\Models\Transaction;
 use App\Models\ServiceAccount;
 use App\Models\User;
+use App\Models\Purchase;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 
@@ -34,6 +34,11 @@ class DashboardController extends Controller
                 break;
             case 'year':
                 $startDate = Carbon::now()->startOfYear()->startOfDay();
+                break;
+            case 'all':
+                // За весь период - не устанавливаем даты
+                $startDate = null;
+                $endDate = null;
                 break;
             case 'custom':
                 if ($request->filled('start_date')) {
@@ -79,15 +84,23 @@ class DashboardController extends Controller
             return $product->used ?? 0;
         });
 
-        // Покупки за период
-        $purchasesToday = Subscription::whereBetween('created_at', [$startDate, $endDate])
-            ->count();
+        // Покупки товаров за период
+        $purchasesQuery = Purchase::query();
+        if ($startDate && $endDate) {
+            $purchasesQuery->whereBetween('created_at', [$startDate, $endDate]);
+        }
+        $purchasesToday = $purchasesQuery->count();
 
-        // Сумма продаж за период
-        $salesToday = Transaction::whereBetween('created_at', [$startDate, $endDate])->sum('amount');
+        // ИСПРАВЛЕНО: Сумма продаж товаров за период (из Purchase, не Transaction!)
+        $salesQuery = Purchase::where('status', 'completed');
+        if ($startDate && $endDate) {
+            $salesQuery->whereBetween('created_at', [$startDate, $endDate]);
+        }
+        $salesToday = $salesQuery->sum('total_amount');
 
-        // Общая прибыль (все транзакции)
-        $totalProfit = Transaction::sum('amount');
+        // ИСПРАВЛЕНО: Общая прибыль от продажи товаров (из Purchase, не Transaction!)
+        $totalProfit = Purchase::where('status', 'completed')
+            ->sum('total_amount');
 
         // Всего пользователей
         $totalUsers = User::where('is_admin', false)->where('is_main_admin', false)->count();
@@ -121,6 +134,7 @@ class DashboardController extends Controller
 
     /**
      * Получить данные для графика продаж по дням
+     * ИСПРАВЛЕНО: считаем из Purchase, а не Transaction
      */
     private function getSalesChartData($days = 30)
     {
@@ -132,8 +146,10 @@ class DashboardController extends Controller
             $dayStart = $date->copy()->startOfDay();
             $dayEnd = $date->copy()->endOfDay();
             
-            $sales = Transaction::whereBetween('created_at', [$dayStart, $dayEnd])
-                ->sum('amount');
+            // ИСПРАВЛЕНО: считаем продажи товаров из Purchase
+            $sales = Purchase::whereBetween('created_at', [$dayStart, $dayEnd])
+                ->where('status', 'completed')
+                ->sum('total_amount');
             
             $labels[] = $date->format('d.m');
             $data[] = round($sales, 2);

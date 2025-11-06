@@ -66,30 +66,117 @@
     "success": "Your profile has been successfully updated!",
     "keyboard": {
       "title": "Keyboard languages",
-      "hint": "Used by the SubCloudy browser extension. English is always enabled.",
+      "hint": "Used by the Account Arena browser extension. English is always enabled.",
       "codes": {
         "en": "US",
-        "es": "ES",
         "ru": "RU",
-        "uk": "UA",
-        "zh": "CN"
+        "uk": "UA"
       }
     },
     "balance": "Your Balance",
+    "voucher": {
+      "title": "Activate Voucher",
+      "description": "Enter voucher code to top up your account balance",
+      "placeholder": "ENTER VOUCHER CODE",
+      "activate": "Activate",
+      "activating": "Activating...",
+      "success": "Voucher successfully activated!",
+      "error": "Voucher activation error"
+    },
     "purchases": {
       "title": "Purchase History",
       "loading": "Loading...",
       "no_purchases": "You have no purchases yet",
       "no_service": "Untitled",
+      "filters": {
+        "period": "Period",
+        "status": "Status",
+        "payment_method": "Payment Method",
+        "date_from": "From date",
+        "date_to": "To date",
+        "apply": "Apply",
+        "reset": "Reset",
+        "all": "All"
+      },
       "methods": {
         "card": "Credit Card",
         "crypto": "Cryptocurrency",
         "free": "Free",
-        "admin": "Administrator"
+        "admin": "Administrator",
+        "credit_card": "Credit Card",
+        "balance": "Balance"
+      },
+      "statuses": {
+        "completed": "Completed",
+        "pending": "Pending",
+        "failed": "Failed",
+        "refunded": "Refunded"
+      },
+      "quantity": "Quantity",
+      "pcs": "pcs",
+      "show_data": "Show product data",
+      "hide_data": "Hide product data",
+      "copy": "Copy",
+      "download": "Download",
+      "download_all": "Download all accounts",
+      "account": "Account",
+      "copy_success": "Copied to clipboard!",
+      "copy_error": "Copy error",
+      "download_success": "File downloaded!",
+      "order_number": "Order number",
+      "order": "Order",
+      "amount": "Amount",
+      "disputes": {
+        "title": "Disputes",
+        "create_button": "Report Problem",
+        "create_title": "Create Dispute",
+        "reason": "Reason",
+        "select_reason": "Select reason",
+        "description": "Problem Description",
+        "description_placeholder": "Describe the problem in detail...",
+        "submit": "Submit",
+        "cancel": "Cancel",
+        "success": "Dispute successfully created",
+        "error": "Error creating dispute",
+        "cannot_create": "Cannot create dispute",
+        "already_exists": "Dispute already exists",
+        "expired": "Dispute period has expired",
+        "reasons": {
+          "invalid_account": "Invalid Account",
+          "wrong_data": "Wrong Data",
+          "not_working": "Not Working",
+          "already_used": "Already Used",
+          "banned": "Banned",
+          "other": "Other"
+        },
+        "status": {
+          "new": "New",
+          "in_review": "In Review",
+          "resolved": "Resolved",
+          "rejected": "Rejected"
+        },
+        "decision": {
+          "refund": "Refund",
+          "replacement": "Replacement",
+          "rejected": "Rejected"
+        },
+        "my_disputes": "My Disputes",
+        "no_disputes": "You have no disputes",
+        "view_details": "View Details",
+        "created_at": "Created",
+        "admin_comment": "Administrator Comment"
       }
     }
   },
   "checkout": {
+    "agree_with": "I agree with",
+    "purchase_rules": "purchase rules",
+    "agree": "Agree",
+    "close": "Close",
+    "must_agree_rules": "You must accept the purchase rules to proceed",
+    "select_payment_method": "Please select a payment method",
+    "trial_crypto_not_allowed": "Cryptocurrency is not available for trial subscriptions",
+    "rules_not_available": "Purchase rules are temporarily unavailable",
     "title": "Checkout",
     "empty": "Your cart is empty. Start adding some items!",
     "payment_method": "Payment method",
@@ -97,6 +184,10 @@
     "submit": "Place order",
     "crypto": "Crypto",
     "crypto_placeholder": "Popular: BTC, ETH, USDT",
+    "balance": "Account Balance",
+    "balance_placeholder": "Pay from your account balance",
+    "insufficient_balance": "Insufficient balance",
+    "balance_success": "Payment from balance successful!",
     "default": "Default",
     "credit_card": "Credit Card",
     "credit_card_placeholder": "Apple Pay, Visa, MasterCard and others",
@@ -226,14 +317,14 @@
   },
   "footer": {
     "address": "FOP Knysh Alla Oleksandrivna 08297 Kyiv region, Bucha district, Bucha city, Shose Nove, building 42",
-    "copyright": "SubCloudy 2025 © All rights reserved"
+    "copyright": "Account Arena 2025 © All rights reserved"
   },
   "reviews": {
     "title": "Your satisfaction drives us to grow!"
   },
   "subscribe": {
     "title": "Subscribe",
-    "description": "Subscribe to SubCloudy and be the first to know about exclusive discounts, special offers, and the latest tools!",
+    "description": "Subscribe to Account Arena and be the first to know about exclusive discounts, special offers, and the latest tools!",
     "button": "Subscribe",
     "error": "Please enter a valid email address",
     "required": "Email is required",
@@ -271,6 +362,32 @@
     "yes": "Yes",
     "cancel": "Cancel"
   },
+  "balance_topup": {
+    "title": "Balance Top-Up",
+    "subtitle": "Choose the amount and payment method for your balance top-up",
+    "current_balance": "Current Balance",
+    "history_link": "Transaction History →",
+    "amount_section": "Top-Up Amount",
+    "enter_amount": "Or enter your own amount",
+    "amount_placeholder": "Enter amount",
+    "min_amount": "Minimum top-up amount",
+    "payment_method_section": "Payment Method",
+    "payment_card": "Bank Card",
+    "payment_card_desc": "Visa, Mastercard, Google Pay, Apple Pay",
+    "payment_crypto": "Cryptocurrency",
+    "payment_crypto_desc": "Bitcoin, Ethereum, USDT and others",
+    "info_title": "Important Information:",
+    "info_instant": "Funds are credited automatically after payment confirmation",
+    "info_time": "Crediting time: card - instant, cryptocurrency - up to 30 minutes",
+    "info_commission": "Payment system commission may be included in the payment",
+    "cancel_button": "Cancel",
+    "topup_button": "Top Up",
+    "processing": "Processing...",
+    "auth_required": "You need to log in to top up your balance",
+    "error_create_payment": "Error creating payment",
+    "success": "Balance topped up successfully!",
+    "failed_to_load": "Failed to load actual balance. Please refresh the page."
+  },
   "cart": {
     "confirm": {
       "remove_single": {
@@ -289,14 +406,44 @@
     "in_stock": "In stock",
     "out_of_stock": "Out of stock",
     "show_all": "Show all products",
-    "stock_unit": "pcs"
+    "stock_unit": "pcs",
+    "detail": {
+      "home": "Home",
+      "back_to_catalog": "Back to catalog",
+      "product": "Product",
+      "loading": "Loading...",
+      "add_to_favorites": "Add to favorites",
+      "remove_from_favorites": "Remove from favorites",
+      "added_to_favorites": "Added to favorites",
+      "removed_from_favorites": "Removed from favorites",
+      "sku": "SKU",
+      "sku_copied": "SKU copied to clipboard",
+      "click_to_copy": "click to copy",
+      "price": "Price",
+      "quantity": "Quantity",
+      "in_stock_count": "In stock: {count} pcs",
+      "no_stock": "Out of stock",
+      "add_to_cart": "Add to Cart",
+      "buy_now": "Buy Now",
+      "added_to_cart": "Product added to cart ({count} pcs)",
+      "out_of_stock_error": "Product is out of stock",
+      "description_title": "Product Description",
+      "no_description": "No description available",
+      "category": "Category",
+      "supplier": "Supplier",
+      "rating": "Rating",
+      "go_to_product": "Go to {title}",
+      "price_per_unit": "{price} × {quantity} pcs",
+      "available_only": "Only {count} pcs available",
+      "product_added_to_cart": "{title} ({quantity} pcs) added to cart"
+    }
   },
   "catalog": {
     "title": "Product Catalog",
     "subtitle": "Choose the right categories from our catalog",
     "hide_out_of_stock": "Hide out of stock items",
     "show_favorites_only": "Show favorites only",
-    "search_placeholder": "Search products…"
+    "search_placeholder": "Search by name, description or SKU…"
   },
   "loader": {
     "starting": "Starting system",
@@ -314,5 +461,9 @@
   "savings": {
     "title": "Your <span class='gradient-text'>Savings</span> with Us",
     "description": "Buy digital products at competitive prices — without overpayments or hidden fees."
+  },
+  "order_success": {
+    "title": "Order placed successfully!",
+    "subtitle": "Thank you for your purchase! Your items are available for download below."
   }
 }

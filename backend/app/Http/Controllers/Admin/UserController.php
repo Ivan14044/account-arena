@@ -43,11 +43,13 @@ class UserController extends Controller
 
     public function edit(User $user)
     {
-        $subscriptions = $user->subscriptions()
+        // ИСПРАВЛЕНО: Загружаем покупки товаров вместо подписок
+        $purchases = $user->purchases()
+            ->with(['serviceAccount', 'transaction'])
             ->orderByDesc('created_at')
             ->get();
 
-        return view('admin.users.edit', compact('user', 'subscriptions'));
+        return view('admin.users.edit', compact('user', 'purchases'));
     }
 
     public function update(Request $request, User $user)
@@ -110,13 +112,80 @@ class UserController extends Controller
             ->with('success', $user->is_blocked ? 'User has been blocked.' : 'User has been unblocked.');
     }
 
-
-    public function subscriptions(User $user)
+    /**
+     * Управление балансом пользователя (пополнение/списание/установка)
+     */
+    public function updateBalance(Request $request, User $user)
     {
-        $subscriptions = $user->subscriptions()
-            ->orderByDesc('created_at')
-            ->get();
+        $request->validate([
+            'operation' => 'required|in:add,subtract,set',
+            'amount' => 'required|numeric|min:0',
+            'comment' => 'nullable|string|max:500',
+        ]);
 
-        return view('admin.subscriptions.index', compact('subscriptions', 'user'));
+        $operation = $request->input('operation');
+        $amount = $request->input('amount');
+        $comment = $request->input('comment', '');
+        $oldBalance = $user->balance ?? 0;
+        $newBalance = $oldBalance;
+
+        // Выполняем операцию
+        switch ($operation) {
+            case 'add':
+                // Пополнение
+                $newBalance = $oldBalance + $amount;
+                $operationText = 'пополнен на';
+                $paymentMethod = 'admin_balance_topup';
+                break;
+                
+            case 'subtract':
+                // Списание
+                $newBalance = $oldBalance - $amount;
+                if ($newBalance < 0) {
+                    return redirect()
+                        ->route('admin.users.edit', $user)
+                        ->with('error', "Недостаточно средств. Текущий баланс: $oldBalance USD, попытка списать: $amount USD");
+                }
+                $operationText = 'уменьшен на';
+                $paymentMethod = 'admin_balance_deduction';
+                break;
+                
+            case 'set':
+                // Установка нового баланса
+                $newBalance = $amount;
+                $operationText = 'установлен в';
+                $paymentMethod = 'admin_balance_adjustment';
+                break;
+        }
+
+        // Обновляем баланс
+        $user->balance = $newBalance;
+        $user->save();
+
+        // Создаем запись транзакции для истории
+        \App\Models\Transaction::create([
+            'user_id' => $user->id,
+            'amount' => ($operation === 'subtract') ? -$amount : $amount,
+            'currency' => 'USD',
+            'payment_method' => $paymentMethod,
+            'status' => 'completed',
+        ]);
+
+        // Логируем действие администратора
+        \Log::info('Admin balance update', [
+            'admin_id' => auth()->id(),
+            'admin_email' => auth()->user()->email,
+            'user_id' => $user->id,
+            'user_email' => $user->email,
+            'operation' => $operation,
+            'amount' => $amount,
+            'old_balance' => $oldBalance,
+            'new_balance' => $newBalance,
+            'comment' => $comment,
+        ]);
+
+        return redirect()
+            ->route('admin.users.edit', $user)
+            ->with('success', "Баланс успешно {$operationText} {$amount} USD. Новый баланс: {$newBalance} USD");
     }
 }

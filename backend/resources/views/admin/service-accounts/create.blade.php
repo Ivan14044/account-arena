@@ -202,7 +202,7 @@
                             <hr style="margin: 1.5rem 0;">
 
                             <div class="form-group">
-                                <label for="image">Изображение</label>
+                                <label for="image"></label>
                                 <input type="file" name="image" id="image"
                                        class="form-control @error('image') is-invalid @enderror"
                                        accept="image/jpeg,image/png,image/jpg,image/gif,image/webp">
@@ -257,10 +257,10 @@
 
                             <div class="d-flex justify-content-between mb-2">
                                 <button type="button" class="btn btn-warning" onclick="removeDuplicates()">
-                                    <i class="fas fa-trash-alt"></i> Удалить дубли
+                                    <i class="fas fa-trash-alt"></i> 
                                 </button>
                                 <button type="button" class="btn btn-light" onclick="shuffleLines()">
-                                    <i class="fas fa-random"></i> Перемешать
+                                    <i class="fas fa-random"></i> 
                                 </button>
                             </div>
 
@@ -290,8 +290,7 @@
                                 <i class="fas fa-save"></i> Создать товар
                             </button>
                             <a href="{{ route('admin.service-accounts.index') }}" class="btn btn-secondary">
-                                <i class="fas fa-times"></i> Отмена
-                            </a>
+                                <i class="fas fa-times"></i>Отмена</a>
                         </form>
                     </div>
                 </div>
@@ -343,11 +342,71 @@
             
         });
 
-        // Initialize CKEditor
+        // Initialize CKEditor with image upload
         if (typeof ClassicEditor !== 'undefined') {
+            // Custom upload adapter
+            class MyUploadAdapter {
+                constructor(loader) {
+                    this.loader = loader;
+                }
+
+                upload() {
+                    return this.loader.file.then(file => new Promise((resolve, reject) => {
+                        const formData = new FormData();
+                        formData.append('upload', file);
+                        formData.append('_token', '{{ csrf_token() }}');
+
+                        fetch('{{ route('admin.service-accounts.upload-image') }}', {
+                            method: 'POST',
+                            body: formData
+                        })
+                        .then(response => response.json())
+                        .then(result => {
+                            if (result.uploaded) {
+                                resolve({
+                                    default: result.url
+                                });
+                            } else {
+                                reject(result.error.message);
+                            }
+                        })
+                        .catch(error => {
+                            reject('Ошибка загрузки изображения');
+                        });
+                    }));
+                }
+            }
+
+            function MyCustomUploadAdapterPlugin(editor) {
+                editor.plugins.get('FileRepository').createUploadAdapter = (loader) => {
+                    return new MyUploadAdapter(loader);
+                };
+            }
+
             document.querySelectorAll('.ckeditor').forEach(function(textarea) {
                 ClassicEditor
-                    .create(textarea)
+                    .create(textarea, {
+                        extraPlugins: [MyCustomUploadAdapterPlugin],
+                        toolbar: {
+                            items: [
+                                'heading', '|',
+                                'bold', 'italic', 'link', '|',
+                                'bulletedList', 'numberedList', '|',
+                                'imageUpload', 'blockQuote', '|',
+                                'undo', 'redo'
+                            ]
+                        },
+                        image: {
+                            toolbar: [
+                                'imageStyle:inline',
+                                'imageStyle:block',
+                                'imageStyle:side',
+                                '|',
+                                'toggleImageCaption',
+                                'imageTextAlternative'
+                            ]
+                        }
+                    })
                     .then(editor => {
                         editor.editing.view.change(writer => {
                             writer.setStyle('height', '180px', editor.editing.view.document.getRoot());

@@ -176,6 +176,35 @@ class ProductController extends Controller
         return redirect()->route('supplier.products.index')->with('success', 'Товар успешно удален.');
     }
 
+    /**
+     * Upload image for CKEditor
+     */
+    public function uploadImage(Request $request)
+    {
+        $request->validate([
+            'upload' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:5120', // 5MB max
+        ]);
+
+        if ($request->hasFile('upload')) {
+            $file = $request->file('upload');
+            $path = $file->store('products/descriptions', 'public');
+            $url = Storage::url($path);
+
+            return response()->json([
+                'url' => $url,
+                'uploaded' => 1,
+                'fileName' => $file->getClientOriginalName(),
+            ]);
+        }
+
+        return response()->json([
+            'uploaded' => 0,
+            'error' => [
+                'message' => 'Не удалось загрузить изображение'
+            ]
+        ]);
+    }
+
     private function getRules($id = false)
     {
         return [

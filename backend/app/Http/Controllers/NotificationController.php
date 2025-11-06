@@ -31,6 +31,12 @@ class NotificationController extends Controller
             'total' => $totalCount,
             'unread' => $unreadCount,
             'items' => $notifications->map(function ($notification) {
+                // Проверяем наличие template (может быть null)
+                if (!$notification->template) {
+                    \Log::warning('[NOTIFICATIONS] Notification without template', ['notification_id' => $notification->id]);
+                    return null; // Пропускаем уведомления без шаблона
+                }
+
                 $translations = [];
 
                 foreach ($notification->template->translations as $translation) {
@@ -51,7 +57,7 @@ class NotificationController extends Controller
                     'read_at' => $notification->read_at,
                     'created_at' => $notification->created_at->toDateTimeString(),
                 ];
-            }),
+            })->filter()->values(), // Убираем null значения
         ]);
     }
 

@@ -3,6 +3,6 @@
 return [
     'button' => 'Перейти на сайт',
     'signature' => 'З повагою,',
-    'team' => 'Команда SubCloudy',
+    'team' => 'Команда Account Arena',
     'reset_password' => 'Скинути пароль',
 ];

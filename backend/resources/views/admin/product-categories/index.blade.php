@@ -15,7 +15,7 @@
 
             <div class="card">
                 <div class="card-header">
-                    <h3 class="card-title">Список категорий товаров</h3>
+                    <h3 class="card-title"></h3>
                     <a href="{{ route('admin.product-categories.create') }}" class="btn btn-primary float-right">+ Добавить</a>
                 </div>
                 <div class="card-body">
@@ -51,7 +51,7 @@
                                                             </button>
                                                         </div>
                                                         <div class="modal-body">
-                                                            Вы уверены, что хотите удалить эту категорию товаров?
+                                                            
                                                         </div>
                                                         <div class="modal-footer">
                                                             <form action="{{ route('admin.product-categories.destroy', $category) }}" method="POST" class="d-inline">

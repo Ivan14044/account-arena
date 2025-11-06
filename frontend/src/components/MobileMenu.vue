@@ -14,7 +14,7 @@
                             alt="Logo"
                             class="!w-[29px] sm:w-8 sm:h-8 object-contain rounded-full spin-slow-reverse"
                         />
-                        <span class="text-white text-xl font-bold pl-3"> SubCloudy </span>
+                        <span class="text-white text-xl font-bold pl-3"> Account Arena </span>
                     </div>
                     <button class="text-white" @click="$emit('close')">
                         <svg

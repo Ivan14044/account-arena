@@ -136,7 +136,7 @@ button.swal2-cancel {
 }
 
 .spin-slow-reverse {
-    animation: spin-slow-reverse 2.5s linear infinite;
+    animation: spin-slow-reverse 6s linear infinite;
 }
 
 ::-webkit-scrollbar {
@@ -184,4 +184,121 @@ button.swal2-cancel {
     background-color: #0047ff;
     color: #fff;
     transition: all 0.2s ease;
+}
+
+/* ============================================
+   КАСТОМНЫЕ СТИЛИ ДЛЯ TOAST УВЕДОМЛЕНИЙ
+   В едином стиле с дизайном сайта
+   ============================================ */
+
+/* Основной контейнер toast */
+.Vue-Toastification__toast {
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    border: none;
+    min-height: auto;
+}
+
+/* Success Toast - зеленый градиент */
+.Vue-Toastification__toast--success {
+    background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+    color: white;
+}
+
+.Vue-Toastification__toast--success .Vue-Toastification__icon {
+    color: white;
+}
+
+/* Error Toast - красный градиент */
+.Vue-Toastification__toast--error {
+    background: linear-gradient(135deg, #ef4444 0%, #f87171 100%);
+    color: white;
+}
+
+.Vue-Toastification__toast--error .Vue-Toastification__icon {
+    color: white;
+}
+
+/* Warning Toast - ФИОЛЕТОВЫЙ ГРАДИЕНТ (как в дизайне сайта) */
+.Vue-Toastification__toast--warning {
+    background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%);
+    color: white;
+    box-shadow: 0 8px 24px rgba(108, 92, 231, 0.35);
+}
+
+.Vue-Toastification__toast--warning .Vue-Toastification__icon {
+    color: white;
+}
+
+/* Info Toast - синий градиент */
+.Vue-Toastification__toast--info {
+    background: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%);
+    color: white;
+}
+
+.Vue-Toastification__toast--info .Vue-Toastification__icon {
+    color: white;
+}
+
+/* Иконка закрытия */
+.Vue-Toastification__close-button {
+    color: white;
+    opacity: 0.8;
+    font-weight: 700;
+    font-size: 20px;
+    transition: opacity 0.2s ease;
+}
+
+.Vue-Toastification__close-button:hover {
+    opacity: 1;
+}
+
+/* Progress bar - фиолетовый для warning */
+.Vue-Toastification__toast--warning .Vue-Toastification__progress-bar {
+    background: rgba(255, 255, 255, 0.7);
+}
+
+.Vue-Toastification__toast--success .Vue-Toastification__progress-bar {
+    background: rgba(255, 255, 255, 0.7);
+}
+
+.Vue-Toastification__toast--error .Vue-Toastification__progress-bar {
+    background: rgba(255, 255, 255, 0.7);
+}
+
+.Vue-Toastification__toast--info .Vue-Toastification__progress-bar {
+    background: rgba(255, 255, 255, 0.7);
+}
+
+/* Иконки toast */
+.Vue-Toastification__icon {
+    width: 24px;
+    height: 24px;
+    margin-right: 0.75rem;
+}
+
+/* Анимация появления */
+.Vue-Toastification__toast {
+    animation: toastSlideIn 0.3s cubic-bezier(0.22, 0.9, 0.36, 1);
+}
+
+@keyframes toastSlideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Темная тема для toast */
+.dark .Vue-Toastification__toast--warning {
+    background: linear-gradient(135deg, #5b4bcf 0%, #9189e8 100%);
+    box-shadow: 0 8px 24px rgba(91, 75, 207, 0.4);
 }

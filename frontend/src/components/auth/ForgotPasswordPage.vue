@@ -19,7 +19,7 @@
                         <span
                             class="text-black dark:!text-white mt-1 text-sm font-semibold leading-none"
                         >
-                            SubCloudy
+                            Account Arena
                         </span>
                     </router-link>
                 </div>

@@ -203,7 +203,7 @@
                             <hr style="margin: 1.5rem 0;">
 
                             <div class="form-group">
-                                <label for="image">Изображение</label>
+                                <label for="image"></label>
                                 <input type="file" name="image" id="image"
                                        class="form-control @error('image') is-invalid @enderror"
                                        accept="image/jpeg,image/png,image/jpg,image/gif,image/webp">
@@ -237,6 +237,11 @@
                                 @enderror
                             </div>
 
+                            <div class="alert alert-info py-2">
+                                <strong>Артикул:</strong> <code>{{ $serviceAccount->sku ?? 'не установлен' }}</code>
+                                <small class="d-block mt-1 text-muted">Артикул генерируется автоматически при создании товара и не может быть изменен.</small>
+                            </div>
+
                             <div class="form-group">
                                 <label for="price">Цена</label>
                                 <input type="number" step="0.01" name="price" id="price"
@@ -253,38 +258,55 @@
                                         $totalQuantity = count($serviceAccount->accounts_data);
                                         $soldCount = $serviceAccount->used ?? 0;
                                         $availableCount = max(0, $totalQuantity - $soldCount);
+                                        // Получаем только ДОСТУПНЫЕ (непроданные) аккаунты
+                                        $availableAccounts = array_slice($serviceAccount->accounts_data, $soldCount);
                                     @endphp
-                                    <div class="alert alert-info py-2 mb-2">
+                                    <div class="alert alert-{{ $soldCount > 0 ? 'warning' : 'info' }} py-2 mb-2">
                                         <div class="small mb-0">
-                                            Всего: <strong>{{ $totalQuantity }}</strong> | 
-                                            Доступно: <strong>{{ $availableCount }}</strong> | 
-                                            Продано: <strong>{{ $soldCount }}</strong>
+                                            <i class="fas fa-info-circle"></i>
+                                            Всего аккаунтов: <strong>{{ $totalQuantity }}</strong> | 
+                                            Доступно для продажи: <strong class="text-success">{{ $availableCount }}</strong> | 
+                                            Уже продано: <strong class="text-danger">{{ $soldCount }}</strong>
                                         </div>
+                                        @if($soldCount > 0)
+                                            <div class="small mt-1 text-muted">
+                                                ⚠️ Проданные аккаунты скрыты в поле ниже. При добавлении новых аккаунтов они будут добавлены ПОСЛЕ проданных.
+                                            </div>
+                                        @endif
                                     </div>
+                                @else
+                                    @php
+                                        $availableAccounts = [];
+                                    @endphp
                                 @endif
-                                <label for="accounts_data">Аккаунты товара</label>
+                                <label for="accounts_data">
+                                    <i class="fas fa-user-tag"></i> Доступные аккаунты товара
+                                    @if(isset($soldCount) && $soldCount > 0)
+                                        <small class="text-muted">({{ $availableCount }} непроданных)</small>
+                                    @endif
+                                </label>
                                 <textarea name="accounts_data" id="accounts_data" rows="8"
-                                          class="form-control @error('accounts_data') is-invalid @enderror font-monospace">{{ old('accounts_data', is_array($serviceAccount->accounts_data) ? implode("\n", $serviceAccount->accounts_data) : '') }}</textarea>
+                                          class="form-control @error('accounts_data') is-invalid @enderror font-monospace">{{ old('accounts_data', is_array($availableAccounts) && count($availableAccounts) > 0 ? implode("\n", $availableAccounts) : '') }}</textarea>
                                 @error('accounts_data')
                                 <div class="invalid-feedback d-block">{{ $message }}</div>
                                 @enderror
                                 <small class="form-text text-muted">
-                                    Каждая строка = один аккаунт. Любой формат данных
+                                    <i class="fas fa-lightbulb"></i> Каждая строка = один аккаунт. Любой формат данных (логин:пароль, email, token и т.д.)
                                 </small>
                             </div>
 
                             <div class="d-flex justify-content-between mb-2">
                                 <button type="button" class="btn btn-success" onclick="exportAccounts()">
-                                    <i class="fas fa-download"></i> Выгрузить товар
+                                    <i class="fas fa-download"></i> 
                                 </button>
                                 <button type="button" class="btn btn-info" onclick="$('#importModal').modal('show')">
-                                    <i class="fas fa-upload"></i> Загрузить товар
+                                    <i class="fas fa-upload"></i> 
                                 </button>
                                 <button type="button" class="btn btn-warning" onclick="removeDuplicates()">
-                                    <i class="fas fa-trash-alt"></i> Удалить дубли
+                                    <i class="fas fa-trash-alt"></i> 
                                 </button>
                                 <button type="button" class="btn btn-light" onclick="shuffleLines()">
-                                    <i class="fas fa-random"></i> Перемешать
+                                    <i class="fas fa-random"></i> 
                                 </button>
                             </div>
 
@@ -314,8 +336,7 @@
                                 <i class="fas fa-save"></i> Сохранить товар
                             </button>
                             <a href="{{ route('admin.service-accounts.index') }}" class="btn btn-secondary">
-                                <i class="fas fa-times"></i> Отмена
-                            </a>
+                                <i class="fas fa-times"></i>Отмена</a>
                         </form>
                     </div>
                 </div>
@@ -328,7 +349,7 @@
         <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="importModalLabel">Загрузить товар</h5>
+                    <h5 class="modal-title" id="importModalLabel"></h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -406,11 +427,71 @@
             }
         });
 
-        // Initialize CKEditor
+        // Initialize CKEditor with image upload
         if (typeof ClassicEditor !== 'undefined') {
+            // Custom upload adapter
+            class MyUploadAdapter {
+                constructor(loader) {
+                    this.loader = loader;
+                }
+
+                upload() {
+                    return this.loader.file.then(file => new Promise((resolve, reject) => {
+                        const formData = new FormData();
+                        formData.append('upload', file);
+                        formData.append('_token', '{{ csrf_token() }}');
+
+                        fetch('{{ route('admin.service-accounts.upload-image') }}', {
+                            method: 'POST',
+                            body: formData
+                        })
+                        .then(response => response.json())
+                        .then(result => {
+                            if (result.uploaded) {
+                                resolve({
+                                    default: result.url
+                                });
+                            } else {
+                                reject(result.error.message);
+                            }
+                        })
+                        .catch(error => {
+                            reject('Ошибка загрузки изображения');
+                        });
+                    }));
+                }
+            }
+
+            function MyCustomUploadAdapterPlugin(editor) {
+                editor.plugins.get('FileRepository').createUploadAdapter = (loader) => {
+                    return new MyUploadAdapter(loader);
+                };
+            }
+
             document.querySelectorAll('.ckeditor').forEach(function(textarea) {
                 ClassicEditor
-                    .create(textarea)
+                    .create(textarea, {
+                        extraPlugins: [MyCustomUploadAdapterPlugin],
+                        toolbar: {
+                            items: [
+                                'heading', '|',
+                                'bold', 'italic', 'link', '|',
+                                'bulletedList', 'numberedList', '|',
+                                'imageUpload', 'blockQuote', '|',
+                                'undo', 'redo'
+                            ]
+                        },
+                        image: {
+                            toolbar: [
+                                'imageStyle:inline',
+                                'imageStyle:block',
+                                'imageStyle:side',
+                                '|',
+                                'toggleImageCaption',
+                                'imageTextAlternative'
+                            ]
+                        }
+                    })
                     .then(editor => {
                         editor.editing.view.change(writer => {
                             writer.setStyle('height', '180px', editor.editing.view.document.getRoot());

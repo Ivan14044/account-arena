@@ -30,6 +30,7 @@ class AccountController extends Controller
             
             return [
                 'id' => $account->id,
+                'sku' => $account->sku, // Артикул товара
                 'title' => $account->title,
                 'title_en' => $account->title_en,
                 'title_uk' => $account->title_uk,
@@ -72,9 +73,14 @@ class AccountController extends Controller
 
     public function show($id)
     {
+        // Поиск по ID или артикулу (SKU)
         $account = ServiceAccount::with('category')
             ->where('is_active', true)
-            ->findOrFail($id);
+            ->where(function($query) use ($id) {
+                $query->where('id', $id)
+                      ->orWhere('sku', $id);
+            })
+            ->firstOrFail();
 
         $totalQuantity = is_array($account->accounts_data) ? count($account->accounts_data) : 0;
         $soldCount = $account->used ?? 0;
@@ -82,6 +88,7 @@ class AccountController extends Controller
 
         $data = [
             'id' => $account->id,
+            'sku' => $account->sku, // Артикул товара
             'title' => $account->title,
             'title_en' => $account->title_en,
             'title_uk' => $account->title_uk,

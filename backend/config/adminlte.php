@@ -16,7 +16,7 @@ return [
 
     'title' => 'Вход',
     'title_prefix' => '',
-    'title_postfix' => '| Админ панель – Subcloudy',
+    'title_postfix' => '| Админ панель – Account Arena',
 
     /*
     |--------------------------------------------------------------------------
@@ -30,7 +30,7 @@ return [
     |
     */
 
-    'use_ico_only' => false,
+    'use_ico_only' => true,
     'use_full_favicon' => false,
 
     /*
@@ -356,9 +356,9 @@ return [
 
         [
             'text' => 'Покупки',
-            'url' => 'subscriptions',
-            'icon' => 'far fa-fw mr-1 fa-credit-card',
-            'active' => ['subscriptions*'],
+            'url' => 'purchases',
+            'icon' => 'fas fa-fw mr-1 fa-shopping-cart',
+            'active' => ['purchases*'],
             'can' => 'admin-only',
         ],
 
@@ -412,6 +412,20 @@ return [
             'active' => ['supplier/discounts*'],
             'can' => 'supplier-only',
         ],
+        [
+            'text' => 'Вывод средств',
+            'url' => '/supplier/withdrawals',
+            'icon' => 'fas fa-fw mr-1 fa-wallet',
+            'active' => ['supplier/withdrawals*'],
+            'can' => 'supplier-only',
+        ],
+        [
+            'text' => 'Претензии на товары',
+            'url' => '/supplier/disputes',
+            'icon' => 'fas fa-fw mr-1 fa-exclamation-triangle',
+            'active' => ['supplier/disputes*'],
+            'can' => 'supplier-only',
+        ],
 
         // CONTENT DROPDOWN - ADMIN ONLY
         [
@@ -427,27 +441,27 @@ return [
                 ],
                 [
                     'text' => 'Статьи',
+                    'url' => 'articles',
                     'icon' => 'far fa-fw mr-1 fa-file-alt',
-                    'submenu' => [
-                        [
-                            'text' => 'Все статьи',
-                            'url' => 'articles',
-                            'icon' => 'fas fa-fw mr-1 fa-list',
-                            'active' => ['articles*'],
-                        ],
-                        [
-                            'text' => 'Категории статей',
-                            'url' => 'article-categories',
-                            'icon' => 'fas fa-fw mr-1 fa-tags',
-                            'active' => ['article-categories*'],
-                        ],
-                    ],
+                    'active' => ['articles*'],
+                ],
+                [
+                    'text' => 'Категории статей',
+                    'url' => 'article-categories',
+                    'icon' => 'fas fa-fw mr-1 fa-tags',
+                    'active' => ['article-categories*'],
                 ],
                 [
                     'text' => 'Страницы',
                     'url' => 'pages',
                     'icon' => 'far fa-fw mr-1 fa-file',
                     'active' => ['pages*'],
+                ],
+                [
+                    'text' => 'Баннеры',
+                    'url' => 'banners',
+                    'icon' => 'fas fa-fw mr-1 fa-image',
+                    'active' => ['banners*'],
                 ],
             ],
         ],
@@ -477,6 +491,39 @@ return [
         ],
 
         [
+            'text' => 'Претензии на товары',
+            'url' => 'disputes',
+            'icon' => 'fas fa-fw mr-1 fa-exclamation-triangle',
+            'active' => ['disputes*'],
+            'can' => 'admin-only',
+        ],
+
+        [
+            'text' => 'Поставщики',
+            'icon' => 'fas fa-fw mr-1 fa-user-tie',
+            'can' => 'admin-only',
+            'submenu' => [
+                [
+                    'text' => 'Список поставщиков',
+                    'url' => 'suppliers',
+                    'icon' => 'fas fa-fw mr-1 fa-list',
+                    'active' => ['suppliers*'],
+                ],
+                [
+                    'text' => 'Запросы на вывод',
+                    'url' => 'withdrawal-requests',
+                    'icon' => 'fas fa-fw mr-1 fa-money-bill-wave',
+                    'active' => ['withdrawal-requests*'],
+                ],
+                [
+                    'text' => 'Настройки',
+                    'url' => 'suppliers-settings',
+                    'icon' => 'fas fa-fw mr-1 fa-cog',
+                ],
+            ],
+        ],
+
+        [
             'text' => 'Настройки',
             'url' => 'settings',
             'icon' => 'fas fa-fw mr-1 fa-cog',
@@ -484,37 +531,35 @@ return [
             'can' => 'admin-only',
         ],
 
-        // NOTIFICATIONS DROPDOWN - ADMIN ONLY
         [
-            'text' => 'Уведомления',
-            'icon' => 'fas fa-fw mr-1 fa-bell',
+            'text' => 'Правила покупки',
+            'url' => 'purchase-rules',
+            'icon' => 'fas fa-fw mr-1 fa-file-contract',
+            'active' => ['purchase-rules*'],
             'can' => 'admin-only',
-            'submenu' => [
-                [
-                    'text' => 'Уведомления',
-                    'url' => 'notifications',
-                    'icon' => 'fas fa-fw mr-1 fa-exclamation',
-                    'active' => ['notifications*'],
-                ],
-                [
-                    'text' => 'Шаблоны уведомлений',
-                    'url' => 'notification-templates',
-                    'icon' => 'fas fa-fw mr-1 fa-envelope-square',
-                    'active' => ['notification-templates*'],
-                ],
-                [
-                    'text' => 'Email шаблоны',
-                    'url' => 'email-templates',
-                    'icon' => 'fas fa-fw mr-1 fa-envelope',
-                    'active' => ['email-templates*'],
-                ],
-            ],
         ],
 
-        // ACCOUNT DROPDOWN
+        [
+            'text' => 'Email шаблоны',
+            'url' => 'email-templates',
+            'icon' => 'fas fa-fw mr-1 fa-envelope',
+            'active' => ['email-templates*'],
+            'can' => 'admin-only',
+        ],
+
+        [
+            'text' => 'Уведомления',
+            'url' => 'notifications',
+            'icon' => 'fas fa-fw mr-1 fa-bell',
+            'active' => ['notifications*', 'notification-templates*'],
+            'can' => 'admin-only',
+        ],
+
+        // ACCOUNT DROPDOWN - ADMIN ONLY
         [
             'text' => 'Аккаунт',
             'icon' => 'fas fa-fw mr-1 fa-user-circle',
+            'can' => 'admin-only',
             'submenu' => [
                 [
                     'text' => 'Профиль',

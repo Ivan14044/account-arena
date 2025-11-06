@@ -29,36 +29,5 @@ return [
                 'multiline' => true,
             ],
         ]
-    ],
-    'saving_on_subscriptions' => [
-        'fields' => [
-            'logo' => [
-                'type' => 'file',
-                'label' => 'Service logo URL',
-                'accept' => 'image/*',
-            ],
-            'text' => [
-                'type' => 'string',
-                'label' => 'Marketing Text',
-                'multiline' => true,
-            ],
-            'advantage' => [
-                'type' => 'string',
-                'label' => 'Advantage',
-                'multiline' => true,
-            ],
-            'normal_price' => [
-                'type' => 'string',
-                'label' => 'Normal price',
-            ],
-            'our_price' => [
-                'type' => 'string',
-                'label' => 'Our price',
-            ],
-            'serviceId' => [
-                'type' => 'service',
-                'label' => 'Service',
-            ],
-        ]
     ]
 ];

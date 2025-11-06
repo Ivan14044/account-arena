@@ -35,6 +35,8 @@ class User extends Authenticatable
         'balance',
         'supplier_balance',
         'supplier_commission',
+        'trc20_wallet',
+        'card_number_uah',
     ];
 
     protected $hidden = [
@@ -51,16 +53,10 @@ class User extends Authenticatable
         'balance' => 'decimal:2',
         'supplier_balance' => 'decimal:2',
         'supplier_commission' => 'decimal:2',
+        'supplier_rating' => 'decimal:2',
+        'rating_updated_at' => 'datetime',
         'is_supplier' => 'boolean',
     ];
-
-    /**
-     * Get the user's subscriptions.
-     */
-    public function subscriptions(): HasMany
-    {
-        return $this->hasMany(Subscription::class);
-    }
 
     /**
      * Get the user's internal notifications.
@@ -76,6 +72,26 @@ class User extends Authenticatable
     public function supplierNotifications(): HasMany
     {
         return $this->hasMany(SupplierNotification::class);
+    }
+
+    /**
+     * Get the user's subscriptions.
+     * ПРИМЕЧАНИЕ: Модель Subscription удалена из проекта.
+     * Метод оставлен для обратной совместимости, но возвращает пустую коллекцию.
+     */
+    public function subscriptions(): HasMany
+    {
+        // Возвращаем пустую связь (модель Subscription не существует)
+        // Это предотвращает ошибки в старом коде
+        return $this->hasMany(Purchase::class)->whereRaw('1 = 0'); // Всегда пустой результат
+    }
+
+    /**
+     * Get the user's purchases (купленные товары).
+     */
+    public function purchases(): HasMany
+    {
+        return $this->hasMany(Purchase::class);
     }
 
     /**
@@ -103,32 +119,52 @@ class User extends Authenticatable
     }
 
     /**
+     * Get the supplier's withdrawal requests.
+     */
+    public function withdrawalRequests(): HasMany
+    {
+        return $this->hasMany(WithdrawalRequest::class, 'supplier_id');
+    }
+
+    /**
+     * Get the user's product disputes (as customer).
+     */
+    public function disputes(): HasMany
+    {
+        return $this->hasMany(ProductDispute::class, 'user_id');
+    }
+
+    /**
+     * Get the supplier's product disputes.
+     */
+    public function supplierDisputes(): HasMany
+    {
+        return $this->hasMany(ProductDispute::class, 'supplier_id');
+    }
+
+    /**
      * Get all unique active service IDs for the user.
+     * ПРИМЕЧАНИЕ: Подписки удалены из проекта, возвращаем пустой массив.
      *
      * @return array<int>
      */
     public function activeServices(): array
     {
-        return $this->subscriptions
-            ->where('status', Subscription::STATUS_ACTIVE)
-            ->pluck('service_id')
-            ->unique()
-            ->values()
-            ->all();
+        // Подписки удалены из проекта
+        return [];
     }
 
     /**
      * Check if the user has an active subscription for a given service.
+     * ПРИМЕЧАНИЕ: Подписки удалены из проекта, всегда возвращает false.
      *
      * @param int $serviceId
      * @return bool
      */
     public function hasActiveService(int $serviceId): bool
     {
-        return $this->subscriptions()
-            ->where('status', Subscription::STATUS_ACTIVE)
-            ->where('service_id', $serviceId)
-            ->exists();
+        // Подписки удалены из проекта
+        return false;
     }
 
     /**
@@ -140,5 +176,172 @@ class User extends Authenticatable
     public function sendPasswordResetNotification($token): void
     {
         $this->notify(new ResetPasswordNotification($token, $this));
+    }
+
+    /**
+     * Рассчитать и обновить рейтинг поставщика
+     * Рейтинг = Процент валидных товаров
+     */
+    public function calculateSupplierRating(): float
+    {
+        if (!$this->is_supplier) {
+            return 0;
+        }
+        
+        // Получить все продажи за последние 90 дней
+        $period = now()->subDays(90);
+        
+        $totalSales = Transaction::whereHas('serviceAccount', function($q) {
+            $q->where('supplier_id', $this->id);
+        })
+        ->where('created_at', '>=', $period)
+        ->whereIn('status', ['completed', 'success'])
+        ->count();
+        
+        // Если продаж меньше 10 - рейтинг 100% (новичок)
+        if ($totalSales < 10) {
+            $this->update(['supplier_rating' => 100.00, 'rating_updated_at' => now()]);
+            return 100.00;
+        }
+        
+        // Получить количество возвратов и замен
+        $disputes = ProductDispute::forSupplier($this->id)
+            ->where('created_at', '>=', $period)
+            ->resolved()
+            ->get();
+        
+        $refunds = $disputes->where('admin_decision', ProductDispute::DECISION_REFUND)->count();
+        $replacements = $disputes->where('admin_decision', ProductDispute::DECISION_REPLACEMENT)->count();
+        
+        // Формула: Процент валидных товаров
+        $invalidSales = $refunds + $replacements;
+        $validSales = $totalSales - $invalidSales;
+        $rating = ($validSales / $totalSales) * 100;
+        
+        // Округлить до 2 знаков и ограничить 0-100
+        $rating = max(0, min(100, round($rating, 2)));
+        
+        // Обновить рейтинг
+        $this->update([
+            'supplier_rating' => $rating,
+            'rating_updated_at' => now(),
+        ]);
+        
+        return $rating;
+    }
+
+    /**
+     * Получить уровень рейтинга поставщика
+     */
+    public function getRatingLevel(): array
+    {
+        $rating = $this->supplier_rating ?? 100;
+        
+        if ($rating >= 95) {
+            return [
+                'level' => 'excellent',
+                'name' => 'Отличный',
+                'name_en' => 'Excellent',
+                'icon' => '🏆',
+                'stars' => 5,
+                'class' => 'success',
+                'badge' => 'Топ продавец'
+            ];
+        } elseif ($rating >= 85) {
+            return [
+                'level' => 'good',
+                'name' => 'Хороший',
+                'name_en' => 'Good',
+                'icon' => '💎',
+                'stars' => 4,
+                'class' => 'info',
+                'badge' => 'Надежный'
+            ];
+        } elseif ($rating >= 70) {
+            return [
+                'level' => 'normal',
+                'name' => 'Нормальный',
+                'name_en' => 'Normal',
+                'icon' => '✅',
+                'stars' => 3,
+                'class' => 'primary',
+                'badge' => null
+            ];
+        } elseif ($rating >= 50) {
+            return [
+                'level' => 'low',
+                'name' => 'Низкий',
+                'name_en' => 'Low',
+                'icon' => '⚠️',
+                'stars' => 2,
+                'class' => 'warning',
+                'badge' => 'Требует улучшения'
+            ];
+        } else {
+            return [
+                'level' => 'critical',
+                'name' => 'Критичный',
+                'name_en' => 'Critical',
+                'icon' => '🚫',
+                'stars' => 1,
+                'class' => 'danger',
+                'badge' => 'Риск блокировки'
+            ];
+        }
+    }
+
+    /**
+     * Получить детали рейтинга поставщика
+     */
+    public function getRatingDetails(): array
+    {
+        if (!$this->is_supplier) {
+            return [];
+        }
+        
+        $period = now()->subDays(90);
+        
+        $totalSales = Transaction::whereHas('serviceAccount', function($q) {
+            $q->where('supplier_id', $this->id);
+        })
+        ->where('created_at', '>=', $period)
+        ->whereIn('status', ['completed', 'success'])
+        ->count();
+        
+        if ($totalSales == 0) {
+            return [
+                'total_sales' => 0,
+                'valid_sales' => 0,
+                'invalid_sales' => 0,
+                'refunds' => 0,
+                'replacements' => 0,
+                'rejected_disputes' => 0,
+                'valid_percent' => 100.00,
+                'invalid_percent' => 0.00,
+            ];
+        }
+        
+        $disputes = ProductDispute::forSupplier($this->id)
+            ->where('created_at', '>=', $period)
+            ->get();
+        
+        $resolvedDisputes = $disputes->where('status', ProductDispute::STATUS_RESOLVED);
+        $refunds = $resolvedDisputes->where('admin_decision', ProductDispute::DECISION_REFUND)->count();
+        $replacements = $resolvedDisputes->where('admin_decision', ProductDispute::DECISION_REPLACEMENT)->count();
+        $rejected = $disputes->where('admin_decision', ProductDispute::DECISION_REJECTED)->count();
+        
+        $invalidSales = $refunds + $replacements;
+        $validSales = $totalSales - $invalidSales;
+        
+        return [
+            'total_sales' => $totalSales,
+            'valid_sales' => $validSales,
+            'invalid_sales' => $invalidSales,
+            'refunds' => $refunds,
+            'replacements' => $replacements,
+            'rejected_disputes' => $rejected,
+            'valid_percent' => round(($validSales / $totalSales) * 100, 2),
+            'invalid_percent' => round(($invalidSales / $totalSales) * 100, 2),
+        ];
     }
 }

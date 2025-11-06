@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
-use App\Models\Subscription;
 use App\Services\NotificationTemplateService;
 use App\Services\EmailService;
 use App\Services\NotifierService;
@@ -22,7 +21,9 @@ class AuthController extends Controller
 {
     private function buildAuthCookie(string $token, int $minutes = 60 * 24 * 7)
     {
-        $domain = config('session.domain', env('APP_COOKIE_DOMAIN', '.subcloudy.com'));
+        // Для локальной разработки используем null в качестве домена
+        $isLocal = app()->environment('local') || request()->getHost() === 'localhost' || str_starts_with(request()->getHost(), '127.0.0.1');
+        $domain = $isLocal ? null : config('session.domain', env('APP_COOKIE_DOMAIN', '.subcloudy.com'));
 
         return cookie(
             'sc_auth',
@@ -30,10 +31,10 @@ class AuthController extends Controller
             $minutes,
             '/',
             $domain,
-            true,   // secure
+            $isLocal ? false : true,   // secure: false для localhost
             true,   // httpOnly
             false,  // raw
-            'none'  // SameSite=None
+            $isLocal ? 'lax' : 'none'  // SameSite: lax для localhost
         );
     }
 
@@ -129,6 +130,8 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         try {
+            \Log::info('[AUTH] Login request received', ['email' => $request->email]);
+            
             $request->validate([
                 'email' => 'required|email',
                 'password' => 'required|string',
@@ -138,45 +141,48 @@ class AuthController extends Controller
             $user = User::where('email', $request->email)->first();
 
             if (!$user || !Hash::check($request->password, $user->password)) {
+                \Log::warning('[AUTH] Invalid credentials', ['email' => $request->email]);
                 throw ValidationException::withMessages([
                     'email' => [__('auth.invalid_credentials')],
                 ]);
             }
 
             if ($user->is_blocked) {
+                \Log::warning('[AUTH] Blocked user attempt', ['email' => $request->email]);
                 throw ValidationException::withMessages([
                     'email' => [__('auth.account_blocked')],
                 ]);
             }
+            
+            \Log::info('[AUTH] User found and validated', ['user_id' => $user->id, 'email' => $user->email]);
 
             if ($request->boolean('remember')) {
                 Config::set('sanctum.expiration', 43200);
             }
 
+            // Сбрасываем флаг is_pending если был установлен
             if ($user->is_pending) {
-                if (!empty($user->sub_data['services']) && !empty($user->sub_data['days'])) {
-                    $services = array_map('intval', $user->sub_data['services']);
-                    foreach ($services as $serviceId) {
-                        Subscription::create([
-                            'user_id' => $user->id,
-                            'status' => Subscription::STATUS_ACTIVE,
-                            'payment_method' => 'default',
-                            'service_id' => $serviceId,
-                            'next_payment_at' => Carbon::now()->addDays($user->sub_data['days']),
-                        ]);
-                    }
-                }
                 $user->is_pending = 0;
                 $user->save();
             }
 
-            // токен для фронта (если используешь)
+            // Токен для фронта (SPA)
             $spaToken = $user->createToken('auth_token')->plainTextToken;
-            // токен для расширения со скоупом "extension" -> в cookie
+            // Токен для расширения со скоупом "extension" -> в cookie
             $extToken = $user->createToken('extension', ['extension'])->plainTextToken;
 
-            $user->load(['subscriptions' => fn($q) => $q->orderBy('id', 'desc')]);
-            $user->active_services = $user->activeServices();
+            // ИСПРАВЛЕНО: Убрана загрузка subscriptions (модель удалена из проекта)
+            // $user->load(['subscriptions' => fn($q) => $q->orderBy('id', 'desc')]);
+            
+            // ИСПРАВЛЕНО: active_services теперь пустой массив (подписки удалены)
+            $user->active_services = [];
+
+            \Log::info('[AUTH] Login successful', [
+                'user_id' => $user->id,
+                'email' => $user->email,
+                'has_token' => !empty($spaToken),
+                'balance' => $user->balance
+            ]);
 
             return response()->json([
                 'token' => $spaToken,
@@ -199,7 +205,7 @@ class AuthController extends Controller
                 'name' => ['sometimes', 'required', 'string'],
                 'email' => ['sometimes', 'required', 'email', Rule::unique('users', 'email')->ignore($user->id)],
                 'password' => ['sometimes', 'nullable', 'string', 'confirmed'],
-                'lang' => ['sometimes', 'in:en,uk,ru,zh,es'],
+                'lang' => ['sometimes', 'in:en,uk,ru'], // Поддерживаемые языки: английский, украинский, русский
                 'browser_session_pid' => ['sometimes', 'nullable', 'integer'],
                 'keyboardLanguages' => ['sometimes', 'array'],
                 'keyboardLanguages.*' => ['string'],
@@ -249,8 +255,11 @@ class AuthController extends Controller
             return response()->json(['message' => __('auth.invalid_token')], 401);
         }
 
-        $user->load(['subscriptions' => fn($q) => $q->orderBy('id', 'desc')]);
-        $user->active_services = $user->activeServices();
+        // ИСПРАВЛЕНО: Убрана загрузка subscriptions (модель удалена из проекта)
+        // $user->load(['subscriptions' => fn($q) => $q->orderBy('id', 'desc')]);
+        
+        // ИСПРАВЛЕНО: active_services теперь пустой массив (подписки удалены)
+        $user->active_services = [];
 
         return response()->json($user);
     }
