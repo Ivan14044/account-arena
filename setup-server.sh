@@ -107,10 +107,11 @@ export DEBIAN_FRONTEND=noninteractive
 apt install -y -qq mysql-server
 
 # Создание базы данных и пользователя
-mysql -e "CREATE DATABASE IF NOT EXISTS subcloudy CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
-mysql -e "CREATE USER IF NOT EXISTS 'subcloudy'@'localhost' IDENTIFIED BY '${DB_PASSWORD}';"
-mysql -e "GRANT ALL PRIVILEGES ON subcloudy.* TO 'subcloudy'@'localhost';"
-mysql -e "FLUSH PRIVILEGES;"
+# Используем sudo для доступа к MySQL (для случаев, когда root уже имеет пароль или использует auth_socket)
+sudo mysql -e "CREATE DATABASE IF NOT EXISTS subcloudy CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+sudo mysql -e "CREATE USER IF NOT EXISTS 'subcloudy'@'localhost' IDENTIFIED BY '${DB_PASSWORD}';"
+sudo mysql -e "GRANT ALL PRIVILEGES ON subcloudy.* TO 'subcloudy'@'localhost';"
+sudo mysql -e "FLUSH PRIVILEGES;"
 
 # Сохранение пароля
 echo "DB_PASSWORD=${DB_PASSWORD}" > /root/.db_creds
