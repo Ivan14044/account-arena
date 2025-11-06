@@ -58,10 +58,13 @@ tmp/
 !README.md
 !backend/README.md
 !frontend/README.md
+!SERVER_SETUP_GUIDE.md
+!QUICK_START.md
 
-# Deployment scripts
-deploy.sh
-server-setup.sh
+# Deployment scripts (НЕ игнорировать новые скрипты)
+!deploy-now.sh
+!setup-server.sh
+!update-project.sh
 *.bat
 *.ps1
 ПОЛНАЯ_АВТОУСТАНОВКА.sh

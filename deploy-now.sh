@@ -1,25 +1,85 @@
 #!/bin/bash
 
-# Автоматический деплой на VPS
+###############################################################################
+# Account Arena - Автоматический деплой на VPS
+# Скрипт для обновления проекта на сервере после push в GitHub
+###############################################################################
+
 set -e
 
+# Настройки
 VPS="root@31.131.26.78"
 REPO="https://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@github.com/Ivan14044/account-arena.git"
 
-echo "🚀 Начинаю деплой на VPS..."
+# Цвета
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+RED='\033[0;31m'
+NC='\033[0m'
+
+print_header() {
+    echo -e "\n${BLUE}╔══════════════════════════════════════════════════════════════╗${NC}"
+    echo -e "${BLUE}║${NC} $1"
+    echo -e "${BLUE}╚══════════════════════════════════════════════════════════════╝${NC}\n"
+}
+
+print_success() {
+    echo -e "${GREEN}✓${NC} $1"
+}
+
+print_error() {
+    echo -e "${RED}✗${NC} $1"
+}
+
+print_info() {
+    echo -e "${YELLOW}ℹ${NC} $1"
+}
+
+print_header "🚀 ДЕПЛОЙ НА VPS"
+
+# Проверка доступа к серверу
+print_info "Проверка подключения к серверу..."
+if ! ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no $VPS "echo 'Подключено'" > /dev/null 2>&1; then
+    print_error "Не удалось подключиться к серверу ${VPS}"
+    echo "Проверьте SSH доступ и попробуйте снова"
+    exit 1
+fi
+print_success "Подключение к серверу установлено"
 echo ""
 
 # Выполнение на сервере
 ssh -o StrictHostKeyChecking=no $VPS << 'ENDSSH'
 set -e
 
-echo "📥 Загрузка проекта из GitHub..."
-cd /var/www
-rm -rf subcloudy
-git clone https://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@github.com/Ivan14044/account-arena.git subcloudy
-cd subcloudy
+# Цвета на сервере
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m'
 
-echo "⚙️  Настройка Backend..."
+echo -e "\n${BLUE}══════════════════════════════════════════════════════════════${NC}"
+echo -e "${BLUE}        ОБНОВЛЕНИЕ ПРОЕКТА НА СЕРВЕРЕ${NC}"
+echo -e "${BLUE}══════════════════════════════════════════════════════════════${NC}\n"
+
+echo -e "${YELLOW}📥 Загрузка проекта из GitHub...${NC}"
+cd /var/www
+
+# Проверка существования директории
+if [ -d "subcloudy" ]; then
+    echo -e "${YELLOW}ℹ Обновление существующего проекта...${NC}"
+    cd subcloudy
+    git fetch origin main
+    git reset --hard origin/main
+else
+    echo -e "${YELLOW}ℹ Первоначальное клонирование проекта...${NC}"
+    git clone https://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@github.com/Ivan14044/account-arena.git subcloudy
+    cd subcloudy
+fi
+
+echo -e "${GREEN}✓ Проект загружен${NC}\n"
+
+echo -e "${YELLOW}⚙️  Настройка Backend...${NC}"
 cd backend
 
 # Composer
@@ -58,19 +118,33 @@ php artisan route:cache
 php artisan view:cache
 php artisan optimize
 
-echo "🎨 Настройка Frontend..."
+echo -e "${GREEN}✓ Backend настроен${NC}\n"
+
+echo -e "${YELLOW}🎨 Настройка Frontend...${NC}"
 cd ../frontend
 
+# Определение URL на основе настроек
+DOMAIN=$(grep -m 1 'server_name' /etc/nginx/sites-available/account-arena 2>/dev/null | awk '{print $2}' | sed 's/;//' || echo "localhost")
+if [[ ! "$DOMAIN" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]] && [ -d "/etc/letsencrypt/live/${DOMAIN}" ]; then
+    API_URL="https://${DOMAIN}/api"
+else
+    API_URL="http://${DOMAIN}/api"
+fi
+
 # .env.production
-cat > .env.production << 'EOF'
-VITE_API_URL=https://account-arena.com/api
+cat > .env.production << EOF
+VITE_API_URL=${API_URL}
 EOF
 
+echo -e "${YELLOW}ℹ API URL: ${API_URL}${NC}"
+
 # npm
-npm install
+npm install --silent
 npm run build
 
-echo "🔐 Установка прав..."
+echo -e "${GREEN}✓ Frontend собран${NC}\n"
+
+echo -e "${YELLOW}🔐 Установка прав доступа...${NC}"
 cd /var/www/subcloudy
 chown -R www-data:www-data .
 find . -type d -exec chmod 755 {} \;
@@ -136,23 +210,58 @@ NGINXEOF
 
 nginx -t && systemctl reload nginx
 
-echo "🔄 Перезапуск сервисов..."
+echo -e "${GREEN}✓ Права установлены${NC}\n"
+
+# Обновление Nginx конфигурации только если она изменилась
+echo -e "${YELLOW}🌐 Проверка конфигурации Nginx...${NC}"
+if nginx -t > /dev/null 2>&1; then
+    echo -e "${GREEN}✓ Конфигурация Nginx корректна${NC}"
+    systemctl reload nginx
+else
+    echo -e "${RED}✗ Ошибка в конфигурации Nginx${NC}"
+fi
+
+echo -e "\n${YELLOW}🔄 Перезапуск сервисов...${NC}"
 systemctl restart php8.2-fpm
+systemctl restart account-arena-worker 2>/dev/null || true
 systemctl restart redis-server
 
+echo -e "${GREEN}✓ Сервисы перезапущены${NC}\n"
+
+# Получение домена для вывода
+DOMAIN=$(grep -m 1 'server_name' /etc/nginx/sites-available/account-arena 2>/dev/null | awk '{print $2}' | sed 's/;//' || echo "localhost")
+if [[ ! "$DOMAIN" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]] && [ -d "/etc/letsencrypt/live/${DOMAIN}" ]; then
+    SITE_URL="https://${DOMAIN}"
+else
+    SITE_URL="http://${DOMAIN}"
+fi
+
 echo ""
-echo "╔══════════════════════════════════════════════════════════════╗"
-echo "║                                                              ║"
-echo "║          ✅ ДЕПЛОЙ ЗАВЕРШЕН УСПЕШНО!                        ║"
-echo "║                                                              ║"
-echo "╚══════════════════════════════════════════════════════════════╝"
+echo -e "${GREEN}╔══════════════════════════════════════════════════════════════╗${NC}"
+echo -e "${GREEN}║                                                              ║${NC}"
+echo -e "${GREEN}║          ✅ ДЕПЛОЙ ЗАВЕРШЕН УСПЕШНО!                        ║${NC}"
+echo -e "${GREEN}║                                                              ║${NC}"
+echo -e "${GREEN}╚══════════════════════════════════════════════════════════════╝${NC}"
 echo ""
-echo "🌐 Сайт доступен: https://account-arena.com"
+echo -e "${YELLOW}🌐 Сайт доступен:${NC} ${SITE_URL}"
+echo -e "${YELLOW}📊 Админ панель:${NC} ${SITE_URL}/admin"
+echo -e "${YELLOW}🏪 Панель поставщика:${NC} ${SITE_URL}/supplier"
+echo ""
+echo -e "${YELLOW}📋 Проверка статуса сервисов:${NC}"
+systemctl is-active --quiet nginx && echo -e "${GREEN}  ✓ Nginx работает${NC}" || echo -e "${RED}  ✗ Nginx не работает${NC}"
+systemctl is-active --quiet php8.2-fpm && echo -e "${GREEN}  ✓ PHP-FPM работает${NC}" || echo -e "${RED}  ✗ PHP-FPM не работает${NC}"
+systemctl is-active --quiet mysql && echo -e "${GREEN}  ✓ MySQL работает${NC}" || echo -e "${RED}  ✗ MySQL не работает${NC}"
+systemctl is-active --quiet redis-server && echo -e "${GREEN}  ✓ Redis работает${NC}" || echo -e "${RED}  ✗ Redis не работает${NC}"
+systemctl is-active --quiet account-arena-worker && echo -e "${GREEN}  ✓ Queue Worker работает${NC}" || echo -e "${YELLOW}  ⚠ Queue Worker не настроен${NC}"
 echo ""
 
 ENDSSH
 
+print_header "🎉 ДЕПЛОЙ ЗАВЕРШЁН!"
 echo ""
-echo "✅ Готово! Откройте https://account-arena.com"
+echo -e "${GREEN}✅ Проект успешно развёрнут на сервере!${NC}"
+echo ""
+echo -e "${YELLOW}Для доступа к сайту откройте браузер${NC}"
+echo ""
 
 
