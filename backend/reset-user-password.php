@@ -77,3 +77,4 @@ echo "   Password: {$newPassword}\n\n";
 
 echo "✅ Готово!\n\n";
 
+
