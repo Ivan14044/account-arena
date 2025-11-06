@@ -82,14 +82,37 @@
 import { computed, onMounted } from 'vue';
 import { scrollToElement } from '@/utils/scrollToElement';
 import { useI18n } from 'vue-i18n';
-import { useBanners } from '@/composables/useBanners';
+import { useBannersStore } from '@/stores/banners';
 import { useSiteContentStore } from '@/stores/siteContent';
 
 const { t, locale } = useI18n();
 const siteContentStore = useSiteContentStore();
+const bannersStore = useBannersStore();
 
-// Use banners composable for 'home_top' position
-const { banners, getBannerTitle, loadBanners, handleBannerClick } = useBanners('home_top');
+// Получаем баннеры из store (они уже загружены в App.vue)
+const banners = computed(() => bannersStore.getBanners('home_top') || []);
+
+// Функция для получения заголовка баннера с учетом локали
+const getBannerTitle = (banner: any): string => {
+    if (locale.value === 'en' && banner.title_en) {
+        return banner.title_en;
+    }
+    if (locale.value === 'uk' && banner.title_uk) {
+        return banner.title_uk;
+    }
+    return banner.title;
+};
+
+// Функция для обработки клика по баннеру
+const handleBannerClick = (banner: any) => {
+    if (!banner.link) return;
+    
+    if (banner.open_new_tab) {
+        window.open(banner.link, '_blank', 'noopener,noreferrer');
+    } else {
+        window.location.href = banner.link;
+    }
+};
 
 // Get content from store or fallback to i18n
 const heroContent = computed(() => siteContentStore.hero(locale.value));
@@ -150,30 +173,16 @@ const displayBanners = computed(() => {
     return result;
 });
 
-// Предзагрузка изображений баннеров
-const preloadBannerImages = () => {
-    banners.value.forEach(banner => {
-        if (banner.image_url) {
-            const link = document.createElement('link');
-            link.rel = 'preload';
-            link.as = 'image';
-            link.href = banner.image_url;
-            link.fetchPriority = 'high';
-            document.head.appendChild(link);
-        }
-    });
-};
-
+// Если баннеры ещё не загружены (например, при прямой навигации), загружаем их
 onMounted(async () => {
-    // Загружаем баннеры с предзагрузкой изображений
-    await loadBanners();
-    
-    // Предзагружаем изображения баннеров после получения данных
-    preloadBannerImages();
-    
-    // Site content загружается быстро
+    // Загружаем site content если не загружен
     if (!siteContentStore.loaded) {
         await siteContentStore.loadContent();
+    }
+    
+    // Если баннеры не загружены (например, hot reload в dev режиме), загружаем их
+    if (!bannersStore.isLoaded('home_top')) {
+        await bannersStore.fetchBanners('home_top');
     }
 });
 </script>

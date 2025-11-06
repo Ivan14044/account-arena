@@ -31,4 +31,8 @@ app.use(Toast, {
 });
 app.use(Vue3Lottie);
 app.directive('intersect', IntersectDirective);
+
+// Монтируем приложение
 app.mount('#app');
+
+// Прелоадер будет скрыт из App.vue после загрузки всех данных

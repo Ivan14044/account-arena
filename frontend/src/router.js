@@ -144,9 +144,9 @@ router.beforeEach(async (to, from, next) => {
     const authStore = useAuthStore();
     const loadingStore = useLoadingStore();
     
-    // УЛУЧШЕНИЕ: Показываем прелоадер при переходе между страницами
-    // Исключаем переходы на главную и небольшие навигационные переходы
-    if (from.path !== to.path && to.path !== '/') {
+    // Показываем прелоадер при переходе между разными страницами
+    // Исключаем первую загрузку приложения (когда from.path пустой)
+    if (from.path && from.path !== to.path) {
         loadingStore.start();
     }
     
@@ -238,14 +238,17 @@ router.beforeEach(async (to, from, next) => {
     next();
 });
 
-// УЛУЧШЕНИЕ: Останавливаем прелоадер после завершения перехода
+// Останавливаем прелоадер после завершения перехода
 router.afterEach((to, from) => {
     const loadingStore = useLoadingStore();
     
-    // Небольшая задержка для плавности (чтобы страница успела отрендериться)
+    // Используем nextTick и requestAnimationFrame для гарантии, что контент отрендерен
     setTimeout(() => {
-        loadingStore.stop();
-    }, 100);
+        // Даём компоненту время отрендериться
+        requestAnimationFrame(() => {
+            loadingStore.stop();
+        });
+    }, 150);
     
     console.log('[ROUTER] Переход завершен:', to.path);
 });

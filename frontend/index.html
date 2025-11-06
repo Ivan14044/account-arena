@@ -17,9 +17,103 @@
         document.documentElement.classList.toggle('dark', isDark);
       })();
     </script>
+
+    <!-- Критические стили для прелоадера (показывается мгновенно) -->
+    <style>
+      /* ====================================
+         НАЧАЛЬНЫЙ ПРЕЛОАДЕР
+         Показывается до и во время загрузки приложения
+         ==================================== */
+      
+      /* Основной контейнер прелоадера */
+      #app-preloader {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 99999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #ffffff;
+        transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                    visibility 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        visibility: visible;
+        opacity: 1;
+      }
+
+      /* Тёмная тема для прелоадера */
+      html.dark #app-preloader {
+        background-color: #111827; /* gray-900 */
+      }
+
+      /* Класс для скрытия прелоадера */
+      #app-preloader.preloader-hidden {
+        opacity: 0;
+        visibility: hidden;
+      }
+
+      /* Контейнер для анимации */
+      .preloader-content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+
+      /* Логотип с анимацией пульсации */
+      .preloader-logo {
+        width: 128px;
+        height: 128px;
+        object-fit: contain;
+        animation: preloader-pulse 2s ease-in-out infinite;
+        user-select: none;
+        -webkit-user-drag: none;
+      }
+
+      /* Анимация плавной пульсации */
+      @keyframes preloader-pulse {
+        0%, 100% {
+          opacity: 1;
+          transform: scale(1);
+        }
+        50% {
+          opacity: 0.6;
+          transform: scale(1.15);
+        }
+      }
+
+      /* Предотвращаем показ контента до полной загрузки */
+      #app {
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
+
+      #app.app-loaded {
+        opacity: 1;
+      }
+
+      /* Убираем скролл во время загрузки */
+      body.loading {
+        overflow: hidden;
+      }
+    </style>
 </head>
-<body>
+<body class="loading">
+<!-- ============================================
+     НАЧАЛЬНЫЙ ПРЕЛОАДЕР ПРИЛОЖЕНИЯ
+     Показывается мгновенно при загрузке страницы
+     ============================================ -->
+<div id="app-preloader">
+    <div class="preloader-content">
+        <img src="/img/logo_trans.webp" alt="Loading..." class="preloader-logo"/>
+    </div>
+</div>
+
+<!-- Vue приложение -->
 <div id="app"></div>
+
 <script type="module" src="/src/main.js"></script>
 </body>
 </html>
