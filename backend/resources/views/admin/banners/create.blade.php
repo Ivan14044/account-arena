@@ -70,16 +70,42 @@
                 <hr>
 
                 <div class="form-group">
+                    <label for="position">Позиция баннера *</label>
+                    <select name="position" id="position"
+                            class="form-control @error('position') is-invalid @enderror" required>
+                        @foreach($positions as $value => $label)
+                            <option value="{{ $value }}" {{ old('position', 'home_top') == $value ? 'selected' : '' }}>
+                                {{ $label }}
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('position')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                    <small class="form-text text-muted">Выберите, где будет отображаться баннер</small>
+                </div>
+
+                <div class="form-group">
                     <label for="image">Изображение баннера *</label>
-                    <div class="alert alert-info mb-2">
+                    <div class="alert alert-info mb-2" id="image-info-home-top">
                         <i class="fas fa-info-circle"></i>
-                        <strong>Рекомендуемые размеры:</strong>
+                        <strong>Рекомендуемые размеры для обычных баннеров:</strong>
                         <ul class="mb-0 mt-2">
                             <li><strong>Оптимально:</strong> 800x200 пикселей (соотношение 4:1)</li>
                             <li><strong>Минимум:</strong> 600x150 пикселей</li>
                             <li><strong>Максимум:</strong> 1200x300 пикселей</li>
                         </ul>
                         <small class="mt-2 d-block">💡 Используйте горизонтальные баннеры для лучшего отображения</small>
+                    </div>
+                    <div class="alert alert-info mb-2" id="image-info-home-top-wide" style="display: none;">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>Рекомендуемые размеры для широкого баннера:</strong>
+                        <ul class="mb-0 mt-2">
+                            <li><strong>Оптимально:</strong> 1200x200 пикселей (соотношение 6:1)</li>
+                            <li><strong>Минимум:</strong> 900x150 пикселей</li>
+                            <li><strong>Максимум:</strong> 1600x300 пикселей</li>
+                        </ul>
+                        <small class="mt-2 d-block">💡 Широкий баннер занимает всю ширину 4-х обычных баннеров</small>
                     </div>
                     <input type="file" name="image" id="image"
                            class="form-control @error('image') is-invalid @enderror"
@@ -107,20 +133,18 @@
                     <small class="form-text text-muted">URL, на который ведет баннер при клике</small>
                 </div>
 
-                <!-- Hidden position field - always home_top -->
-                <input type="hidden" name="position" value="home_top">
-
-                <div class="form-group">
+                <!-- Поле order для обычных баннеров (home_top) -->
+                <div class="form-group" id="order-group-home-top">
                     <label for="order">Позиция баннера (1-4) *</label>
                     <select name="order" id="order"
                             class="form-control @error('order') is-invalid @enderror" required>
                         @php
-                            $takenSlots = $existingBanners->pluck('order')->toArray();
+                            $takenSlots = $existingBannersHomeTop->pluck('order')->toArray();
                         @endphp
                         @for($i = 1; $i <= 4; $i++)
                             @php
                                 $isTaken = in_array($i, $takenSlots);
-                                $existingBanner = $existingBanners->firstWhere('order', $i);
+                                $existingBanner = $existingBannersHomeTop->firstWhere('order', $i);
                             @endphp
                             <option value="{{ $i }}" {{ old('order') == $i ? 'selected' : '' }}>
                                 Баннер {{ $i }} (заменяет "Здесь реклама {{ $i }}")
@@ -138,12 +162,29 @@
                     </small>
                 </div>
 
-                @if($existingBanners->count() > 0)
-                    <div class="alert alert-warning">
+                <!-- Поле order для широкого баннера (home_top_wide) -->
+                <div class="form-group" id="order-group-home-top-wide" style="display: none;">
+                    <input type="hidden" name="order_wide" value="1">
+                    @if($existingWideBanner)
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <strong>Внимание!</strong> Широкий баннер уже существует: "{{ $existingWideBanner->title }}". 
+                            Новый баннер заменит существующий.
+                        </div>
+                    @else
+                        <div class="alert alert-success">
+                            <i class="fas fa-check-circle"></i>
+                            Широкий баннер еще не создан. Вы можете добавить его.
+                        </div>
+                    @endif
+                </div>
+
+                @if($existingBannersHomeTop->count() > 0)
+                    <div class="alert alert-warning" id="existing-banners-home-top">
                         <i class="fas fa-exclamation-triangle"></i>
-                        <strong>Занятые позиции:</strong>
+                        <strong>Занятые позиции (обычные баннеры):</strong>
                         <ul class="mb-0 mt-2">
-                            @foreach($existingBanners as $existing)
+                            @foreach($existingBannersHomeTop as $existing)
                                 <li>Позиция {{ $existing->order }}: "{{ $existing->title }}"</li>
                             @endforeach
                         </ul>
@@ -211,6 +252,55 @@
 @section('js')
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Управление отображением полей в зависимости от выбранной позиции
+            const positionSelect = document.getElementById('position');
+            const orderGroupHomeTop = document.getElementById('order-group-home-top');
+            const orderGroupWide = document.getElementById('order-group-home-top-wide');
+            const orderSelect = document.getElementById('order');
+            const imageInfoHomeTop = document.getElementById('image-info-home-top');
+            const imageInfoWide = document.getElementById('image-info-home-top-wide');
+            const existingBannersAlert = document.getElementById('existing-banners-home-top');
+            
+            function updateOrderField() {
+                const position = positionSelect.value;
+                
+                if (position === 'home_top_wide') {
+                    // Показываем поле для широкого баннера
+                    orderGroupHomeTop.style.display = 'none';
+                    orderGroupWide.style.display = 'block';
+                    imageInfoHomeTop.style.display = 'none';
+                    imageInfoWide.style.display = 'block';
+                    if (existingBannersAlert) existingBannersAlert.style.display = 'none';
+                    
+                    // Устанавливаем order = 1 для широкого баннера
+                    orderSelect.removeAttribute('name');
+                    const orderWideInput = document.querySelector('input[name="order_wide"]');
+                    if (orderWideInput) {
+                        orderWideInput.setAttribute('name', 'order');
+                    }
+                } else {
+                    // Показываем поле для обычных баннеров
+                    orderGroupHomeTop.style.display = 'block';
+                    orderGroupWide.style.display = 'none';
+                    imageInfoHomeTop.style.display = 'block';
+                    imageInfoWide.style.display = 'none';
+                    if (existingBannersAlert) existingBannersAlert.style.display = 'block';
+                    
+                    // Восстанавливаем нормальное поле order
+                    orderSelect.setAttribute('name', 'order');
+                    const orderWideInput = document.querySelector('input[name="order"]');
+                    if (orderWideInput && orderWideInput.type === 'hidden') {
+                        orderWideInput.removeAttribute('name');
+                    }
+                }
+            }
+            
+            // Инициализация при загрузке
+            updateOrderField();
+            
+            // Обработчик изменения позиции
+            positionSelect.addEventListener('change', updateOrderField);
+            
             // Preview image with dimension check
             const imageInput = document.getElementById('image');
             if (imageInput) {

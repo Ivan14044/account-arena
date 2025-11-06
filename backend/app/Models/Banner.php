@@ -83,7 +83,8 @@ class Banner extends Model
     public static function getPositions()
     {
         return [
-            'home_top' => 'Баннеры на главной странице',
+            'home_top_wide' => 'Широкий баннер на главной странице (1 штука)',
+            'home_top' => 'Баннеры на главной странице (4 штуки)',
         ];
     }
 }

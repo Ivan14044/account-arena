@@ -94,7 +94,8 @@ onMounted(async () => {
             optionStore.fetchData(),
             notificationStore.fetchData(),
             accountsStore.fetchAll(), // Предзагрузка товаров
-            bannersStore.fetchBanners('home_top'), // Предзагрузка баннеров с изображениями
+            bannersStore.fetchBanners('home_top'), // Предзагрузка обычных баннеров с изображениями
+            bannersStore.fetchBanners('home_top_wide'), // Предзагрузка широкого баннера с изображением
         ];
 
         // Ждем загрузки всех данных

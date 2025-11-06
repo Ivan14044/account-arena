@@ -26,8 +26,11 @@
         <div class="card-body">
             <div class="alert alert-info">
                 <i class="fas fa-info-circle"></i>
-                <strong>Информация:</strong> Всего доступно 4 позиции баннеров на главной странице. 
-                Баннеры с порядком 1-4 заменят плейсхолдеры "Здесь реклама 1-4" соответственно.
+                <strong>Информация о позициях баннеров:</strong>
+                <ul class="mb-0 mt-2">
+                    <li><strong>Широкий баннер (home_top_wide):</strong> 1 позиция - отображается выше обычных баннеров и занимает всю ширину</li>
+                    <li><strong>Обычные баннеры (home_top):</strong> 4 позиции - отображаются в ряд под широким баннером. Баннеры с порядком 1-4 заменят плейсхолдеры "Здесь реклама 1-4" соответственно</li>
+                </ul>
             </div>
             
             <form action="{{ route('admin.banners.index') }}" method="GET">
@@ -61,7 +64,7 @@
 
     <div class="card">
         <div class="card-header">
-            <h3 class="card-title">Список баннеров ({{ $banners->total() }} / 4 максимум)</h3>
+            <h3 class="card-title">Список баннеров ({{ $banners->total() }} всего)</h3>
         </div>
         <div class="card-body p-0">
             @if($banners->count() > 0)
@@ -71,6 +74,7 @@
                         <th style="width: 80px">ID</th>
                         <th style="width: 150px">Изображение</th>
                         <th>Название</th>
+                        <th style="width: 150px">Тип</th>
                         <th style="width: 120px">Позиция</th>
                         <th></th>
                         <th style="width: 100px">Статус</th>
@@ -104,9 +108,20 @@
                                 </small>
                             @endif
                         </td>
+                        <td>
+                            @if($banner->position === 'home_top_wide')
+                                <span class="badge badge-info">Широкий баннер</span>
+                            @else
+                                <span class="badge badge-secondary">Обычный</span>
+                            @endif
+                        </td>
                         <td class="text-center">
                             <span class="badge badge-primary">
-                                Баннер {{ $banner->order }}
+                                @if($banner->position === 'home_top_wide')
+                                    Позиция: {{ $banner->order }}
+                                @else
+                                    Баннер {{ $banner->order }}
+                                @endif
                             </span>
                         </td>
                         <td>

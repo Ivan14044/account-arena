@@ -250,6 +250,7 @@
   },
   "adBanners": {
     "title": "Advertising Banners",
+    "wideBanner": "Wide banner here",
     "banner1": "Ad here 1",
     "banner2": "Ad here 2",
     "banner3": "Ad here 3",

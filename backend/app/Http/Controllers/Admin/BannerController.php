@@ -39,13 +39,18 @@ class BannerController extends Controller
     {
         $positions = Banner::getPositions();
         
-        // Get existing banners to show which slots are taken
-        $existingBanners = Banner::where('position', 'home_top')
+        // Get existing banners to show which slots are taken (для home_top)
+        $existingBannersHomeTop = Banner::where('position', 'home_top')
             ->where('is_active', true)
             ->orderBy('order')
             ->get(['order', 'title']);
+            
+        // Get existing wide banner (для home_top_wide)
+        $existingWideBanner = Banner::where('position', 'home_top_wide')
+            ->where('is_active', true)
+            ->first();
         
-        return view('admin.banners.create', compact('positions', 'existingBanners'));
+        return view('admin.banners.create', compact('positions', 'existingBannersHomeTop', 'existingWideBanner'));
     }
 
     /**
@@ -53,6 +58,9 @@ class BannerController extends Controller
      */
     public function store(Request $request)
     {
+        // Определяем максимальное значение order в зависимости от позиции
+        $maxOrder = $request->position === 'home_top_wide' ? 1 : 4;
+        
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:255'],
             'title_en' => ['nullable', 'string', 'max:255'],
@@ -60,7 +68,7 @@ class BannerController extends Controller
             'image' => ['required', 'image', 'mimes:jpeg,png,jpg,gif,webp', 'max:5120'], // 5MB
             'link' => ['nullable', 'url', 'max:255'],
             'position' => ['required', 'string'],
-            'order' => ['required', 'integer', 'min:1', 'max:4'], // Только позиции 1-4
+            'order' => ['required', 'integer', 'min:1', "max:$maxOrder"], // Для home_top_wide только 1, для home_top 1-4
             'is_active' => ['required', 'boolean'],
             'open_new_tab' => ['required', 'boolean'],
             'start_date' => ['nullable', 'date'],
@@ -86,21 +94,30 @@ class BannerController extends Controller
     {
         $positions = Banner::getPositions();
         
-        // Get existing banners (excluding current one)
-        $existingBanners = Banner::where('position', 'home_top')
+        // Get existing banners (excluding current one) для home_top
+        $existingBannersHomeTop = Banner::where('position', 'home_top')
             ->where('is_active', true)
             ->where('id', '!=', $banner->id)
             ->orderBy('order')
             ->get(['order', 'title']);
+            
+        // Get existing wide banner (excluding current one если это он) для home_top_wide
+        $existingWideBanner = Banner::where('position', 'home_top_wide')
+            ->where('is_active', true)
+            ->where('id', '!=', $banner->id)
+            ->first();
         
-        return view('admin.banners.edit', compact('banner', 'positions', 'existingBanners'));
+        return view('admin.banners.edit', compact('banner', 'positions', 'existingBannersHomeTop', 'existingWideBanner'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Banner $banner)
+        public function update(Request $request, Banner $banner)
     {
+        // Определяем максимальное значение order в зависимости от позиции
+        $maxOrder = $request->position === 'home_top_wide' ? 1 : 4;
+        
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:255'],
             'title_en' => ['nullable', 'string', 'max:255'],
@@ -108,7 +125,7 @@ class BannerController extends Controller
             'image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,webp', 'max:5120'], // 5MB
             'link' => ['nullable', 'url', 'max:255'],
             'position' => ['required', 'string'],
-            'order' => ['required', 'integer', 'min:1', 'max:4'], // Только позиции 1-4
+            'order' => ['required', 'integer', 'min:1', "max:$maxOrder"], // Для home_top_wide только 1, для home_top 1-4
             'is_active' => ['required', 'boolean'],
             'open_new_tab' => ['required', 'boolean'],
             'start_date' => ['nullable', 'date'],
