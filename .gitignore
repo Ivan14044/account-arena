@@ -60,6 +60,7 @@ tmp/
 !frontend/README.md
 !SERVER_SETUP_GUIDE.md
 !QUICK_START.md
+!SERVER_COMMANDS.md
 
 # Deployment scripts (НЕ игнорировать новые скрипты)
 !deploy-now.sh
