@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import axios from 'axios';
+import axios from '../bootstrap'; // Используем настроенный axios из bootstrap
 
 type PromoResult =
     | { type: 'discount'; discount_percent: number }

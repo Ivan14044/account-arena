@@ -21,6 +21,7 @@ use FunnyDev\Cryptomus\CryptomusSdk;
 use Illuminate\Http\Request;
 use App\Services\EmailService;
 use App\Services\PromocodeValidationService;
+use App\Services\LoggingService;
 use Illuminate\Support\Facades\DB;
 
 class CryptomusController extends Controller
@@ -379,7 +380,7 @@ class CryptomusController extends Controller
             );
 
             if ($response) {
-                return response()->json(['success' => true, 'url' => $response]);
+                return \App\Http\Responses\ApiResponse::success(['url' => $response]);
             }
 
             return response()->json(['success' => false, 'message' => 'Failed to create payment'], 422);
@@ -645,7 +646,31 @@ class CryptomusController extends Controller
             // Создаем покупки для гостя
             GuestCartController::createGuestPurchases($guestEmail, $productsData, $promocode);
 
-            \Log::info('Guest purchase completed via Cryptomus', [
+            // Отправляем email уведомление гостю с информацией о покупке
+            $totalAmount = array_sum(array_column($productsData, 'total'));
+            \App\Services\EmailService::sendToGuest(
+                $guestEmail,
+                'guest_purchase_confirmation',
+                [
+                    'products_count' => count($productsData),
+                    'total_amount' => number_format($totalAmount, 2, '.', '') . ' ' . strtoupper(Option::get('currency')),
+                    'guest_email' => $guestEmail,
+                ]
+            );
+
+            // Уведомление админу о новой гостевой покупке
+            NotifierService::send(
+                'guest_product_purchase',
+                __('notifier.new_product_purchase_title', ['method' => 'Cryptomus']),
+                __('notifier.new_product_purchase_message', [
+                    'email' => $guestEmail,
+                    'name' => 'Гость',
+                    'products' => count($productsData),
+                    'amount' => number_format($totalAmount, 2),
+                ])
+            );
+
+            LoggingService::info('Guest purchase completed via Cryptomus', [
                 'guest_email' => $guestEmail,
                 'order_id' => $data['order_id'] ?? 'unknown',
                 'products_count' => count($productsData),

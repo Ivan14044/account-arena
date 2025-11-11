@@ -21,6 +21,7 @@ class Kernel extends HttpKernel
         \Illuminate\Foundation\Http\Middleware\ValidatePostSize::class,
         \App\Http\Middleware\TrimStrings::class,
         \Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::class,
+        \App\Http\Middleware\SecurityHeaders::class,
     ];
 
     /**
@@ -42,6 +43,7 @@ class Kernel extends HttpKernel
             // ИСПРАВЛЕНИЕ: Убран EnsureFrontendRequestsAreStateful для предотвращения конфликта
             // между сессиями админ-панели и Bearer токенами API
             // \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
+            \App\Http\Middleware\AddRequestId::class,
             \Illuminate\Routing\Middleware\ThrottleRequests::class.':api',
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
             \App\Http\Middleware\SetLocale::class,
@@ -72,5 +74,8 @@ class Kernel extends HttpKernel
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
         'cryptomus' => \App\Http\Middleware\CryptomusMiddleware::class,
         'ext.auth' => \App\Http\Middleware\ExtensionAuth::class,
+        'verify.webhook' => \App\Http\Middleware\VerifyWebhookSignature::class,
+        'security.headers' => \App\Http\Middleware\SecurityHeaders::class,
+        'audit.admin' => \App\Http\Middleware\AuditAdminActions::class,
     ];
 }

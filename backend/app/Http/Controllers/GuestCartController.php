@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\{ServiceAccount, Purchase, Transaction, Option, Promocode};
 use App\Services\PromocodeValidationService;
+use App\Services\ProductPurchaseService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 
@@ -18,7 +19,7 @@ class GuestCartController extends Controller
      * Создание гостевого заказа (только для товаров)
      * Поддерживаемые методы оплаты: card (Mono), crypto (Cryptomus)
      */
-    public function store(Request $request, PromocodeValidationService $promoService)
+    public function store(Request $request, PromocodeValidationService $promoService, ProductPurchaseService $purchaseService)
     {
         $request->validate([
             'guest_email' => 'required|email', // Email обязателен для гостей
@@ -42,38 +43,17 @@ class GuestCartController extends Controller
             }
         }
 
-        // Рассчитываем общую стоимость товаров
-        $productsTotal = 0;
-        $productsData = [];
-        
-        foreach ($request->products as $productItem) {
-            $product = ServiceAccount::find($productItem['id']);
-            if (!$product) {
-                return response()->json(['success' => false, 'message' => 'Product not found'], 404);
-            }
-            
-            $quantity = $productItem['quantity'];
-            $available = $product->getAvailableStock();
-            
-            // Проверяем доступность товара
-            if ($available < $quantity) {
-                return response()->json([
-                    'success' => false, 
-                    'message' => "Insufficient stock for {$product->title}. Available: {$available}, requested: {$quantity}"
-                ], 422);
-            }
-            
-            $price = $product->getCurrentPrice();
-            $itemTotal = $price * $quantity;
-            $productsTotal += $itemTotal;
-            
-            $productsData[] = [
-                'product' => $product,
-                'quantity' => $quantity,
-                'price' => $price,
-                'total' => $itemTotal,
-            ];
+        // Рассчитываем общую стоимость товаров используя сервис (устранение дублирования кода)
+        $prepareResult = $purchaseService->prepareProductsData($request->products);
+        if (!$prepareResult['success']) {
+            return response()->json([
+                'success' => false, 
+                'message' => $prepareResult['message']
+            ], 422);
         }
+        
+        $productsData = $prepareResult['data'];
+        $productsTotal = $prepareResult['total'];
 
         $totalAmount = $productsTotal;
 
@@ -112,10 +92,13 @@ class GuestCartController extends Controller
     /**
      * Создание записей о покупке после успешной оплаты
      * Вызывается из webhook'ов платежных систем
+     * Использует ProductPurchaseService для устранения дублирования кода
      */
     public static function createGuestPurchases(string $guestEmail, array $productsData, ?string $promocode = null)
     {
-        DB::transaction(function () use ($guestEmail, $productsData, $promocode) {
+        $purchaseService = app(ProductPurchaseService::class);
+        
+        DB::transaction(function () use ($guestEmail, $productsData, $purchaseService) {
             foreach ($productsData as $item) {
                 $product = ServiceAccount::find($item['product_id']);
                 if (!$product) {
@@ -126,56 +109,21 @@ class GuestCartController extends Controller
                 $price = $item['price'];
                 $total = $item['total'];
                 
-                // Получаем аккаунты из accounts_data
-                $accountsData = $product->accounts_data ?? [];
-                $usedCount = $product->used ?? 0;
-                
-                // Выбираем нужное количество неиспользованных аккаунтов
-                $assignedAccounts = [];
-                for ($i = 0; $i < $quantity; $i++) {
-                    if (isset($accountsData[$usedCount + $i])) {
-                        $assignedAccounts[] = $accountsData[$usedCount + $i];
-                    }
-                }
-                
-                // Увеличиваем счетчик использованных
-                $product->used = $usedCount + $quantity;
-                $product->save();
-                
-                // Создаем транзакцию для гостевой покупки
-                $transaction = Transaction::create([
-                    'user_id' => null, // Гостевая покупка
-                    'guest_email' => $guestEmail,
-                    'amount' => $total,
-                    'currency' => Option::get('currency'),
-                    'payment_method' => 'guest_purchase',
-                    'service_account_id' => $product->id,
-                    'status' => 'completed',
-                ]);
-                
-                // Создаем запись о покупке с уникальным номером заказа
-                $purchase = Purchase::create([
-                    'order_number' => Purchase::generateOrderNumber(),
-                    'user_id' => null, // Гостевая покупка
-                    'guest_email' => $guestEmail,
-                    'service_account_id' => $product->id,
-                    'transaction_id' => $transaction->id,
-                    'quantity' => $quantity,
-                    'price' => $price,
-                    'total_amount' => $total,
-                    'account_data' => $assignedAccounts,
-                    'status' => 'completed',
-                ]);
-                
-                // Логируем номер заказа для отслеживания
-                \Log::info('Guest purchase created', [
-                    'order_number' => $purchase->order_number,
-                    'guest_email' => $guestEmail,
-                    'product_id' => $product->id,
-                    'product_title' => $product->title,
-                ]);
+                // Создаем покупку используя сервис
+                $purchaseService->createProductPurchase(
+                    $product,
+                    $quantity,
+                    $price,
+                    $total,
+                    null, // user_id = null для гостевых покупок
+                    $guestEmail,
+                    'guest_purchase'
+                );
             }
         });
     }
 }
+
+
+
 

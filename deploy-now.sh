@@ -8,9 +8,9 @@
 
 set -e
 
-# Настройки
+# Настройки (измените на свой IP и репозиторий)
 VPS="root@31.131.26.78"
-REPO="https://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@github.com/Ivan14044/account-arena.git"
+REPO="https://github.com/Ivan14044/account-arena.git"
 
 # Цвета
 GREEN='\033[0;32m'
@@ -74,7 +74,7 @@ if [ -d "subcloudy" ]; then
     git reset --hard origin/main
 else
     echo -e "${YELLOW}ℹ Первоначальное клонирование проекта...${NC}"
-    git clone https://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@github.com/Ivan14044/account-arena.git subcloudy
+    git clone ${REPO} subcloudy
     cd subcloudy
 fi
 

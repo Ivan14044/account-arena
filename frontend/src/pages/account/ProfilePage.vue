@@ -769,7 +769,7 @@ import { useToast } from 'vue-toastification';
 import { useI18n } from 'vue-i18n';
 import { useRouter, useRoute } from 'vue-router';
 import { useLoadingStore } from '@/stores/loading';
-import axios from '@/bootstrap';
+import axios from '@/bootstrap'; // Используем настроенный axios из bootstrap
 
 const toast = useToast();
 const authStore = useAuthStore();

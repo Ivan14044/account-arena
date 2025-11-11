@@ -53,7 +53,7 @@ backend/auth.json
 *.tmp
 tmp/
 
-# Documentation files (кроме основных)
+# Documentation files (только основные README и гайды)
 *.md
 !README.md
 !backend/README.md
@@ -62,15 +62,40 @@ tmp/
 !QUICK_START.md
 !SERVER_COMMANDS.md
 
-# Deployment scripts (НЕ игнорировать новые скрипты)
+# Игнорируем все временные инструкции и заметки
+DEPLOY_INSTRUCTIONS.md
+CONTRIBUTING.md
+DEPLOYMENT_GUIDE.md
+ПРОБЛЕМА_*.md
+ARCHITECTURE.md
+project-map.md
+
+# Deployment scripts - оставляем только нужные
 !deploy-now.sh
 !setup-server.sh
 !update-project.sh
+
+# Игнорируем остальные скрипты
 *.bat
 *.ps1
-ПОЛНАЯ_АВТОУСТАНОВКА.sh
+*.sh
+!deploy-now.sh
+!setup-server.sh
+!update-project.sh
 
-# Server setup files
+# Служебные файлы
 APP_KEY_FOR_RAILWAY.txt
 RAILWAY_ENV_VARIABLES.txt
+release
+reset-user-password.php
+adminer.php
+
+# Laravel deployment файлы
+backend/deploy.php
+backend/Procfile
+backend/nixpacks.toml
+
+# Package.json в корне (если не используется)
+/package.json
+/package-lock.json
 

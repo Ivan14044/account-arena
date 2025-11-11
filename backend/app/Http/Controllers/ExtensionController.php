@@ -6,18 +6,16 @@ use Illuminate\Http\Request;
 
 class ExtensionController extends Controller
 {
-    public function saveSettings(Request $request)
+    public function saveSettings(\App\Http\Requests\Extension\SaveSettingsRequest $request)
     {
-        $data = $request->validate([
-            'settings' => 'required|array',
-        ]);
+        $data = $request->validated();
 
         $user = $request->user();
 
         $user->extension_settings = $data['settings'];
         $user->save();
 
-        return response()->json(['ok' => true]);
+        return \App\Http\Responses\ApiResponse::success(['ok' => true]);
     }
 
     public function authStatus(Request $request)

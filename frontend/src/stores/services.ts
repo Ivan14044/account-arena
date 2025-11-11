@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import axios from 'axios';
+import axios from '../bootstrap'; // Используем настроенный axios из bootstrap
 
 export interface Services {
     id: number;

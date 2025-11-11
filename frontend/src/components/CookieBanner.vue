@@ -27,7 +27,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
-import axios from 'axios';
+import axios from '@/bootstrap'; // Используем настроенный axios из bootstrap
 import { useRouter } from 'vue-router';
 
 const showBanner = ref(false);

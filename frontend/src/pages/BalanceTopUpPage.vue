@@ -194,7 +194,7 @@ import { useOptionStore } from '@/stores/options';
 import { useLoadingStore } from '@/stores/loading';
 import { useToast } from 'vue-toastification';
 import { useI18n } from 'vue-i18n';
-import axios from '@/bootstrap';
+import axios from '@/bootstrap'; // Используем настроенный axios из bootstrap
 
 const router = useRouter();
 const authStore = useAuthStore();

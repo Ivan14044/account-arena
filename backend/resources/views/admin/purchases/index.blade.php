@@ -100,6 +100,18 @@
                             <input type="text" name="search" class="form-control" 
                                    placeholder="Номер заказа или email" 
                                    value="{{ request('search') }}">
+                            <small class="form-text text-muted">По email зарегистрированного пользователя или гостя</small>
+                        </div>
+                    </div>
+
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>Тип покупателя</label>
+                            <select name="buyer_type" class="form-control">
+                                <option value="">Все</option>
+                                <option value="registered" {{ request('buyer_type') == 'registered' ? 'selected' : '' }}>Зарегистрированные</option>
+                                <option value="guest" {{ request('buyer_type') == 'guest' ? 'selected' : '' }}>Гости</option>
+                            </select>
                         </div>
                     </div>
 
@@ -204,11 +216,21 @@
                                 <code class="text-primary">{{ $purchase->order_number ?? 'N/A' }}</code>
                             </td>
                             <td>
-                                <a href="{{ route('admin.users.edit', $purchase->user) }}" class="text-decoration-none">
-                                    <i class="fas fa-user"></i> {{ $purchase->user->email }}
-                                </a>
-                                <br>
-                                <small class="text-muted">{{ $purchase->user->name }}</small>
+                                @if($purchase->user)
+                                    <!-- Зарегистрированный пользователь -->
+                                    <a href="{{ route('admin.users.edit', $purchase->user) }}" class="text-decoration-none">
+                                        <i class="fas fa-user"></i> {{ $purchase->user->email }}
+                                    </a>
+                                    <br>
+                                    <small class="text-muted">{{ $purchase->user->name }}</small>
+                                @elseif($purchase->guest_email)
+                                    <!-- Гостевая покупка -->
+                                    <i class="fas fa-user-circle text-info"></i> {{ $purchase->guest_email }}
+                                    <br>
+                                    <small class="badge badge-info">Гость</small>
+                                @else
+                                    <span class="text-muted">N/A</span>
+                                @endif
                             </td>
                             <td>
                                 @if($purchase->serviceAccount)
@@ -288,4 +310,7 @@
         }
     </style>
 @endsection
+
+
+
 

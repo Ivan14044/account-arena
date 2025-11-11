@@ -1,14 +1,7 @@
 import { defineStore } from 'pinia';
-import axios from 'axios';
+import axios from '../bootstrap'; // Используем настроенный axios из bootstrap
 import i18n from '@/i18n';
 import { useLoadingStore } from '@/stores/loading';
-
-(() => {
-    const savedToken = localStorage.getItem('token');
-    if (savedToken) {
-        axios.defaults.headers.common['Authorization'] = `Bearer ${savedToken}`;
-    }
-})();
 
 export const useAuthStore = defineStore('auth', {
     state: () => ({
@@ -63,6 +56,12 @@ export const useAuthStore = defineStore('auth', {
 
     actions: {
         async init() {
+            // Устанавливаем токен из localStorage при инициализации
+            const savedToken = localStorage.getItem('token');
+            if (savedToken) {
+                axios.defaults.headers.common['Authorization'] = `Bearer ${savedToken}`;
+            }
+
             if (this.token) {
                 axios.defaults.headers.common['Authorization'] = `Bearer ${this.token}`;
 

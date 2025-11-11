@@ -13,6 +13,9 @@ use Throwable;
 
 class EmailService
 {
+    /**
+     * Отправка email зарегистрированному пользователю
+     */
     public static function send(string $templateCode, int $userId, array $params = []): bool
     {
         try {
@@ -37,6 +40,42 @@ class EmailService
                 'body' => $body,
             ], function ($message) use ($user, $subject) {
                 $message->to($user->email)->subject($subject);
+            });
+
+            return true;
+        } catch (Throwable $e) {
+            report($e);
+            return false;
+        }
+    }
+
+    /**
+     * Отправка email гостю (пользователю без регистрации)
+     */
+    public static function sendToGuest(string $email, string $templateCode, array $params = []): bool
+    {
+        try {
+            // Используем язык по умолчанию для гостей
+            $locale = Option::get('default_lang', 'en');
+
+            App::setLocale($locale);
+
+            $translation = self::getTemplateTranslation($templateCode, $locale);
+
+            if (!$translation || !isset($translation['title'], $translation['message'])) {
+                throw new \Exception("Email template translation missing title or message.");
+            }
+
+            self::configureMailFromOptions();
+
+            $subject = self::renderTemplate($translation['title'], $params);
+            $body = self::renderTemplate($translation['message'], $params);
+
+            Mail::send('emails.base', [
+                'subject' => $subject,
+                'body' => $body,
+            ], function ($message) use ($email, $subject) {
+                $message->to($email)->subject($subject);
             });
 
             return true;

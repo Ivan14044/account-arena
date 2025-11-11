@@ -50,8 +50,7 @@ class BalanceController extends Controller
         $balance = $this->balanceService->getBalance($user);
         $currency = \App\Models\Option::get('currency', 'USD');
 
-        return response()->json([
-            'success' => true,
+        return \App\Http\Responses\ApiResponse::success([
             'balance' => $balance,
             'currency' => $currency,
             'formatted' => number_format($balance, 2, '.', '') . ' ' . strtoupper($currency),
@@ -64,7 +63,7 @@ class BalanceController extends Controller
      * @param Request $request
      * @return JsonResponse
      */
-    public function getHistory(Request $request): JsonResponse
+    public function getHistory(\App\Http\Requests\Balance\BalanceHistoryRequest $request): JsonResponse
     {
         $user = $this->getApiUser($request);
         
@@ -75,12 +74,8 @@ class BalanceController extends Controller
             ], 401);
         }
 
-        // Валидация параметров
-        $validated = $request->validate([
-            'limit' => 'nullable|integer|min:1|max:100',
-            'type' => 'nullable|string|in:topup_card,topup_crypto,topup_admin,topup_voucher,deduction,refund,purchase,adjustment',
-            'status' => 'nullable|string|in:pending,completed,failed,cancelled',
-        ]);
+        // Валидация вынесена в FormRequest
+        $validated = $request->validated();
 
         $limit = $validated['limit'] ?? 50;
         
@@ -100,8 +95,7 @@ class BalanceController extends Controller
 
         $history = $query->get();
 
-        return response()->json([
-            'success' => true,
+        return \App\Http\Responses\ApiResponse::success([
             'history' => $history->map(function ($transaction) {
                 return [
                     'id' => $transaction->id,
@@ -128,7 +122,7 @@ class BalanceController extends Controller
      * @param Request $request
      * @return JsonResponse
      */
-    public function checkSufficientFunds(Request $request): JsonResponse
+    public function checkSufficientFunds(\App\Http\Requests\Balance\CheckFundsRequest $request): JsonResponse
     {
         $user = $this->getApiUser($request);
         
@@ -139,17 +133,14 @@ class BalanceController extends Controller
             ], 401);
         }
 
-        // Валидация суммы
-        $validated = $request->validate([
-            'amount' => 'required|numeric|min:0.01',
-        ]);
+        // Валидация вынесена в FormRequest
+        $validated = $request->validated();
 
         $amount = round((float)$validated['amount'], 2);
         $currentBalance = $this->balanceService->getBalance($user);
         $hasFunds = $this->balanceService->hasSufficientFunds($user, $amount);
 
-        return response()->json([
-            'success' => true,
+        return \App\Http\Responses\ApiResponse::success([
             'has_sufficient_funds' => $hasFunds,
             'current_balance' => $currentBalance,
             'required_amount' => $amount,
@@ -192,8 +183,7 @@ class BalanceController extends Controller
 
         $totalRefunds = $transactions->where('type', 'refund')->sum('amount');
 
-        return response()->json([
-            'success' => true,
+        return \App\Http\Responses\ApiResponse::success([
             'period' => '30_days',
             'statistics' => [
                 'current_balance' => $this->balanceService->getBalance($user),
@@ -212,5 +202,6 @@ class BalanceController extends Controller
         ]);
     }
 }
+
 
 

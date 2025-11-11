@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import axios from 'axios';
+import axios from '../bootstrap'; // Используем настроенный axios из bootstrap
 import { useLoadingStore } from '@/stores/loading';
 
 export const useNotificationStore = defineStore('notifications', {

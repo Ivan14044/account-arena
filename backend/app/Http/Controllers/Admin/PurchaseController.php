@@ -15,7 +15,17 @@ class PurchaseController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Purchase::with(['user', 'serviceAccount', 'transaction']);
+        $query = Purchase::with([
+            'user' => function($q) {
+                $q->select('id', 'name', 'email');
+            },
+            'serviceAccount' => function($q) {
+                $q->select('id', 'title');
+            },
+            'transaction' => function($q) {
+                $q->select('id', 'amount', 'currency', 'payment_method');
+            }
+        ]);
 
         // Фильтр по пользователю
         if ($request->filled('user_id')) {

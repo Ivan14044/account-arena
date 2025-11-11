@@ -14,9 +14,7 @@ import ContentPage from './pages/ContentPage.vue';
 import NotFound from './pages/NotFound.vue';
 import ArticlesAll from './pages/articles/ArticlesAll.vue';
 import ArticleDetails from './pages/articles/ArticleDetails.vue';
-import { useAuthStore } from './stores/auth';
-import { usePageStore } from './stores/pages';
-import { useLoadingStore } from './stores/loading';
+// Stores импортируются лениво внутри guards для избежания циклических зависимостей
 
 const routes = [
     { path: '/', component: MainPage },
@@ -141,6 +139,10 @@ const router = createRouter({
 });
 
 router.beforeEach(async (to, from, next) => {
+    // Ленивая загрузка stores для избежания циклических зависимостей
+    const { useAuthStore } = await import('./stores/auth');
+    const { useLoadingStore } = await import('./stores/loading');
+    
     const authStore = useAuthStore();
     const loadingStore = useLoadingStore();
     
@@ -221,6 +223,7 @@ router.beforeEach(async (to, from, next) => {
     }
 
     if (to.meta.isDynamic) {
+        const { usePageStore } = await import('./stores/pages');
         const slug = to.path.replace(/^\/|\/$/g, '');
         const pageStore = usePageStore();
         if (!pageStore.pages.length) {
@@ -239,7 +242,8 @@ router.beforeEach(async (to, from, next) => {
 });
 
 // Останавливаем прелоадер после завершения перехода
-router.afterEach((to, from) => {
+router.afterEach(async (to, from) => {
+    const { useLoadingStore } = await import('./stores/loading');
     const loadingStore = useLoadingStore();
     
     // Используем nextTick и requestAnimationFrame для гарантии, что контент отрендерен

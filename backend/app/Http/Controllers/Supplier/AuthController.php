@@ -23,12 +23,9 @@ class AuthController extends Controller
         return view('supplier.login');
     }
 
-    public function login(Request $request)
+    public function login(\App\Http\Requests\Supplier\LoginRequest $request)
     {
-        $credentials = $request->validate([
-            'email' => 'required|email',
-            'password' => 'required',
-        ]);
+        $credentials = $request->validated();
 
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
             $request->session()->regenerate();

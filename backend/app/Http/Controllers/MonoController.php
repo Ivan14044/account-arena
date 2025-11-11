@@ -142,7 +142,7 @@ class MonoController extends Controller
         );
 
         if (isset($invoice['pageUrl'])) {
-            return response()->json(['success' => true, 'url' => $invoice['pageUrl']]);
+            return \App\Http\Responses\ApiResponse::success(['url' => $invoice['pageUrl']]);
         }
 
         return response()->json(['success' => false, 'message' => 'Failed to create payment'], 422);
@@ -153,7 +153,7 @@ class MonoController extends Controller
         Log::info('Mono Webhook received', $request->all());
 
         if ($request->status !== 'success') {
-            return response()->json(['success' => true]);
+            return \App\Http\Responses\ApiResponse::success();
         }
 
         if ($this->invoiceAlreadyProcessed($request->invoiceId)) {
@@ -293,7 +293,7 @@ class MonoController extends Controller
             });
         }
 
-        return response()->json(['success' => true]);
+        return \App\Http\Responses\ApiResponse::success();
     }
 
     /**
@@ -377,7 +377,7 @@ class MonoController extends Controller
         );
 
         if (isset($invoice['pageUrl'])) {
-            return response()->json(['success' => true, 'url' => $invoice['pageUrl']]);
+            return \App\Http\Responses\ApiResponse::success(['url' => $invoice['pageUrl']]);
         }
 
         return response()->json(['success' => false, 'message' => 'Failed to create payment'], 422);
@@ -488,7 +488,7 @@ class MonoController extends Controller
                     "Пользователь {$user->name} ({$user->email}) пополнил баланс на {$amount} " . Option::get('currency', 'USD') . " через Monobank"
                 );
 
-                return response()->json(['success' => true]);
+                return \App\Http\Responses\ApiResponse::success();
             }
 
             // Если вернулся null, значит операция уже была обработана ранее
@@ -498,7 +498,7 @@ class MonoController extends Controller
                 'amount' => $amount,
             ]);
 
-            return response()->json(['success' => true, 'message' => 'Already processed']);
+            return \App\Http\Responses\ApiResponse::success(['message' => 'Already processed']);
 
         } catch (\InvalidArgumentException $e) {
             Log::error('Webhook пополнения баланса: ошибка валидации', [
@@ -550,10 +550,31 @@ class MonoController extends Controller
             // Создаем покупки для гостя
             GuestCartController::createGuestPurchases($guestEmail, $productsData, $promocode);
 
-            // Отправляем уведомление на email гостя
-            // TODO: добавить email с информацией о покупке
+            // Отправляем email уведомление гостю с информацией о покупке
+            $totalAmount = array_sum(array_column($productsData, 'total'));
+            \App\Services\EmailService::sendToGuest(
+                $guestEmail,
+                'guest_purchase_confirmation',
+                [
+                    'products_count' => count($productsData),
+                    'total_amount' => number_format($totalAmount, 2, '.', '') . ' ' . strtoupper(Option::get('currency')),
+                    'guest_email' => $guestEmail,
+                ]
+            );
 
-            Log::info('Guest purchase completed', [
+            // Уведомление админу о новой гостевой покупке
+            NotifierService::send(
+                'guest_product_purchase',
+                __('notifier.new_product_purchase_title', ['method' => 'Monobank']),
+                __('notifier.new_product_purchase_message', [
+                    'email' => $guestEmail,
+                    'name' => 'Гость',
+                    'products' => count($productsData),
+                    'amount' => number_format($totalAmount, 2),
+                ])
+            );
+
+            LoggingService::info('Guest purchase completed', [
                 'guest_email' => $guestEmail,
                 'invoice_id' => $request->invoiceId,
                 'products_count' => count($productsData),
@@ -577,7 +598,7 @@ class MonoController extends Controller
                 });
             }
 
-            return response()->json(['success' => true]);
+            return \App\Http\Responses\ApiResponse::success();
         } catch (\Exception $e) {
             Log::error('Guest webhook processing failed', [
                 'error' => $e->getMessage(),

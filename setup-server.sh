@@ -50,8 +50,8 @@ read -p "Введите email для SSL сертификата: " EMAIL
 read -sp "Введите пароль для MySQL базы данных: " DB_PASSWORD
 echo
 
-# GitHub репозиторий
-REPO="https://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@github.com/Ivan14044/account-arena.git"
+# GitHub репозиторий (публичный URL)
+REPO="https://github.com/Ivan14044/account-arena.git"
 
 ###############################################################################
 # 1. ОБНОВЛЕНИЕ СИСТЕМЫ

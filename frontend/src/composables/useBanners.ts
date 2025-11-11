@@ -1,6 +1,6 @@
 import { ref, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
-import axios from 'axios';
+import axios from '../bootstrap'; // Используем настроенный axios из bootstrap
 
 export interface Banner {
     id: number;

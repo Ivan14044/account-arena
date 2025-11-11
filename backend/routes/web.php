@@ -43,7 +43,7 @@ Route::prefix('/')
         Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
         Route::post('/login', [LoginController::class, 'login']);
 
-        Route::middleware('admin.auth')->group(function () {
+        Route::middleware(['admin.auth', 'audit.admin'])->group(function () {
             Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
             Route::resource('users', UserController::class)->except(['show']);

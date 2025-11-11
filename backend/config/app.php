@@ -57,6 +57,16 @@ return [
 
     'url' => env('APP_URL', 'http://localhost'),
 
+    'frontend_url' => env('FRONTEND_URL', 'http://localhost:3000'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Security Feature Flags
+    |--------------------------------------------------------------------------
+    */
+
+    'verify_webhooks_enabled' => env('VERIFY_WEBHOOKS_ENABLED', true),
+
     'asset_url' => env('ASSET_URL'),
 
     /*

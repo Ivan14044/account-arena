@@ -1,6 +1,6 @@
 /// <reference types="vite/client" />
 import { defineStore } from 'pinia';
-import axios from 'axios';
+import axios from '../bootstrap'; // Используем настроенный axios из bootstrap
 import type { Article, Category, Translation } from '../types/article';
 
 type ArticleMapById = Record<number, Article>;

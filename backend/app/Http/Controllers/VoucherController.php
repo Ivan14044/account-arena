@@ -12,11 +12,9 @@ class VoucherController extends Controller
     /**
      * Активация ваучера пользователем
      */
-    public function activate(Request $request)
+    public function activate(\App\Http\Requests\Voucher\ActivateVoucherRequest $request)
     {
-        $request->validate([
-            'code' => 'required|string',
-        ]);
+        // Валидация вынесена в FormRequest
 
         $code = strtoupper(trim($request->input('code')));
         $user = $this->getApiUser($request);
@@ -85,7 +83,7 @@ class VoucherController extends Controller
             'new_balance' => $user->balance,
         ]);
 
-        return response()->json([
+        return \App\Http\Responses\ApiResponse::success([
             'message' => "Ваучер успешно активирован! Баланс пополнен на {$voucher->amount} {$voucher->currency}",
             'voucher' => [
                 'code' => $voucher->code,
@@ -100,5 +98,6 @@ class VoucherController extends Controller
         ]);
     }
 }
+
 
 

@@ -142,7 +142,7 @@ import { reactive, ref, computed, onMounted, onBeforeUnmount, watchEffect, watch
 import logo from '@/assets/logo.webp';
 import { useContentsStore } from '@/stores/contents';
 import { useI18n } from 'vue-i18n';
-import axios from 'axios';
+import axios from '@/bootstrap'; // Используем настроенный axios из bootstrap
 import { useServiceStore } from '@/stores/services';
 import { useAuthStore } from '@/stores/auth';
 import { useCartStore } from '@/stores/cart';
@@ -229,7 +229,12 @@ const apiBlocks = computed<any[]>(() => {
 function toAbsoluteUrl(path?: string) {
     if (!path) return undefined;
     if (/^https?:\/\//i.test(path)) return path;
-    const base = (import.meta as any).env?.VITE_API_BASE || axios.defaults.baseURL || '';
+    // Предпочитаем унифицированную переменную VITE_API_URL, затем fallback
+    const base =
+        (import.meta as any).env?.VITE_API_URL ||
+        (import.meta as any).env?.VITE_API_BASE ||
+        axios.defaults.baseURL ||
+        '';
     return `${String(base).replace(/\/$/, '')}/${String(path).replace(/^\//, '')}`;
 }
 

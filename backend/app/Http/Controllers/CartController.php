@@ -7,24 +7,16 @@ use App\Services\PromocodeValidationService;
 use App\Services\NotificationTemplateService;
 use App\Services\EmailService;
 use App\Services\NotifierService;
+use App\Services\ProductPurchaseService;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class CartController extends Controller
 {
-    public function store(Request $request, PromocodeValidationService $promoService)
+    public function store(\App\Http\Requests\Cart\CartStoreRequest $request, PromocodeValidationService $promoService, ProductPurchaseService $purchaseService)
     {
-        $request->validate([
-            'services' => 'nullable|array',
-            'services.*.id' => 'required|integer|exists:services,id',
-            'services.*.subscription_type' => 'required|in:trial,premium',
-            'products' => 'nullable|array',
-            'products.*.id' => 'required|integer|exists:service_accounts,id',
-            'products.*.quantity' => 'required|integer|min:1',
-            'payment_method' => 'required|in:credit_card,crypto,admin_bypass,free,balance',
-            'promocode' => 'nullable|string|required_if:payment_method,free',
-        ]);
+        // Валидация вынесена в FormRequest (CartStoreRequest)
         
         // Хотя бы один из массивов должен быть заполнен
         if (empty($request->services) && empty($request->products)) {
@@ -76,38 +68,19 @@ class CartController extends Controller
                 }
             }
 
-            // Рассчитываем общую стоимость для товаров
+            // Рассчитываем общую стоимость для товаров используя сервис
             $productsTotal = 0;
             $productsData = [];
             if (!empty($request->products)) {
-                foreach ($request->products as $productItem) {
-                    $product = ServiceAccount::find($productItem['id']);
-                    if (!$product) {
-                        return response()->json(['success' => false, 'message' => 'Product not found'], 404);
-                    }
-                    
-                    $quantity = $productItem['quantity'];
-                    $available = $product->getAvailableStock();
-                    
-                    // Проверяем доступность товара
-                    if ($available < $quantity) {
-                        return response()->json([
-                            'success' => false, 
-                            'message' => "Insufficient stock for {$product->title}. Available: {$available}, requested: {$quantity}"
-                        ], 422);
-                    }
-                    
-                    $price = $product->getCurrentPrice();
-                    $itemTotal = $price * $quantity;
-                    $productsTotal += $itemTotal;
-                    
-                    $productsData[] = [
-                        'product' => $product,
-                        'quantity' => $quantity,
-                        'price' => $price,
-                        'total' => $itemTotal,
-                    ];
+                $prepareResult = $purchaseService->prepareProductsData($request->products);
+                if (!$prepareResult['success']) {
+                    return response()->json([
+                        'success' => false, 
+                        'message' => $prepareResult['message']
+                    ], 422);
                 }
+                $productsData = $prepareResult['data'];
+                $productsTotal = $prepareResult['total'];
             }
 
             $totalAmount = $servicesTotal + $productsTotal;
@@ -178,61 +151,9 @@ class CartController extends Controller
                     }
                 }
 
-                // Обработка товаров
+                // Обработка товаров используя сервис (устранение дублирования кода)
                 if (!empty($productsData)) {
-                    foreach ($productsData as $item) {
-                        $product = $item['product'];
-                        $quantity = $item['quantity'];
-                        $price = $item['price'];
-                        $total = $item['total'];
-                        
-                        // Получаем аккаунты из accounts_data
-                        $accountsData = $product->accounts_data ?? [];
-                        $usedCount = $product->used ?? 0;
-                        
-                        // Выбираем нужное количество неиспользованных аккаунтов
-                        $assignedAccounts = [];
-                        for ($i = 0; $i < $quantity; $i++) {
-                            if (isset($accountsData[$usedCount + $i])) {
-                                $assignedAccounts[] = $accountsData[$usedCount + $i];
-                            }
-                        }
-                        
-                        // Увеличиваем счетчик использованных
-                        $product->used = $usedCount + $quantity;
-                        $product->save();
-                        
-                        // Создаем транзакцию для покупки
-                        $transaction = Transaction::create([
-                            'user_id' => $user->id,
-                            'amount' => $total,
-                            'currency' => Option::get('currency'),
-                            'payment_method' => 'balance',
-                            'service_account_id' => $product->id, // ИСПРАВЛЕНО: Добавлено для поддержки претензий
-                            'status' => 'completed',
-                        ]);
-                        
-                        // Создаем запись о покупке с уникальным номером заказа
-                        $purchase = Purchase::create([
-                            'order_number' => Purchase::generateOrderNumber(),
-                            'user_id' => $user->id,
-                            'service_account_id' => $product->id,
-                            'transaction_id' => $transaction->id,
-                            'quantity' => $quantity,
-                            'price' => $price,
-                            'total_amount' => $total,
-                            'account_data' => $assignedAccounts,
-                            'status' => 'completed',
-                        ]);
-                        
-                        // Логируем номер заказа для отслеживания
-                        \Log::info('Purchase created with order number', [
-                            'order_number' => $purchase->order_number,
-                            'user_id' => $user->id,
-                            'product_id' => $product->id,
-                            'product_title' => $product->title,
-                        ]);
-                    }
+                    $purchaseService->createMultiplePurchases($productsData, $user->id, null, 'balance');
                 }
 
                 // Создаем транзакцию списания с баланса
@@ -318,7 +239,7 @@ class CartController extends Controller
                 );
             }
 
-            return response()->json(['success' => true, 'message' => 'Payment completed successfully']);
+            return \App\Http\Responses\ApiResponse::success(['message' => 'Payment completed successfully']);
         }
 
         // payment_method: free — only allowed with free_access promo; force premium, 0.00 amounts; merge services from promo
@@ -395,7 +316,7 @@ class CartController extends Controller
                 }
             });
 
-            return response()->json(['success' => true]);
+            return \App\Http\Responses\ApiResponse::success();
         }
 
         foreach ($services as $service) {
@@ -462,14 +383,12 @@ class CartController extends Controller
             });
         }
 
-        return response()->json(['success' => true]);
+        return \App\Http\Responses\ApiResponse::success();
     }
 
-    public function cancelSubscription(Request $request)
+    public function cancelSubscription(\App\Http\Requests\Cart\CancelSubscriptionRequest $request)
     {
-        $request->validate([
-            'subscription_id' => 'required|integer',
-        ]);
+        // Валидация вынесена в FormRequest (CancelSubscriptionRequest)
 
         // ИСПРАВЛЕНО: Добавлена проверка принадлежности подписки пользователю
         $subscription = Subscription::where('id', $request->subscription_id)
@@ -478,6 +397,6 @@ class CartController extends Controller
 
         $subscription->update(['status' => Subscription::STATUS_CANCELED]);
 
-        return response()->json(['success' => true]);
+        return \App\Http\Responses\ApiResponse::success();
     }
 }

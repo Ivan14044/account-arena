@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 
 class SubscriptionController extends Controller
 {
-    public function cancelSubscription(Request $request)
+    public function cancelSubscription(\App\Http\Requests\Subscription\SubscriptionIdRequest $request)
     {
         $subscription = $this->getUserSubscription($request);
         if (!$subscription instanceof Subscription) {
@@ -19,7 +19,7 @@ class SubscriptionController extends Controller
         return response()->json(['success' => true]);
     }
 
-    public function toggleAutoRenew(Request $request)
+    public function toggleAutoRenew(\App\Http\Requests\Subscription\SubscriptionIdRequest $request)
     {
         $subscription = $this->getUserSubscription($request);
         if (!$subscription instanceof Subscription) {
@@ -46,9 +46,7 @@ class SubscriptionController extends Controller
             return response()->json(['message' => 'Invalid token'], 401);
         }
 
-        $request->validate([
-            'subscription_id' => 'required|integer',
-        ]);
+        // Валидация вынесена в FormRequest
 
         $subscription = Subscription::find($request->subscription_id);
 

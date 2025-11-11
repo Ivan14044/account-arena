@@ -38,14 +38,8 @@ class AuthController extends Controller
         );
     }
 
-    public function resetPassword(Request $request)
+    public function resetPassword(\App\Http\Requests\Auth\ResetPasswordRequest $request)
     {
-        $request->validate([
-            'token' => 'required',
-            'email' => 'required|email|exists:users,email',
-            'password' => 'required|string|min:6|confirmed',
-        ]);
-
         $status = Password::reset(
             $request->only('email', 'password', 'password_confirmation', 'token'),
             function ($user, $password) {
@@ -63,12 +57,8 @@ class AuthController extends Controller
             : response()->json(['errors' => ['message' => [__($status)]]], 400);
     }
 
-    public function forgotPassword(Request $request)
+    public function forgotPassword(\App\Http\Requests\Auth\ForgotPasswordRequest $request)
     {
-        $request->validate([
-            'email' => 'required|email|exists:users,email',
-        ]);
-
         EmailService::configureMailFromOptions();
 
         \Illuminate\Support\Facades\RateLimiter::clear("password.reset:" . $request->ip());
@@ -80,16 +70,10 @@ class AuthController extends Controller
             : response()->json(['errors' => ['message' => [__($status)]]], 400);
     }
 
-    public function register(Request $request)
+    public function register(\App\Http\Requests\Auth\RegisterRequest $request)
     {
         try {
-            $validated = $request->validate([
-                'name' => 'required|string|max:255',
-                'email' => 'required|string|email|max:255|unique:users',
-                'password' => 'required|string|min:6|confirmed',
-                'password_confirmation' => 'required',
-                'lang' => ['required', 'in:en,uk,ru'],
-            ]);
+            $validated = $request->validated();
 
             $user = User::create([
                 'name' => $validated['name'],
@@ -127,16 +111,10 @@ class AuthController extends Controller
         }
     }
 
-    public function login(Request $request)
+    public function login(\App\Http\Requests\Auth\LoginRequest $request)
     {
         try {
             \Log::info('[AUTH] Login request received', ['email' => $request->email]);
-            
-            $request->validate([
-                'email' => 'required|email',
-                'password' => 'required|string',
-                'remember' => 'boolean',
-            ]);
 
             $user = User::where('email', $request->email)->first();
 

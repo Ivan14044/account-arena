@@ -157,7 +157,7 @@ bash deploy-now.sh
 cd /var/www
 
 # Клонировать репозиторий
-git clone https://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@github.com/Ivan14044/account-arena.git subcloudy
+git clone https://github.com/Ivan14044/account-arena.git subcloudy
 cd subcloudy
 
 # Backend

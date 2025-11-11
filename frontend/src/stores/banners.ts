@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
-import axios from 'axios';
+import axios from '../bootstrap'; // Используем настроенный axios из bootstrap
 
 export interface Banner {
     id: number;
@@ -150,4 +150,6 @@ export const useBannersStore = defineStore('banners', () => {
         clearCache,
     };
 });
+
+
 

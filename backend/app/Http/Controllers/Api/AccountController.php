@@ -4,17 +4,24 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\ServiceAccount;
+use Illuminate\Support\Facades\Cache;
 
 class AccountController extends Controller
 {
+    /**
+     * Получить список активных товаров с кешированием (кеш на 5 минут)
+     * Кеш автоматически очищается при изменении товаров
+     */
     public function index()
     {
-        $accounts = ServiceAccount::with('category')
-            ->where('is_active', true)
-            ->whereNotNull('title')
-            ->whereNotNull('price')
-            ->orderBy('created_at', 'desc')
-            ->get();
+        $accounts = Cache::remember('active_accounts_list', 300, function () {
+            return ServiceAccount::with('category')
+                ->where('is_active', true)
+                ->whereNotNull('title')
+                ->whereNotNull('price')
+                ->orderBy('created_at', 'desc')
+                ->get();
+        });
 
         $data = $accounts->map(function ($account) {
             // Handle accounts_data - normalize NULL to empty array

@@ -26,8 +26,7 @@ class NotificationController extends Controller
         $totalCount = $user->notifications()->count();
         $unreadCount = $user->notifications()->whereNull('read_at')->count();
 
-        return response()->json([
-            'success' => true,
+        return \App\Http\Responses\ApiResponse::success([
             'total' => $totalCount,
             'unread' => $unreadCount,
             'items' => $notifications->map(function ($notification) {
@@ -61,12 +60,9 @@ class NotificationController extends Controller
         ]);
     }
 
-    public function markNotificationsAsRead(Request $request)
+    public function markNotificationsAsRead(\App\Http\Requests\Notification\MarkAsReadRequest $request)
     {
-        $request->validate([
-            'ids' => ['required', 'array'],
-            'ids.*' => ['integer'],
-        ]);
+        // Валидация вынесена в FormRequest
 
         $user = $this->getApiUser($request);
         if (!$user) {
@@ -78,6 +74,6 @@ class NotificationController extends Controller
             ->whereNull('read_at')
             ->update(['read_at' => now()]);
 
-        return response()->json(['success' => true]);
+        return \App\Http\Responses\ApiResponse::success();
     }
 }

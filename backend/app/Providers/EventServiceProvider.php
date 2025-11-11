@@ -25,7 +25,10 @@ class EventServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // Регистрируем Observers для автоматической очистки кеша
+        \App\Models\ServiceAccount::observe(\App\Observers\ServiceAccountObserver::class);
+        \App\Models\Option::observe(\App\Observers\OptionObserver::class);
+        \App\Models\Category::observe(\App\Observers\CategoryObserver::class);
     }
 
     /**

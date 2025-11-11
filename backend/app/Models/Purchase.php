@@ -12,6 +12,7 @@ class Purchase extends Model
     protected $fillable = [
         'order_number',
         'user_id',
+        'guest_email', // Email для гостевых покупок
         'service_account_id',
         'transaction_id',
         'quantity',

@@ -34,6 +34,10 @@ Route::middleware('throttle:60,1')->group(function () {
 });
 
 // Public routes with moderate rate limiting (60 requests per minute)
+// Health check endpoints (без auth и rate limiting)
+Route::get('/health', [\App\Http\Controllers\HealthController::class, 'check']);
+Route::get('/ping', [\App\Http\Controllers\HealthController::class, 'ping']);
+
 Route::middleware('throttle:60,1')->group(function () {
     Route::get('/services', [ServiceController::class, 'index']);
     Route::get('/accounts', [\App\Http\Controllers\Api\AccountController::class, 'index']);
@@ -80,6 +84,7 @@ Route::middleware(['auth:sanctum', 'throttle:120,1'])->group(function () {
     // Purchases (купленные товары)
     Route::get('/purchases', [PurchaseController::class, 'index']);
     Route::get('/purchases/{id}', [PurchaseController::class, 'show']);
+    Route::get('/purchases/{id}/download', [PurchaseController::class, 'download']);
     
     // Balance API (новая система управления балансом)
     Route::prefix('balance')->group(function () {
@@ -100,9 +105,14 @@ Route::middleware(['auth:sanctum', 'throttle:10,1'])->group(function () {
     Route::post('/cryptomus/topup', [CryptomusController::class, 'createTopUpPayment']);
 });
 
-// Webhooks (no rate limiting but should verify signature)
-Route::post('/cryptomus/webhook', [CryptomusController::class, 'webhook']);
-Route::post('/mono/webhook', [MonoController::class, 'webhook']);
+// Webhooks с проверкой подписи и rate limiting
+Route::middleware(['verify.webhook:cryptomus', 'throttle:100,1'])->group(function () {
+    Route::post('/cryptomus/webhook', [CryptomusController::class, 'webhook']);
+});
+
+Route::middleware(['verify.webhook:monobank', 'throttle:100,1'])->group(function () {
+    Route::post('/mono/webhook', [MonoController::class, 'webhook']);
+});
 
 Route::get('/contents/{code}', [ContentController::class, 'show']);
 

@@ -13,7 +13,7 @@ class PurchaseController extends Controller
      * Получить список покупок текущего пользователя
      * Поддерживает фильтрацию по дате и статусу
      */
-    public function index(Request $request)
+    public function index(\App\Http\Requests\Purchase\PurchaseIndexRequest $request)
     {
         $user = $request->user();
         
@@ -22,9 +22,16 @@ class PurchaseController extends Controller
         }
         
         // Начинаем запрос с основными условиями
-        // Загружаем связанные претензии для проверки возможности создания новой
-        $query = Purchase::with(['serviceAccount', 'transaction', 'transaction.dispute'])
-            ->where('user_id', $user->id);
+        // Eager loading для избежания N+1 запросов
+        $query = Purchase::with([
+            'serviceAccount' => function($q) {
+                $q->select('id', 'title', 'image_url');
+            },
+            'transaction' => function($q) {
+                $q->select('id', 'currency', 'payment_method');
+            },
+            'transaction.dispute'
+        ])->where('user_id', $user->id);
         
         // Фильтрация по дате "с"
         if ($request->has('date_from') && $request->date_from) {
@@ -77,8 +84,7 @@ class PurchaseController extends Controller
                 ];
             });
         
-        return response()->json([
-            'success' => true,
+        return \App\Http\Responses\ApiResponse::success([
             'purchases' => $purchases,
         ]);
     }
@@ -103,8 +109,7 @@ class PurchaseController extends Controller
             return response()->json(['error' => 'Purchase not found'], 404);
         }
         
-        return response()->json([
-            'success' => true,
+        return \App\Http\Responses\ApiResponse::success([
             'purchase' => [
                 'id' => $purchase->id,
                 'order_number' => $purchase->order_number,
@@ -122,5 +127,45 @@ class PurchaseController extends Controller
                 'purchased_at' => $purchase->created_at->format('Y-m-d H:i:s'),
             ],
         ]);
+    }
+    
+    /**
+     * Скачать купленные товары в виде текстового файла с кодировкой UTF-8
+     */
+    public function download(Request $request, $id)
+    {
+        $user = $request->user();
+        
+        if (!$user) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+        
+        $purchase = Purchase::with(['serviceAccount'])
+            ->where('user_id', $user->id)
+            ->where('id', $id)
+            ->first();
+        
+        if (!$purchase) {
+            return response()->json(['error' => 'Purchase not found'], 404);
+        }
+        
+        // Формируем содержимое файла из купленных аккаунтов
+        $accountData = $purchase->account_data;
+        if (is_array($accountData) && !empty($accountData)) {
+            $content = implode("\n", $accountData);
+        } else {
+            $content = "Нет данных для скачивания";
+        }
+        
+        // Генерируем имя файла с информацией о покупке
+        $filename = 'purchase_' . $purchase->order_number . '_' . date('Y-m-d') . '.txt';
+        
+        // Возвращаем файл с UTF-8 кодировкой
+        return response($content)
+            ->header('Content-Type', 'text/plain; charset=utf-8')
+            ->header('Content-Disposition', 'attachment; filename="' . $filename . '"')
+            ->header('Cache-Control', 'no-cache, no-store, must-revalidate')
+            ->header('Pragma', 'no-cache')
+            ->header('Expires', '0');
     }
 }

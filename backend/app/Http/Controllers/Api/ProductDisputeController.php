@@ -54,15 +54,9 @@ class ProductDisputeController extends Controller
     /**
      * Создать новую претензию
      */
-    public function store(Request $request)
+    public function store(\App\Http\Requests\Dispute\CreateDisputeRequest $request)
     {
-        $validated = $request->validate([
-            'transaction_id' => 'required|exists:transactions,id',
-            'reason' => 'required|in:invalid_account,wrong_data,not_working,already_used,banned,other',
-            'description' => 'required|string|min:3|max:1000', // ИСПРАВЛЕНО: min:3 вместо min:10
-            'screenshot_file' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120', // Максимум 5MB
-            'screenshot_link' => 'nullable|url|max:500',
-        ]);
+        $validated = $request->validated();
 
         // Проверка что предоставлен хотя бы скриншот (файл или ссылка)
         if (!$request->hasFile('screenshot_file') && !$request->filled('screenshot_link')) {
@@ -172,8 +166,7 @@ class ProductDisputeController extends Controller
         // Отправляем уведомление администратору
         // Можно добавить отправку email или системное уведомление
 
-        return response()->json([
-            'success' => true,
+        return \App\Http\Responses\ApiResponse::success([
             'message' => 'Претензия успешно создана. Ожидайте решения администратора.',
             'dispute' => [
                 'id' => $dispute->id,
