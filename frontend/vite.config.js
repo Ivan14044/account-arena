@@ -26,7 +26,16 @@ export default defineConfig({
     },
     build: {
         outDir: 'dist',
-        sourcemap: false
+        sourcemap: false,
+        minify: 'esbuild',
+        rollupOptions: {
+            output: {
+                manualChunks: {
+                    vendor: ['vue', 'vue-router', 'pinia', 'axios'],
+                    ui: ['vuetify', 'vue-toastification', 'sweetalert2']
+                }
+            }
+        }
     },
-    base: process.env.NODE_ENV === 'production' ? '/market/' : '/',
+    base: '/',
 });

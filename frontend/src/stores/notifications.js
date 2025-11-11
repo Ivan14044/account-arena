@@ -33,7 +33,7 @@ export const useNotificationStore = defineStore('notifications', {
                 this.unread = unread;
                 this.isLoaded = true;
             } catch (error) {
-                console.error('Error fetching notifications:', error);
+                // Ошибка загрузки уведомлений
             }
         },
 
@@ -54,7 +54,7 @@ export const useNotificationStore = defineStore('notifications', {
                 this.isLoaded = false;
                 await this.fetchData();
             } catch (error) {
-                console.error('Error marking notifications as read:', error);
+                // Ошибка отметки уведомлений как прочитанных
             }
         },
 
@@ -76,7 +76,6 @@ export const useNotificationStore = defineStore('notifications', {
 
                 return response.data.items;
             } catch (e) {
-                console.error('Error loading chunk:', e);
                 return [];
             } finally {
                 if (loader) {

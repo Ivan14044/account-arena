@@ -114,7 +114,7 @@ export const useProductCartStore = defineStore('productCart', {
             try {
                 localStorage.setItem('product_cart', JSON.stringify(this.items));
             } catch (error) {
-                console.error('Error saving cart to localStorage:', error);
+                // Игнорируем ошибки сохранения в localStorage
             }
         },
         
@@ -126,7 +126,6 @@ export const useProductCartStore = defineStore('productCart', {
                     this.items = JSON.parse(stored);
                 }
             } catch (error) {
-                console.error('Error loading cart from localStorage:', error);
                 this.items = [];
             }
         },

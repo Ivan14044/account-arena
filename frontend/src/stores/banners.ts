@@ -66,7 +66,6 @@ export const useBannersStore = defineStore('banners', () => {
             
             return banners;
         } catch (err) {
-            console.error(`Error loading banners for position ${position}:`, err);
             errorsByPosition.value[position] = 'Failed to load banners';
             bannersByPosition.value[position] = [];
             return [];

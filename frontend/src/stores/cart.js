@@ -74,7 +74,7 @@ export const useCartStore = defineStore('cart', {
                     }
                 }
             } catch (e) {
-                console.error('applyFreeAccessServices error', e);
+                // Игнорируем ошибки применения бесплатного доступа
             }
         },
         removeFreeAccessServices() {
@@ -132,7 +132,6 @@ export const useCartStore = defineStore('cart', {
                 this.clearCart();
                 productCartStore.clearCart();
             } catch (error) {
-                console.error('Failed to submit cart:', error);
                 throw error;
             } finally {
                 loadingStore.stop();

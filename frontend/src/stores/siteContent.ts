@@ -90,7 +90,6 @@ export const useSiteContentStore = defineStore('siteContent', {
                 this.content = response.data;
                 this.isLoaded = true;
             } catch (error) {
-                console.error('Error loading site content:', error);
                 this.error = 'Failed to load site content';
                 // Keep content as null to use fallback from locale files
             } finally {

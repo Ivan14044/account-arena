@@ -16,7 +16,7 @@ export const usePageStore = defineStore('pages', {
                 this.pages = response.data;
                 this.isLoaded = true;
             } catch (error) {
-                console.error('Error fetching pages:', error);
+                // Ошибка загрузки страниц
             }
         },
         setPage(payload) {

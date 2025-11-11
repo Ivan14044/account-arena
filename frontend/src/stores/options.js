@@ -22,7 +22,7 @@ export const useOptionStore = defineStore('options', {
                 this.options = response.data;
                 this.isLoaded = true;
             } catch (error) {
-                console.error('Error fetching options:', error);
+                // Ошибка загрузки опций
             }
         }
     }

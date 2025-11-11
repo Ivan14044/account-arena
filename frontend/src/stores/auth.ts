@@ -11,7 +11,6 @@ export const useAuthStore = defineStore('auth', {
             
             try {
                 if (!raw || !token) {
-                    console.log('[AUTH STORE] Инициализация: нет данных в localStorage');
                     return null;
                 }
                 
@@ -19,21 +18,13 @@ export const useAuthStore = defineStore('auth', {
                 
                 // Проверка валидности данных пользователя
                 if (!parsed || typeof parsed !== 'object' || !parsed.email) {
-                    console.warn('[AUTH STORE] Инициализация: некорректные данные пользователя, очистка');
                     localStorage.removeItem('user');
                     localStorage.removeItem('token');
                     return null;
                 }
                 
-                console.log('[AUTH STORE] Инициализация: пользователь загружен из localStorage', {
-                    email: parsed.email,
-                    name: parsed.name,
-                    hasBalance: 'balance' in parsed
-                });
-                
                 return parsed;
             } catch (error) {
-                console.error('[AUTH STORE] Ошибка парсинга данных пользователя:', error);
                 localStorage.removeItem('user');
                 localStorage.removeItem('token');
                 return null;
@@ -112,30 +103,20 @@ export const useAuthStore = defineStore('auth', {
             loadingStore.start();
 
             try {
-                console.log('[AUTH] Отправка запроса на авторизацию...', { email: formData.email });
                 const response = await axios.post('/login', formData);
-                
-                console.log('[AUTH] Ответ получен:', response.data);
 
                 if (!response.data.token) {
-                    console.error('[AUTH] Токен не получен!');
                     this.errors = { email: ['Ошибка авторизации: токен не получен'] };
                     return false;
                 }
 
                 if (!response.data.user) {
-                    console.error('[AUTH] Данные пользователя не получены!');
                     this.errors = { email: ['Ошибка авторизации: данные пользователя не получены'] };
                     return false;
                 }
 
                 this.token = response.data.token;
                 this.user = response.data.user;
-
-                console.log('[AUTH] Сохранение токена и пользователя...', {
-                    token: this.token.substring(0, 20) + '...',
-                    user: this.user.email
-                });
 
                 localStorage.setItem('token', this.token);
                 localStorage.setItem('user', JSON.stringify(this.user));
@@ -148,18 +129,8 @@ export const useAuthStore = defineStore('auth', {
                 }
 
                 this.userLoaded = true;
-                
-                console.log('[AUTH] Авторизация успешна!', {
-                    isAuthenticated: this.isAuthenticated,
-                    hasUser: !!this.user,
-                    hasToken: !!this.token
-                });
-                
                 return true;
             } catch (error: any) {
-                console.error('[AUTH] Ошибка авторизации:', error);
-                console.error('[AUTH] Response:', error.response);
-                
                 // Обработка rate limiting (429 Too Many Requests)
                 if (error.response?.status === 429) {
                     this.errors = { 
@@ -227,7 +198,7 @@ export const useAuthStore = defineStore('auth', {
                     headers: { Authorization: `Bearer ${this.token}` }
                 });
             } catch (error) {
-                console.error(error);
+                // Игнорируем ошибки при выходе
             } finally {
                 this.token = '';
                 this.user = null;
@@ -250,7 +221,6 @@ export const useAuthStore = defineStore('auth', {
                 this.user = response.data;
                 localStorage.setItem('user', JSON.stringify(this.user));
             } catch (error) {
-                console.log(error);
                 await this.logout();
             } finally {
                 this.userLoaded = true;
@@ -270,7 +240,7 @@ export const useAuthStore = defineStore('auth', {
                     }
                 );
             } catch (error) {
-                console.error(error);
+                throw error;
             } finally {
                 loadingStore.stop();
             }
@@ -289,7 +259,6 @@ export const useAuthStore = defineStore('auth', {
                     }
                 );
             } catch (error) {
-                console.error(error);
                 throw error;
             } finally {
                 loadingStore.stop();

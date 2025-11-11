@@ -37,7 +37,7 @@ export const useServiceStore = defineStore('services', {
 
                 this.isLoaded = true;
             } catch (error) {
-                console.error('Error fetching services:', error);
+                // Ошибка загрузки сервисов
             }
         },
 

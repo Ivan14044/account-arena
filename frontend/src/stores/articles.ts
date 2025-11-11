@@ -193,7 +193,7 @@ export const useArticlesStore = defineStore('articles', {
                 }
                 this.loadedByKey[key] = true;
             } catch (fetchError) {
-                console.error('Error fetching articles:', fetchError);
+                // Ошибка загрузки статей - используем пустой массив
             }
         },
 
@@ -247,7 +247,6 @@ export const useArticlesStore = defineStore('articles', {
                 // Save to cache
                 this.paginatedCache[key] = { items: this.paginatedItems, total: this.paginatedTotal };
             } catch (fetchError) {
-                console.error('Error fetching paginated articles:', fetchError);
                 this.paginatedItems = [];
                 this.paginatedTotal = 0;
                 this.paginatedParams = { limit: 12, offset: 0, categoryId: params.categoryId } as any;
@@ -267,7 +266,7 @@ export const useArticlesStore = defineStore('articles', {
                 if (fetchError?.response?.status === 404) {
                     throw new Error('404');
                 }
-                console.error('Error fetching article detail:', fetchError);
+                // Ошибка загрузки статьи
             }
         },
 
@@ -281,7 +280,7 @@ export const useArticlesStore = defineStore('articles', {
                     : [];
                 this.loaded.categories = true;
             } catch (fetchError) {
-                console.error('Error fetching categories:', fetchError);
+                // Ошибка загрузки категорий
             }
         }
     }

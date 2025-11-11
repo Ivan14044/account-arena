@@ -152,30 +152,11 @@ router.beforeEach(async (to, from, next) => {
         loadingStore.start();
     }
     
-    console.log('[ROUTER] ============================================');
-    console.log('[ROUTER] Переход:', from.path, '->', to.path);
-    console.log('[ROUTER] Требует авторизацию:', to.meta.requiresAuth);
-    console.log('[ROUTER] Требует гостя:', to.meta.requiresGuest);
-    console.log('[ROUTER] Auth состояние:', {
-        hasUser: !!authStore.user,
-        hasToken: !!authStore.token,
-        isAuthenticated: authStore.isAuthenticated,
-        userEmail: authStore.user?.email,
-        userName: authStore.user?.name
-    });
-    
-    // ИСПРАВЛЕНО: Загружаем пользователя если есть токен, но нет данных пользователя
+    // Загружаем пользователя если есть токен, но нет данных пользователя
     if (!authStore.user && authStore.token) {
-        console.log('[ROUTER] Обнаружен токен без пользователя, загружаем данные...');
         try {
             await authStore.fetchUser();
-            console.log('[ROUTER] Пользователь успешно загружен:', {
-                email: authStore.user?.email,
-                name: authStore.user?.name,
-                balance: authStore.user?.balance
-            });
         } catch (error) {
-            console.error('[ROUTER] Ошибка загрузки пользователя:', error);
             // Если не удалось загрузить пользователя, очищаем токен
             await authStore.logout();
         }
@@ -183,22 +164,17 @@ router.beforeEach(async (to, from, next) => {
 
     // Проверка для страниц, требующих авторизации
     if (to.meta.requiresAuth) {
-        // ИСПРАВЛЕНО: Используем isAuthenticated вместо только проверки user
         if (!authStore.isAuthenticated) {
-            console.log('[ROUTER] ❌ Доступ запрещен: требуется авторизация');
-            console.log('[ROUTER] Редирект на /login');
             return next({
                 path: '/login',
                 query: { redirect: to.fullPath }
             });
         }
-        console.log('[ROUTER] ✅ Доступ разрешен: пользователь авторизован');
     }
     
     // Проверка для страниц только для гостей (login, register и т.д.)
     if (to.meta.requiresGuest) {
         if (authStore.isAuthenticated) {
-            console.log('[ROUTER] Пользователь уже авторизован, редирект на /');
             // Не делаем редирект если уже на /
             if (to.path === '/') {
                 return next();
@@ -206,9 +182,6 @@ router.beforeEach(async (to, from, next) => {
             return next('/');
         }
     }
-    
-    console.log('[ROUTER] Переход разрешен');
-    console.log('[ROUTER] ============================================');
 
     // Save the route user came from when first entering articles/categories list
     try {
@@ -253,8 +226,6 @@ router.afterEach(async (to, from) => {
             loadingStore.stop();
         });
     }, 150);
-    
-    console.log('[ROUTER] Переход завершен:', to.path);
 });
 
 export default router;
