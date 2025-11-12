@@ -12,7 +12,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('service_accounts', function (Blueprint $table) {
-            $table->decimal('discount_percent', 5, 2)->default(0)->after('price');
+            if (Schema::hasColumn('service_accounts', 'price')) {
+                $table->decimal('discount_percent', 5, 2)->default(0)->after('price');
+            } else {
+                $table->decimal('discount_percent', 5, 2)->default(0)->after('last_used_at');
+            }
             $table->timestamp('discount_start_date')->nullable()->after('discount_percent');
             $table->timestamp('discount_end_date')->nullable()->after('discount_start_date');
         });

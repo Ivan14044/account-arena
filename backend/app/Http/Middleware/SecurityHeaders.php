@@ -58,11 +58,11 @@ class SecurityHeaders
 
         return implode('; ', [
             "default-src 'self'",
-            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net",
-            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net",
-            "font-src 'self' https://fonts.gstatic.com data:",
-            "img-src 'self' data: https: blob:",
-            "connect-src 'self' {$appUrl} {$frontendUrl} https://api.monobank.ua https://api.cryptomus.com",
+            "script-src 'self' 'unsafe-inline' 'unsafe-eval' http://cdn.jsdelivr.net https://cdn.jsdelivr.net http://cdn.datatables.net https://cdn.datatables.net http://cdnjs.cloudflare.com https://cdnjs.cloudflare.com http://code.jquery.com https://code.jquery.com http://cdn.ckeditor.com https://cdn.ckeditor.com",
+            "style-src 'self' 'unsafe-inline' http://fonts.googleapis.com https://fonts.googleapis.com http://cdn.jsdelivr.net https://cdn.jsdelivr.net http://cdn.datatables.net https://cdn.datatables.net http://cdnjs.cloudflare.com https://cdnjs.cloudflare.com http://code.jquery.com https://code.jquery.com",
+            "font-src 'self' http://fonts.gstatic.com https://fonts.gstatic.com data: http://cdn.jsdelivr.net https://cdn.jsdelivr.net",
+            "img-src 'self' data: http: https: blob:",
+            "connect-src 'self' {$appUrl} {$frontendUrl} https://api.monobank.ua https://api.cryptomus.com http://cdn.ckeditor.com https://cdn.ckeditor.com",
             "frame-src 'self'",
             "object-src 'none'",
             "base-uri 'self'",

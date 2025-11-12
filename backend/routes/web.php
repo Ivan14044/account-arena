@@ -36,7 +36,7 @@ use App\Http\Controllers\Supplier\WithdrawalController;
 use App\Http\Controllers\Supplier\DisputeController as SupplierDisputeController;
 use Illuminate\Support\Facades\Route;
 
-Route::prefix('/')
+Route::prefix('/admin')
     ->name('admin.')
     ->group(function () {
         // Login routes (no guest middleware to avoid redirect loops)

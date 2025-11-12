@@ -164,19 +164,26 @@ if [ ! -f .env ]; then
     # Генерация APP_KEY
     php artisan key:generate --force > /dev/null 2>&1
     
-    # Настройка переменных
-    sed -i "s|APP_ENV=.*|APP_ENV=production|g" .env
-    sed -i "s|APP_DEBUG=.*|APP_DEBUG=false|g" .env
-    sed -i "s|APP_URL=.*|APP_URL=http://${DOMAIN}|g" .env
-    sed -i "s|DB_CONNECTION=.*|DB_CONNECTION=mysql|g" .env
-    sed -i "s|DB_HOST=.*|DB_HOST=localhost|g" .env
-    sed -i "s|DB_DATABASE=.*|DB_DATABASE=subcloudy|g" .env
-    sed -i "s|DB_USERNAME=.*|DB_USERNAME=subcloudy|g" .env
-    sed -i "s|DB_PASSWORD=.*|DB_PASSWORD=${DB_PASSWORD}|g" .env
-    sed -i "s|REDIS_HOST=.*|REDIS_HOST=127.0.0.1|g" .env
-    sed -i "s|SESSION_DRIVER=.*|SESSION_DRIVER=redis|g" .env
-    sed -i "s|CACHE_DRIVER=.*|CACHE_DRIVER=redis|g" .env
-    sed -i "s|QUEUE_CONNECTION=.*|QUEUE_CONNECTION=redis|g" .env
+    # Настройка переменных - удаляем старые значения и добавляем новые
+    for var in APP_ENV APP_DEBUG APP_URL DB_CONNECTION DB_HOST DB_DATABASE DB_USERNAME DB_PASSWORD REDIS_HOST SESSION_DRIVER CACHE_DRIVER QUEUE_CONNECTION; do
+        sed -i "/^${var}=/d" .env 2>/dev/null || true
+    done
+    
+    # Добавляем переменные через cat
+    cat >> .env << EOF
+APP_ENV=production
+APP_DEBUG=false
+APP_URL=http://${DOMAIN}
+DB_CONNECTION=mysql
+DB_HOST=localhost
+DB_DATABASE=subcloudy
+DB_USERNAME=subcloudy
+DB_PASSWORD=${DB_PASSWORD}
+REDIS_HOST=127.0.0.1
+SESSION_DRIVER=redis
+CACHE_DRIVER=redis
+QUEUE_CONNECTION=redis
+EOF
 fi
 
 print_info "Выполнение миграций..."
@@ -231,7 +238,7 @@ cat > /etc/nginx/sites-available/account-arena << 'EOF'
 server {
     listen 80;
     listen [::]:80;
-    server_name SERVER_NAME_PLACEHOLDER;
+    server_name 192.168.64.6;
 
     root /var/www/subcloudy/frontend/dist;
     index index.html;
@@ -245,66 +252,71 @@ server {
     gzip_min_length 1024;
     gzip_types text/plain text/css text/xml text/javascript application/javascript application/json application/xml+rss;
 
-    # Frontend (Vue.js SPA)
-    location / {
-        try_files $uri $uri/ /index.html;
+    # Backend static files - must be before /admin, /api, /supplier
+    # Use ^~ for exact match priority
+    location ^~ /vendor/ {
+        alias /var/www/subcloudy/backend/public/vendor/;
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+        access_log off;
     }
 
-    # Backend API
-    location /api {
-        alias /var/www/subcloudy/backend/public;
-        try_files $uri $uri/ @backend;
-
-        location ~ \.php$ {
-            include snippets/fastcgi-php.conf;
-            fastcgi_pass unix:/var/run/php/php8.2-fpm.sock;
-            fastcgi_param SCRIPT_FILENAME /var/www/subcloudy/backend/public/index.php;
-            fastcgi_param PATH_INFO $fastcgi_path_info;
-            include fastcgi_params;
-        }
-    }
-
-    location @backend {
-        rewrite /api/(.*)$ /api/index.php?/$1 last;
-    }
-
-    # Admin panel
-    location /admin {
-        alias /var/www/subcloudy/backend/public;
-        try_files $uri $uri/ @admin;
-
-        location ~ \.php$ {
-            include snippets/fastcgi-php.conf;
-            fastcgi_pass unix:/var/run/php/php8.2-fpm.sock;
-            fastcgi_param SCRIPT_FILENAME /var/www/subcloudy/backend/public/index.php;
-            include fastcgi_params;
-        }
-    }
-
-    location @admin {
-        rewrite /admin/(.*)$ /admin/index.php?/$1 last;
-    }
-
-    # Supplier panel
-    location /supplier {
-        alias /var/www/subcloudy/backend/public;
-        try_files $uri $uri/ @supplier;
-
-        location ~ \.php$ {
-            include snippets/fastcgi-php.conf;
-            fastcgi_pass unix:/var/run/php/php8.2-fpm.sock;
-            fastcgi_param SCRIPT_FILENAME /var/www/subcloudy/backend/public/index.php;
-            include fastcgi_params;
-        }
-    }
-
-    location @supplier {
-        rewrite /supplier/(.*)$ /supplier/index.php?/$1 last;
+    # Backend admin assets (more specific path)
+    location ^~ /assets/admin/ {
+        alias /var/www/subcloudy/backend/public/assets/admin/;
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+        access_log off;
     }
 
     # Storage
     location /storage {
         alias /var/www/subcloudy/backend/storage/app/public;
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+        access_log off;
+    }
+
+    # Laravel Backend - API routes (keep /api prefix) - must be before location /
+    location /api {
+        fastcgi_pass unix:/var/run/php/php8.2-fpm.sock;
+        fastcgi_index index.php;
+        fastcgi_param SCRIPT_FILENAME /var/www/subcloudy/backend/public/index.php;
+        include fastcgi_params;
+        fastcgi_param REQUEST_URI $request_uri;
+    }
+
+    # Laravel Backend - Admin routes (keep /admin prefix) - must be before location /
+    location /admin {
+        fastcgi_pass unix:/var/run/php/php8.2-fpm.sock;
+        fastcgi_index index.php;
+        fastcgi_param SCRIPT_FILENAME /var/www/subcloudy/backend/public/index.php;
+        include fastcgi_params;
+        fastcgi_param REQUEST_URI $request_uri;
+    }
+
+    # Laravel Backend - Supplier routes (keep /supplier prefix as routes use it) - must be before location /
+    location /supplier {
+        fastcgi_pass unix:/var/run/php/php8.2-fpm.sock;
+        fastcgi_index index.php;
+        fastcgi_param SCRIPT_FILENAME /var/www/subcloudy/backend/public/index.php;
+        include fastcgi_params;
+        fastcgi_param REQUEST_URI $request_uri;
+    }
+
+    # Frontend static files - check if file exists before falling back to SPA
+    location / {
+        try_files $uri $uri/ @fallback;
+    }
+
+    # Fallback to SPA index.html or 404 for missing files
+    location @fallback {
+        # Check if it's a file request (has extension) - return 404
+        if ($uri ~ \.(jpg|jpeg|png|gif|ico|css|js|svg|woff|woff2|ttf|eot|webp|json|xml)$) {
+            return 404;
+        }
+        # Otherwise, serve SPA index.html
+        try_files /index.html =404;
     }
 
     # Security
@@ -312,10 +324,11 @@ server {
         deny all;
     }
 
-    # Static files caching
-    location ~* \.(jpg|jpeg|png|gif|ico|css|js|svg|woff|woff2|ttf|eot)$ {
+    # Static files caching (for frontend)
+    location ~* \.(jpg|jpeg|png|gif|ico|css|js|svg|woff|woff2|ttf|eot|webp)$ {
         expires 1y;
         add_header Cache-Control "public, immutable";
+        access_log off;
     }
 }
 EOF
