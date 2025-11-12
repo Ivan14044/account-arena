@@ -45,7 +45,7 @@ return new class extends Migration
 
         // Индексы для service_accounts таблицы
         Schema::table('service_accounts', function (Blueprint $table) {
-            if (! $this->indexExists('service_accounts', 'service_accounts_category_id_is_active_index')) {
+            if (Schema::hasColumn('service_accounts', 'category_id') && ! $this->indexExists('service_accounts', 'service_accounts_category_id_is_active_index')) {
                 $table->index(['category_id', 'is_active']); // Каталог товаров по категории
             }
             if (! $this->indexExists('service_accounts', 'service_accounts_supplier_id_is_active_index')) {
@@ -122,7 +122,7 @@ return new class extends Migration
         });
 
         Schema::table('service_accounts', function (Blueprint $table) {
-            if ($this->indexExists('service_accounts', 'service_accounts_category_id_is_active_index')) {
+            if (Schema::hasColumn('service_accounts', 'category_id') && $this->indexExists('service_accounts', 'service_accounts_category_id_is_active_index')) {
                 $table->dropIndex('service_accounts_category_id_is_active_index');
             }
             if ($this->indexExists('service_accounts', 'service_accounts_supplier_id_is_active_index')) {

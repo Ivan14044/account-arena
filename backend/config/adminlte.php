@@ -272,10 +272,10 @@ return [
     |
     */
 
-    'use_route_url' => false,
-    'dashboard_url' => '/',
-    'logout_url' => 'logout',
-    'login_url' => 'login',
+    'use_route_url' => true,
+    'dashboard_url' => 'admin.dashboard',
+    'logout_url' => 'admin.logout',
+    'login_url' => 'admin.login',
     'register_url' => false,
     'password_reset_url' => false,
     'password_email_url' => false,
@@ -327,12 +327,12 @@ return [
             'id' => 'my-notification',
             'icon' => 'far fa-bell',
             'label_color' => 'primary',
-            'url' => 'admin_notifications',
+            'route' => 'admin.admin_notifications.index',
             'topnav_right' => true,
             'dropdown_mode' => true,
             'dropdown_flabel' => 'Все уведомления',
             'update_cfg' => [
-                'url' => 'admin_notifications/get',
+                'route' => 'admin.admin_notifications.get',
                 'period' => 30,
             ],
             'can' => 'admin-only', // Скрываем для поставщиков
@@ -341,24 +341,24 @@ return [
         // SIDEBAR - ADMIN ONLY
         [
             'text' => 'Панель управления',
-            'url' => '/',
+            'route' => 'admin.dashboard',
             'icon' => 'fas fa-fw mr-1 fa-tachometer-alt',
             'can' => 'admin-only',
         ],
 
         [
             'text' => 'Пользователи',
-            'url' => 'users',
+            'route' => 'admin.users.index',
             'icon' => 'fas fa-fw mr-1 fa-users',
-            'active' => ['users*'],
+            'active' => ['admin/users*'],
             'can' => 'admin-only',
         ],
 
         [
             'text' => 'Покупки',
-            'url' => 'purchases',
+            'route' => 'admin.purchases.index',
             'icon' => 'fas fa-fw mr-1 fa-shopping-cart',
-            'active' => ['purchases*'],
+            'active' => ['admin/purchases*'],
             'can' => 'admin-only',
         ],
 
@@ -370,15 +370,15 @@ return [
             'submenu' => [
                 [
                     'text' => 'Все товары',
-                    'url' => 'service-accounts',
+                    'route' => 'admin.service-accounts.index',
                     'icon' => 'fas fa-fw mr-1 fa-list',
-                    'active' => ['service-accounts*'],
+                    'active' => ['admin/service-accounts*'],
                 ],
                 [
                     'text' => 'Категории товаров',
-                    'url' => 'product-categories',
+                    'route' => 'admin.product-categories.index',
                     'icon' => 'fas fa-fw mr-1 fa-tags',
-                    'active' => ['product-categories*'],
+                    'active' => ['admin/product-categories*'],
                 ],
             ],
         ],
@@ -435,66 +435,66 @@ return [
             'submenu' => [
                 [
                     'text' => 'Контент',
-                    'url' => 'contents',
+                    'route' => 'admin.contents.index',
                     'icon' => 'far fa-fw mr-1 fa-folder-open',
-                    'active' => ['contents*'],
+                    'active' => ['admin/contents*'],
                 ],
                 [
                     'text' => 'Статьи',
-                    'url' => 'articles',
+                    'route' => 'admin.articles.index',
                     'icon' => 'far fa-fw mr-1 fa-file-alt',
-                    'active' => ['articles*'],
+                    'active' => ['admin/articles*'],
                 ],
                 [
                     'text' => 'Категории статей',
-                    'url' => 'article-categories',
+                    'route' => 'admin.article-categories.index',
                     'icon' => 'fas fa-fw mr-1 fa-tags',
-                    'active' => ['article-categories*'],
+                    'active' => ['admin/article-categories*'],
                 ],
                 [
                     'text' => 'Страницы',
-                    'url' => 'pages',
+                    'route' => 'admin.pages.index',
                     'icon' => 'far fa-fw mr-1 fa-file',
-                    'active' => ['pages*'],
+                    'active' => ['admin/pages*'],
                 ],
                 [
                     'text' => 'Баннеры',
-                    'url' => 'banners',
+                    'route' => 'admin.banners.index',
                     'icon' => 'fas fa-fw mr-1 fa-image',
-                    'active' => ['banners*'],
+                    'active' => ['admin/banners*'],
                 ],
             ],
         ],
 
         [
             'text' => 'Администраторы',
-            'url' => 'admins',
+            'route' => 'admin.admins.index',
             'icon' => 'fas fa-fw mr-1 fa-user-shield',
-            'active' => ['admins*'],
+            'active' => ['admin/admins*'],
             'can' => 'main-admin',
         ],
 
         [
             'text' => 'Промокоды',
-            'url' => 'promocodes',
+            'route' => 'admin.promocodes.index',
             'icon' => 'fas fa-fw mr-1 fa-ticket-alt',
-            'active' => ['promocode*'],
+            'active' => ['admin/promocodes*', 'admin/promocode*'],
             'can' => 'admin-only',
         ],
 
         [
             'text' => 'Ваучеры',
-            'url' => 'vouchers',
+            'route' => 'admin.vouchers.index',
             'icon' => 'fas fa-fw mr-1 fa-gift',
-            'active' => ['vouchers*'],
+            'active' => ['admin/vouchers*'],
             'can' => 'admin-only',
         ],
 
         [
             'text' => 'Претензии на товары',
-            'url' => 'disputes',
+            'route' => 'admin.disputes.index',
             'icon' => 'fas fa-fw mr-1 fa-exclamation-triangle',
-            'active' => ['disputes*'],
+            'active' => ['admin/disputes*'],
             'can' => 'admin-only',
         ],
 
@@ -505,19 +505,19 @@ return [
             'submenu' => [
                 [
                     'text' => 'Список поставщиков',
-                    'url' => 'suppliers',
+                    'route' => 'admin.suppliers.index',
                     'icon' => 'fas fa-fw mr-1 fa-list',
-                    'active' => ['suppliers*'],
+                    'active' => ['admin/suppliers*'],
                 ],
                 [
                     'text' => 'Запросы на вывод',
-                    'url' => 'withdrawal-requests',
+                    'route' => 'admin.withdrawal-requests.index',
                     'icon' => 'fas fa-fw mr-1 fa-money-bill-wave',
-                    'active' => ['withdrawal-requests*'],
+                    'active' => ['admin/withdrawal-requests*'],
                 ],
                 [
                     'text' => 'Настройки',
-                    'url' => 'suppliers-settings',
+                    'route' => 'admin.suppliers.settings',
                     'icon' => 'fas fa-fw mr-1 fa-cog',
                 ],
             ],
@@ -525,33 +525,33 @@ return [
 
         [
             'text' => 'Настройки',
-            'url' => 'settings',
+            'route' => 'admin.settings.index',
             'icon' => 'fas fa-fw mr-1 fa-cog',
-            'active' => ['settings*'],
+            'active' => ['admin/settings*'],
             'can' => 'admin-only',
         ],
 
         [
             'text' => 'Правила покупки',
-            'url' => 'purchase-rules',
+            'route' => 'admin.purchase-rules.index',
             'icon' => 'fas fa-fw mr-1 fa-file-contract',
-            'active' => ['purchase-rules*'],
+            'active' => ['admin/purchase-rules*'],
             'can' => 'admin-only',
         ],
 
         [
             'text' => 'Email шаблоны',
-            'url' => 'email-templates',
+            'route' => 'admin.email-templates.index',
             'icon' => 'fas fa-fw mr-1 fa-envelope',
-            'active' => ['email-templates*'],
+            'active' => ['admin/email-templates*'],
             'can' => 'admin-only',
         ],
 
         [
             'text' => 'Уведомления',
-            'url' => 'notifications',
+            'route' => 'admin.notifications.index',
             'icon' => 'fas fa-fw mr-1 fa-bell',
-            'active' => ['notifications*', 'notification-templates*'],
+            'active' => ['admin/notifications*', 'admin/notification-templates*'],
             'can' => 'admin-only',
         ],
 
@@ -563,12 +563,12 @@ return [
             'submenu' => [
                 [
                     'text' => 'Профиль',
-                    'url' => 'profile',
+                    'route' => 'admin.profile.index',
                     'icon' => 'fas fa-fw mr-1 fa-user',
                 ],
                 [
                     'text' => 'Выйти',
-                    'url' => 'logout',
+                    'route' => 'admin.logout',
                     'icon' => 'fas fa-fw mr-1 fa-sign-out-alt',
                 ],
             ],
