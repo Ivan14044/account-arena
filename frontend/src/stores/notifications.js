@@ -32,7 +32,7 @@ export const useNotificationStore = defineStore('notifications', {
                 this.total = total;
                 this.unread = unread;
                 this.isLoaded = true;
-            } catch (error) {
+            } catch {
                 // Ошибка загрузки уведомлений
             }
         },
@@ -53,7 +53,7 @@ export const useNotificationStore = defineStore('notifications', {
 
                 this.isLoaded = false;
                 await this.fetchData();
-            } catch (error) {
+            } catch {
                 // Ошибка отметки уведомлений как прочитанных
             }
         },
@@ -75,7 +75,7 @@ export const useNotificationStore = defineStore('notifications', {
                 });
 
                 return response.data.items;
-            } catch (e) {
+            } catch {
                 return [];
             } finally {
                 if (loader) {

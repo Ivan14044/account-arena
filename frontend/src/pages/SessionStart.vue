@@ -74,7 +74,10 @@ onMounted(async () => {
         // Слушаем события от FullPageLoader
         pluginStatusHandler = (event: Event) => {
             const { pluginInstalled, pluginSkipped } = (event as CustomEvent).detail || {};
-            console.log('SessionStart: Plugin status received:', { pluginInstalled, pluginSkipped });
+            console.log('SessionStart: Plugin status received:', {
+                pluginInstalled,
+                pluginSkipped
+            });
 
             if (pluginInstalled || pluginSkipped) {
                 console.log('SessionStart: Starting session logic...');
@@ -118,7 +121,9 @@ const startSessionLogic = async (serviceId: number | null) => {
             window.dispatchEvent(new CustomEvent('app:hide-loader'));
 
             const currentService = serviceId ? serviceStore.getById(serviceId) : undefined;
-            const params = (currentService as any)?.params as { icon?: string; title?: string } | undefined;
+            const params = (currentService as any)?.params as
+                | { icon?: string; title?: string }
+                | undefined;
 
             if (params?.title && typeof params.title === 'string' && params.title.length > 0) {
                 document.title = params.title;

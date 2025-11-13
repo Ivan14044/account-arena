@@ -6,20 +6,17 @@
             class="fixed inset-0 z-[9999] flex items-center justify-center"
         >
             <div class="flex flex-col items-center">
-                <img
-                    :src="logo"
-                    alt="Loading..."
-                    class="w-32 h-32 object-contain loader-pulse"
-                />
+                <img :src="logo" alt="Loading..." class="w-32 h-32 object-contain loader-pulse" />
                 <div
                     v-if="isStartSessionPage"
                     class="mt-[35px] text-gray-700 dark:text-gray-200 text-sm sm:text-base text-center"
                 >
                     <div class="relative">
                         <Transition name="text-fade" mode="out-in">
-              <span :key="activeMessageKey" style="padding-left: 31px">
-                {{ $t(activeMessageKey) }}<span class="ellipsis" aria-hidden="true">{{ dots }}</span>
-              </span>
+                            <span :key="activeMessageKey" style="padding-left: 31px">
+                                {{ $t(activeMessageKey)
+                                }}<span class="ellipsis" aria-hidden="true">{{ dots }}</span>
+                            </span>
                         </Transition>
                     </div>
                 </div>
@@ -45,13 +42,19 @@ const props = defineProps<{
 }>();
 
 defineEmits<{
-    'callHideLoader': [];
+    callHideLoader: [];
 }>();
 
 const loadingStore = useLoadingStore();
 const hasOverlay = computed(() => props.overlay !== false);
 
-const activeMessageKey = ref<'loader.starting' | 'loader.checking_plugin' | 'loader.preparing' | 'loader.syncing' | 'loader.browser'>('loader.starting');
+const activeMessageKey = ref<
+    | 'loader.starting'
+    | 'loader.checking_plugin'
+    | 'loader.preparing'
+    | 'loader.syncing'
+    | 'loader.browser'
+>('loader.starting');
 const showPluginWarning = ref(false);
 const continueLoading = ref(false);
 const dots = ref('.');
@@ -125,7 +128,10 @@ const handleCheckPluginStatus = async () => {
 
 const handlePluginStatus = (event: Event) => {
     const { pluginInstalled, pluginSkipped } = (event as CustomEvent).detail || {};
-    console.log('FullPageLoader: received app:plugin-status event:', { pluginInstalled, pluginSkipped });
+    console.log('FullPageLoader: received app:plugin-status event:', {
+        pluginInstalled,
+        pluginSkipped
+    });
 
     if (pluginInstalled) {
         console.log('FullPageLoader: Plugin installed successfully, starting loading sequence...');
@@ -157,7 +163,9 @@ if (isStartSessionPage) {
             );
             startLoadingSequence();
         } else {
-            console.warn('Account Arena plugin not detected. Please install the browser extension first.');
+            console.warn(
+                'Account Arena plugin not detected. Please install the browser extension first.'
+            );
 
             if (!continueLoading.value) {
                 activeMessageKey.value = 'loader.checking_plugin';
@@ -205,16 +213,28 @@ if (isStartSessionPage) {
 </script>
 
 <style scoped>
-.fade-enter-active { transition: none; }
-.fade-leave-active { transition: opacity 0.3s ease; }
+.fade-enter-active {
+    transition: none;
+}
+.fade-leave-active {
+    transition: opacity 0.3s ease;
+}
 
 .fade-enter-from,
-.fade-leave-to { opacity: 0; }
+.fade-leave-to {
+    opacity: 0;
+}
 
 .fade-enter-to,
-.fade-leave-from { opacity: 1; }
+.fade-leave-from {
+    opacity: 1;
+}
 
-.ellipsis { display: inline-block; width: 3ch; text-align: left; }
+.ellipsis {
+    display: inline-block;
+    width: 3ch;
+    text-align: left;
+}
 
 /* Плавная анимация пульсации для прелоадера (без вращения) */
 .loader-pulse {
@@ -222,7 +242,8 @@ if (isStartSessionPage) {
 }
 
 @keyframes loader-pulse {
-    0%, 100% {
+    0%,
+    100% {
         opacity: 1;
         transform: scale(1);
     }
@@ -235,13 +256,27 @@ if (isStartSessionPage) {
 /* smoother crossfade/slide for status text only */
 .text-fade-enter-active,
 .text-fade-leave-active {
-    transition: opacity 0.5s ease, transform 0.5s ease;
+    transition:
+        opacity 0.5s ease,
+        transform 0.5s ease;
     will-change: opacity, transform;
 }
 
-.text-fade-enter-from { opacity: 0; transform: translateY(4px); }
-.text-fade-enter-to   { opacity: 1; transform: translateY(0); }
+.text-fade-enter-from {
+    opacity: 0;
+    transform: translateY(4px);
+}
+.text-fade-enter-to {
+    opacity: 1;
+    transform: translateY(0);
+}
 
-.text-fade-leave-from { opacity: 1; transform: translateY(0); }
-.text-fade-leave-to   { opacity: 0; transform: translateY(-4px); }
+.text-fade-leave-from {
+    opacity: 1;
+    transform: translateY(0);
+}
+.text-fade-leave-to {
+    opacity: 0;
+    transform: translateY(-4px);
+}
 </style>

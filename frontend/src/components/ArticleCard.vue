@@ -3,9 +3,9 @@
         class="article-card group h-full flex flex-col relative overflow-hidden rounded-2xl bg-white/20 dark:bg-white/[0.02] backdrop-blur-xl border border-black/10 dark:border-white/[0.08] hover:border-black/20 dark:hover:border-white/[0.15] transition-all duration-500 shadow-lg before:absolute before:inset-0 before:bg-gradient-to-br before:from-white/60 dark:before:from-white/[0.08] before:to-transparent before:pointer-events-none cursor-pointer"
         role="link"
         tabindex="0"
+        :aria-label="title"
         @click="goToArticle"
         @keydown.enter="goToArticle"
-        :aria-label="title"
     >
         <div class="relative aspect-video overflow-hidden bg-gray-100 dark:bg-white/[0.04]">
             <ImageWithFallback :src="imageUrl" :alt="title" class="w-full h-full object-contain" />

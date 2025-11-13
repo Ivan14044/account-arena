@@ -113,7 +113,9 @@ const router = createRouter({
         if (savedPosition) {
             try {
                 sessionStorage.setItem('articlesUsedSavedPosition', '1');
-            } catch (_) {}
+            } catch {
+                // ignore storage errors
+            }
             return savedPosition;
         }
 
@@ -142,21 +144,21 @@ router.beforeEach(async (to, from, next) => {
     // Ленивая загрузка stores для избежания циклических зависимостей
     const { useAuthStore } = await import('./stores/auth');
     const { useLoadingStore } = await import('./stores/loading');
-    
+
     const authStore = useAuthStore();
     const loadingStore = useLoadingStore();
-    
+
     // Показываем прелоадер при переходе между разными страницами
     // Исключаем первую загрузку приложения (когда from.path пустой)
     if (from.path && from.path !== to.path) {
         loadingStore.start();
     }
-    
+
     // Загружаем пользователя если есть токен, но нет данных пользователя
     if (!authStore.user && authStore.token) {
         try {
             await authStore.fetchUser();
-        } catch (error) {
+        } catch {
             // Если не удалось загрузить пользователя, очищаем токен
             await authStore.logout();
         }
@@ -171,7 +173,7 @@ router.beforeEach(async (to, from, next) => {
             });
         }
     }
-    
+
     // Проверка для страниц только для гостей (login, register и т.д.)
     if (to.meta.requiresGuest) {
         if (authStore.isAuthenticated) {
@@ -191,7 +193,7 @@ router.beforeEach(async (to, from, next) => {
             // store the entry point before entering the list
             sessionStorage.setItem('articlesEntryFrom', from?.fullPath || '/');
         }
-    } catch (_) {
+    } catch {
         // ignore storage errors (Safari private mode, etc.)
     }
 
@@ -215,10 +217,10 @@ router.beforeEach(async (to, from, next) => {
 });
 
 // Останавливаем прелоадер после завершения перехода
-router.afterEach(async (to, from) => {
+router.afterEach(async () => {
     const { useLoadingStore } = await import('./stores/loading');
     const loadingStore = useLoadingStore();
-    
+
     // Используем nextTick и requestAnimationFrame для гарантии, что контент отрендерен
     setTimeout(() => {
         // Даём компоненту время отрендериться

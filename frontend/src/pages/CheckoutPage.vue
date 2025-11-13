@@ -18,13 +18,13 @@
                 <form class="space-y-6" @submit.prevent="handleSubmit">
                     <!-- Подписки (если есть) - только для авторизованных пользователей -->
                     <ServiceList v-if="cartStore.items.length && authStore.isAuthenticated" />
-                    
+
                     <!-- Товары (если есть) -->
                     <div v-if="productCartStore.items.length" class="product-cart-section">
                         <h2 class="text-xl font-semibold mb-4 text-dark dark:text-white">
                             Товары в корзине
                         </h2>
-                        
+
                         <div class="space-y-4">
                             <div
                                 v-for="item in productCartStore.items"
@@ -40,42 +40,59 @@
                                             class="product-image-checkout"
                                         />
                                     </div>
-                                    
+
                                     <!-- Информация -->
                                     <div class="flex-1 min-w-0">
-                                        <h3 class="font-semibold text-dark dark:text-white">{{ item.title }}</h3>
+                                        <h3 class="font-semibold text-dark dark:text-white">
+                                            {{ item.title }}
+                                        </h3>
                                         <p class="text-sm text-gray-600 dark:text-gray-400">
-                                            {{ formatCurrency(item.price) }} × {{ item.quantity }} шт.
+                                            {{ formatCurrency(item.price) }} ×
+                                            {{ item.quantity }} шт.
                                         </p>
                                     </div>
-                                    
+
                                     <!-- Управление количеством -->
                                     <div class="flex items-center gap-3">
                                         <div class="quantity-control-checkout">
                                             <button
-                                                @click="productCartStore.decreaseQuantity(item.id)"
                                                 class="qty-btn"
                                                 :disabled="item.quantity <= 1"
-                                            >−</button>
+                                                @click="productCartStore.decreaseQuantity(item.id)"
+                                            >
+                                                −
+                                            </button>
                                             <span class="qty-value">{{ item.quantity }}</span>
                                             <button
-                                                @click="productCartStore.increaseQuantity(item.id)"
                                                 class="qty-btn"
                                                 :disabled="item.quantity >= item.max_quantity"
-                                            >+</button>
+                                                @click="productCartStore.increaseQuantity(item.id)"
+                                            >
+                                                +
+                                            </button>
                                         </div>
-                                        
+
                                         <div class="font-bold text-lg text-dark dark:text-white">
                                             {{ formatCurrency(item.price * item.quantity) }}
                                         </div>
-                                        
+
                                         <button
-                                            @click="productCartStore.removeItem(item.id)"
                                             class="remove-btn"
                                             title="Удалить"
+                                            @click="productCartStore.removeItem(item.id)"
                                         >
-                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                            <svg
+                                                class="w-5 h-5"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                viewBox="0 0 24 24"
+                                            >
+                                                <path
+                                                    stroke-linecap="round"
+                                                    stroke-linejoin="round"
+                                                    stroke-width="2"
+                                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                                />
                                             </svg>
                                         </button>
                                     </div>
@@ -228,18 +245,24 @@
 
                 <div class="glass-card rounded-3xl p-6">
                     <h3 class="font-normal mb-4">{{ $t('checkout.payment_method') }}</h3>
-                    <PaymentList 
-                        v-model="selectedPayment" 
+                    <PaymentList
+                        v-model="selectedPayment"
                         :disabled="isZeroTotalWithServices"
                         :hide-balance="!authStore.isAuthenticated"
                     />
-                    <p v-if="!authStore.isAuthenticated" class="text-xs text-gray-600 dark:text-gray-400 mt-3">
+                    <p
+                        v-if="!authStore.isAuthenticated"
+                        class="text-xs text-gray-600 dark:text-gray-400 mt-3"
+                    >
                         Для гостей доступны только оплата картой и криптовалютой
                     </p>
                 </div>
 
                 <!-- Поле Email для гостей (если не авторизован и есть товары) -->
-                <div v-if="!authStore.isAuthenticated && productCartStore.items.length" class="glass-card rounded-2xl p-6">
+                <div
+                    v-if="!authStore.isAuthenticated && productCartStore.items.length"
+                    class="glass-card rounded-2xl p-6"
+                >
                     <label class="block text-sm font-medium text-dark dark:text-white mb-2">
                         Ваш e-mail *
                     </label>
@@ -256,32 +279,49 @@
                 </div>
 
                 <!-- Purchase Rules Agreement - Новый дизайн -->
-                <div v-if="purchaseRulesEnabled && purchaseRulesText" class="glass-card rounded-2xl p-5 purchase-rules-card">
+                <div
+                    v-if="purchaseRulesEnabled && purchaseRulesText"
+                    class="glass-card rounded-2xl p-5 purchase-rules-card"
+                >
                     <label class="flex items-start gap-4 cursor-pointer group">
                         <div class="purchase-rules-checkbox-wrapper">
-                            <input 
-                                type="checkbox" 
+                            <input
                                 v-model="agreedToRules"
+                                type="checkbox"
                                 class="purchase-rules-checkbox-custom"
                                 required
                             />
                             <span class="purchase-rules-checkmark">
-                                <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+                                <svg
+                                    class="w-3.5 h-3.5 text-white"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="3"
+                                        d="M5 13l4 4L19 7"
+                                    />
                                 </svg>
                             </span>
                         </div>
                         <div class="flex-1">
-                            <span class="text-sm font-medium text-dark dark:text-white leading-relaxed">
+                            <span
+                                class="text-sm font-medium text-dark dark:text-white leading-relaxed"
+                            >
                                 {{ $t('checkout.agree_with') }}
                                 <button
-                                    @click.prevent="showRulesModal = true"
                                     class="purchase-rules-link-new"
+                                    @click.prevent="showRulesModal = true"
                                 >
                                     {{ $t('checkout.purchase_rules') }}
                                 </button>
                             </span>
-                            <p class="text-xs text-gray-600 dark:text-gray-400 mt-1.5 leading-relaxed">
+                            <p
+                                class="text-xs text-gray-600 dark:text-gray-400 mt-1.5 leading-relaxed"
+                            >
                                 Пожалуйста, ознакомьтесь с правилами перед оформлением заказа
                             </p>
                         </div>
@@ -289,7 +329,7 @@
                 </div>
 
                 <!-- Обертка для кнопки, чтобы ловить клики даже когда кнопка disabled -->
-                <div @click.stop="handleCheckoutClick" class="w-full">
+                <div class="w-full" @click.stop="handleCheckoutClick">
                     <button
                         type="button"
                         :disabled="
@@ -361,8 +401,8 @@
         <!-- Modal with Purchase Rules -->
         <Teleport to="body">
             <Transition name="modal">
-                <div 
-                    v-if="showRulesModal" 
+                <div
+                    v-if="showRulesModal"
                     class="fixed inset-0 z-[9999] flex items-center justify-center p-4 purchase-rules-modal-backdrop"
                     @click.self="showRulesModal = false"
                 >
@@ -371,8 +411,18 @@
                         <div class="purchase-rules-header">
                             <div class="flex items-center gap-3">
                                 <div class="purchase-rules-icon">
-                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                    <svg
+                                        class="w-6 h-6"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            stroke-width="2"
+                                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                                        />
                                     </svg>
                                 </div>
                                 <h3 class="purchase-rules-title">
@@ -380,46 +430,66 @@
                                 </h3>
                             </div>
                             <button
-                                @click="showRulesModal = false"
                                 class="purchase-rules-close"
                                 aria-label="Закрыть"
+                                @click="showRulesModal = false"
                             >
-                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                <svg
+                                    class="w-6 h-6"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M6 18L18 6M6 6l12 12"
+                                    />
                                 </svg>
                             </button>
                         </div>
-                        
+
                         <!-- Контент правил -->
                         <div class="purchase-rules-body">
-                            <div 
+                            <div
                                 v-if="purchaseRulesText && purchaseRulesText.trim()"
                                 class="purchase-rules-content"
                                 v-html="purchaseRulesText"
                             ></div>
                             <!-- ✅ ИСПРАВЛЕНИЕ: Fallback на случай пустого текста -->
-                            <div 
+                            <div
                                 v-else
                                 class="purchase-rules-content text-center text-gray-500 dark:text-gray-400 py-8"
                             >
                                 <p>{{ $t('checkout.rules_not_available') }}</p>
                             </div>
                         </div>
-                        
+
                         <!-- Футер с кнопками -->
                         <div class="purchase-rules-footer">
-                            <button
-                                @click="showRulesModal = false"
-                                class="btn-rules-secondary"
-                            >
+                            <button class="btn-rules-secondary" @click="showRulesModal = false">
                                 {{ $t('checkout.close') }}
                             </button>
                             <button
-                                @click="showRulesModal = false; agreedToRules = true"
                                 class="btn-rules-primary"
+                                @click="
+                                    showRulesModal = false;
+                                    agreedToRules = true;
+                                "
                             >
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                <svg
+                                    class="w-5 h-5"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M5 13l4 4L19 7"
+                                    />
                                 </svg>
                                 {{ $t('checkout.agree') }}
                             </button>
@@ -500,7 +570,8 @@ const finalTotal = computed(() =>
     Math.max(0, subtotalPaid.value - optionDiscountAmount.value - promoDiscountAmount.value)
 );
 const isZeroTotalWithServices = computed(
-    () => finalTotal.value === 0 && (cartStore.items.length > 0 || productCartStore.items.length > 0)
+    () =>
+        finalTotal.value === 0 && (cartStore.items.length > 0 || productCartStore.items.length > 0)
 );
 
 const upsellPercent = computed(() => {
@@ -557,26 +628,26 @@ const fmt = (d: Date) => {
     return `${dd}.${mm}.${yyyy}`;
 };
 
-const servicesSummary = computed(() => {
-    const parts: string[] = [];
-    if (cartStore.trialServicesCount > 0) {
-        parts.push(`${cartStore.trialServicesCount} ${t('checkout.trial_services')}`);
-    }
-    if (cartStore.premiumServicesCount > 0) {
-        parts.push(`${cartStore.premiumServicesCount} ${t('checkout.premium_services')}`);
-    }
-    return parts.join(', ');
-});
+// const servicesSummary = computed(() => {
+//     const parts: string[] = [];
+//     if (cartStore.trialServicesCount > 0) {
+//         parts.push(`${cartStore.trialServicesCount} ${t('checkout.trial_services')}`);
+//     }
+//     if (cartStore.premiumServicesCount > 0) {
+//         parts.push(`${cartStore.premiumServicesCount} ${t('checkout.premium_services')}`);
+//     }
+//     return parts.join(', ');
+// });
 
 // Загрузка правил покупки
 const loadPurchaseRules = async () => {
     try {
         const response = await axios.get('/purchase-rules');
-        
+
         if (response.data.enabled) {
             const currentLocale = locale.value;
             const rulesText = response.data.rules[currentLocale] || response.data.rules.ru || '';
-            
+
             // ✅ ИСПРАВЛЕНИЕ: устанавливаем enabled только если есть непустой текст правил
             if (rulesText && rulesText.trim()) {
                 purchaseRulesEnabled.value = true;
@@ -593,7 +664,9 @@ onMounted(() => {
 
     // Проверяем, если пользователь не авторизован и есть подписки в корзине
     if (!authStore.isAuthenticated && cartStore.items.length > 0) {
-        toast.warning('Для покупки подписок необходимо авторизоваться. Только товары доступны для гостей.');
+        toast.warning(
+            'Для покупки подписок необходимо авторизоваться. Только товары доступны для гостей.'
+        );
         // Очищаем корзину подписок для гостей
         cartStore.clearCart();
     }
@@ -606,7 +679,7 @@ onMounted(() => {
             cartStore.applyFreeAccessServices(promo.result.services || []);
         }
     }
-    
+
     // Загружаем правила покупки
     loadPurchaseRules();
 
@@ -640,19 +713,19 @@ const handleCheckoutClick = (event: Event) => {
     // ✅ ИСПРАВЛЕНИЕ: останавливаем событие полностью
     event.preventDefault();
     event.stopPropagation();
-    
+
     // ✅ ИСПРАВЛЕНИЕ: защита от множественных вызовов
     if (isProcessingCheckout.value) {
         return;
     }
-    
+
     isProcessingCheckout.value = true;
-    
+
     // Сбрасываем флаг через 500ms
     setTimeout(() => {
         isProcessingCheckout.value = false;
     }, 500);
-    
+
     // Проверяем правила покупки (без всплывающего окна)
     if (purchaseRulesEnabled.value && !agreedToRules.value) {
         // Прокручиваем к блоку с правилами и показываем анимацию встряхивания
@@ -668,13 +741,13 @@ const handleCheckoutClick = (event: Event) => {
         }
         return;
     }
-    
+
     // Проверяем другие условия
     if (cartStore.items.length === 0 && productCartStore.items.length === 0) {
         toast.error(t('checkout.empty'));
         return;
     }
-    
+
     // Проверяем email для гостей (если есть товары и пользователь не авторизован)
     if (!authStore.isAuthenticated && productCartStore.items.length > 0) {
         if (!guestEmail.value || !guestEmail.value.trim()) {
@@ -687,7 +760,7 @@ const handleCheckoutClick = (event: Event) => {
             }
             return;
         }
-        
+
         // Проверяем валидность email
         const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailPattern.test(guestEmail.value.trim())) {
@@ -695,17 +768,17 @@ const handleCheckoutClick = (event: Event) => {
             return;
         }
     }
-    
+
     if (!isZeroTotalWithServices.value && !selectedPayment.value) {
         toast.warning(t('checkout.select_payment_method'));
         return;
     }
-    
+
     if (hasTrial.value && selectedPayment.value === 'crypto') {
         toast.warning(t('checkout.trial_crypto_not_allowed'));
         return;
     }
-    
+
     // Если все проверки пройдены, вызываем handleSubmit
     handleSubmit();
 };
@@ -736,7 +809,7 @@ const processMonoPayment = async () => {
     try {
         // Проверяем, гость или авторизованный пользователь
         const isGuest = !authStore.isAuthenticated;
-        
+
         if (isGuest) {
             // Гостевой платеж (только для товаров)
             if (!guestEmail.value || !guestEmail.value.trim()) {
@@ -753,7 +826,7 @@ const processMonoPayment = async () => {
                 })),
                 ...(promo.code ? { promocode: promo.code } : {})
             };
-            
+
             const { data } = await axios.post('/guest/mono/create-payment', payload);
             if (data.url) {
                 window.location.href = data.url;
@@ -780,7 +853,8 @@ const processMonoPayment = async () => {
         }
     } catch (error) {
         console.error('Mono payment error:', error);
-        const errMsg = (error && (error as any).response?.data?.message) || t('checkout.payment_error');
+        const errMsg =
+            (error && (error as any).response?.data?.message) || t('checkout.payment_error');
         toast.error(errMsg as string);
         loadingStore.stop();
     }
@@ -792,7 +866,7 @@ const processCryptoPayment = async () => {
     try {
         // Проверяем, гость или авторизованный пользователь
         const isGuest = !authStore.isAuthenticated;
-        
+
         if (isGuest) {
             // Гостевой платеж (только для товаров)
             if (!guestEmail.value || !guestEmail.value.trim()) {
@@ -809,7 +883,7 @@ const processCryptoPayment = async () => {
                 })),
                 ...(promo.code ? { promocode: promo.code } : {})
             };
-            
+
             const { data } = await axios.post('/guest/cryptomus/create-payment', payload);
             if (data.url) {
                 window.location.href = data.url;
@@ -835,7 +909,8 @@ const processCryptoPayment = async () => {
         }
     } catch (error) {
         console.error('Crypto payment error:', error);
-        const errMsg = (error && (error as any).response?.data?.message) || t('checkout.payment_error');
+        const errMsg =
+            (error && (error as any).response?.data?.message) || t('checkout.payment_error');
         toast.error(errMsg as string);
         loadingStore.stop();
     }
@@ -854,7 +929,8 @@ const buyFree = async () => {
         await router.push('/');
     } catch (error) {
         console.error('Free order error:', error);
-        const errMsg = (error && (error as any).response?.data?.message) || t('checkout.payment_error');
+        const errMsg =
+            (error && (error as any).response?.data?.message) || t('checkout.payment_error');
         toast.error(errMsg as string);
     }
 };
@@ -873,7 +949,7 @@ const processBalancePayment = async () => {
             paymentMethod: 'balance',
             promocode: promo.code || undefined
         });
-        
+
         await authStore.fetchUser();
         promo.clear();
         inputCode.value = '';
@@ -882,7 +958,8 @@ const processBalancePayment = async () => {
         await router.push('/order-success');
     } catch (error) {
         console.error('Balance payment error:', error);
-        const errMsg = (error && (error as any).response?.data?.message) || 'Ошибка при оплате с баланса';
+        const errMsg =
+            (error && (error as any).response?.data?.message) || 'Ошибка при оплате с баланса';
         toast.error(errMsg as string);
     } finally {
         loadingStore.stop();
@@ -945,120 +1022,120 @@ function onPrimaryPromoClick() {
 
 /* Стили для товаров в корзине */
 .product-cart-section {
-  margin-top: 2rem;
+    margin-top: 2rem;
 }
 
 .product-cart-item {
-  transition: all 0.3s ease;
+    transition: all 0.3s ease;
 }
 
 .product-cart-item:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(108, 92, 231, 0.12);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(108, 92, 231, 0.12);
 }
 
 .product-image-wrapper-checkout {
-  width: 80px;
-  height: 80px;
-  border-radius: 12px;
-  overflow: hidden;
-  flex-shrink: 0;
+    width: 80px;
+    height: 80px;
+    border-radius: 12px;
+    overflow: hidden;
+    flex-shrink: 0;
 }
 
 .product-image-checkout {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
 }
 
 .quantity-control-checkout {
-  display: flex;
-  align-items: center;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-  opacity: 0.85;
-  transition: opacity 0.2s ease;
+    display: flex;
+    align-items: center;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    opacity: 0.85;
+    transition: opacity 0.2s ease;
 }
 
 .quantity-control-checkout:hover {
-  opacity: 1;
+    opacity: 1;
 }
 
 .dark .quantity-control-checkout {
-  background: #1e293b;
-  border-color: #334155;
+    background: #1e293b;
+    border-color: #334155;
 }
 
 .qty-btn {
-  border: none;
-  background: transparent;
-  font-size: 16px;
-  font-weight: 600;
-  color: #64748b;
-  cursor: pointer;
-  padding: 4px 10px;
-  transition: all 0.2s ease;
-  min-width: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+    border: none;
+    background: transparent;
+    font-size: 16px;
+    font-weight: 600;
+    color: #64748b;
+    cursor: pointer;
+    padding: 4px 10px;
+    transition: all 0.2s ease;
+    min-width: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .qty-btn:hover:not(:disabled) {
-  background: #e2e8f0;
-  color: #6c5ce7;
+    background: #e2e8f0;
+    color: #6c5ce7;
 }
 
 .dark .qty-btn:hover:not(:disabled) {
-  background: #334155;
-  color: #a29bfe;
+    background: #334155;
+    color: #a29bfe;
 }
 
 .qty-btn:disabled {
-  cursor: not-allowed;
-  opacity: 0.3;
+    cursor: not-allowed;
+    opacity: 0.3;
 }
 
 .dark .qty-btn {
-  color: #94a3b8;
+    color: #94a3b8;
 }
 
 .qty-value {
-  min-width: 40px;
-  text-align: center;
-  font-weight: 600;
-  font-size: 13px;
-  color: #1f2937;
+    min-width: 40px;
+    text-align: center;
+    font-weight: 600;
+    font-size: 13px;
+    color: #1f2937;
 }
 
 .dark .qty-value {
-  color: #f1f5f9;
+    color: #f1f5f9;
 }
 
 .remove-btn {
-  border: none;
-  background: #fef2f2;
-  border: 1px solid #fecaca;
-  color: #dc2626;
-  padding: 8px;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.2s ease;
+    border: none;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #dc2626;
+    padding: 8px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
 }
 
 .remove-btn:hover {
-  background: #fee2e2;
-  border-color: #ef4444;
-  transform: scale(1.05);
+    background: #fee2e2;
+    border-color: #ef4444;
+    transform: scale(1.05);
 }
 
 .dark .remove-btn {
-  background: rgba(239, 68, 68, 0.15);
-  border-color: rgba(239, 68, 68, 0.3);
-  color: #f87171;
+    background: rgba(239, 68, 68, 0.15);
+    border-color: rgba(239, 68, 68, 0.3);
+    color: #f87171;
 }
 
 @media (max-width: 1024px) {
@@ -1242,20 +1319,38 @@ function onPrimaryPromoClick() {
 
 /* Анимация встряхивания для привлечения внимания */
 @keyframes shake {
-    0%, 100% { transform: translateX(0) translateY(0); }
-    10%, 30%, 50%, 70%, 90% { transform: translateX(-8px) translateY(0); }
-    20%, 40%, 60%, 80% { transform: translateX(8px) translateY(0); }
+    0%,
+    100% {
+        transform: translateX(0) translateY(0);
+    }
+    10%,
+    30%,
+    50%,
+    70%,
+    90% {
+        transform: translateX(-8px) translateY(0);
+    }
+    20%,
+    40%,
+    60%,
+    80% {
+        transform: translateX(8px) translateY(0);
+    }
 }
 
 .shake-animation {
     animation: shake 0.6s ease-in-out;
     border-color: rgba(239, 68, 68, 0.6) !important;
-    box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.15), 0 8px 24px rgba(239, 68, 68, 0.2) !important;
+    box-shadow:
+        0 0 0 4px rgba(239, 68, 68, 0.15),
+        0 8px 24px rgba(239, 68, 68, 0.2) !important;
 }
 
 .dark .shake-animation {
     border-color: rgba(248, 113, 113, 0.6) !important;
-    box-shadow: 0 0 0 4px rgba(248, 113, 113, 0.15), 0 8px 24px rgba(248, 113, 113, 0.2) !important;
+    box-shadow:
+        0 0 0 4px rgba(248, 113, 113, 0.15),
+        0 8px 24px rgba(248, 113, 113, 0.2) !important;
 }
 
 /* ============================================
@@ -1272,8 +1367,12 @@ function onPrimaryPromoClick() {
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
 }
 
 /* Само модальное окно - Glass Effect с большей прозрачностью */
@@ -1282,9 +1381,10 @@ function onPrimaryPromoClick() {
     backdrop-filter: blur(30px) saturate(180%);
     -webkit-backdrop-filter: blur(30px) saturate(180%);
     border-radius: 20px;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.3), 
-                0 0 0 1px rgba(108, 92, 231, 0.2),
-                inset 0 1px 1px rgba(255, 255, 255, 0.5);
+    box-shadow:
+        0 25px 50px -12px rgba(0, 0, 0, 0.3),
+        0 0 0 1px rgba(108, 92, 231, 0.2),
+        inset 0 1px 1px rgba(255, 255, 255, 0.5);
     overflow: hidden;
     position: relative;
     animation: slideUp 0.4s cubic-bezier(0.22, 0.9, 0.36, 1);
@@ -1294,9 +1394,10 @@ function onPrimaryPromoClick() {
     background: rgba(30, 41, 59, 0.65);
     backdrop-filter: blur(30px) saturate(180%);
     -webkit-backdrop-filter: blur(30px) saturate(180%);
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6), 
-                0 0 0 1px rgba(162, 155, 254, 0.3),
-                inset 0 1px 1px rgba(255, 255, 255, 0.1);
+    box-shadow:
+        0 25px 50px -12px rgba(0, 0, 0, 0.6),
+        0 0 0 1px rgba(162, 155, 254, 0.3),
+        inset 0 1px 1px rgba(255, 255, 255, 0.1);
 }
 
 @keyframes slideUp {
@@ -1441,9 +1542,15 @@ function onPrimaryPromoClick() {
     letter-spacing: -0.5px;
 }
 
-.purchase-rules-content h1 { font-size: 1.875rem; }
-.purchase-rules-content h2 { font-size: 1.5rem; }
-.purchase-rules-content h3 { font-size: 1.25rem; }
+.purchase-rules-content h1 {
+    font-size: 1.875rem;
+}
+.purchase-rules-content h2 {
+    font-size: 1.5rem;
+}
+.purchase-rules-content h3 {
+    font-size: 1.25rem;
+}
 
 .purchase-rules-content p {
     margin-bottom: 1em;
@@ -1531,7 +1638,11 @@ function onPrimaryPromoClick() {
 
 .purchase-rules-content blockquote {
     border-left: 4px solid #6c5ce7;
-    background: linear-gradient(135deg, rgba(108, 92, 231, 0.05) 0%, rgba(162, 155, 254, 0.05) 100%);
+    background: linear-gradient(
+        135deg,
+        rgba(108, 92, 231, 0.05) 0%,
+        rgba(162, 155, 254, 0.05) 100%
+    );
     padding: 1em 1.5em;
     margin: 1.5em 0;
     border-radius: 0 8px 8px 0;
@@ -1733,25 +1844,25 @@ function onPrimaryPromoClick() {
     .purchase-rules-modal {
         max-height: 90vh;
     }
-    
+
     .purchase-rules-header {
         padding: 1.25rem 1.5rem;
     }
-    
+
     .purchase-rules-title {
         font-size: 1.25rem;
     }
-    
+
     .purchase-rules-body {
         padding: 1.5rem;
         max-height: calc(90vh - 220px);
     }
-    
+
     .purchase-rules-footer {
         padding: 1.25rem 1.5rem;
         flex-direction: column-reverse;
     }
-    
+
     .btn-rules-primary,
     .btn-rules-secondary {
         width: 100%;

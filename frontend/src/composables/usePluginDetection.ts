@@ -47,7 +47,7 @@ export function usePluginDetection() {
                     (window as any).chrome.runtime.sendMessage(
                         EXTENSION_ID,
                         { type: 'SC_EXT_RUNTIME_PING' },
-                        (response: any) => {
+                        () => {
                             clearTimeout(timeout);
                             const hasError = !!(window as any).chrome?.runtime?.lastError;
                             resolve(!hasError);

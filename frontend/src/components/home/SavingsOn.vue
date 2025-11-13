@@ -328,7 +328,9 @@ function addPremium(serviceId: number) {
 function goToServices() {
     try {
         router.push({ path: '/', hash: '#services' });
-    } catch {}
+    } catch {
+        // ignore error
+    }
 }
 function goToCheckout() {
     try {
@@ -337,7 +339,9 @@ function goToCheckout() {
                 ? '/checkout'
                 : { path: '/login', query: { redirect: 'checkout' } as any }
         );
-    } catch {}
+    } catch {
+        // ignore error
+    }
 }
 
 function getServiceName(serviceId?: number) {

@@ -68,7 +68,13 @@
 
                     <div class="flex flex-row items-center gap-2 justify-between">
                         <div class="relative">
-                            <input id="remember" v-model="remember" type="checkbox" :disabled="isSocialAuthLoading" class="mr-2" />
+                            <input
+                                id="remember"
+                                v-model="remember"
+                                type="checkbox"
+                                :disabled="isSocialAuthLoading"
+                                class="mr-2"
+                            />
                             <label for="remember" class="text-sm dark:text-gray-300">
                                 {{ $t('auth.rememberMe') }}
                             </label>
@@ -84,7 +90,11 @@
                     </div>
 
                     <div>
-                        <button type="submit" :disabled="isSocialAuthLoading" class="auth-button primary">
+                        <button
+                            type="submit"
+                            :disabled="isSocialAuthLoading"
+                            class="auth-button primary"
+                        >
                             {{ $t('auth.loginButton') }}
                         </button>
                     </div>
@@ -101,10 +111,7 @@
                         </router-link>
                     </p>
                 </form>
-                <SocialAuthButtons 
-                    @social-auth-status="handleSocialAuthStatus"
-                />
-                
+                <SocialAuthButtons @social-auth-status="handleSocialAuthStatus" />
             </div>
         </div>
     </div>
@@ -138,26 +145,26 @@ const handleSocialAuthStatus = (loading: boolean) => {
 const handleSubmit = async () => {
     console.log('[LOGIN PAGE] Начало обработки формы логина');
     console.log('[LOGIN PAGE] Email:', email.value);
-    
+
     try {
         const success = await authStore.login({
             email: email.value,
             password: password.value,
             remember: remember.value
         });
-        
+
         console.log('[LOGIN PAGE] Результат авторизации:', success);
         errors.value = authStore.errors;
 
         if (success) {
             console.log('[LOGIN PAGE] Авторизация успешна, подготовка к редиректу...');
-            
+
             // Небольшая задержка для гарантии сохранения данных
             await new Promise(resolve => setTimeout(resolve, 50));
-            
+
             const redirectTo = route.query.redirect as string;
             console.log('[LOGIN PAGE] Редирект на:', redirectTo || '/');
-            
+
             await router.push(redirectTo || '/');
             console.log('[LOGIN PAGE] Редирект выполнен');
         } else {

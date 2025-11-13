@@ -73,38 +73,32 @@ function setupResponsiveLimit() {
     if (mobileOneCol.addEventListener) {
         mobileOneCol.addEventListener('change', handler);
     } else {
-        // @ts-ignore legacy Safari
         mobileOneCol.addListener(handler);
     }
     if (lgOnly.addEventListener) {
         lgOnly.addEventListener('change', handler);
     } else {
-        // @ts-ignore legacy Safari
         lgOnly.addListener(handler);
     }
     if (xlUp.addEventListener) {
         xlUp.addEventListener('change', handler);
     } else {
-        // @ts-ignore legacy Safari
         xlUp.addListener(handler);
     }
     teardownMediaListeners = () => {
         if (mobileOneCol.removeEventListener) {
             mobileOneCol.removeEventListener('change', handler);
         } else {
-            // @ts-ignore legacy Safari
             mobileOneCol.removeListener(handler);
         }
         if (lgOnly.removeEventListener) {
             lgOnly.removeEventListener('change', handler);
         } else {
-            // @ts-ignore legacy Safari
             lgOnly.removeListener(handler);
         }
         if (xlUp.removeEventListener) {
             xlUp.removeEventListener('change', handler);
         } else {
-            // @ts-ignore legacy Safari
             xlUp.removeListener(handler);
         }
     };

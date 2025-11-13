@@ -12,10 +12,11 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
-        $schedule->command('subscriptions:cancel-expired')->everyMinute();
-        $schedule->command('subscriptions:notify-expiring')->hourly();
-        $schedule->command('subscriptions:check-payments')->twiceDaily(10, 16);
-        
+        // Subscription commands removed - commands do not exist
+        // $schedule->command('subscriptions:cancel-expired')->everyMinute();
+        // $schedule->command('subscriptions:notify-expiring')->hourly();
+        // $schedule->command('subscriptions:check-payments')->twiceDaily(10, 16);
+
         // Пересчет рейтингов поставщиков (каждый день в 3:00)
         $schedule->command('suppliers:recalculate-ratings')->dailyAt('03:00');
     }

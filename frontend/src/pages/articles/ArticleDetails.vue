@@ -72,12 +72,12 @@ const { locale } = useI18n();
 onMounted(async () => {
     // УЛУЧШЕНИЕ: Показываем прелоадер при загрузке статьи
     loadingStore.start();
-    
+
     try {
         if (!Number.isFinite(id)) {
             return router.replace('/404');
         }
-        
+
         await articlesStore.fetchArticleById(id);
     } catch (err: any) {
         if (err?.message === '404') {

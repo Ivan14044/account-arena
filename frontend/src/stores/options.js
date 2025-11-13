@@ -7,11 +7,13 @@ export const useOptionStore = defineStore('options', {
         isLoaded: false
     }),
     getters: {
-        getOption: (state) => (key, defaultValue = null) => {
-            if (!Array.isArray(state.options)) return defaultValue;
-            const option = state.options.find(opt => opt.key === key);
-            return option?.value ?? defaultValue;
-        }
+        getOption:
+            state =>
+            (key, defaultValue = null) => {
+                if (!Array.isArray(state.options)) return defaultValue;
+                const option = state.options.find(opt => opt.key === key);
+                return option?.value ?? defaultValue;
+            }
     },
     actions: {
         async fetchData() {
@@ -21,7 +23,7 @@ export const useOptionStore = defineStore('options', {
                 const response = await axios.get('/options');
                 this.options = response.data;
                 this.isLoaded = true;
-            } catch (error) {
+            } catch {
                 // Ошибка загрузки опций
             }
         }

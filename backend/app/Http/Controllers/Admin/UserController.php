@@ -137,7 +137,7 @@ class UserController extends Controller
                 $operationText = 'пополнен на';
                 $paymentMethod = 'admin_balance_topup';
                 break;
-                
+
             case 'subtract':
                 // Списание
                 $newBalance = $oldBalance - $amount;
@@ -149,7 +149,7 @@ class UserController extends Controller
                 $operationText = 'уменьшен на';
                 $paymentMethod = 'admin_balance_deduction';
                 break;
-                
+
             case 'set':
                 // Установка нового баланса
                 $newBalance = $amount;

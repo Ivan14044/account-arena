@@ -54,7 +54,6 @@ const emitStatus = () => {
     emit('social-auth-status', isSocialAuthLoading.value);
 };
 
-
 const openGoogleAuth = () => {
     // Set loading state
     isSocialAuthLoading.value = true;
@@ -188,7 +187,6 @@ const showTelegramPopup = () => {
 
 // Обработка данных авторизации Telegram
 const handleTelegramAuth = async (data: TelegramUser) => {
-    debugger;
     try {
         const response = await fetch('/auth/telegram/callback', {
             method: 'POST',

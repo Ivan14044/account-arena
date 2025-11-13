@@ -48,7 +48,8 @@ const loadingStore = useLoadingStore();
 }
 
 @keyframes navigation-pulse {
-    0%, 100% {
+    0%,
+    100% {
         opacity: 1;
         transform: scale(1);
     }
@@ -58,6 +59,3 @@ const loadingStore = useLoadingStore();
     }
 }
 </style>
-
-
-

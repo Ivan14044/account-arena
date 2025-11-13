@@ -25,7 +25,11 @@
                         <!-- icon -->
                         <div class="flex items-center justify-center mb-8">
                             <div class="w-24 h-24 flex items-center justify-center">
-                                <img :src="warningIcon" alt="Warning" class="w-20 h-20 object-contain drop-shadow-lg" />
+                                <img
+                                    :src="warningIcon"
+                                    alt="Warning"
+                                    class="w-20 h-20 object-contain drop-shadow-lg"
+                                />
                             </div>
                         </div>
 
@@ -35,15 +39,15 @@
                                 {{ $t('plugin.not_installed.title') }}
                             </h3>
                             <p class="text-gray-600 dark:text-gray-300 leading-relaxed">
-                <span v-if="!isWaiting">
-                  {{ $t('plugin.not_installed.message') }}
-                </span>
+                                <span v-if="!isWaiting">
+                                    {{ $t('plugin.not_installed.message') }}
+                                </span>
                                 <span v-else>
-                  {{
-                                        $t('plugin.not_installed.wait_instructions')
-                                        || 'Install the extension on the opened tab, then return here and press “Done”.'
+                                    {{
+                                        $t('plugin.not_installed.wait_instructions') ||
+                                        'Install the extension on the opened tab, then return here and press “Done”.'
                                     }}
-                </span>
+                                </span>
                             </p>
                         </div>
 
@@ -68,13 +72,23 @@
                         <!-- waiting -->
                         <div v-if="isWaiting" class="mt-4 text-center">
                             <div class="flex items-center justify-center mb-4">
-                                <div class="animate-spin rounded-full h-6 w-6 border-2 border-blue-500 border-t-transparent"></div>
+                                <div
+                                    class="animate-spin rounded-full h-6 w-6 border-2 border-blue-500 border-t-transparent"
+                                ></div>
                                 <span class="ml-3 text-sm text-gray-600 dark:text-gray-300">
-                  {{ $t('plugin.not_installed.waiting') || 'Waiting for extension installation...' }}
-                </span>
+                                    {{
+                                        $t('plugin.not_installed.waiting') ||
+                                        'Waiting for extension installation...'
+                                    }}
+                                </span>
                             </div>
-                            <p class="text-xs text-gray-400 dark:text-gray-500 mt-3 leading-relaxed opacity-80">
-                                {{ $t('plugin.not_installed.auto_check_hint') || 'We will detect the installation automatically.' }}
+                            <p
+                                class="text-xs text-gray-400 dark:text-gray-500 mt-3 leading-relaxed opacity-80"
+                            >
+                                {{
+                                    $t('plugin.not_installed.auto_check_hint') ||
+                                    'We will detect the installation automatically.'
+                                }}
                             </p>
                         </div>
                     </div>
@@ -127,10 +141,12 @@ function continueWithPlugin() {
     }
 
     // Всегда отправляем события для продолжения сессии
-    console.log('PluginWarningModal: sending app:plugin-status and app:continue-with-plugin events');
+    console.log(
+        'PluginWarningModal: sending app:plugin-status and app:continue-with-plugin events'
+    );
     window.dispatchEvent(
         new CustomEvent('app:plugin-status', {
-            detail: { pluginInstalled: true, pluginSkipped: false },
+            detail: { pluginInstalled: true, pluginSkipped: false }
         })
     );
 
@@ -205,7 +221,7 @@ onMounted(async () => {
         show.value = false;
         window.dispatchEvent(
             new CustomEvent('app:plugin-status', {
-                detail: { pluginInstalled: true, pluginSkipped: false },
+                detail: { pluginInstalled: true, pluginSkipped: false }
             })
         );
         window.dispatchEvent(new CustomEvent('app:continue-with-plugin'));
@@ -254,8 +270,15 @@ onBeforeUnmount(() => stopAutoDetect());
 
 /* subtle float */
 @keyframes float-gentle {
-    0%, 100% { transform: translateY(0px); }
-    50%      { transform: translateY(-5px); }
+    0%,
+    100% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-5px);
+    }
 }
-.animate-float-gentle { animation: float-gentle 4s ease-in-out infinite; }
+.animate-float-gentle {
+    animation: float-gentle 4s ease-in-out infinite;
+}
 </style>

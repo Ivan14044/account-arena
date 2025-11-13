@@ -79,23 +79,47 @@ const siteContentStore = useSiteContentStore();
 
 const promoteContent = computed(() => siteContentStore.promote(locale.value));
 
-const accessTitle = computed(() => promoteContent.value?.access?.title || t('promote.access.title'));
-const accessDescription = computed(() => promoteContent.value?.access?.description || t('promote.access.description'));
+const accessTitle = computed(
+    () => promoteContent.value?.access?.title || t('promote.access.title')
+);
+const accessDescription = computed(
+    () => promoteContent.value?.access?.description || t('promote.access.description')
+);
 
-const pricingTitle = computed(() => promoteContent.value?.pricing?.title || t('promote.pricing.title'));
-const pricingDescription = computed(() => promoteContent.value?.pricing?.description || t('promote.pricing.description'));
+const pricingTitle = computed(
+    () => promoteContent.value?.pricing?.title || t('promote.pricing.title')
+);
+const pricingDescription = computed(
+    () => promoteContent.value?.pricing?.description || t('promote.pricing.description')
+);
 
-const refundTitle = computed(() => promoteContent.value?.refund?.title || t('promote.refund.title'));
-const refundDescription = computed(() => promoteContent.value?.refund?.description || t('promote.refund.description'));
+const refundTitle = computed(
+    () => promoteContent.value?.refund?.title || t('promote.refund.title')
+);
+const refundDescription = computed(
+    () => promoteContent.value?.refund?.description || t('promote.refund.description')
+);
 
-const activationTitle = computed(() => promoteContent.value?.activation?.title || t('promote.activation.title'));
-const activationDescription = computed(() => promoteContent.value?.activation?.description || t('promote.activation.description'));
+const activationTitle = computed(
+    () => promoteContent.value?.activation?.title || t('promote.activation.title')
+);
+const activationDescription = computed(
+    () => promoteContent.value?.activation?.description || t('promote.activation.description')
+);
 
-const supportTitle = computed(() => promoteContent.value?.support?.title || t('promote.support.title'));
-const supportDescription = computed(() => promoteContent.value?.support?.description || t('promote.support.description'));
+const supportTitle = computed(
+    () => promoteContent.value?.support?.title || t('promote.support.title')
+);
+const supportDescription = computed(
+    () => promoteContent.value?.support?.description || t('promote.support.description')
+);
 
-const paymentTitle = computed(() => promoteContent.value?.payment?.title || t('promote.payment.title'));
-const paymentDescription = computed(() => promoteContent.value?.payment?.description || t('promote.payment.description'));
+const paymentTitle = computed(
+    () => promoteContent.value?.payment?.title || t('promote.payment.title')
+);
+const paymentDescription = computed(
+    () => promoteContent.value?.payment?.description || t('promote.payment.description')
+);
 </script>
 
 <style scoped>

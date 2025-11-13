@@ -99,7 +99,6 @@ export function useBanners(position: string = 'home_top') {
         getBannerTitle,
         loadBanners,
         loadAllBanners,
-        handleBannerClick,
+        handleBannerClick
     };
 }
-

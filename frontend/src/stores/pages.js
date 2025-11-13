@@ -15,7 +15,7 @@ export const usePageStore = defineStore('pages', {
                 const response = await axios.get('/pages');
                 this.pages = response.data;
                 this.isLoaded = true;
-            } catch (error) {
+            } catch {
                 // Ошибка загрузки страниц
             }
         },

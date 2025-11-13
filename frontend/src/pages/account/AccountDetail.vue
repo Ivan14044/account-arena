@@ -19,7 +19,9 @@
             <div class="relative">
                 <main>
                     <!-- Breadcrumbs и кнопка назад -->
-                    <div class="max-w-7xl mx-auto mt-6 mb-4 flex items-center justify-between flex-wrap gap-3">
+                    <div
+                        class="max-w-7xl mx-auto mt-6 mb-4 flex items-center justify-between flex-wrap gap-3"
+                    >
                         <div class="flex items-center gap-2 text-sm">
                             <router-link
                                 to="/"
@@ -27,16 +29,39 @@
                             >
                                 {{ $t('account.detail.home') }}
                             </router-link>
-                            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                            <svg
+                                class="w-4 h-4 text-gray-400"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M9 5l7 7-7 7"
+                                />
                             </svg>
                             <span v-if="account?.category" class="text-gray-500 dark:text-gray-400">
                                 {{ account.category.name }}
                             </span>
-                            <svg v-if="account?.category" class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                            <svg
+                                v-if="account?.category"
+                                class="w-4 h-4 text-gray-400"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M9 5l7 7-7 7"
+                                />
                             </svg>
-                            <span class="text-gray-700 dark:text-gray-200 font-medium">{{ account?.title || $t('account.detail.product') }}</span>
+                            <span class="text-gray-700 dark:text-gray-200 font-medium">{{
+                                account?.title || $t('account.detail.product')
+                            }}</span>
                         </div>
                         <router-link
                             to="/"
@@ -62,8 +87,12 @@
                     <!-- Состояние загрузки -->
                     <div v-if="!account" class="max-w-7xl mx-auto text-center py-20">
                         <div class="glass-card rounded-3xl p-12">
-                            <div class="animate-spin rounded-full h-16 w-16 border-b-2 border-purple-500 mx-auto"></div>
-                            <p class="mt-4 text-gray-600 dark:text-gray-300">{{ $t('account.detail.loading') }}</p>
+                            <div
+                                class="animate-spin rounded-full h-16 w-16 border-b-2 border-purple-500 mx-auto"
+                            ></div>
+                            <p class="mt-4 text-gray-600 dark:text-gray-300">
+                                {{ $t('account.detail.loading') }}
+                            </p>
                         </div>
                     </div>
 
@@ -76,9 +105,13 @@
                                     class="big-hero-card glass-card rounded-2xl p-5 flex flex-col gap-3 relative overflow-hidden"
                                 >
                                     <!-- Декоративные элементы фона -->
-                                    <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-purple-500/10 to-transparent rounded-full blur-2xl"></div>
-                                    <div class="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-blue-500/10 to-transparent rounded-full blur-2xl"></div>
-                                    
+                                    <div
+                                        class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-purple-500/10 to-transparent rounded-full blur-2xl"
+                                    ></div>
+                                    <div
+                                        class="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-blue-500/10 to-transparent rounded-full blur-2xl"
+                                    ></div>
+
                                     <div class="flex flex-col items-center gap-2 relative z-10">
                                         <!-- Изображение товара с кнопкой избранного -->
                                         <div class="product-image-wrapper relative group">
@@ -107,38 +140,81 @@
                                                     />
                                                 </svg>
                                             </div>
-                                            
+
                                             <!-- Кнопка избранного -->
                                             <button
-                                                @click="toggleFavorite"
                                                 class="favorite-button absolute top-3 right-3 transition-all duration-300"
                                                 :class="{ 'is-favorite': isFavorite }"
-                                                :title="isFavorite ? $t('account.detail.remove_from_favorites') : $t('account.detail.add_to_favorites')"
+                                                :title="
+                                                    isFavorite
+                                                        ? $t('account.detail.remove_from_favorites')
+                                                        : $t('account.detail.add_to_favorites')
+                                                "
+                                                @click="toggleFavorite"
                                             >
-                                                <svg class="w-6 h-6" :fill="isFavorite ? 'currentColor' : 'none'" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                                                <svg
+                                                    class="w-6 h-6"
+                                                    :fill="isFavorite ? 'currentColor' : 'none'"
+                                                    stroke="currentColor"
+                                                    viewBox="0 0 24 24"
+                                                >
+                                                    <path
+                                                        stroke-linecap="round"
+                                                        stroke-linejoin="round"
+                                                        stroke-width="2"
+                                                        d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                                                    />
                                                 </svg>
                                             </button>
                                         </div>
 
                                         <!-- Заголовок -->
                                         <div class="text-center w-full">
-                                            <h2 class="text-xl font-bold text-dark dark:text-white mb-1">
+                                            <h2
+                                                class="text-xl font-bold text-dark dark:text-white mb-1"
+                                            >
                                                 {{ account.title }}
                                             </h2>
                                             <!-- Артикул товара -->
-                                            <div 
-                                                v-if="account.sku" 
+                                            <div
+                                                v-if="account.sku"
                                                 class="sku-badge"
+                                                :title="
+                                                    $t('account.detail.sku') +
+                                                    ': ' +
+                                                    account.sku +
+                                                    ' (' +
+                                                    $t('account.detail.click_to_copy') +
+                                                    ')'
+                                                "
                                                 @click="copySku"
-                                                :title="$t('account.detail.sku') + ': ' + account.sku + ' (' + $t('account.detail.click_to_copy') + ')'"
                                             >
-                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"/>
+                                                <svg
+                                                    class="w-3 h-3"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    viewBox="0 0 24 24"
+                                                >
+                                                    <path
+                                                        stroke-linecap="round"
+                                                        stroke-linejoin="round"
+                                                        stroke-width="2"
+                                                        d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"
+                                                    />
                                                 </svg>
                                                 <span>{{ account.sku }}</span>
-                                                <svg class="w-3 h-3 copy-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                                                <svg
+                                                    class="w-3 h-3 copy-icon"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    viewBox="0 0 24 24"
+                                                >
+                                                    <path
+                                                        stroke-linecap="round"
+                                                        stroke-linejoin="round"
+                                                        stroke-width="2"
+                                                        d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                                                    />
                                                 </svg>
                                             </div>
                                         </div>
@@ -146,7 +222,10 @@
                                         <!-- Цена с дизайном -->
                                         <div class="text-center w-full">
                                             <div class="price-tag-wrapper">
-                                                <span class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">{{ $t('account.detail.price') }}</span>
+                                                <span
+                                                    class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider"
+                                                    >{{ $t('account.detail.price') }}</span
+                                                >
                                                 <div class="price-tag text-3xl">
                                                     {{ formatPrice(account.price) }}
                                                 </div>
@@ -185,39 +264,64 @@
                                             </svg>
                                             {{
                                                 account.quantity && account.quantity > 0
-                                                    ? $t('account.detail.in_stock_count', { count: account.quantity })
+                                                    ? $t('account.detail.in_stock_count', {
+                                                          count: account.quantity
+                                                      })
                                                     : $t('account.detail.no_stock')
                                             }}
                                         </div>
 
                                         <!-- Счетчик количества -->
-                                        <div v-if="account.quantity && account.quantity > 0" class="quantity-selector">
-                                            <button 
+                                        <div
+                                            v-if="account.quantity && account.quantity > 0"
+                                            class="quantity-selector"
+                                        >
+                                            <button
                                                 type="button"
                                                 class="quantity-btn"
-                                                @click="decreaseQuantity"
                                                 :disabled="quantity <= 1"
+                                                @click="decreaseQuantity"
                                             >
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/>
+                                                <svg
+                                                    class="w-4 h-4"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    viewBox="0 0 24 24"
+                                                >
+                                                    <path
+                                                        stroke-linecap="round"
+                                                        stroke-linejoin="round"
+                                                        stroke-width="2"
+                                                        d="M20 12H4"
+                                                    />
                                                 </svg>
                                             </button>
-                                            <input 
-                                                type="number" 
+                                            <input
                                                 v-model.number="quantity"
-                                                @input="validateQuantity"
+                                                type="number"
                                                 class="quantity-input"
                                                 min="1"
                                                 :max="account.quantity"
+                                                @input="validateQuantity"
                                             />
-                                            <button 
+                                            <button
                                                 type="button"
                                                 class="quantity-btn"
-                                                @click="increaseQuantity"
                                                 :disabled="quantity >= account.quantity"
+                                                @click="increaseQuantity"
                                             >
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                                                <svg
+                                                    class="w-4 h-4"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    viewBox="0 0 24 24"
+                                                >
+                                                    <path
+                                                        stroke-linecap="round"
+                                                        stroke-linejoin="round"
+                                                        stroke-width="2"
+                                                        d="M12 4v16m8-8H4"
+                                                    />
                                                 </svg>
                                             </button>
                                         </div>
@@ -225,12 +329,12 @@
 
                                     <!-- Кнопки действий - улучшенный дизайн -->
                                     <div class="w-full relative z-10">
-                                        <div
-                                            class="flex flex-col gap-2.5"
-                                        >
+                                        <div class="flex flex-col gap-2.5">
                                             <button
                                                 class="modern-button modern-button-primary"
-                                                :disabled="!account.quantity || account.quantity === 0"
+                                                :disabled="
+                                                    !account.quantity || account.quantity === 0
+                                                "
                                                 type="button"
                                                 @click="addToCart"
                                             >
@@ -254,13 +358,25 @@
 
                                             <button
                                                 class="modern-button modern-button-outline"
-                                                :disabled="!account.quantity || account.quantity === 0"
+                                                :disabled="
+                                                    !account.quantity || account.quantity === 0
+                                                "
                                                 type="button"
                                                 @click="buyNow"
                                             >
                                                 <span class="modern-button-content">
-                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                                                    <svg
+                                                        class="w-5 h-5"
+                                                        fill="none"
+                                                        stroke="currentColor"
+                                                        viewBox="0 0 24 24"
+                                                    >
+                                                        <path
+                                                            stroke-linecap="round"
+                                                            stroke-linejoin="round"
+                                                            stroke-width="2"
+                                                            d="M13 10V3L4 14h7v7l9-11h-7z"
+                                                        />
                                                     </svg>
                                                     {{ $t('account.detail.buy_now') }}
                                                 </span>
@@ -273,24 +389,55 @@
                             <!-- Правая колонка: Информация о товаре -->
                             <div class="lg:col-span-8 flex flex-col">
                                 <!-- Основная информация -->
-                                <div class="info-panel glass-card rounded-2xl p-4 relative overflow-hidden">
+                                <div
+                                    class="info-panel glass-card rounded-2xl p-4 relative overflow-hidden"
+                                >
                                     <div>
                                         <div class="flex items-start justify-between mb-3">
                                             <div>
-                                                <h1 class="text-2xl lg:text-3xl text-gray-900 dark:text-white font-extrabold mb-1.5 info-heading">
+                                                <h1
+                                                    class="text-2xl lg:text-3xl text-gray-900 dark:text-white font-extrabold mb-1.5 info-heading"
+                                                >
                                                     {{ account.title }}
                                                 </h1>
-                                                <div class="flex items-center gap-2.5 text-xs text-gray-500 dark:text-gray-400">
+                                                <div
+                                                    class="flex items-center gap-2.5 text-xs text-gray-500 dark:text-gray-400"
+                                                >
                                                     <span class="flex items-center gap-1">
-                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                                        <svg
+                                                            class="w-4 h-4"
+                                                            fill="none"
+                                                            stroke="currentColor"
+                                                            viewBox="0 0 24 24"
+                                                        >
+                                                            <path
+                                                                stroke-linecap="round"
+                                                                stroke-linejoin="round"
+                                                                stroke-width="2"
+                                                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                                                            />
+                                                            <path
+                                                                stroke-linecap="round"
+                                                                stroke-linejoin="round"
+                                                                stroke-width="2"
+                                                                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                                                            />
                                                         </svg>
                                                         {{ account.views ?? 0 }} просмотров
                                                     </span>
                                                     <span class="flex items-center gap-1">
-                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                                        <svg
+                                                            class="w-4 h-4"
+                                                            fill="none"
+                                                            stroke="currentColor"
+                                                            viewBox="0 0 24 24"
+                                                        >
+                                                            <path
+                                                                stroke-linecap="round"
+                                                                stroke-linejoin="round"
+                                                                stroke-width="2"
+                                                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                                                            />
                                                         </svg>
                                                         {{ account.sold ?? 0 }} продано
                                                     </span>
@@ -300,9 +447,21 @@
 
                                         <!-- Описание -->
                                         <div class="description-section">
-                                            <h3 class="text-base font-semibold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
-                                                <svg class="w-4 h-4 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                            <h3
+                                                class="text-base font-semibold text-gray-900 dark:text-white mb-2 flex items-center gap-2"
+                                            >
+                                                <svg
+                                                    class="w-4 h-4 text-purple-500"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    viewBox="0 0 24 24"
+                                                >
+                                                    <path
+                                                        stroke-linecap="round"
+                                                        stroke-linejoin="round"
+                                                        stroke-width="2"
+                                                        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                                                    />
                                                 </svg>
                                                 {{ $t('account.detail.description_title') }}
                                             </h3>
@@ -311,7 +470,10 @@
                                                 class="text-gray-900 dark:text-gray-300 info-body product-content"
                                                 v-html="account.description"
                                             />
-                                            <p v-else class="text-gray-500 dark:text-gray-400 italic">
+                                            <p
+                                                v-else
+                                                class="text-gray-500 dark:text-gray-400 italic"
+                                            >
                                                 {{ $t('account.detail.no_description') }}
                                             </p>
                                         </div>
@@ -383,7 +545,7 @@ const isFavorite = computed(() => {
 // Переключение избранного
 const toggleFavorite = () => {
     if (!account.value) return;
-    
+
     if (favorites.value.has(account.value.id)) {
         favorites.value.delete(account.value.id);
         toast.info(t('account.detail.removed_from_favorites'));
@@ -391,18 +553,18 @@ const toggleFavorite = () => {
         favorites.value.add(account.value.id);
         toast.success(t('account.detail.added_to_favorites'));
     }
-    
+
     saveFavorites();
 };
 
 // Копирование артикула в буфер обмена
 const copySku = async () => {
     if (!account.value?.sku) return;
-    
+
     try {
         await navigator.clipboard.writeText(account.value.sku);
         toast.success(t('account.detail.sku_copied'));
-    } catch (err) {
+    } catch {
         // Fallback для старых браузеров
         const textarea = document.createElement('textarea');
         textarea.value = account.value.sku;
@@ -413,7 +575,7 @@ const copySku = async () => {
         try {
             document.execCommand('copy');
             toast.success(t('account.detail.sku_copied'));
-        } catch (e) {
+        } catch {
             toast.error(t('profile.purchases.copy_error'));
         }
         document.body.removeChild(textarea);
@@ -436,17 +598,17 @@ const decreaseQuantity = () => {
 
 const validateQuantity = () => {
     if (!account.value) return;
-    
+
     // Проверяем что значение числовое
     if (isNaN(quantity.value) || quantity.value < 1) {
         quantity.value = 1;
     }
-    
+
     // Проверяем что не превышает доступное количество
     if (quantity.value > account.value.quantity) {
         quantity.value = account.value.quantity;
     }
-    
+
     // Округляем до целого числа
     quantity.value = Math.floor(quantity.value);
 };
@@ -462,7 +624,7 @@ function formatPrice(value: number): string {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2
         }).format(num);
-    } catch (_) {
+    } catch {
         return `${currency} ${num.toFixed(2)}`;
     }
 }
@@ -493,10 +655,10 @@ const buyNow = () => {
 onMounted(async () => {
     // Загружаем избранное
     loadFavorites();
-    
+
     // УЛУЧШЕНИЕ: Показываем прелоадер при загрузке товара
     loadingStore.start();
-    
+
     try {
         // Загружаем товар (ID или артикул)
         const idOrSku = route.params.id as string;
@@ -504,7 +666,7 @@ onMounted(async () => {
             router.replace('/404');
             return;
         }
-        
+
         // Пытаемся загрузить товар (поддерживает и ID, и артикул)
         account.value = await accountsStore.fetchById(idOrSku).catch(() => null);
         if (!account.value) {
@@ -665,7 +827,8 @@ onMounted(async () => {
 }
 
 @keyframes heartbeat {
-    0%, 100% {
+    0%,
+    100% {
         transform: scale(1);
     }
     25% {
@@ -864,7 +1027,7 @@ onMounted(async () => {
     margin: 0;
 }
 
-.quantity-input[type=number] {
+.quantity-input[type='number'] {
     appearance: textfield;
     -moz-appearance: textfield;
 }
@@ -912,7 +1075,7 @@ onMounted(async () => {
 .modern-button-primary {
     background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%);
     color: white;
-    box-shadow: 
+    box-shadow:
         0 4px 12px rgba(99, 102, 241, 0.3),
         0 0 0 1px rgba(255, 255, 255, 0.1) inset;
 }
@@ -933,7 +1096,7 @@ onMounted(async () => {
 
 .modern-button-primary:hover:not(:disabled) {
     transform: translateY(-2px);
-    box-shadow: 
+    box-shadow:
         0 8px 24px rgba(99, 102, 241, 0.4),
         0 0 0 1px rgba(255, 255, 255, 0.15) inset;
 }

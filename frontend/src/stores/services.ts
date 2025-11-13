@@ -36,7 +36,7 @@ export const useServiceStore = defineStore('services', {
                 }));
 
                 this.isLoaded = true;
-            } catch (error) {
+            } catch {
                 // Ошибка загрузки сервисов
             }
         },

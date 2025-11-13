@@ -9,51 +9,52 @@ class SubscriptionController extends Controller
 {
     public function cancelSubscription(\App\Http\Requests\Subscription\SubscriptionIdRequest $request)
     {
-        $subscription = $this->getUserSubscription($request);
-        if (!$subscription instanceof Subscription) {
-            return $subscription;
-        }
+        // Not implemented yet
+        // $subscription = $this->getUserSubscription($request);
+        // if (!$subscription instanceof Subscription) {
+        //     return $subscription;
+        // }
 
-        $subscription->update(['status' => Subscription::STATUS_CANCELED]);
+        // $subscription->update(['status' => Subscription::STATUS_CANCELED]);
 
-        return response()->json(['success' => true]);
+        return response()->json(['success' => false]);
     }
 
     public function toggleAutoRenew(\App\Http\Requests\Subscription\SubscriptionIdRequest $request)
     {
-        $subscription = $this->getUserSubscription($request);
-        if (!$subscription instanceof Subscription) {
-            return $subscription;
-        }
+        // $subscription = $this->getUserSubscription($request);
+        // if (!$subscription instanceof Subscription) {
+        //     return $subscription;
+        // }
 
-        $subscription->update([
-            'is_auto_renew' => !$subscription->is_auto_renew,
-        ]);
+        // $subscription->update([
+        //     'is_auto_renew' => !$subscription->is_auto_renew,
+        // ]);
 
         return response()->json([
-            'is_auto_renew' => !$subscription->is_auto_renew,
-            'success' => true,
+            'is_auto_renew' => false, // !$subscription->is_auto_renew,
+            'success' => false,
         ]);
     }
 
     /**
      * Проверка авторизации и получения подписки пользователя.
      */
-    private function getUserSubscription(Request $request)
-    {
-        $user = $this->getApiUser($request);
-        if (!$user) {
-            return response()->json(['message' => 'Invalid token'], 401);
-        }
+    // private function getUserSubscription(Request $request)
+    // {
+    //     $user = $this->getApiUser($request);
+    //     if (!$user) {
+    //         return response()->json(['message' => 'Invalid token'], 401);
+    //     }
 
-        // Валидация вынесена в FormRequest
+    //     // Валидация вынесена в FormRequest
 
-        $subscription = Subscription::find($request->subscription_id);
+    //     $subscription = Subscription::find($request->subscription_id);
 
-        if (!$subscription || $subscription->user_id !== $user->id) {
-            return response()->json(['message' => 'Subscription does not belong to the authenticated user'], 401);
-        }
+    //     if (!$subscription || $subscription->user_id !== $user->id) {
+    //         return response()->json(['message' => 'Subscription does not belong to the authenticated user'], 401);
+    //     }
 
-        return $subscription;
-    }
+    //     return $subscription;
+    // }
 }

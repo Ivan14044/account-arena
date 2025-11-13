@@ -1,470 +1,470 @@
 {
-  "auth": {
-    "loginTitle": "Welcome back",
-    "loginSubtitle": "Log in to your account to continue",
-    "registerTitle": "Create an account",
-    "registerSubtitle": "Join us and start working with our creative tools",
-    "email": "Email",
-    "password": "Password",
-    "passwordConfirmation": "Confirm password",
-    "name": "Full name",
-    "rememberMe": "Remember me",
-    "forgotPassword": "Forgot password?",
-    "loginButton": "Log in",
-    "registerButton": "Create account",
-    "noAccount": "Don't have an account?",
-    "haveAccount": "Already have an account?",
-    "registerLink": "Sign up",
-    "loginLink": "Log in",
-    "logoutLink": "Log out",
-    "profile": "Profile",
-    "subscriptions": "My Subscriptions",
-    "orContinueWith": "Or continue with",
-    "authenticating": "Authenticating...",
-    "google": "Log in with Google",
-    "telegram": "Log in with Telegram",
-    "forgotPasswordTitle": "Forgot password?",
-    "forgotPasswordSubtitle": "Enter your email to receive a password reset link.",
-    "forgotPasswordSubmit": "Send link",
-    "guide": "Please check your email for a password reset link.",
-    "forgotPasswordSuccess": "A password reset link has been sent to your email.",
-    "resetPasswordTitle": "Reset password",
-    "resetPasswordSubtitle": "Enter a new password for your account.",
-    "resetPasswordSubmit": "Reset password",
-    "resetPasswordSuccess": "Password successfully reset."
-  },
-  "services": {
-    "title": "<span class='gradient-text bg-gradient-2'>Creative</span> Tools Hub",
-    "card": {
-      "show_more": "Show more",
-      "back_to_front_side": "Tap anywhere on this card to go back"
+    "auth": {
+        "loginTitle": "Welcome back",
+        "loginSubtitle": "Log in to your account to continue",
+        "registerTitle": "Create an account",
+        "registerSubtitle": "Join us and start working with our creative tools",
+        "email": "Email",
+        "password": "Password",
+        "passwordConfirmation": "Confirm password",
+        "name": "Full name",
+        "rememberMe": "Remember me",
+        "forgotPassword": "Forgot password?",
+        "loginButton": "Log in",
+        "registerButton": "Create account",
+        "noAccount": "Don't have an account?",
+        "haveAccount": "Already have an account?",
+        "registerLink": "Sign up",
+        "loginLink": "Log in",
+        "logoutLink": "Log out",
+        "profile": "Profile",
+        "subscriptions": "My Subscriptions",
+        "orContinueWith": "Or continue with",
+        "authenticating": "Authenticating...",
+        "google": "Log in with Google",
+        "telegram": "Log in with Telegram",
+        "forgotPasswordTitle": "Forgot password?",
+        "forgotPasswordSubtitle": "Enter your email to receive a password reset link.",
+        "forgotPasswordSubmit": "Send link",
+        "guide": "Please check your email for a password reset link.",
+        "forgotPasswordSuccess": "A password reset link has been sent to your email.",
+        "resetPasswordTitle": "Reset password",
+        "resetPasswordSubtitle": "Enter a new password for your account.",
+        "resetPasswordSubmit": "Reset password",
+        "resetPasswordSuccess": "Password successfully reset."
     },
-    "page": {
-      "back": "Back"
-    }
-  },
-  "perMonth": "per month",
-  "plans": {
-    "price_monthly": "<strong>{price} {currency}</strong> per month",
-    "add_to_cart": "Add to cart",
-    "go_to_checkout": "Go to Checkout",
-    "open": "Open browser",
-    "get_trial": "Get Trial",
-    "trial_period": "{price} Trial"
-  },
-  "profile": {
-    "title": "My profile",
-    "name": "Name",
-    "namePlaceholder": "Enter your name",
-    "email": "Email",
-    "emailPlaceholder": "Enter your email",
-    "password": "Password",
-    "passwordPlaceholder": "Enter a new password if you want to change it",
-    "confirmPassword": "Confirm Password",
-    "confirmPasswordPlaceholder": "Confirm your new password",
-    "saveButton": "Save",
-    "success": "Your profile has been successfully updated!",
-    "keyboard": {
-      "title": "Keyboard languages",
-      "hint": "Used by the Account Arena browser extension. English is always enabled.",
-      "codes": {
-        "en": "US",
-        "ru": "RU",
-        "uk": "UA"
-      }
+    "services": {
+        "title": "<span class='gradient-text bg-gradient-2'>Creative</span> Tools Hub",
+        "card": {
+            "show_more": "Show more",
+            "back_to_front_side": "Tap anywhere on this card to go back"
+        },
+        "page": {
+            "back": "Back"
+        }
     },
-    "balance": "Your Balance",
-    "voucher": {
-      "title": "Activate Voucher",
-      "description": "Enter voucher code to top up your account balance",
-      "placeholder": "ENTER VOUCHER CODE",
-      "activate": "Activate",
-      "activating": "Activating...",
-      "success": "Voucher successfully activated!",
-      "error": "Voucher activation error"
+    "perMonth": "per month",
+    "plans": {
+        "price_monthly": "<strong>{price} {currency}</strong> per month",
+        "add_to_cart": "Add to cart",
+        "go_to_checkout": "Go to Checkout",
+        "open": "Open browser",
+        "get_trial": "Get Trial",
+        "trial_period": "{price} Trial"
     },
-    "purchases": {
-      "title": "Purchase History",
-      "loading": "Loading...",
-      "no_purchases": "You have no purchases yet",
-      "no_service": "Untitled",
-      "filters": {
-        "period": "Period",
-        "status": "Status",
-        "payment_method": "Payment Method",
-        "date_from": "From date",
-        "date_to": "To date",
-        "apply": "Apply",
-        "reset": "Reset",
-        "all": "All"
-      },
-      "methods": {
-        "card": "Credit Card",
-        "crypto": "Cryptocurrency",
-        "free": "Free",
-        "admin": "Administrator",
+    "profile": {
+        "title": "My profile",
+        "name": "Name",
+        "namePlaceholder": "Enter your name",
+        "email": "Email",
+        "emailPlaceholder": "Enter your email",
+        "password": "Password",
+        "passwordPlaceholder": "Enter a new password if you want to change it",
+        "confirmPassword": "Confirm Password",
+        "confirmPasswordPlaceholder": "Confirm your new password",
+        "saveButton": "Save",
+        "success": "Your profile has been successfully updated!",
+        "keyboard": {
+            "title": "Keyboard languages",
+            "hint": "Used by the Account Arena browser extension. English is always enabled.",
+            "codes": {
+                "en": "US",
+                "ru": "RU",
+                "uk": "UA"
+            }
+        },
+        "balance": "Your Balance",
+        "voucher": {
+            "title": "Activate Voucher",
+            "description": "Enter voucher code to top up your account balance",
+            "placeholder": "ENTER VOUCHER CODE",
+            "activate": "Activate",
+            "activating": "Activating...",
+            "success": "Voucher successfully activated!",
+            "error": "Voucher activation error"
+        },
+        "purchases": {
+            "title": "Purchase History",
+            "loading": "Loading...",
+            "no_purchases": "You have no purchases yet",
+            "no_service": "Untitled",
+            "filters": {
+                "period": "Period",
+                "status": "Status",
+                "payment_method": "Payment Method",
+                "date_from": "From date",
+                "date_to": "To date",
+                "apply": "Apply",
+                "reset": "Reset",
+                "all": "All"
+            },
+            "methods": {
+                "card": "Credit Card",
+                "crypto": "Cryptocurrency",
+                "free": "Free",
+                "admin": "Administrator",
+                "credit_card": "Credit Card",
+                "balance": "Balance"
+            },
+            "statuses": {
+                "completed": "Completed",
+                "pending": "Pending",
+                "failed": "Failed",
+                "refunded": "Refunded"
+            },
+            "quantity": "Quantity",
+            "pcs": "pcs",
+            "show_data": "Show product data",
+            "hide_data": "Hide product data",
+            "copy": "Copy",
+            "download": "Download",
+            "download_all": "Download all accounts",
+            "account": "Account",
+            "copy_success": "Copied to clipboard!",
+            "copy_error": "Copy error",
+            "download_success": "File downloaded!",
+            "order_number": "Order number",
+            "order": "Order",
+            "amount": "Amount",
+            "disputes": {
+                "title": "Disputes",
+                "create_button": "Report Problem",
+                "create_title": "Create Dispute",
+                "reason": "Reason",
+                "select_reason": "Select reason",
+                "description": "Problem Description",
+                "description_placeholder": "Describe the problem in detail...",
+                "submit": "Submit",
+                "cancel": "Cancel",
+                "success": "Dispute successfully created",
+                "error": "Error creating dispute",
+                "cannot_create": "Cannot create dispute",
+                "already_exists": "Dispute already exists",
+                "expired": "Dispute period has expired",
+                "reasons": {
+                    "invalid_account": "Invalid Account",
+                    "wrong_data": "Wrong Data",
+                    "not_working": "Not Working",
+                    "already_used": "Already Used",
+                    "banned": "Banned",
+                    "other": "Other"
+                },
+                "status": {
+                    "new": "New",
+                    "in_review": "In Review",
+                    "resolved": "Resolved",
+                    "rejected": "Rejected"
+                },
+                "decision": {
+                    "refund": "Refund",
+                    "replacement": "Replacement",
+                    "rejected": "Rejected"
+                },
+                "my_disputes": "My Disputes",
+                "no_disputes": "You have no disputes",
+                "view_details": "View Details",
+                "created_at": "Created",
+                "admin_comment": "Administrator Comment"
+            }
+        }
+    },
+    "checkout": {
+        "agree_with": "I agree with",
+        "purchase_rules": "purchase rules",
+        "agree": "Agree",
+        "close": "Close",
+        "must_agree_rules": "You must accept the purchase rules to proceed",
+        "select_payment_method": "Please select a payment method",
+        "trial_crypto_not_allowed": "Cryptocurrency is not available for trial subscriptions",
+        "rules_not_available": "Purchase rules are temporarily unavailable",
+        "title": "Checkout",
+        "empty": "Your cart is empty. Start adding some items!",
+        "payment_method": "Payment method",
+        "payment_method_placeholder": "Select payment method",
+        "submit": "Place order",
+        "crypto": "Crypto",
+        "crypto_placeholder": "Popular: BTC, ETH, USDT",
+        "balance": "Account Balance",
+        "balance_placeholder": "Pay from your account balance",
+        "insufficient_balance": "Insufficient balance",
+        "balance_success": "Payment from balance successful!",
+        "default": "Default",
         "credit_card": "Credit Card",
-        "balance": "Balance"
-      },
-      "statuses": {
-        "completed": "Completed",
-        "pending": "Pending",
-        "failed": "Failed",
-        "refunded": "Refunded"
-      },
-      "quantity": "Quantity",
-      "pcs": "pcs",
-      "show_data": "Show product data",
-      "hide_data": "Hide product data",
-      "copy": "Copy",
-      "download": "Download",
-      "download_all": "Download all accounts",
-      "account": "Account",
-      "copy_success": "Copied to clipboard!",
-      "copy_error": "Copy error",
-      "download_success": "File downloaded!",
-      "order_number": "Order number",
-      "order": "Order",
-      "amount": "Amount",
-      "disputes": {
-        "title": "Disputes",
-        "create_button": "Report Problem",
-        "create_title": "Create Dispute",
-        "reason": "Reason",
-        "select_reason": "Select reason",
-        "description": "Problem Description",
-        "description_placeholder": "Describe the problem in detail...",
-        "submit": "Submit",
-        "cancel": "Cancel",
-        "success": "Dispute successfully created",
-        "error": "Error creating dispute",
-        "cannot_create": "Cannot create dispute",
-        "already_exists": "Dispute already exists",
-        "expired": "Dispute period has expired",
-        "reasons": {
-          "invalid_account": "Invalid Account",
-          "wrong_data": "Wrong Data",
-          "not_working": "Not Working",
-          "already_used": "Already Used",
-          "banned": "Banned",
-          "other": "Other"
+        "credit_card_placeholder": "Apple Pay, Visa, MasterCard and others",
+        "total": "Total due",
+        "pay": "Pay",
+        "month": "month",
+        "total_amount": "Total amount",
+        "trial_services": "trial services",
+        "premium_services": "premium services",
+        "payment_error": "An error occurred during the payment process. Please try again.",
+        "success": "Payment was successful! Thank you for your purchase.",
+        "free_success": "Free access activated! Enjoy your services.",
+        "activating_admin": "Activating subscription (admin)...",
+        "admin_success": "Subscription successfully activated manually.",
+        "admin_error": "Error occurred while manually activating the subscription.",
+        "trial_badge": "Trial version",
+        "premium_badge": "Full version",
+        "next_payments": "Upcoming payments for services",
+        "original_total": "Original total",
+        "discount": "Discount",
+        "upsell_generic": "Add {0} more service \n and get a discount",
+        "promocode_placeholder": "Promocode",
+        "promocode_apply_aria": "Apply promocode",
+        "promocode_clear_aria": "Clear promocode",
+        "promocode_discount": "Promocode discount",
+        "promocode_discount_empty_cart": "Promocode applied: discount will be used at checkout. Add services to your cart to see the savings.",
+        "free_via_promocode": "Free via promocode for {days} days",
+        "promocode_empty_hint": "Or enter a promocode below"
+    },
+    "subscriptions": {
+        "title": "My subscriptions",
+        "empty_active": "You have no active subscriptions.",
+        "empty_inactive": "You have no inactive subscriptions.",
+        "title_sub": "Subscription to {name}",
+        "status_active": "Active",
+        "status_ended": "Ended",
+        "status_canceled": "Inactive",
+        "payment_method": "Payment method: {method}",
+        "created_at": "Created at: {date}",
+        "next_payment_at": "Next payment at: {date}",
+        "active_tab": "Active",
+        "inactive_tab": "Inactive",
+        "empty": "You don't have any subscriptions.",
+        "cancel": "Cancel subscription",
+        "renew": "Resume subscription",
+        "toggle_confirm_title_cancel": "Cancel subscription?",
+        "toggle_confirm_text_cancel": "Are you sure you want to cancel the subscription?",
+        "toggle_confirm_title_renew": "Resume subscription?",
+        "toggle_confirm_text_renew": "Are you sure you want to resume the subscription?",
+        "toggle_confirm_yes": "Yes, confirm",
+        "toggle_confirm_no": "Cancel",
+        "toggled_success": "Subscription settings updated",
+        "toggled_error": "Failed to update subscription",
+        "end_at": "<strong>Auto-renewal is disabled</strong>, subscription is active until {date}"
+    },
+    "hero": {
+        "title": "Digital Goods Store & <span class='gradient-text'>Premium Accounts</span>",
+        "description": "Buy ready-made accounts, keys, licenses, and digital products at the best prices. Instant delivery, quality guarantee, and secure payments. Start shopping right now!",
+        "button": "Go to Catalog"
+    },
+    "adBanners": {
+        "title": "Advertising Banners",
+        "wideBanner": "Wide banner here",
+        "banner1": "Ad here 1",
+        "banner2": "Ad here 2",
+        "banner3": "Ad here 3",
+        "banner4": "Ad here 4"
+    },
+    "about": {
+        "title": "About Us",
+        "description": "We specialize in selling digital goods: premium accounts, licenses, activation keys, and other digital products. What we offer: ✅ Huge selection ✅ Fast delivery ✅ Quality guarantee ✅ Secure payments Our goal: Make digital goods accessible to everyone at competitive prices."
+    },
+    "promote": {
+        "title": "Why Choose <span class='gradient-text'>Our Platform</span>",
+        "access": {
+            "title": "Instant Delivery",
+            "description": "All products are delivered instantly after payment. No waiting — get access immediately."
         },
-        "status": {
-          "new": "New",
-          "in_review": "In Review",
-          "resolved": "Resolved",
-          "rejected": "Rejected"
+        "pricing": {
+            "title": "Best Prices",
+            "description": "We offer competitive prices across all digital product categories with no hidden fees."
         },
-        "decision": {
-          "refund": "Refund",
-          "replacement": "Replacement",
-          "rejected": "Rejected"
+        "refund": {
+            "title": "Quality Guarantee",
+            "description": "We guarantee the quality of every product. If something isn't right, we'll refund your money."
         },
-        "my_disputes": "My Disputes",
-        "no_disputes": "You have no disputes",
-        "view_details": "View Details",
-        "created_at": "Created",
-        "admin_comment": "Administrator Comment"
-      }
-    }
-  },
-  "checkout": {
-    "agree_with": "I agree with",
-    "purchase_rules": "purchase rules",
-    "agree": "Agree",
-    "close": "Close",
-    "must_agree_rules": "You must accept the purchase rules to proceed",
-    "select_payment_method": "Please select a payment method",
-    "trial_crypto_not_allowed": "Cryptocurrency is not available for trial subscriptions",
-    "rules_not_available": "Purchase rules are temporarily unavailable",
-    "title": "Checkout",
-    "empty": "Your cart is empty. Start adding some items!",
-    "payment_method": "Payment method",
-    "payment_method_placeholder": "Select payment method",
-    "submit": "Place order",
-    "crypto": "Crypto",
-    "crypto_placeholder": "Popular: BTC, ETH, USDT",
-    "balance": "Account Balance",
-    "balance_placeholder": "Pay from your account balance",
-    "insufficient_balance": "Insufficient balance",
-    "balance_success": "Payment from balance successful!",
-    "default": "Default",
-    "credit_card": "Credit Card",
-    "credit_card_placeholder": "Apple Pay, Visa, MasterCard and others",
-    "total": "Total due",
-    "pay": "Pay",
-    "month": "month",
-    "total_amount": "Total amount",
-    "trial_services": "trial services",
-    "premium_services": "premium services",
-    "payment_error": "An error occurred during the payment process. Please try again.",
-    "success": "Payment was successful! Thank you for your purchase.",
-    "free_success": "Free access activated! Enjoy your services.",
-    "activating_admin": "Activating subscription (admin)...",
-    "admin_success": "Subscription successfully activated manually.",
-    "admin_error": "Error occurred while manually activating the subscription.",
-    "trial_badge": "Trial version",
-    "premium_badge": "Full version",
-    "next_payments": "Upcoming payments for services",
-    "original_total": "Original total",
-    "discount": "Discount",
-    "upsell_generic": "Add {0} more service \n and get a discount",
-    "promocode_placeholder": "Promocode",
-    "promocode_apply_aria": "Apply promocode",
-    "promocode_clear_aria": "Clear promocode",
-    "promocode_discount": "Promocode discount",
-    "promocode_discount_empty_cart": "Promocode applied: discount will be used at checkout. Add services to your cart to see the savings.",
-    "free_via_promocode": "Free via promocode for {days} days",
-    "promocode_empty_hint": "Or enter a promocode below"
-  },
-  "subscriptions": {
-    "title": "My subscriptions",
-    "empty_active": "You have no active subscriptions.",
-    "empty_inactive": "You have no inactive subscriptions.",
-    "title_sub": "Subscription to {name}",
-    "status_active": "Active",
-    "status_ended": "Ended",
-    "status_canceled": "Inactive",
-    "payment_method": "Payment method: {method}",
-    "created_at": "Created at: {date}",
-    "next_payment_at": "Next payment at: {date}",
-    "active_tab": "Active",
-    "inactive_tab": "Inactive",
-    "empty": "You don't have any subscriptions.",
-    "cancel": "Cancel subscription",
-    "renew": "Resume subscription",
-    "toggle_confirm_title_cancel": "Cancel subscription?",
-    "toggle_confirm_text_cancel": "Are you sure you want to cancel the subscription?",
-    "toggle_confirm_title_renew": "Resume subscription?",
-    "toggle_confirm_text_renew": "Are you sure you want to resume the subscription?",
-    "toggle_confirm_yes": "Yes, confirm",
-    "toggle_confirm_no": "Cancel",
-    "toggled_success": "Subscription settings updated",
-    "toggled_error": "Failed to update subscription",
-    "end_at": "<strong>Auto-renewal is disabled</strong>, subscription is active until {date}"
-  },
-  "hero": {
-    "title": "Digital Goods Store & <span class='gradient-text'>Premium Accounts</span>",
-    "description": "Buy ready-made accounts, keys, licenses, and digital products at the best prices. Instant delivery, quality guarantee, and secure payments. Start shopping right now!",
-    "button": "Go to Catalog"
-  },
-  "adBanners": {
-    "title": "Advertising Banners",
-    "wideBanner": "Wide banner here",
-    "banner1": "Ad here 1",
-    "banner2": "Ad here 2",
-    "banner3": "Ad here 3",
-    "banner4": "Ad here 4"
-  },
-  "about": {
-    "title": "About Us",
-    "description": "We specialize in selling digital goods: premium accounts, licenses, activation keys, and other digital products. What we offer: ✅ Huge selection ✅ Fast delivery ✅ Quality guarantee ✅ Secure payments Our goal: Make digital goods accessible to everyone at competitive prices."
-  },
-  "promote": {
-    "title": "Why Choose <span class='gradient-text'>Our Platform</span>",
-    "access": {
-      "title": "Instant Delivery",
-      "description": "All products are delivered instantly after payment. No waiting — get access immediately."
+        "activation": {
+            "title": "Verified Products",
+            "description": "All products are verified before sale to ensure you receive only working items."
+        },
+        "support": {
+            "title": "24/7 Support",
+            "description": "Our team works around the clock — ready to help in English, Ukrainian, and Russian."
+        },
+        "payment": {
+            "title": "Secure Payments",
+            "description": "Multiple payment methods, secure transactions, and protection of your data."
+        }
     },
-    "pricing": {
-      "title": "Best Prices",
-      "description": "We offer competitive prices across all digital product categories with no hidden fees."
+    "steps": {
+        "title": "How to <br><span class='gradient-text'>Buy</span> Products in 3 Steps",
+        "description": "The purchase process is simple and straightforward!",
+        "step1": {
+            "title": "How it works",
+            "description1": "🛒 1. Choose a product",
+            "subdescription1": "Browse the catalog and find what you need: accounts, keys, licenses, and more.",
+            "description2": "💳 2. Pay for your order",
+            "subdescription2": "Choose a convenient payment method from many available options. Fast, secure, and easy.",
+            "description3": "✅ 3. Receive your product",
+            "subdescription3": "Instant delivery after payment! All data will be sent to your email or in your personal account. No delays!"
+        },
+        "step2": {
+            "title": "Why choose us",
+            "description1": "💰 Best prices — Competitive prices without overpayments or hidden fees.",
+            "description2": "⚡️ Fast delivery — Instant shipment after payment confirmation.",
+            "description3": "✅ Quality guarantee — All products are verified before sale, 100% functionality.",
+            "description4": "🔒 Security — Protected payments and confidentiality of your data.",
+            "description5": "🎯 Wide range — Thousands of products from various categories in one place."
+        },
+        "step3": {
+            "title": "Who our store is for",
+            "description1": "🎮 Gamers — Gaming platform accounts, activation keys, in-game currency.",
+            "description2": "💼 Businesses — License keys for software, premium service accounts, service subscriptions.",
+            "description3": "👨‍🎓 Students — Access to educational platforms, study materials, service subscriptions.",
+            "description4": "🎨 Creatives — Accounts for design platforms, editors, and creative tools.",
+            "description5": "💻 IT professionals — Developer keys, platforms, work tools."
+        }
     },
-    "refund": {
-      "title": "Quality Guarantee",
-      "description": "We guarantee the quality of every product. If something isn't right, we'll refund your money."
+    "footer": {
+        "address": "FOP Knysh Alla Oleksandrivna 08297 Kyiv region, Bucha district, Bucha city, Shose Nove, building 42",
+        "copyright": "Account Arena 2025 © All rights reserved"
     },
-    "activation": {
-      "title": "Verified Products",
-      "description": "All products are verified before sale to ensure you receive only working items."
+    "reviews": {
+        "title": "Your satisfaction drives us to grow!"
     },
-    "support": {
-      "title": "24/7 Support",
-      "description": "Our team works around the clock — ready to help in English, Ukrainian, and Russian."
+    "subscribe": {
+        "title": "Subscribe",
+        "description": "Subscribe to Account Arena and be the first to know about exclusive discounts, special offers, and the latest tools!",
+        "button": "Subscribe",
+        "error": "Please enter a valid email address",
+        "required": "Email is required",
+        "success": "Thank you for subscribing!"
     },
-    "payment": {
-      "title": "Secure Payments",
-      "description": "Multiple payment methods, secure transactions, and protection of your data."
-    }
-  },
-  "steps": {
-    "title": "How to <br><span class='gradient-text'>Buy</span> Products in 3 Steps",
-    "description": "The purchase process is simple and straightforward!",
-    "step1": {
-      "title": "How it works",
-      "description1": "🛒 1. Choose a product",
-      "subdescription1": "Browse the catalog and find what you need: accounts, keys, licenses, and more.",
-      "description2": "💳 2. Pay for your order",
-      "subdescription2": "Choose a convenient payment method from many available options. Fast, secure, and easy.",
-      "description3": "✅ 3. Receive your product",
-      "subdescription3": "Instant delivery after payment! All data will be sent to your email or in your personal account. No delays!"
+    "notifications": {
+        "dropdown_title": "Notifications",
+        "empty": "You have no notifications",
+        "dropdown_button": "Load more"
     },
-    "step2": {
-      "title": "Why choose us",
-      "description1": "💰 Best prices — Competitive prices without overpayments or hidden fees.",
-      "description2": "⚡️ Fast delivery — Instant shipment after payment confirmation.",
-      "description3": "✅ Quality guarantee — All products are verified before sale, 100% functionality.",
-      "description4": "🔒 Security — Protected payments and confidentiality of your data.",
-      "description5": "🎯 Wide range — Thousands of products from various categories in one place."
+    "cookie": {
+        "title": "Cookie Policy",
+        "message": "We use cookies to improve your experience. By using this website, you agree to our use of cookies.",
+        "button": "Accept"
     },
-    "step3": {
-      "title": "Who our store is for",
-      "description1": "🎮 Gamers — Gaming platform accounts, activation keys, in-game currency.",
-      "description2": "💼 Businesses — License keys for software, premium service accounts, service subscriptions.",
-      "description3": "👨‍🎓 Students — Access to educational platforms, study materials, service subscriptions.",
-      "description4": "🎨 Creatives — Accounts for design platforms, editors, and creative tools.",
-      "description5": "💻 IT professionals — Developer keys, platforms, work tools."
-    }
-  },
-  "footer": {
-    "address": "FOP Knysh Alla Oleksandrivna 08297 Kyiv region, Bucha district, Bucha city, Shose Nove, building 42",
-    "copyright": "Account Arena 2025 © All rights reserved"
-  },
-  "reviews": {
-    "title": "Your satisfaction drives us to grow!"
-  },
-  "subscribe": {
-    "title": "Subscribe",
-    "description": "Subscribe to Account Arena and be the first to know about exclusive discounts, special offers, and the latest tools!",
-    "button": "Subscribe",
-    "error": "Please enter a valid email address",
-    "required": "Email is required",
-    "success": "Thank you for subscribing!"
-  },
-  "notifications": {
-    "dropdown_title": "Notifications",
-    "empty": "You have no notifications",
-    "dropdown_button": "Load more"
-  },
-  "cookie": {
-    "title": "Cookie Policy",
-    "message": "We use cookies to improve your experience. By using this website, you agree to our use of cookies.",
-    "button": "Accept"
-  },
-  "alert": {
-    "title": "Notice",
-    "text": "Operation completed successfully",
-    "ok": "OK"
-  },
-  "plugin": {
-    "not_installed": {
-      "title": "Extension not installed",
-      "message": "The extension is required for proper session operation and quick access to services and settings.",
-      "install_button": "Install",
-      "later_button": "Skip",
-      "waiting": "Installing extension...",
-      "wait_instructions": "Install the extension and return to this tab.",
-      "auto_check_hint": "We will detect the installation automatically."
-    }
-  },
-  "confirm": {
-    "title": "Are you sure?",
-    "text": "This action cannot be undone.",
-    "yes": "Yes",
-    "cancel": "Cancel"
-  },
-  "balance_topup": {
-    "title": "Balance Top-Up",
-    "subtitle": "Choose the amount and payment method for your balance top-up",
-    "current_balance": "Current Balance",
-    "history_link": "Transaction History →",
-    "amount_section": "Top-Up Amount",
-    "enter_amount": "Or enter your own amount",
-    "amount_placeholder": "Enter amount",
-    "min_amount": "Minimum top-up amount",
-    "payment_method_section": "Payment Method",
-    "payment_card": "Bank Card",
-    "payment_card_desc": "Visa, Mastercard, Google Pay, Apple Pay",
-    "payment_crypto": "Cryptocurrency",
-    "payment_crypto_desc": "Bitcoin, Ethereum, USDT and others",
-    "info_title": "Important Information:",
-    "info_instant": "Funds are credited automatically after payment confirmation",
-    "info_time": "Crediting time: card - instant, cryptocurrency - up to 30 minutes",
-    "info_commission": "Payment system commission may be included in the payment",
-    "cancel_button": "Cancel",
-    "topup_button": "Top Up",
-    "processing": "Processing...",
-    "auth_required": "You need to log in to top up your balance",
-    "error_create_payment": "Error creating payment",
-    "success": "Balance topped up successfully!",
-    "failed_to_load": "Failed to load actual balance. Please refresh the page."
-  },
-  "cart": {
+    "alert": {
+        "title": "Notice",
+        "text": "Operation completed successfully",
+        "ok": "OK"
+    },
+    "plugin": {
+        "not_installed": {
+            "title": "Extension not installed",
+            "message": "The extension is required for proper session operation and quick access to services and settings.",
+            "install_button": "Install",
+            "later_button": "Skip",
+            "waiting": "Installing extension...",
+            "wait_instructions": "Install the extension and return to this tab.",
+            "auto_check_hint": "We will detect the installation automatically."
+        }
+    },
     "confirm": {
-      "remove_single": {
-        "title": "Remove item?",
-        "text": "Are you sure you want to remove this item from your cart?",
-        "confirm": "Yes, remove it",
+        "title": "Are you sure?",
+        "text": "This action cannot be undone.",
+        "yes": "Yes",
         "cancel": "Cancel"
-      }
+    },
+    "balance_topup": {
+        "title": "Balance Top-Up",
+        "subtitle": "Choose the amount and payment method for your balance top-up",
+        "current_balance": "Current Balance",
+        "history_link": "Transaction History →",
+        "amount_section": "Top-Up Amount",
+        "enter_amount": "Or enter your own amount",
+        "amount_placeholder": "Enter amount",
+        "min_amount": "Minimum top-up amount",
+        "payment_method_section": "Payment Method",
+        "payment_card": "Bank Card",
+        "payment_card_desc": "Visa, Mastercard, Google Pay, Apple Pay",
+        "payment_crypto": "Cryptocurrency",
+        "payment_crypto_desc": "Bitcoin, Ethereum, USDT and others",
+        "info_title": "Important Information:",
+        "info_instant": "Funds are credited automatically after payment confirmation",
+        "info_time": "Crediting time: card - instant, cryptocurrency - up to 30 minutes",
+        "info_commission": "Payment system commission may be included in the payment",
+        "cancel_button": "Cancel",
+        "topup_button": "Top Up",
+        "processing": "Processing...",
+        "auth_required": "You need to log in to top up your balance",
+        "error_create_payment": "Error creating payment",
+        "success": "Balance topped up successfully!",
+        "failed_to_load": "Failed to load actual balance. Please refresh the page."
+    },
+    "cart": {
+        "confirm": {
+            "remove_single": {
+                "title": "Remove item?",
+                "text": "Are you sure you want to remove this item from your cart?",
+                "confirm": "Yes, remove it",
+                "cancel": "Cancel"
+            }
+        }
+    },
+    "account": {
+        "shop_title": "Premium <span class='gradient-text'>Accounts</span> Shop",
+        "shop_subtitle": "Ready premium service accounts at great prices",
+        "buy_now": "Buy Now",
+        "no_accounts": "No products available at the moment",
+        "in_stock": "In stock",
+        "out_of_stock": "Out of stock",
+        "show_all": "Show all products",
+        "stock_unit": "pcs",
+        "detail": {
+            "home": "Home",
+            "back_to_catalog": "Back to catalog",
+            "product": "Product",
+            "loading": "Loading...",
+            "add_to_favorites": "Add to favorites",
+            "remove_from_favorites": "Remove from favorites",
+            "added_to_favorites": "Added to favorites",
+            "removed_from_favorites": "Removed from favorites",
+            "sku": "SKU",
+            "sku_copied": "SKU copied to clipboard",
+            "click_to_copy": "click to copy",
+            "price": "Price",
+            "quantity": "Quantity",
+            "in_stock_count": "In stock: {count} pcs",
+            "no_stock": "Out of stock",
+            "add_to_cart": "Add to Cart",
+            "buy_now": "Buy Now",
+            "added_to_cart": "Product added to cart ({count} pcs)",
+            "out_of_stock_error": "Product is out of stock",
+            "description_title": "Product Description",
+            "no_description": "No description available",
+            "category": "Category",
+            "supplier": "Supplier",
+            "rating": "Rating",
+            "go_to_product": "Go to {title}",
+            "price_per_unit": "{price} × {quantity} pcs",
+            "available_only": "Only {count} pcs available",
+            "product_added_to_cart": "{title} ({quantity} pcs) added to cart"
+        }
+    },
+    "catalog": {
+        "title": "Product Catalog",
+        "subtitle": "Choose the right categories from our catalog",
+        "hide_out_of_stock": "Hide out of stock items",
+        "show_favorites_only": "Show favorites only",
+        "search_placeholder": "Search by name, description or SKU…"
+    },
+    "loader": {
+        "starting": "Starting system",
+        "checking_plugin": "Checking browser extension",
+        "preparing": "Preparing environment",
+        "syncing": "Synchronizing data",
+        "browser": "Launching browser"
+    },
+    "articles": {
+        "title": "<span class='gradient-text'>Help</span> Articles",
+        "allArticles": "All articles",
+        "readMore": "Read more",
+        "description": "Browse helpful guides, tutorials, and news. Use filters and categories to quickly find what you need."
+    },
+    "savings": {
+        "title": "Your <span class='gradient-text'>Savings</span> with Us",
+        "description": "Buy digital products at competitive prices — without overpayments or hidden fees."
+    },
+    "order_success": {
+        "title": "Order placed successfully!",
+        "subtitle": "Thank you for your purchase! Your items are available for download below."
     }
-  },
-  "account": {
-    "shop_title": "Premium <span class='gradient-text'>Accounts</span> Shop",
-    "shop_subtitle": "Ready premium service accounts at great prices",
-    "buy_now": "Buy Now",
-    "no_accounts": "No products available at the moment",
-    "in_stock": "In stock",
-    "out_of_stock": "Out of stock",
-    "show_all": "Show all products",
-    "stock_unit": "pcs",
-    "detail": {
-      "home": "Home",
-      "back_to_catalog": "Back to catalog",
-      "product": "Product",
-      "loading": "Loading...",
-      "add_to_favorites": "Add to favorites",
-      "remove_from_favorites": "Remove from favorites",
-      "added_to_favorites": "Added to favorites",
-      "removed_from_favorites": "Removed from favorites",
-      "sku": "SKU",
-      "sku_copied": "SKU copied to clipboard",
-      "click_to_copy": "click to copy",
-      "price": "Price",
-      "quantity": "Quantity",
-      "in_stock_count": "In stock: {count} pcs",
-      "no_stock": "Out of stock",
-      "add_to_cart": "Add to Cart",
-      "buy_now": "Buy Now",
-      "added_to_cart": "Product added to cart ({count} pcs)",
-      "out_of_stock_error": "Product is out of stock",
-      "description_title": "Product Description",
-      "no_description": "No description available",
-      "category": "Category",
-      "supplier": "Supplier",
-      "rating": "Rating",
-      "go_to_product": "Go to {title}",
-      "price_per_unit": "{price} × {quantity} pcs",
-      "available_only": "Only {count} pcs available",
-      "product_added_to_cart": "{title} ({quantity} pcs) added to cart"
-    }
-  },
-  "catalog": {
-    "title": "Product Catalog",
-    "subtitle": "Choose the right categories from our catalog",
-    "hide_out_of_stock": "Hide out of stock items",
-    "show_favorites_only": "Show favorites only",
-    "search_placeholder": "Search by name, description or SKU…"
-  },
-  "loader": {
-    "starting": "Starting system",
-    "checking_plugin": "Checking browser extension",
-    "preparing": "Preparing environment",
-    "syncing": "Synchronizing data",
-    "browser": "Launching browser"
-  },
-  "articles": {
-    "title": "<span class='gradient-text'>Help</span> Articles",
-    "allArticles": "All articles",
-    "readMore": "Read more",
-    "description": "Browse helpful guides, tutorials, and news. Use filters and categories to quickly find what you need."
-  },
-  "savings": {
-    "title": "Your <span class='gradient-text'>Savings</span> with Us",
-    "description": "Buy digital products at competitive prices — without overpayments or hidden fees."
-  },
-  "order_success": {
-    "title": "Order placed successfully!",
-    "subtitle": "Thank you for your purchase! Your items are available for download below."
-  }
 }

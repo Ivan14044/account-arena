@@ -1,9 +1,13 @@
 <template>
     <component :is="layoutComponent" :is-loading="isLoading" />
-    
+
     <!-- FullPageLoader для session-start (с особой логикой плагина) -->
-    <FullPageLoader v-if="isStartSessionPage" :overlay="!isLoading" @call-hide-loader="hideLoader" />
-    
+    <FullPageLoader
+        v-if="isStartSessionPage"
+        :overlay="!isLoading"
+        @call-hide-loader="hideLoader"
+    />
+
     <!-- Глобальный прелоадер для навигации между страницами -->
     <NavigationLoader v-else />
 </template>
@@ -91,31 +95,52 @@ onMounted(async () => {
 
         // ОПТИМИЗАЦИЯ: Загружаем все критичные данные параллельно при старте приложения
         const promises = [
-            pageStore.fetchData().then(() => console.log('[APP] Pages загружены')).catch(e => console.error('[APP] Ошибка загрузки pages:', e)),
-            serviceStore.fetchData().then(() => console.log('[APP] Services загружены')).catch(e => console.error('[APP] Ошибка загрузки services:', e)),
-            optionStore.fetchData().then(() => console.log('[APP] Options загружены')).catch(e => console.error('[APP] Ошибка загрузки options:', e)),
-            accountsStore.fetchAll().then(() => console.log('[APP] Accounts загружены')).catch(e => console.error('[APP] Ошибка загрузки accounts:', e)), // Предзагрузка товаров
-            bannersStore.fetchBanners('home_top').then(() => console.log('[APP] Banners home_top загружены')).catch(e => console.error('[APP] Ошибка загрузки banners home_top:', e)), // Предзагрузка обычных баннеров с изображениями
-            bannersStore.fetchBanners('home_top_wide').then(() => console.log('[APP] Banners home_top_wide загружены')).catch(e => console.error('[APP] Ошибка загрузки banners home_top_wide:', e)), // Предзагрузка широкого баннера с изображением
+            pageStore
+                .fetchData()
+                .then(() => console.log('[APP] Pages загружены'))
+                .catch(e => console.error('[APP] Ошибка загрузки pages:', e)),
+            serviceStore
+                .fetchData()
+                .then(() => console.log('[APP] Services загружены'))
+                .catch(e => console.error('[APP] Ошибка загрузки services:', e)),
+            optionStore
+                .fetchData()
+                .then(() => console.log('[APP] Options загружены'))
+                .catch(e => console.error('[APP] Ошибка загрузки options:', e)),
+            accountsStore
+                .fetchAll()
+                .then(() => console.log('[APP] Accounts загружены'))
+                .catch(e => console.error('[APP] Ошибка загрузки accounts:', e)), // Предзагрузка товаров
+            bannersStore
+                .fetchBanners('home_top')
+                .then(() => console.log('[APP] Banners home_top загружены'))
+                .catch(e => console.error('[APP] Ошибка загрузки banners home_top:', e)), // Предзагрузка обычных баннеров с изображениями
+            bannersStore
+                .fetchBanners('home_top_wide')
+                .then(() => console.log('[APP] Banners home_top_wide загружены'))
+                .catch(e => console.error('[APP] Ошибка загрузки banners home_top_wide:', e)) // Предзагрузка широкого баннера с изображением
         ];
 
         // Уведомления загружаем только для авторизованных пользователей
         if (authStore.isAuthenticated) {
             promises.push(
-                notificationStore.fetchData().then(() => console.log('[APP] Notifications загружены')).catch(e => console.error('[APP] Ошибка загрузки notifications:', e))
+                notificationStore
+                    .fetchData()
+                    .then(() => console.log('[APP] Notifications загружены'))
+                    .catch(e => console.error('[APP] Ошибка загрузки notifications:', e))
             );
         }
 
         // Добавляем таймаут на случай зависания
-        const timeoutPromise = new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Timeout: загрузка данных заняла слишком много времени')), 10000)
+        const timeoutPromise = new Promise((_, reject) =>
+            setTimeout(
+                () => reject(new Error('Timeout: загрузка данных заняла слишком много времени')),
+                10000
+            )
         );
 
         // Ждем загрузки всех данных с таймаутом
-        await Promise.race([
-            Promise.allSettled(promises),
-            timeoutPromise
-        ]);
+        await Promise.race([Promise.allSettled(promises), timeoutPromise]);
         console.log('[APP] Все данные загружены');
 
         // Предзагружаем критичные изображения

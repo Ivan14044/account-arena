@@ -115,7 +115,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="card-body-modern">
             <div class="table-responsive">
                 <table id="users-table" class="table table-hover table-striped mb-0 modern-table">
@@ -181,7 +181,7 @@
                             </td>
                             <td class="align-middle">
                                 @php
-                                    $purchasesCount = $user->transactions()->count();
+                                    $purchasesCount = $user->purchases()->count();
                                 @endphp
                                 <div class="text-center">
                                     <span class="badge {{ $purchasesCount > 0 ? 'badge-success' : 'badge-light' }} badge-modern" title="{{ $purchasesCount }} покупок" style="font-size: 1rem; padding: 0.5rem 0.75rem;">
@@ -201,23 +201,23 @@
                             </td>
                             <td class="text-center align-middle">
                                 <div class="btn-group" role="group">
-                                    <a href="{{ route('admin.users.edit', $user) }}" 
-                                       class="btn btn-sm btn-primary" 
+                                    <a href="{{ route('admin.users.edit', $user) }}"
+                                       class="btn btn-sm btn-primary"
                                        title="Редактировать"
                                        data-toggle="tooltip">
                                         <i class="fas fa-edit"></i>
                                     </a>
 
-                                    <button class="btn btn-sm btn-{{ $user->is_blocked ? 'success' : 'warning' }}" 
-                                            data-toggle="modal" 
+                                    <button class="btn btn-sm btn-{{ $user->is_blocked ? 'success' : 'warning' }}"
+                                            data-toggle="modal"
                                             data-target="#blockModal{{ $user->id }}"
                                             title="{{ $user->is_blocked ? 'Разблокировать' : 'Заблокировать' }}"
                                             data-toggle-tooltip="tooltip">
                                         <i class="fas fa-{{ $user->is_blocked ? 'unlock' : 'lock' }}"></i>
                                     </button>
 
-                                    <button class="btn btn-sm btn-danger" 
-                                            data-toggle="modal" 
+                                    <button class="btn btn-sm btn-danger"
+                                            data-toggle="modal"
                                             data-target="#deleteModal{{ $user->id }}"
                                             title="Удалить"
                                             data-toggle-tooltip="tooltip">
@@ -351,23 +351,23 @@
             transition: all 0.3s ease;
             border-left: 4px solid;
         }
-        
+
         .stat-card-primary { border-left-color: #4e73df; }
         .stat-card-success { border-left-color: #1cc88a; }
         .stat-card-info { border-left-color: #36b9cc; }
         .stat-card-danger { border-left-color: #e74a3b; }
-        
+
         .stat-card:hover {
             transform: translateY(-3px);
             box-shadow: 0 8px 16px rgba(0,0,0,0.1);
         }
-        
+
         .stat-card-body {
             display: flex;
             align-items: center;
             justify-content: space-between;
         }
-        
+
         .stat-icon {
             width: 50px;
             height: 50px;
@@ -377,7 +377,7 @@
             justify-content: center;
             font-size: 1.5rem;
         }
-        
+
         .stat-card-primary .stat-icon {
             background: rgba(78, 115, 223, 0.1);
             color: #4e73df;
@@ -394,11 +394,11 @@
             background: rgba(231, 74, 59, 0.1);
             color: #e74a3b;
         }
-        
+
         .stat-content {
             text-align: right;
         }
-        
+
         .stat-label {
             font-size: 0.75rem;
             color: #858796;
@@ -407,7 +407,7 @@
             font-weight: 600;
             margin-bottom: 0.25rem;
         }
-        
+
         .stat-value {
             font-size: 2rem;
             font-weight: 700;
@@ -422,18 +422,18 @@
             box-shadow: 0 2px 8px rgba(0,0,0,0.05);
             overflow: hidden;
         }
-        
+
         .card-header-modern {
             background: white;
             border-bottom: 2px solid #e3e6f0;
             padding: 1.25rem 1.5rem;
         }
-        
+
         .card-header-modern h5 {
             color: #2c3e50;
             font-weight: 500;
         }
-        
+
         .card-body-modern {
             padding: 0;
         }
@@ -443,13 +443,13 @@
             display: flex;
             gap: 0.5rem;
         }
-        
+
         .btn-group-filter {
             background: #f8f9fc;
             border-radius: 0.375rem;
             padding: 0.25rem;
         }
-        
+
         .btn-filter {
             background: transparent;
             border: none;
@@ -460,12 +460,12 @@
             border-radius: 0.25rem;
             transition: all 0.2s ease;
         }
-        
+
         .btn-filter:hover {
             background: rgba(0,0,0,0.05);
             color: #2c3e50;
         }
-        
+
         .btn-filter.active {
             background: white;
             color: #4e73df;
@@ -477,7 +477,7 @@
             font-size: 0.875rem;
             margin-bottom: 0;
         }
-        
+
         .modern-table thead th {
             background: #f8f9fc;
             border-top: none;
@@ -489,21 +489,21 @@
             letter-spacing: 0.5px;
             padding: 1rem 1.25rem;
         }
-        
+
         .modern-table tbody td {
             padding: 1rem 1.25rem;
             vertical-align: middle;
             border-bottom: 1px solid #f3f4f6;
         }
-        
+
         .modern-table tbody tr {
             transition: background-color 0.2s ease;
         }
-        
+
         .modern-table tbody tr:hover {
             background-color: #f8f9fc;
         }
-        
+
         .modern-table tbody tr:last-child td {
             border-bottom: none;
         }
@@ -516,7 +516,7 @@
             border-radius: 50%;
             border: 2px solid #e3e6f0;
         }
-        
+
         .avatar-placeholder {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
@@ -532,17 +532,17 @@
             border-radius: 0.25rem;
             letter-spacing: 0.3px;
         }
-        
+
         .badge-success {
             background: #d1fae5;
             color: #065f46;
         }
-        
+
         .badge-danger {
             background: #fee2e2;
             color: #991b1b;
         }
-        
+
         .badge-info {
             background: #dbeafe;
             color: #1e40af;
@@ -554,12 +554,12 @@
             margin: 0 2px;
             transition: all 0.2s ease;
         }
-        
+
         .btn-group .btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 4px 8px rgba(0,0,0,0.12);
         }
-        
+
         .btn-sm {
             padding: 0.375rem 0.75rem;
         }
@@ -570,16 +570,16 @@
             border-radius: 0.75rem;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
         }
-        
+
         .modal-header {
             border-bottom: 1px solid #e3e6f0;
             padding: 1.5rem;
         }
-        
+
         .modal-body {
             padding: 2rem;
         }
-        
+
         .modal-footer {
             border-top: 1px solid #e3e6f0;
             padding: 1.25rem 1.5rem;
@@ -591,13 +591,13 @@
             border-left: 4px solid;
             border-radius: 0.375rem;
         }
-        
+
         .alert-success {
             background: #d1fae5;
             border-left-color: #10b981;
             color: #065f46;
         }
-        
+
         .alert-danger {
             background: #fee2e2;
             border-left-color: #ef4444;
@@ -615,11 +615,11 @@
                 transform: translateY(0);
             }
         }
-        
+
         .stat-card {
             animation: fadeIn 0.4s ease;
         }
-        
+
         .stat-card:nth-child(1) { animation-delay: 0s; }
         .stat-card:nth-child(2) { animation-delay: 0.1s; }
         .stat-card:nth-child(3) { animation-delay: 0.2s; }
@@ -630,7 +630,7 @@
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             color: #2c3e50;
         }
-        
+
         .font-weight-light {
             font-weight: 300 !important;
         }
@@ -639,7 +639,7 @@
         .text-muted {
             color: #858796 !important;
         }
-        
+
         .shadow-sm {
             box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important;
         }

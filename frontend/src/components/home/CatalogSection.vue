@@ -12,11 +12,8 @@
                 <button
                     v-for="category in categories"
                     :key="category.id"
+                    :class="['category-btn', { active: selectedCategoryId === category.id }]"
                     @click="selectCategory(category.id)"
-                    :class="[
-                        'category-btn',
-                        { 'active': selectedCategoryId === category.id }
-                    ]"
                 >
                     <img
                         v-if="category.image_url"
@@ -33,21 +30,13 @@
         <div class="filters-wrapper">
             <div class="filters-left">
                 <label class="toggle-wrapper">
-                    <input
-                        type="checkbox"
-                        v-model="hideOutOfStock"
-                        class="toggle-input"
-                    />
+                    <input v-model="hideOutOfStock" type="checkbox" class="toggle-input" />
                     <span class="toggle-slider"></span>
                     <span class="toggle-label">{{ $t('catalog.hide_out_of_stock') }}</span>
                 </label>
 
                 <label class="toggle-wrapper">
-                    <input
-                        type="checkbox"
-                        v-model="showFavoritesOnly"
-                        class="toggle-input"
-                    />
+                    <input v-model="showFavoritesOnly" type="checkbox" class="toggle-input" />
                     <span class="toggle-slider"></span>
                     <span class="toggle-label">{{ $t('catalog.show_favorites_only') }}</span>
                 </label>
@@ -55,11 +44,16 @@
 
             <div class="search-wrapper">
                 <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                    />
                 </svg>
                 <input
-                    type="text"
                     v-model="searchQuery"
+                    type="text"
                     :placeholder="$t('catalog.search_placeholder')"
                     class="search-input"
                 />
@@ -87,12 +81,17 @@ const categories = computed(() => {
         {
             id: 0,
             type: 'product',
-            name: locale.value === 'ru' ? 'Все категории' : locale.value === 'en' ? 'All Categories' : 'Всі категорії',
+            name:
+                locale.value === 'ru'
+                    ? 'Все категории'
+                    : locale.value === 'en'
+                      ? 'All Categories'
+                      : 'Всі категорії'
         },
         ...categoriesStore.list.map(cat => ({
             ...cat,
-            name: categoriesStore.getCategoryName(cat, locale.value),
-        })),
+            name: categoriesStore.getCategoryName(cat, locale.value)
+        }))
     ];
     return allCategories;
 });
@@ -103,17 +102,19 @@ const selectCategory = (categoryId: number | null) => {
         categoryId: selectedCategoryId.value,
         hideOutOfStock: hideOutOfStock.value,
         showFavoritesOnly: showFavoritesOnly.value,
-        searchQuery: searchQuery.value,
+        searchQuery: searchQuery.value
     });
 };
 
 const emit = defineEmits<{
-    'filter-change': [filters: {
-        categoryId: number | null;
-        hideOutOfStock: boolean;
-        showFavoritesOnly: boolean;
-        searchQuery: string;
-    }];
+    'filter-change': [
+        filters: {
+            categoryId: number | null;
+            hideOutOfStock: boolean;
+            showFavoritesOnly: boolean;
+            searchQuery: string;
+        }
+    ];
 }>();
 
 watch([hideOutOfStock, showFavoritesOnly, searchQuery], () => {
@@ -121,7 +122,7 @@ watch([hideOutOfStock, showFavoritesOnly, searchQuery], () => {
         categoryId: selectedCategoryId.value,
         hideOutOfStock: hideOutOfStock.value,
         showFavoritesOnly: showFavoritesOnly.value,
-        searchQuery: searchQuery.value,
+        searchQuery: searchQuery.value
     });
 });
 
@@ -391,4 +392,3 @@ onMounted(async () => {
     }
 }
 </style>
-

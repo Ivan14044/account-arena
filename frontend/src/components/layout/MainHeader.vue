@@ -1,8 +1,6 @@
 <template>
     <header class="text-gray-900 dark:text-white">
-        <div
-            class="relative z-100 max-w-7xl w-full mx-auto px-2 sm:px-4 py-2 flex justify-center"
-        >
+        <div class="relative z-100 max-w-7xl w-full mx-auto px-2 sm:px-4 py-2 flex justify-center">
             <div
                 class="bg-indigo-soft-200/90 dark:bg-gray-800/90 rounded-full px-4 py-1 flex items-center transition-all duration-1000 dashboard border !border-indigo-soft-400 dark:!border-gray-700"
                 :class="isReady ? 'w-full gap-2 justify-between' : 'w-[64px] justify-center'"

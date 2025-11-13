@@ -39,8 +39,8 @@
                     v-if="currentPage > 1"
                     class="inline-flex items-center justify-center leading-none px-3 py-1.5 rounded border border-gray-300 dark:!border-gray-600/60 text-sm text-gray-700 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-400/30 transition disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:dark:bg-transparent"
                     :disabled="isLoading"
-                    @click="onPrev"
                     aria-label="Previous page"
+                    @click="onPrev"
                 >
                     ←
                 </button>
@@ -66,8 +66,8 @@
                     v-if="currentPage < totalPages"
                     class="inline-flex items-center justify-center leading-none px-3 py-1.5 rounded border border-gray-300 dark:!border-gray-600/60 text-sm text-gray-700 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-400/30 transition disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:dark:bg-transparent"
                     :disabled="isLoading"
-                    @click="onNext"
                     aria-label="Next page"
+                    @click="onNext"
                 >
                     →
                 </button>
@@ -113,11 +113,11 @@ const categoryId = computed(() => {
     return undefined;
 });
 // Use store's confirmed paginated params (update after data load) to avoid UI flicker
-const pageIndex = computed(() => {
-    const confirmed = Number(articlesStore.paginatedParams?.offset ?? 0);
-    const l = Math.max(1, Number(articlesStore.paginatedParams?.limit ?? limit.value) || 12);
-    return Math.floor(confirmed / l);
-});
+// const pageIndex = computed(() => {
+//     const confirmed = Number(articlesStore.paginatedParams?.offset ?? 0);
+//     const l = Math.max(1, Number(articlesStore.paginatedParams?.limit ?? limit.value) || 12);
+//     return Math.floor(confirmed / l);
+// });
 const isCategoryPage = computed(() => typeof route.params.id !== 'undefined');
 const category = computed(() =>
     typeof categoryId.value === 'number'
@@ -163,9 +163,14 @@ onMounted(async () => {
             delete (newQuery as any).category_id;
             const p = routePage.value;
             const isCategory = typeof route.params.id !== 'undefined';
-            const targetPath = p <= 1
-                ? (isCategory ? `/categories/${route.params.id}` : `/articles`)
-                : (isCategory ? `/categories/${route.params.id}/page/${p}` : `/articles/page/${p}`);
+            const targetPath =
+                p <= 1
+                    ? isCategory
+                        ? `/categories/${route.params.id}`
+                        : `/articles`
+                    : isCategory
+                      ? `/categories/${route.params.id}/page/${p}`
+                      : `/articles/page/${p}`;
             await router.replace({ path: targetPath, query: newQuery });
         }
         if (!articlesStore.loaded.categories) await articlesStore.fetchCategories();
@@ -178,7 +183,9 @@ onMounted(async () => {
                     sessionStorage.removeItem('articlesUsedSavedPosition');
                     return;
                 }
-            } catch (_) {}
+            } catch {
+                // igonre error
+            }
             window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
         });
     } finally {
@@ -216,7 +223,9 @@ async function fetchPageWithLoader() {
                     sessionStorage.removeItem('articlesUsedSavedPosition');
                     return;
                 }
-            } catch (_) {}
+            } catch {
+                // ignore error
+            }
             window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
         });
     } finally {
@@ -260,9 +269,14 @@ const pageButtons = computed<(number | string)[]>(() => {
 function goToPage(p: number) {
     if (!Number.isFinite(p) || p < 1 || p > totalPages.value) return;
     const isCategory = typeof categoryId.value === 'number';
-    const basePath = p <= 1
-        ? (isCategory ? `/categories/${categoryId.value}` : `/articles`)
-        : (isCategory ? `/categories/${categoryId.value}/page/${p}` : `/articles/page/${p}`);
+    const basePath =
+        p <= 1
+            ? isCategory
+                ? `/categories/${categoryId.value}`
+                : `/articles`
+            : isCategory
+              ? `/categories/${categoryId.value}/page/${p}`
+              : `/articles/page/${p}`;
     const newQuery = { ...route.query } as Record<string, any>;
     delete newQuery.offset;
     delete newQuery.limit;
@@ -273,9 +287,14 @@ function goToPage(p: number) {
 function onPrev() {
     const p = Math.max(1, currentPage.value - 1);
     const isCategory = typeof categoryId.value === 'number';
-    const basePath = p <= 1
-        ? (isCategory ? `/categories/${categoryId.value}` : `/articles`)
-        : (isCategory ? `/categories/${categoryId.value}/page/${p}` : `/articles/page/${p}`);
+    const basePath =
+        p <= 1
+            ? isCategory
+                ? `/categories/${categoryId.value}`
+                : `/articles`
+            : isCategory
+              ? `/categories/${categoryId.value}/page/${p}`
+              : `/articles/page/${p}`;
     const newQuery = { ...route.query } as Record<string, any>;
     delete newQuery.offset;
     delete newQuery.limit;
@@ -285,9 +304,14 @@ function onPrev() {
 function onNext() {
     const p = Math.min(totalPages.value, currentPage.value + 1);
     const isCategory = typeof categoryId.value === 'number';
-    const basePath = p <= 1
-        ? (isCategory ? `/categories/${categoryId.value}` : `/articles`)
-        : (isCategory ? `/categories/${categoryId.value}/page/${p}` : `/articles/page/${p}`);
+    const basePath =
+        p <= 1
+            ? isCategory
+                ? `/categories/${categoryId.value}`
+                : `/articles`
+            : isCategory
+              ? `/categories/${categoryId.value}/page/${p}`
+              : `/articles/page/${p}`;
     const newQuery = { ...route.query } as Record<string, any>;
     delete newQuery.offset;
     delete newQuery.limit;

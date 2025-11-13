@@ -31,7 +31,7 @@
             <button type="button" class="close" data-dismiss="alert">&times;</button>
         </div>
     @endif
-    
+
     @if(session('error'))
         <div class="alert alert-modern alert-danger alert-dismissible fade show">
             <i class="fas fa-exclamation-triangle mr-2"></i>{{ session('error') }}
@@ -81,7 +81,7 @@
                 </li>
             </ul>
         </div>
-        
+
         <div class="card-body-modern p-4">
             <div class="tab-content" id="userTabsContent">
                 <!-- ТАБ 1: Основная информация -->
@@ -89,11 +89,11 @@
                     <form method="POST" action="{{ route('admin.users.update', $user) }}">
                         @csrf
                         @method('PUT')
-                        
+
                         <div class="row">
                             <div class="col-md-6">
                                 <h5 class="section-title mb-4">Личные данные</h5>
-                                
+
                                 <div class="form-group-modern">
                                     <label for="name" class="form-label-modern">Имя пользователя</label>
                                     <input type="text" name="name" id="name" class="form-control form-control-modern @error('name') is-invalid @enderror" value="{{ old('name', $user->name) }}">
@@ -124,7 +124,7 @@
 
                             <div class="col-md-6">
                                 <h5 class="section-title mb-4">Безопасность</h5>
-                                
+
                                 <div class="form-group-modern">
                                     <label for="password" class="form-label-modern">Новый пароль</label>
                                     <input type="password" name="password" id="password" class="form-control form-control-modern @error('password') is-invalid @enderror" placeholder="Оставьте пустым, чтобы не менять">
@@ -164,7 +164,7 @@
                     <h5 class="section-title mb-4">
                         <i class="fas fa-shopping-bag mr-2"></i>История покупок товаров
                     </h5>
-                    
+
                     @if($purchases->count() > 0)
                         <div class="table-responsive">
                             <table class="table table-hover modern-table-clean">
@@ -236,8 +236,8 @@
                                             </small>
                                         </td>
                                         <td class="text-center">
-                                            <a href="{{ route('admin.purchases.show', $purchase) }}" 
-                                               class="btn btn-sm btn-info btn-modern" 
+                                            <a href="{{ route('admin.purchases.show', $purchase) }}"
+                                               class="btn btn-sm btn-info btn-modern"
                                                title="Подробнее">
                                                 <i class="fas fa-eye"></i>
                                             </a>
@@ -247,7 +247,7 @@
                                 </tbody>
                             </table>
                         </div>
-                        
+
                         <!-- Итоговая статистика -->
                         <div class="card bg-light border-0 mt-3">
                             <div class="card-body py-3">
@@ -284,11 +284,15 @@
                     <form method="POST" action="{{ route('admin.users.update', $user) }}">
                         @csrf
                         @method('PUT')
-                        
+                        <input type="hidden" name="name" value="{{ $user->name }}">
+                        <input type="hidden" name="email" value="{{ $user->email }}">
+                        <input type="hidden" name="is_blocked" value="{{ $user->is_blocked ? 1 : 0 }}">
+
+
                         <div class="row">
                             <div class="col-md-6">
                                 <h5 class="section-title mb-4">Роль поставщика</h5>
-                                
+
                                 <div class="form-group-modern">
                                     <div class="custom-control custom-switch custom-switch-modern">
                                         <input type="checkbox" class="custom-control-input" id="is_supplier" name="is_supplier" value="1" {{ old('is_supplier', $user->is_supplier) ? 'checked' : '' }}>
@@ -303,8 +307,8 @@
                                 <div id="supplier-fields" style="display: {{ old('is_supplier', $user->is_supplier) ? 'block' : 'none' }};">
                                     <div class="form-group-modern">
                                         <label for="supplier_balance" class="form-label-modern">Баланс поставщика (USD)</label>
-                                        <input type="number" step="0.01" name="supplier_balance" id="supplier_balance" 
-                                               class="form-control form-control-modern @error('supplier_balance') is-invalid @enderror" 
+                                        <input type="number" step="0.01" name="supplier_balance" id="supplier_balance"
+                                               class="form-control form-control-modern @error('supplier_balance') is-invalid @enderror"
                                                value="{{ old('supplier_balance', $user->supplier_balance ?? 0) }}">
                                         @error('supplier_balance')
                                             <div class="invalid-feedback d-block">{{ $message }}</div>
@@ -314,8 +318,8 @@
 
                                     <div class="form-group-modern">
                                         <label for="supplier_commission" class="form-label-modern">Комиссия платформы (%)</label>
-                                        <input type="number" step="0.01" min="0" max="100" name="supplier_commission" id="supplier_commission" 
-                                               class="form-control form-control-modern @error('supplier_commission') is-invalid @enderror" 
+                                        <input type="number" step="0.01" min="0" max="100" name="supplier_commission" id="supplier_commission"
+                                               class="form-control form-control-modern @error('supplier_commission') is-invalid @enderror"
                                                value="{{ old('supplier_commission', $user->supplier_commission ?? 10) }}">
                                         @error('supplier_commission')
                                             <div class="invalid-feedback d-block">{{ $message }}</div>
@@ -327,11 +331,11 @@
 
                             <div class="col-md-6">
                                 <h5 class="section-title mb-4">Персональная скидка</h5>
-                                
+
                                 <div class="form-group-modern">
                                     <label for="personal_discount" class="form-label-modern">Размер скидки (%)</label>
-                                    <input type="number" min="0" max="100" name="personal_discount" id="personal_discount" 
-                                           class="form-control form-control-modern @error('personal_discount') is-invalid @enderror" 
+                                    <input type="number" min="0" max="100" name="personal_discount" id="personal_discount"
+                                           class="form-control form-control-modern @error('personal_discount') is-invalid @enderror"
                                            value="{{ old('personal_discount', $user->personal_discount ?? 0) }}">
                                     @error('personal_discount')
                                         <div class="invalid-feedback d-block">{{ $message }}</div>
@@ -341,8 +345,8 @@
 
                                 <div class="form-group-modern">
                                     <label for="personal_discount_expires_at" class="form-label-modern">Срок действия скидки</label>
-                                    <input type="datetime-local" name="personal_discount_expires_at" id="personal_discount_expires_at" 
-                                           class="form-control form-control-modern @error('personal_discount_expires_at') is-invalid @enderror" 
+                                    <input type="datetime-local" name="personal_discount_expires_at" id="personal_discount_expires_at"
+                                           class="form-control form-control-modern @error('personal_discount_expires_at') is-invalid @enderror"
                                            value="{{ old('personal_discount_expires_at', optional($user->personal_discount_expires_at ?? null)?->format('Y-m-d\TH:i')) }}">
                                     @error('personal_discount_expires_at')
                                         <div class="invalid-feedback d-block">{{ $message }}</div>
@@ -375,7 +379,7 @@
         <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
             <form action="{{ route('admin.users.update-balance', $user) }}" method="POST" class="modal-content modal-modern" id="balanceForm">
                 @csrf
-                
+
                 <div class="modal-header-modern">
                     <h5 class="modal-title">
                         <i class="fas fa-wallet mr-2"></i>Управление балансом аккаунта
@@ -384,7 +388,7 @@
                         <span>&times;</span>
                     </button>
                 </div>
-                
+
                 <div class="modal-body">
                     <!-- Текущий баланс -->
                     <div class="current-balance-display mb-4">
@@ -433,18 +437,18 @@
                                     <i class="fas fa-dollar-sign text-muted"></i>
                                 </span>
                             </div>
-                            <input 
-                                type="number" 
-                                step="0.01" 
-                                min="0" 
-                                name="amount" 
-                                id="balance_amount" 
-                                class="form-control form-control-modern border-left-0" 
+                            <input
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                name="amount"
+                                id="balance_amount"
+                                class="form-control form-control-modern border-left-0"
                                 placeholder="0.00"
                                 required
                             >
                         </div>
-                        
+
                         <!-- Предпросмотр -->
                         <div class="balance-preview mt-3" id="balancePreview" style="display: none;">
                             <div class="text-center p-3 bg-light rounded border">
@@ -457,11 +461,11 @@
                     <!-- Комментарий -->
                     <div class="form-group-modern">
                         <label for="balance_comment" class="form-label-modern">Комментарий</label>
-                        <textarea 
-                            name="comment" 
-                            id="balance_comment" 
-                            class="form-control form-control-modern" 
-                            rows="3" 
+                        <textarea
+                            name="comment"
+                            id="balance_comment"
+                            class="form-control form-control-modern"
+                            rows="3"
                             placeholder="Укажите причину изменения баланса..."
                             maxlength="500"
                         ></textarea>
@@ -474,7 +478,7 @@
                         <span id="warningText">Будет создана транзакция в истории пользователя</span>
                     </div>
                 </div>
-                
+
                 <div class="modal-footer-modern">
                     <button type="button" class="btn btn-outline-secondary btn-modern" data-dismiss="modal">
                         Отмена
@@ -510,7 +514,7 @@
             border: none;
             transition: all 0.2s ease;
         }
-        
+
         .btn-modern:hover {
             transform: translateY(-1px);
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
@@ -523,14 +527,14 @@
             overflow: hidden;
             box-shadow: 0 4px 12px rgba(102, 126, 234, 0.25);
         }
-        
+
         .balance-card-content {
             display: flex;
             justify-content: space-between;
             align-items: center;
             padding: 2rem 2.5rem;
         }
-        
+
         .balance-label {
             color: rgba(255,255,255,0.9);
             font-size: 0.875rem;
@@ -539,14 +543,14 @@
             letter-spacing: 0.5px;
             margin-bottom: 0.5rem;
         }
-        
+
         .balance-amount {
             color: white;
             font-size: 2.5rem;
             font-weight: 700;
             line-height: 1;
         }
-        
+
         .balance-currency {
             font-size: 1.25rem;
             font-weight: 500;
@@ -558,11 +562,11 @@
             border-bottom: 2px solid #e3e6f0;
             padding: 0 1.5rem;
         }
-        
+
         .nav-tabs-modern .nav-item {
             margin-bottom: -2px;
         }
-        
+
         .nav-tabs-modern .nav-link {
             border: none;
             color: #5a6c7d;
@@ -571,12 +575,12 @@
             transition: all 0.2s ease;
             border-bottom: 2px solid transparent;
         }
-        
+
         .nav-tabs-modern .nav-link:hover {
             color: #4e73df;
             border-bottom-color: #e3e6f0;
         }
-        
+
         .nav-tabs-modern .nav-link.active {
             color: #4e73df;
             background: transparent;
@@ -590,12 +594,12 @@
             box-shadow: 0 2px 8px rgba(0,0,0,0.05);
             overflow: hidden;
         }
-        
+
         .card-header-modern {
             background: white;
             border-bottom: none;
         }
-        
+
         .card-body-modern {
             background: white;
         }
@@ -604,7 +608,7 @@
         .form-group-modern {
             margin-bottom: 1.5rem;
         }
-        
+
         .form-label-modern {
             font-weight: 600;
             color: #2c3e50;
@@ -612,7 +616,7 @@
             margin-bottom: 0.5rem;
             display: block;
         }
-        
+
         .form-control-modern {
             border: 1px solid #d1d3e2;
             border-radius: 0.375rem;
@@ -620,7 +624,7 @@
             font-size: 0.875rem;
             transition: all 0.2s ease;
         }
-        
+
         .form-control-modern:focus {
             border-color: #4e73df;
             box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.1);
@@ -635,7 +639,7 @@
             padding-bottom: 0.75rem;
             border-bottom: 2px solid #e3e6f0;
         }
-        
+
         .section-divider {
             border-top: 2px solid #e3e6f0;
             margin: 2rem 0;
@@ -647,18 +651,18 @@
             grid-template-columns: repeat(3, 1fr);
             gap: 1rem;
         }
-        
+
         .operation-btn {
             position: relative;
             cursor: pointer;
             margin: 0;
         }
-        
+
         .operation-btn input {
             position: absolute;
             opacity: 0;
         }
-        
+
         .operation-btn-content {
             display: flex;
             flex-direction: column;
@@ -669,38 +673,38 @@
             background: white;
             transition: all 0.2s ease;
         }
-        
+
         .operation-btn-content i {
             font-size: 1.5rem;
             margin-bottom: 0.5rem;
         }
-        
+
         .operation-btn-content span {
             font-weight: 500;
             font-size: 0.875rem;
         }
-        
+
         .operation-btn:hover .operation-btn-content {
             border-color: #4e73df;
             background: #f8f9fc;
         }
-        
+
         .operation-btn.active .operation-btn-content {
             border-color: #4e73df;
             background: #4e73df;
             color: white;
         }
-        
+
         .operation-btn-add.active .operation-btn-content {
             background: #1cc88a;
             border-color: #1cc88a;
         }
-        
+
         .operation-btn-subtract.active .operation-btn-content {
             background: #e74a3b;
             border-color: #e74a3b;
         }
-        
+
         .operation-btn-set.active .operation-btn-content {
             background: #f6c23e;
             border-color: #f6c23e;
@@ -712,18 +716,18 @@
             border-radius: 0.75rem;
             overflow: hidden;
         }
-        
+
         .modal-header-modern {
             background: #f8f9fc;
             border-bottom: 2px solid #e3e6f0;
             padding: 1.5rem 2rem;
         }
-        
+
         .modal-header-modern .modal-title {
             font-weight: 600;
             color: #2c3e50;
         }
-        
+
         .modal-footer-modern {
             background: #f8f9fc;
             border-top: 2px solid #e3e6f0;
@@ -734,7 +738,7 @@
         .modern-table-clean {
             font-size: 0.875rem;
         }
-        
+
         .modern-table-clean thead th {
             background: #f8f9fc;
             border: none;
@@ -746,13 +750,13 @@
             letter-spacing: 0.5px;
             padding: 1rem;
         }
-        
+
         .modern-table-clean tbody td {
             padding: 1rem;
             border-bottom: 1px solid #f3f4f6;
             vertical-align: middle;
         }
-        
+
         .modern-table-clean tbody tr:hover {
             background: #f8f9fc;
         }
@@ -778,19 +782,19 @@
             border-radius: 0.5rem;
             padding: 1rem 1.25rem;
         }
-        
+
         .alert-success {
             background: #d1fae5;
             border-left-color: #10b981;
             color: #065f46;
         }
-        
+
         .alert-danger {
             background: #fee2e2;
             border-left-color: #ef4444;
             color: #991b1b;
         }
-        
+
         .alert-warning {
             background: #fef3c7;
             border-left-color: #f59e0b;
@@ -801,7 +805,7 @@
         .font-weight-500 {
             font-weight: 500;
         }
-        
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         }
@@ -810,13 +814,13 @@
         .custom-switch-modern .custom-control-label {
             padding-left: 2.5rem;
         }
-        
+
         .custom-switch-modern .custom-control-label::before {
             width: 3rem;
             height: 1.5rem;
             border-radius: 1rem;
         }
-        
+
         .custom-switch-modern .custom-control-label::after {
             width: calc(1.5rem - 4px);
             height: calc(1.5rem - 4px);
@@ -831,7 +835,7 @@
             // Toggle supplier fields
             const isSupplierCheckbox = $('#is_supplier');
             const supplierFields = $('#supplier-fields');
-            
+
             isSupplierCheckbox.on('change', function() {
                 supplierFields.slideToggle(200);
             });
@@ -849,11 +853,11 @@
             // Operation change
             $('input[name="operation"]').on('change', function() {
                 selectedOperation = $(this).val();
-                
+
                 // Update active class
                 $('.operation-btn').removeClass('active');
                 $(this).closest('.operation-btn').addClass('active');
-                
+
                 updateBalancePreview();
                 updateUIForOperation();
             });
@@ -881,7 +885,7 @@
                 if (amount > 0) {
                     $('#balancePreview').fadeIn(200);
                     $('#newBalancePreview').text('$' + newBalance.toFixed(2) + ' USD');
-                    
+
                     // Color indication
                     $('#newBalancePreview').removeClass('text-danger text-success text-warning text-primary');
                     if (newBalance < 0) {

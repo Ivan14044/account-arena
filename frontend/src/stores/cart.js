@@ -26,7 +26,7 @@ export const useCartStore = defineStore('cart', {
                         return; // blocked by active promo
                     }
                 }
-            } catch (e) {
+            } catch {
                 // If promo store not available for some reason, fall back to default behavior
             }
             this.items = this.items.filter(item => item.id !== id);
@@ -73,7 +73,7 @@ export const useCartStore = defineStore('cart', {
                         this.promoFreeDays[id] = Number(s.free_days) || 0;
                     }
                 }
-            } catch (e) {
+            } catch {
                 // Игнорируем ошибки применения бесплатного доступа
             }
         },
@@ -94,7 +94,7 @@ export const useCartStore = defineStore('cart', {
                 const { useAuthStore } = await import('@/stores/auth');
                 const authStore = useAuthStore();
                 const token = authStore.token;
-                
+
                 if (!token) {
                     throw new Error('No authentication token found');
                 }
@@ -107,7 +107,7 @@ export const useCartStore = defineStore('cart', {
                 // Получаем товары из productCartStore
                 const { useProductCartStore } = await import('@/stores/productCart');
                 const productCartStore = useProductCartStore();
-                
+
                 const productsData = productCartStore.items.map(item => ({
                     id: item.id,
                     quantity: item.quantity
@@ -127,12 +127,10 @@ export const useCartStore = defineStore('cart', {
                         }
                     }
                 );
-                
+
                 // Очищаем обе корзины
                 this.clearCart();
                 productCartStore.clearCart();
-            } catch (error) {
-                throw error;
             } finally {
                 loadingStore.stop();
             }
@@ -155,7 +153,8 @@ export const useCartStore = defineStore('cart', {
             return state.items.reduce((sum, item) => {
                 if (state.promoFreeIds.includes(item.id)) return sum;
                 const subscriptionType = state.subscriptionTypes[item.id] || 'trial';
-                const price = subscriptionType === 'trial' ? item.trial_amount || 0 : item.amount || 0;
+                const price =
+                    subscriptionType === 'trial' ? item.trial_amount || 0 : item.amount || 0;
                 return sum + price;
             }, 0);
         },
@@ -166,8 +165,8 @@ export const useCartStore = defineStore('cart', {
                 const price = isFree
                     ? 0
                     : subscriptionType === 'trial'
-                        ? item.trial_amount || 0
-                        : item.amount || 0;
+                      ? item.trial_amount || 0
+                      : item.amount || 0;
                 return sum + price;
             }, 0);
         },

@@ -4,9 +4,10 @@ export default {
         el.classList.add('opacity-0', 'translate-y-8', 'transition-all', 'duration-1000');
 
         // Support object binding: { class: 'animate-fade-in-up', once: true, threshold: 0.2, rootMargin: '0px 0px -20% 0px' }
-        const options = typeof binding.value === 'object' && binding.value !== null
-            ? binding.value
-            : { class: animationClass };
+        const options =
+            typeof binding.value === 'object' && binding.value !== null
+                ? binding.value
+                : { class: animationClass };
 
         const targetClass = options.class || animationClass;
         const once = options.once !== false; // default true
@@ -17,18 +18,24 @@ export default {
         const initObserver = () => {
             // Earlier reveal on small screens: lower threshold and negative bottom rootMargin (pulls boundary up slightly)
             const isSmallScreen = window.innerWidth < 768;
-            const baseThreshold = typeof options.threshold === 'number'
-                ? options.threshold
-                : (isSmallScreen ? 0.05 : 0.2);
+            const baseThreshold =
+                typeof options.threshold === 'number'
+                    ? options.threshold
+                    : isSmallScreen
+                      ? 0.05
+                      : 0.2;
 
             // rootMargin pulls the viewport bottom edge upward on mobile to trigger sooner
-            const baseRootMargin = typeof options.rootMargin === 'string'
-                ? options.rootMargin
-                : (isSmallScreen ? '0px 0px -30% 0px' : '0px 0px -10% 0px');
+            const baseRootMargin =
+                typeof options.rootMargin === 'string'
+                    ? options.rootMargin
+                    : isSmallScreen
+                      ? '0px 0px -30% 0px'
+                      : '0px 0px -10% 0px';
 
             // IntersectionObserver init
             observer = new IntersectionObserver(
-                (entries) => {
+                entries => {
                     const entry = entries[0];
                     if (!entry) return;
 

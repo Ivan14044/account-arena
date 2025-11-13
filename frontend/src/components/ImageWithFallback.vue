@@ -13,8 +13,8 @@
             :src="computedSrc"
             :alt="alt"
             v-bind="$attrs"
-            @error="handleError"
             class="w-full h-full object-cover"
+            @error="handleError"
         />
     </div>
 </template>

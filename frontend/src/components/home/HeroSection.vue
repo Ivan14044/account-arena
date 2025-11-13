@@ -18,7 +18,7 @@
                 >
                     {{ heroButton }}
                 </a>
-                
+
                 <!-- Широкий баннер (home_top_wide) - занимает всю ширину -->
                 <div class="w-full mt-8 mb-4">
                     <!-- Реальный широкий баннер -->
@@ -28,12 +28,15 @@
                         :target="wideBanner.open_new_tab ? '_blank' : '_self'"
                         :rel="wideBanner.open_new_tab ? 'noopener noreferrer' : ''"
                         class="ad-banner-wide pointer-events-auto"
-                        :class="{ 'cursor-pointer': wideBanner.link, 'cursor-default': !wideBanner.link }"
+                        :class="{
+                            'cursor-pointer': wideBanner.link,
+                            'cursor-default': !wideBanner.link
+                        }"
                         @click.prevent="wideBanner.link ? handleBannerClick(wideBanner) : null"
                     >
                         <div class="banner-image-wrapper">
-                            <img 
-                                :src="wideBanner.image_url" 
+                            <img
+                                :src="wideBanner.image_url"
                                 :alt="getBannerTitle(wideBanner)"
                                 class="banner-image"
                                 loading="eager"
@@ -42,16 +45,13 @@
                         </div>
                     </a>
                     <!-- Плейсхолдер для широкого баннера -->
-                    <div
-                        v-else
-                        class="ad-banner-wide"
-                    >
+                    <div v-else class="ad-banner-wide">
                         <div class="banner-content">
                             <span class="banner-text">{{ t('adBanners.wideBanner') }}</span>
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- Ad Banners - комбинация реальных баннеров и плейсхолдеров -->
                 <div class="ad-banners-grid w-full mt-8">
                     <template v-for="(item, index) in displayBanners" :key="index">
@@ -62,12 +62,17 @@
                             :target="item.banner.open_new_tab ? '_blank' : '_self'"
                             :rel="item.banner.open_new_tab ? 'noopener noreferrer' : ''"
                             class="ad-banner pointer-events-auto"
-                            :class="{ 'cursor-pointer': item.banner.link, 'cursor-default': !item.banner.link }"
-                            @click.prevent="item.banner.link ? handleBannerClick(item.banner) : null"
+                            :class="{
+                                'cursor-pointer': item.banner.link,
+                                'cursor-default': !item.banner.link
+                            }"
+                            @click.prevent="
+                                item.banner.link ? handleBannerClick(item.banner) : null
+                            "
                         >
                             <div class="banner-image-wrapper">
-                                <img 
-                                    :src="item.banner.image_url" 
+                                <img
+                                    :src="item.banner.image_url"
                                     :alt="getBannerTitle(item.banner)"
                                     class="banner-image"
                                     loading="eager"
@@ -76,10 +81,7 @@
                             </div>
                         </a>
                         <!-- Плейсхолдер -->
-                        <div
-                            v-else
-                            class="ad-banner"
-                        >
+                        <div v-else class="ad-banner">
                             <div class="banner-content">
                                 <span class="banner-text">{{ item.text }}</span>
                             </div>
@@ -127,7 +129,7 @@ const banners = computed(() => bannersStore.getBanners('home_top') || []);
 
 // Получаем широкий баннер (home_top_wide)
 const wideBanners = computed(() => bannersStore.getBanners('home_top_wide') || []);
-const wideBanner = computed(() => wideBanners.value.length > 0 ? wideBanners.value[0] : null);
+const wideBanner = computed(() => (wideBanners.value.length > 0 ? wideBanners.value[0] : null));
 
 // Функция для получения заголовка баннера с учетом локали
 const getBannerTitle = (banner: any): string => {
@@ -143,7 +145,7 @@ const getBannerTitle = (banner: any): string => {
 // Функция для обработки клика по баннеру
 const handleBannerClick = (banner: any) => {
     if (!banner.link) return;
-    
+
     if (banner.open_new_tab) {
         window.open(banner.link, '_blank', 'noopener,noreferrer');
     } else {
@@ -171,7 +173,7 @@ const placeholderTexts = computed(() => [
     t('adBanners.banner1'),
     t('adBanners.banner2'),
     t('adBanners.banner3'),
-    t('adBanners.banner4'),
+    t('adBanners.banner4')
 ]);
 
 /**
@@ -216,12 +218,12 @@ onMounted(async () => {
     if (!siteContentStore.loaded) {
         await siteContentStore.loadContent();
     }
-    
+
     // Если баннеры не загружены (например, hot reload в dev режиме), загружаем их
     if (!bannersStore.isLoaded('home_top')) {
         await bannersStore.fetchBanners('home_top');
     }
-    
+
     // Загружаем широкий баннер
     if (!bannersStore.isLoaded('home_top_wide')) {
         await bannersStore.fetchBanners('home_top_wide');
@@ -409,11 +411,11 @@ onMounted(async () => {
         grid-template-columns: repeat(2, 1fr);
         gap: 20px;
     }
-    
+
     .ad-banner {
         height: 180px;
     }
-    
+
     .ad-banner .banner-content {
         padding: 28px 20px;
     }
@@ -425,20 +427,20 @@ onMounted(async () => {
         grid-template-columns: 1fr;
         gap: 16px;
     }
-    
+
     .ad-banner {
         height: 160px;
     }
-    
+
     .ad-banner .banner-content {
         padding: 24px 20px;
     }
-    
+
     .banner-text {
         font-size: 14px;
         padding: 12px 24px;
     }
-    
+
     /* Адаптация широкого баннера для мобильных */
     .ad-banner-wide {
         height: 160px;

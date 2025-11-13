@@ -177,8 +177,8 @@ export const useArticlesStore = defineStore('articles', {
                 const items = Array.isArray(responseData?.items)
                     ? responseData.items
                     : Array.isArray(responseData)
-                        ? responseData
-                        : [];
+                      ? responseData
+                      : [];
                 const list = items
                     .map((rawArticle: any) => this.transformListItem(rawArticle))
                     .filter((a: Article) => Number.isFinite(a.id));
@@ -192,7 +192,7 @@ export const useArticlesStore = defineStore('articles', {
                     }
                 }
                 this.loadedByKey[key] = true;
-            } catch (fetchError) {
+            } catch {
                 // Ошибка загрузки статей - используем пустой массив
             }
         },
@@ -245,11 +245,18 @@ export const useArticlesStore = defineStore('articles', {
                 this.paginatedTotal = total;
                 this.paginatedParams = { limit, offset, categoryId } as any;
                 // Save to cache
-                this.paginatedCache[key] = { items: this.paginatedItems, total: this.paginatedTotal };
-            } catch (fetchError) {
+                this.paginatedCache[key] = {
+                    items: this.paginatedItems,
+                    total: this.paginatedTotal
+                };
+            } catch {
                 this.paginatedItems = [];
                 this.paginatedTotal = 0;
-                this.paginatedParams = { limit: 12, offset: 0, categoryId: params.categoryId } as any;
+                this.paginatedParams = {
+                    limit: 12,
+                    offset: 0,
+                    categoryId: params.categoryId
+                } as any;
             }
         },
 
@@ -279,7 +286,7 @@ export const useArticlesStore = defineStore('articles', {
                     ? this.transformCategories(responseData)
                     : [];
                 this.loaded.categories = true;
-            } catch (fetchError) {
+            } catch {
                 // Ошибка загрузки категорий
             }
         }

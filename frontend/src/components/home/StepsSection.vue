@@ -11,7 +11,9 @@
             class="step p-8 rounded-2xl w-full max-w-[460px] md:justify-self-end xl:justify-self-auto relative group bg-gradient-to-br from-purple-500/20 via-indigo-500/20 to-blue-500/20 dark:from-indigo-900/30 dark:via-purple-900/30 dark:to-blue-900/30 border border-indigo-400/30 dark:border-gray-700/40 backdrop-blur-md shadow-lg"
         >
             <div class="flex items-center gap-4 mb-4">
-                <div class="w-9 h-9 flex items-center justify-center rounded-full text-white font-bold bg-pink-600 dark:bg-pink-700 shadow-md">
+                <div
+                    class="w-9 h-9 flex items-center justify-center rounded-full text-white font-bold bg-pink-600 dark:bg-pink-700 shadow-md"
+                >
                     01
                 </div>
                 <img
@@ -48,7 +50,9 @@
             class="step p-8 rounded-2xl w-full max-w-[460px] relative group bg-gradient-to-br from-purple-500/20 via-indigo-500/20 to-blue-500/20 dark:from-indigo-900/30 dark:via-purple-900/30 dark:to-blue-900/30 border border-indigo-400/30 dark:border-gray-700/40 backdrop-blur-md shadow-lg"
         >
             <div class="flex items-center gap-4 mb-4">
-                <div class="w-9 h-9 flex items-center justify-center rounded-full text-white font-bold bg-green-600 dark:bg-green-700 shadow-md">
+                <div
+                    class="w-9 h-9 flex items-center justify-center rounded-full text-white font-bold bg-green-600 dark:bg-green-700 shadow-md"
+                >
                     02
                 </div>
                 <img
@@ -82,7 +86,9 @@
             class="step p-8 rounded-2xl w-full max-w-[460px] md:col-span-2 md:justify-self-center xl:col-span-1 xl:justify-self-auto relative group bg-gradient-to-br from-purple-500/20 via-indigo-500/20 to-blue-500/20 dark:from-indigo-900/30 dark:via-purple-900/30 dark:to-blue-900/30 border border-indigo-400/30 dark:border-gray-700/40 backdrop-blur-md shadow-lg"
         >
             <div class="flex items-center gap-4 mb-4">
-                <div class="w-9 h-9 flex items-center justify-center rounded-full text-white font-bold bg-blue-600 dark:bg-blue-700 shadow-md">
+                <div
+                    class="w-9 h-9 flex items-center justify-center rounded-full text-white font-bold bg-blue-600 dark:bg-blue-700 shadow-md"
+                >
                     03
                 </div>
                 <img
@@ -136,7 +142,9 @@ const stepsDescription = computed(() => {
 .step {
     position: relative;
     text-align: left;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    transition:
+        transform 0.3s ease,
+        box-shadow 0.3s ease;
 }
 
 /* Subtle lift and shadow on hover */

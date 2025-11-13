@@ -9,7 +9,11 @@
                 type="button"
                 class="absolute top-4 right-4 w-9 h-9 rounded-full glass-button flex items-center justify-center transition-colors duration-200 hover:bg-red-500 text-dark dark:text-white hover:text-white"
                 :disabled="isPromoFreeLocked(item.id)"
-                :class="isPromoFreeLocked(item.id) ? 'opacity-50 cursor-not-allowed hover:bg-transparent hover:text-current' : ''"
+                :class="
+                    isPromoFreeLocked(item.id)
+                        ? 'opacity-50 cursor-not-allowed hover:bg-transparent hover:text-current'
+                        : ''
+                "
                 @click="!isPromoFreeLocked(item.id) && removeFromCart(item.id)"
             >
                 <Trash class="w-4" />
@@ -45,7 +49,10 @@
                             ? 'opacity-50 pointer-events-none cursor-not-allowed'
                             : 'cursor-pointer'
                     ]"
-                    @click="!cartStore.isFree(item.id) && cartStore.setSubscriptionType(item.id, 'trial')"
+                    @click="
+                        !cartStore.isFree(item.id) &&
+                        cartStore.setSubscriptionType(item.id, 'trial')
+                    "
                 >
                     <div class="flex justify-between items-start xl:items-center">
                         <div class="xl:flex xl:items-center xl:gap-2">
@@ -56,7 +63,11 @@
                         </div>
                         <div class="text-right xl:flex xl:items-center">
                             <div class="text-lg font-bold">
-                                {{ cartStore.isFree(item.id) ? formatter.format(0) : formatter.format(item.trial_amount) }}
+                                {{
+                                    cartStore.isFree(item.id)
+                                        ? formatter.format(0)
+                                        : formatter.format(item.trial_amount)
+                                }}
                             </div>
                             <div class="text-xs text-dark dark:text-white xl:ml-2">
                                 <span class="hidden xl:!inline-flex mr-1"> / </span>
@@ -69,7 +80,10 @@
                 <div
                     class="plan-card cursor-pointer rounded-lg p-3 relative border-2"
                     :class="planClass(item.id, 'premium')"
-                    @click="!cartStore.isFree(item.id) && cartStore.setSubscriptionType(item.id, 'premium')"
+                    @click="
+                        !cartStore.isFree(item.id) &&
+                        cartStore.setSubscriptionType(item.id, 'premium')
+                    "
                 >
                     <div class="flex justify-between items-start xl:items-center">
                         <div class="xl:flex xl:items-center xl:gap-2">
@@ -80,7 +94,11 @@
                         </div>
                         <div class="text-right xl:flex xl:items-center">
                             <div class="text-lg font-bold">
-                                {{ cartStore.isFree(item.id) ? formatter.format(0) : formatter.format(item.amount) }}
+                                {{
+                                    cartStore.isFree(item.id)
+                                        ? formatter.format(0)
+                                        : formatter.format(item.amount)
+                                }}
                             </div>
                             <div class="text-xs text-dark dark:text-white xl:ml-2">
                                 <span class="hidden xl:!inline-flex mr-1"> / </span
@@ -88,8 +106,15 @@
                             </div>
                         </div>
                     </div>
-                    <div v-if="cartStore.isFree(item.id)" class="absolute -top-3 -left-3 bg-green-500 text-white text-xs px-2 py-1 rounded-md shadow">
-                        {{ $t('checkout.free_via_promocode', { days: cartStore.promoFreeDays[item.id] || 0 }) }}
+                    <div
+                        v-if="cartStore.isFree(item.id)"
+                        class="absolute -top-3 -left-3 bg-green-500 text-white text-xs px-2 py-1 rounded-md shadow"
+                    >
+                        {{
+                            $t('checkout.free_via_promocode', {
+                                days: cartStore.promoFreeDays[item.id] || 0
+                            })
+                        }}
                     </div>
                 </div>
             </div>

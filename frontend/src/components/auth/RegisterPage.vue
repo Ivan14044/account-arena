@@ -101,7 +101,11 @@
                     </div>
 
                     <div>
-                        <button type="submit" :disabled="loading || isSocialAuthLoading" class="auth-button primary">
+                        <button
+                            type="submit"
+                            :disabled="loading || isSocialAuthLoading"
+                            class="auth-button primary"
+                        >
                             <span>{{ $t('auth.registerButton') }}</span>
                         </button>
                     </div>
@@ -118,9 +122,7 @@
                         </router-link>
                     </p>
                 </form>
-                <SocialAuthButtons 
-                    @social-auth-status="handleSocialAuthStatus"
-                />
+                <SocialAuthButtons @social-auth-status="handleSocialAuthStatus" />
             </div>
         </div>
     </div>

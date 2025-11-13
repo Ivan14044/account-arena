@@ -34,45 +34,55 @@ export const useSiteContentStore = defineStore('siteContent', {
         content: null as SiteContentData | null,
         isLoaded: false,
         isLoading: false,
-        error: null as string | null,
+        error: null as string | null
     }),
 
     getters: {
         /**
          * Get content by section and current locale
          */
-        getSection: (state) => (section: keyof SiteContentData, locale: string = 'ru') => {
-            if (!state.content || !state.content[section]) return null;
-            return state.content[section][locale] || state.content[section]['ru'] || null;
-        },
+        getSection:
+            state =>
+            (section: keyof SiteContentData, locale: string = 'ru') => {
+                if (!state.content || !state.content[section]) return null;
+                return state.content[section][locale] || state.content[section]['ru'] || null;
+            },
 
         /**
          * Get hero content for current locale
          */
-        hero: (state) => (locale: string = 'ru') => {
-            return state.content?.hero?.[locale] || state.content?.hero?.ru || null;
-        },
+        hero:
+            state =>
+            (locale: string = 'ru') => {
+                return state.content?.hero?.[locale] || state.content?.hero?.ru || null;
+            },
 
         /**
          * Get about content for current locale
          */
-        about: (state) => (locale: string = 'ru') => {
-            return state.content?.about?.[locale] || state.content?.about?.ru || null;
-        },
+        about:
+            state =>
+            (locale: string = 'ru') => {
+                return state.content?.about?.[locale] || state.content?.about?.ru || null;
+            },
 
         /**
          * Get promote content for current locale
          */
-        promote: (state) => (locale: string = 'ru') => {
-            return state.content?.promote?.[locale] || state.content?.promote?.ru || null;
-        },
+        promote:
+            state =>
+            (locale: string = 'ru') => {
+                return state.content?.promote?.[locale] || state.content?.promote?.ru || null;
+            },
 
         /**
          * Get steps content for current locale
          */
-        steps: (state) => (locale: string = 'ru') => {
-            return state.content?.steps?.[locale] || state.content?.steps?.ru || null;
-        },
+        steps:
+            state =>
+            (locale: string = 'ru') => {
+                return state.content?.steps?.[locale] || state.content?.steps?.ru || null;
+            }
     },
 
     actions: {
@@ -89,7 +99,7 @@ export const useSiteContentStore = defineStore('siteContent', {
                 const response = await axios.get('/site-content');
                 this.content = response.data;
                 this.isLoaded = true;
-            } catch (error) {
+            } catch {
                 this.error = 'Failed to load site content';
                 // Keep content as null to use fallback from locale files
             } finally {
@@ -103,10 +113,6 @@ export const useSiteContentStore = defineStore('siteContent', {
         clearCache() {
             this.content = null;
             this.isLoaded = false;
-        },
-    },
+        }
+    }
 });
-
-
-
-

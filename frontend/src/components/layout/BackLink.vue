@@ -34,7 +34,7 @@ const goBack = () => {
                 router.push(saved);
                 return;
             }
-        } catch (_) {
+        } catch {
             // ignore storage errors
         }
     }

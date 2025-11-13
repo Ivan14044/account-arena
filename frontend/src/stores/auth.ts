@@ -8,23 +8,23 @@ export const useAuthStore = defineStore('auth', {
         user: (() => {
             const raw = localStorage.getItem('user');
             const token = localStorage.getItem('token');
-            
+
             try {
                 if (!raw || !token) {
                     return null;
                 }
-                
+
                 const parsed = JSON.parse(raw);
-                
+
                 // Проверка валидности данных пользователя
                 if (!parsed || typeof parsed !== 'object' || !parsed.email) {
                     localStorage.removeItem('user');
                     localStorage.removeItem('token');
                     return null;
                 }
-                
+
                 return parsed;
-            } catch (error) {
+            } catch {
                 localStorage.removeItem('user');
                 localStorage.removeItem('token');
                 return null;
@@ -111,7 +111,9 @@ export const useAuthStore = defineStore('auth', {
                 }
 
                 if (!response.data.user) {
-                    this.errors = { email: ['Ошибка авторизации: данные пользователя не получены'] };
+                    this.errors = {
+                        email: ['Ошибка авторизации: данные пользователя не получены']
+                    };
                     return false;
                 }
 
@@ -133,8 +135,10 @@ export const useAuthStore = defineStore('auth', {
             } catch (error: any) {
                 // Обработка rate limiting (429 Too Many Requests)
                 if (error.response?.status === 429) {
-                    this.errors = { 
-                        email: ['Слишком много попыток входа. Пожалуйста, подождите минуту и попробуйте снова.'] 
+                    this.errors = {
+                        email: [
+                            'Слишком много попыток входа. Пожалуйста, подождите минуту и попробуйте снова.'
+                        ]
                     };
                 } else if (
                     error.response?.data?.errors &&
@@ -142,7 +146,9 @@ export const useAuthStore = defineStore('auth', {
                 ) {
                     this.errors = error.response.data.errors;
                 } else {
-                    this.errors = { email: [error.response?.data?.message || 'Ошибка авторизации'] };
+                    this.errors = {
+                        email: [error.response?.data?.message || 'Ошибка авторизации']
+                    };
                 }
                 return false;
             } finally {
@@ -197,7 +203,7 @@ export const useAuthStore = defineStore('auth', {
                 await axios.get('/logout', {
                     headers: { Authorization: `Bearer ${this.token}` }
                 });
-            } catch (error) {
+            } catch {
                 // Игнорируем ошибки при выходе
             } finally {
                 this.token = '';
@@ -220,7 +226,7 @@ export const useAuthStore = defineStore('auth', {
                 });
                 this.user = response.data;
                 localStorage.setItem('user', JSON.stringify(this.user));
-            } catch (error) {
+            } catch {
                 await this.logout();
             } finally {
                 this.userLoaded = true;
@@ -239,8 +245,6 @@ export const useAuthStore = defineStore('auth', {
                         headers: { Authorization: `Bearer ${this.token}` }
                     }
                 );
-            } catch (error) {
-                throw error;
             } finally {
                 loadingStore.stop();
             }
@@ -258,8 +262,6 @@ export const useAuthStore = defineStore('auth', {
                         headers: { Authorization: `Bearer ${this.token}` }
                     }
                 );
-            } catch (error) {
-                throw error;
             } finally {
                 loadingStore.stop();
             }

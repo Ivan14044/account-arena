@@ -35,10 +35,16 @@ export const usePromoStore = defineStore('promo', {
                 const { data } = await axios.post('/promocodes/validate', { code });
                 if (data?.type === 'discount') {
                     this.code = code;
-                    this.result = { type: 'discount', discount_percent: Number(data.discount_percent || 0) };
+                    this.result = {
+                        type: 'discount',
+                        discount_percent: Number(data.discount_percent || 0)
+                    };
                 } else if (data?.type === 'free_access') {
                     this.code = code;
-                    this.result = { type: 'free_access', services: Array.isArray(data.services) ? data.services : [] };
+                    this.result = {
+                        type: 'free_access',
+                        services: Array.isArray(data.services) ? data.services : []
+                    };
                 } else {
                     this.error = data?.message || 'Invalid promocode';
                 }
@@ -60,5 +66,3 @@ export const usePromoStore = defineStore('promo', {
     },
     persist: true
 });
-
-
