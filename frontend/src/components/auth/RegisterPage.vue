@@ -40,6 +40,7 @@
                                 type="text"
                                 class="input-field dark:!border-gray-500 dark:text-gray-300"
                                 :placeholder="$t('auth.name')"
+                                :disabled="isSocialAuthLoading"
                                 required
                             />
                         </div>
@@ -56,6 +57,7 @@
                                 type="email"
                                 class="input-field dark:!border-gray-500 dark:text-gray-300"
                                 :placeholder="$t('auth.email')"
+                                :disabled="isSocialAuthLoading"
                                 required
                             />
                         </div>
@@ -72,6 +74,7 @@
                                 type="password"
                                 class="input-field dark:!border-gray-500 dark:text-gray-300"
                                 :placeholder="$t('auth.password')"
+                                :disabled="isSocialAuthLoading"
                                 required
                             />
                         </div>
@@ -88,6 +91,7 @@
                                 type="password"
                                 class="input-field dark:!border-gray-500 dark:text-gray-300"
                                 :placeholder="$t('auth.passwordConfirmation')"
+                                :disabled="isSocialAuthLoading"
                                 required
                             />
                         </div>
@@ -97,7 +101,7 @@
                     </div>
 
                     <div>
-                        <button type="submit" :disabled="loading" class="auth-button primary">
+                        <button type="submit" :disabled="loading || isSocialAuthLoading" class="auth-button primary">
                             <span>{{ $t('auth.registerButton') }}</span>
                         </button>
                     </div>
@@ -114,7 +118,9 @@
                         </router-link>
                     </p>
                 </form>
-                <SocialAuthButtons />
+                <SocialAuthButtons 
+                    @social-auth-status="handleSocialAuthStatus"
+                />
             </div>
         </div>
     </div>
@@ -139,11 +145,16 @@ const errors = ref<{
     passwordConfirmation?: string;
 }>({});
 const loading = ref(false);
+const isSocialAuthLoading = ref(false);
 const authStore = useAuthStore();
 const router = useRouter();
 const route = useRoute();
 
 const redirectQuery = route.query.redirect as string | undefined;
+
+const handleSocialAuthStatus = (loading: boolean) => {
+    isSocialAuthLoading.value = loading;
+};
 
 // Removed inline login button; navigation link is placed under the submit button
 

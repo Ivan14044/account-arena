@@ -43,13 +43,6 @@ return [
         'redirect' => env('GOOGLE_REDIRECT_URI', env('APP_URL') . '/auth/google/callback'),
     ],
 
-    'telegram' => [
-        'bot_token' => env('TELEGRAM_BOT_TOKEN'),
-        'bot_username' => env('TELEGRAM_BOT_USERNAME'),
-        'bot_id' => env('TELEGRAM_BOT_ID'),
-        'redirect' => env('TELEGRAM_REDIRECT_URI', '/auth/telegram/callback'),
-    ],
-
     'browser_api' => [
         'url' => env('BROWSER_API_URL', 'https://workspace.subcloudy.com/api/'),
     ],

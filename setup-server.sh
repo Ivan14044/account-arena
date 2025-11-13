@@ -236,13 +236,10 @@ print_header "🌐 Настройка Nginx"
 
 cat > /etc/nginx/sites-available/account-arena << 'EOF'
 server {
-    listen 80;
-    listen [::]:80;
-    server_name 192.168.64.6;
-
+    server_name account-arena.com www.account-arena.com;
     root /var/www/subcloudy/frontend/dist;
     index index.html;
-
+    
     access_log /var/log/nginx/account-arena-access.log;
     error_log /var/log/nginx/account-arena-error.log;
 
@@ -277,7 +274,7 @@ server {
         access_log off;
     }
 
-    # Laravel Backend - API routes (keep /api prefix) - must be before location /
+    # Laravel Backend - API routes
     location /api {
         fastcgi_pass unix:/var/run/php/php8.2-fpm.sock;
         fastcgi_index index.php;
@@ -286,7 +283,16 @@ server {
         fastcgi_param REQUEST_URI $request_uri;
     }
 
-    # Laravel Backend - Admin routes (keep /admin prefix) - must be before location /
+    # Laravel Backend - Auth routes
+    location /auth {
+        fastcgi_pass unix:/var/run/php/php8.2-fpm.sock;
+        fastcgi_index index.php;
+        fastcgi_param SCRIPT_FILENAME /var/www/subcloudy/backend/public/index.php;
+        include fastcgi_params;
+        fastcgi_param REQUEST_URI $request_uri;
+    }
+
+    # Laravel Backend - Admin routes
     location /admin {
         fastcgi_pass unix:/var/run/php/php8.2-fpm.sock;
         fastcgi_index index.php;
@@ -295,7 +301,7 @@ server {
         fastcgi_param REQUEST_URI $request_uri;
     }
 
-    # Laravel Backend - Supplier routes (keep /supplier prefix as routes use it) - must be before location /
+    # Laravel Backend - Supplier routes
     location /supplier {
         fastcgi_pass unix:/var/run/php/php8.2-fpm.sock;
         fastcgi_index index.php;
@@ -330,7 +336,30 @@ server {
         add_header Cache-Control "public, immutable";
         access_log off;
     }
+
+    # ===== SSL =====
+    listen [::]:443 ssl ipv6only=on;
+    listen 443 ssl;
+    ssl_certificate /etc/letsencrypt/live/account-arena.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/account-arena.com/privkey.pem;
+    include /etc/letsencrypt/options-ssl-nginx.conf;
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
 }
+
+server {
+    if ($host = www.account-arena.com) {
+        return 301 https://$host$request_uri;
+    }
+    if ($host = account-arena.com) {
+        return 301 https://$host$request_uri;
+    }
+    
+    listen 80;
+    listen [::]:80;
+    server_name account-arena.com www.account-arena.com;
+    return 404;
+}
+
 EOF
 
 # Замена placeholder на реальный домен

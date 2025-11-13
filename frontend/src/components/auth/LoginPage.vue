@@ -40,6 +40,7 @@
                                 type="email"
                                 class="input-field dark:!border-gray-500 dark:text-gray-300"
                                 :placeholder="$t('auth.email')"
+                                :disabled="isSocialAuthLoading"
                                 required
                             />
                         </div>
@@ -56,6 +57,7 @@
                                 type="password"
                                 class="input-field dark:!border-gray-500 dark:text-gray-300"
                                 :placeholder="$t('auth.password')"
+                                :disabled="isSocialAuthLoading"
                                 required
                             />
                         </div>
@@ -66,7 +68,7 @@
 
                     <div class="flex flex-row items-center gap-2 justify-between">
                         <div class="relative">
-                            <input id="remember" v-model="remember" type="checkbox" class="mr-2" />
+                            <input id="remember" v-model="remember" type="checkbox" :disabled="isSocialAuthLoading" class="mr-2" />
                             <label for="remember" class="text-sm dark:text-gray-300">
                                 {{ $t('auth.rememberMe') }}
                             </label>
@@ -82,7 +84,7 @@
                     </div>
 
                     <div>
-                        <button type="submit" class="auth-button primary">
+                        <button type="submit" :disabled="isSocialAuthLoading" class="auth-button primary">
                             {{ $t('auth.loginButton') }}
                         </button>
                     </div>
@@ -99,7 +101,9 @@
                         </router-link>
                     </p>
                 </form>
-                <SocialAuthButtons />
+                <SocialAuthButtons 
+                    @social-auth-status="handleSocialAuthStatus"
+                />
                 
             </div>
         </div>
@@ -121,8 +125,13 @@ const router = useRouter();
 const route = useRoute();
 const authStore = useAuthStore();
 const errors = ref({});
+const isSocialAuthLoading = ref(false);
 
 const redirectQuery = route.query.redirect as string | undefined;
+
+const handleSocialAuthStatus = (loading: boolean) => {
+    isSocialAuthLoading.value = loading;
+};
 
 // Removed inline register navigation button; registration link remains below the form
 

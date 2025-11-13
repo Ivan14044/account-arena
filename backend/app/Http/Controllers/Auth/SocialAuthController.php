@@ -66,12 +66,12 @@ class SocialAuthController extends Controller
             } else {
                 // Шаг 3: создаем нового пользователя
                 $user = User::create([
+                    'provider' => 'google',
+                    'google_id' => $googleUser->getId(),
                     'name' => $googleUser->getName(),
                     'email' => $googleUser->getEmail(),
-                    'google_id' => $googleUser->getId(),
-                    'provider' => 'google',
                     'avatar' => $googleUser->getAvatar(),
-                    'password' => Hash::make(Str::random(12)),
+                    'password' => Hash::make(rand(100000, 999999)),
                 ]);
             }
 
@@ -114,7 +114,7 @@ class SocialAuthController extends Controller
     }
 
     /**
-     * Обработка авторизации через Telegram
+     * Handle Telegram callback
      */
     public function handleTelegramCallback(Request $request)
     {
@@ -141,12 +141,12 @@ class SocialAuthController extends Controller
                     $user = $existingUser;
                 } else {
                     $user = User::create([
-                        'name' => $telegramData['first_name'] . ' ' . ($telegramData['last_name'] ?? ''),
-                        'email' => $telegramData['email'] ?? $telegramData['id'] . '@telegram.org',
+                        'provider' => 'telegram',
                         'telegram_id' => $telegramData['id'],
                         'telegram_username' => $telegramData['username'] ?? null,
+                        'name' => $telegramData['first_name'] . ' ' . ($telegramData['last_name'] ?? ''),
+                        'email' => $telegramData['email'] ?? $telegramData['id'] . '@telegram.org',
                         'avatar' => $telegramData['photo_url'] ?? null,
-                        'provider' => 'telegram',
                         'password' => Hash::make(rand(100000, 999999)),
                     ]);
                 }
@@ -170,38 +170,38 @@ class SocialAuthController extends Controller
     }
 
     /**
-     * Проверка данных от Telegram
+     * Check Telegram data
      */
     private function validateTelegramData($data)
     {
-        // Если отсутствуют обязательные поля, данные недействительны
+        // If required fields are missing, data is invalid
         if (!isset($data['id']) || !isset($data['auth_date']) || !isset($data['hash'])) {
             return false;
         }
 
-        // Проверяем, что авторизация не устарела (не более 24 часов)
+        // Check if the authentication is not outdated (not more than 24 hours)
         if (time() - $data['auth_date'] > 86400) {
             return false;
         }
 
-        // Получаем секретный ключ для проверки
-        $botToken = config('services.telegram.bot_token');
+        // Get the secret key for verification
+        $botToken = config('telegram.bot_token');
         $secretKey = hash('sha256', $botToken, true);
 
-        // Готовим данные для проверки хэша (копируем и удаляем хэш)
+        // Prepare data for hash verification (copy and remove hash)
         $checkData = $data;
         $checkHash = $checkData['hash'];
         unset($checkData['hash']);
+        $dataCheckArray = [];
 
-        // Сортируем массив по ключам и формируем строку для хэша
-        ksort($checkData);
-        $dataCheckString = '';
         foreach ($checkData as $key => $value) {
-            $dataCheckString .= $key . '=' . $value . "\n";
+            $dataCheckArray[] = $key . '=' . $value;
         }
-        $dataCheckString = rtrim($dataCheckString, "\n");
+        // Sort array
+        sort($dataCheckArray);
+        $dataCheckString = implode("\n", $dataCheckArray);
 
-        // Вычисляем хэш и сравниваем с полученным от Telegram
+        // Calculate hash and compare with the one received from Telegram
         $hash = hash_hmac('sha256', $dataCheckString, $secretKey);
 
         return hash_equals($hash, $checkHash);

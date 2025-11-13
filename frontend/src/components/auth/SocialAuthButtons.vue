@@ -13,7 +13,8 @@
             <!-- Google кнопка -->
             <a
                 class="flex items-center dark:text-white dark:hover:bg-gray-300 dark:hover:text-gray-800 justify-center border border-gray-300 rounded-lg px-4 py-3 hover:bg-gray-50 transition-colors cursor-pointer"
-                @click="openGoogleAuth"
+                :class="{ 'opacity-50 cursor-not-allowed': isSocialAuthLoading }"
+                @click="!isSocialAuthLoading && openGoogleAuth()"
             >
                 <img class="w-5 h-5 mr-2" src="/img/google.png" alt="google" />
                 <span>{{ $t('auth.google') }}</span>
@@ -22,6 +23,8 @@
             <!-- Telegram кнопка -->
             <button
                 class="flex items-center justify-center border-[#1a94d2] rounded-lg px-4 py-3 bg-[#1a94d2] hover:bg-[#1a94d2]/80 transition-colors"
+                :class="{ 'opacity-50 cursor-not-allowed': isSocialAuthLoading }"
+                :disabled="isSocialAuthLoading"
                 @click="initTelegramAuth"
             >
                 <img class="w-5 h-5 mr-2" src="/img/telegram.png" alt="telegram" />
@@ -32,6 +35,7 @@
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useAuthStore } from '../../stores/auth';
 import '../../types/telegram.d.ts';
@@ -41,7 +45,21 @@ const authStore = useAuthStore();
 const router = useRouter();
 const route = useRoute();
 
+const emit = defineEmits<{
+    'social-auth-status': [loading: boolean];
+}>();
+
+const isSocialAuthLoading = ref(false);
+const emitStatus = () => {
+    emit('social-auth-status', isSocialAuthLoading.value);
+};
+
+
 const openGoogleAuth = () => {
+    // Set loading state
+    isSocialAuthLoading.value = true;
+    emit('social-auth-status', isSocialAuthLoading.value);
+
     // Используем специальный роут для принудительного выбора аккаунта
     const url = '/auth/google/reauth';
     const features = `
@@ -75,6 +93,10 @@ const openGoogleAuth = () => {
             // Убираем слушатель
             window.removeEventListener('message', messageListener);
 
+            // Reset loading state
+            isSocialAuthLoading.value = false;
+            emit('social-auth-status', isSocialAuthLoading.value);
+
             // Принудительно обновляем страницу для полного обновления состояния
             const redirectTo = route.query.redirect as string;
             router.push(redirectTo || '/');
@@ -84,6 +106,10 @@ const openGoogleAuth = () => {
 
             // Убираем слушатель
             window.removeEventListener('message', messageListener);
+
+            // Reset loading state
+            isSocialAuthLoading.value = false;
+            emit('social-auth-status', isSocialAuthLoading.value);
         }
     };
 
@@ -95,12 +121,22 @@ const openGoogleAuth = () => {
         if (popup?.closed) {
             window.removeEventListener('message', messageListener);
             clearInterval(checkClosed);
+
+            // Reset loading state if popup closed
+            if (isSocialAuthLoading.value) {
+                isSocialAuthLoading.value = false;
+                emit('social-auth-status', isSocialAuthLoading.value);
+            }
         }
     }, 1000);
 };
 
 // Метод для инициализации Telegram Login Widget
 const initTelegramAuth = () => {
+    // Set loading state
+    isSocialAuthLoading.value = true;
+    emit('social-auth-status', isSocialAuthLoading.value);
+
     // Проверяем, загружен ли Telegram Widget скрипт
     if (!window.Telegram) {
         loadTelegramScript();
@@ -118,6 +154,12 @@ const loadTelegramScript = () => {
     script.src = 'https://telegram.org/js/telegram-widget.js';
     script.async = true;
     script.onload = showTelegramPopup;
+    script.onerror = () => {
+        // Reset loading state if script fails to load
+        isSocialAuthLoading.value = false;
+        emitStatus();
+        console.error('Failed to load Telegram widget script');
+    };
     document.head.appendChild(script);
 };
 
@@ -130,13 +172,23 @@ const showTelegramPopup = () => {
         window.Telegram.Login.auth({ bot_id: botId }, data => {
             if (data) {
                 handleTelegramAuth(data);
+            } else {
+                // User cancelled or auth failed
+                isSocialAuthLoading.value = false;
+                emitStatus();
             }
         });
+    } else {
+        // Telegram widget not available
+        isSocialAuthLoading.value = false;
+        emitStatus();
+        console.error('Telegram widget not available');
     }
 };
 
 // Обработка данных авторизации Telegram
-const handleTelegramAuth = async (data: any) => {
+const handleTelegramAuth = async (data: TelegramUser) => {
+    debugger;
     try {
         const response = await fetch('/auth/telegram/callback', {
             method: 'POST',
@@ -153,11 +205,22 @@ const handleTelegramAuth = async (data: any) => {
             authStore.setToken(result.token);
             authStore.setUser(result.user);
 
+            // Reset loading state
+            isSocialAuthLoading.value = false;
+            emitStatus();
+
             const redirectTo = route.query.redirect as string;
             router.push(redirectTo || '/');
+        } else {
+            // Reset loading state on error
+            isSocialAuthLoading.value = false;
+            emitStatus();
         }
     } catch (error) {
         console.error('Telegram auth error:', error);
+        // Reset loading state on error
+        isSocialAuthLoading.value = false;
+        emitStatus();
     }
 };
 </script>

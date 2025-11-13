@@ -165,6 +165,7 @@ Route::prefix('supplier')
         });
     });
 
+// Auth routes
 Route::prefix('auth')->group(function () {
     // Google OAuth
     Route::get('/google', [SocialAuthController::class, 'redirectToGoogle']);
