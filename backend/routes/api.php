@@ -22,6 +22,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Http\Request;
 use App\Http\Controllers\ExtensionController;
 use App\Http\Controllers\Api\PromocodeController;
+use App\Http\Controllers\Api\SupportChatController;
 
 // Auth routes with rate limiting (увеличен лимит для разработки: 60 запросов в минуту)
 Route::middleware('throttle:60,1')->group(function () {
@@ -54,13 +55,13 @@ Route::middleware('throttle:60,1')->group(function () {
     Route::get('/support-chat-settings', [OptionController::class, 'getSupportChatSettings']);
     
     // Чат поддержки (публичные endpoints)
-    Route::post('/support-chat/create', [\App\Http\Controllers\Api\SupportChatController::class, 'getOrCreateChat']);
-    Route::get('/support-chat/{chatId}/messages', [\App\Http\Controllers\Api\SupportChatController::class, 'getMessages']);
-    Route::post('/support-chat/{chatId}/messages', [\App\Http\Controllers\Api\SupportChatController::class, 'sendMessage']);
-    Route::post('/support-chat/{chatId}/typing', [\App\Http\Controllers\Api\SupportChatController::class, 'sendTyping']);
-    Route::post('/support-chat/{chatId}/typing/stop', [\App\Http\Controllers\Api\SupportChatController::class, 'stopTyping']);
-    Route::get('/support-chat/{chatId}/typing/status', [\App\Http\Controllers\Api\SupportChatController::class, 'getTypingStatus']);
-    Route::post('/support-chat/{chatId}/rating', [\App\Http\Controllers\Api\SupportChatController::class, 'addRating']);
+    Route::post('/support-chat/create', [SupportChatController::class, 'getOrCreateChat']);
+    Route::get('/support-chat/{chatId}/messages', [SupportChatController::class, 'getMessages']);
+    Route::post('/support-chat/{chatId}/messages', [SupportChatController::class, 'sendMessage']);
+    Route::post('/support-chat/{chatId}/typing', [SupportChatController::class, 'sendTyping']);
+    Route::post('/support-chat/{chatId}/typing/stop', [SupportChatController::class, 'stopTyping']);
+    Route::get('/support-chat/{chatId}/typing/status', [SupportChatController::class, 'getTypingStatus']);
+    Route::post('/support-chat/{chatId}/rating', [SupportChatController::class, 'addRating']);
     
     // Гостевые покупки (без авторизации) - только товары
     Route::post('/guest/cart', [\App\Http\Controllers\GuestCartController::class, 'store']);
@@ -77,8 +78,6 @@ Route::middleware(['auth:sanctum', 'throttle:120,1'])->group(function () {
     Route::get('/notifications', [NotificationController::class, 'index']);
     Route::post('/notifications/read', [NotificationController::class, 'markNotificationsAsRead']);
     Route::post('/cart', [CartController::class, 'store']);
-    Route::post('/toggle-auto-renew', [SubscriptionController::class, 'toggleAutoRenew']);
-    Route::post('/cancel-subscription', [SubscriptionController::class, 'cancelSubscription']);
     
     // Vouchers
     Route::post('/vouchers/activate', [\App\Http\Controllers\VoucherController::class, 'activate']);

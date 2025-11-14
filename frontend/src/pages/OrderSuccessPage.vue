@@ -481,7 +481,10 @@ const downloadAllAccounts = purchase => {
         .map((item, index) => `=== Аккаунт ${index + 1} ===\n${formatAccountData(item)}`)
         .join('\n\n');
 
-    downloadAsText(header + allData, `ORDER_${orderNumber}_${getProductTitle(purchase.product)}.txt`);
+    downloadAsText(
+        header + allData,
+        `ORDER_${orderNumber}_${getProductTitle(purchase.product)}.txt`
+    );
 };
 </script>
 

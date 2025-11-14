@@ -4,22 +4,24 @@
             v-if="productCartStore.items.length"
             class="mx-auto grid gap-8 lg:grid-cols-[minmax(0,1fr)_24rem]"
         >
-            <div class="flex items-center justify-between mt-6 mb-2 lg:col-span-2">
+            <div class="flex items-center justify-between gap-4 mt-6 mb-2 lg:col-span-2">
                 <h1
-                    class="text-2xl font-medium md:text-4xl md:font-light text-dark dark:text-white"
+                    class="text-2xl font-medium md:text-4xl md:font-light text-dark dark:text-white break-words flex-1 min-w-0"
                 >
                     {{ $t('checkout.title') }}
                 </h1>
 
-                <BackLink />
+                <BackLink class="flex-shrink-0" />
             </div>
 
             <div class="min-w-0">
                 <form class="space-y-6" @submit.prevent="handleSubmit">
                     <!-- Товары (если есть) -->
                     <div v-if="productCartStore.items.length" class="product-cart-section">
-                        <h2 class="text-xl font-semibold mb-4 text-dark dark:text-white">
-                            Товары в корзине
+                        <h2
+                            class="text-lg sm:text-xl font-semibold mb-3 sm:mb-4 text-dark dark:text-white break-words"
+                        >
+                            {{ $t('checkout.products_in_cart') }}
                         </h2>
 
                         <div class="space-y-4">
@@ -28,9 +30,11 @@
                                 :key="item.id"
                                 class="product-cart-item glass-card p-4 rounded-2xl"
                             >
-                                <div class="flex items-center gap-4">
+                                <div
+                                    class="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4"
+                                >
                                     <!-- Изображение -->
-                                    <div class="product-image-wrapper-checkout">
+                                    <div class="product-image-wrapper-checkout flex-shrink-0">
                                         <img
                                             :src="item.image_url || '/img/no-logo.png'"
                                             :alt="getProductTitle(item)"
@@ -39,18 +43,24 @@
                                     </div>
 
                                     <!-- Информация -->
-                                    <div class="flex-1 min-w-0">
-                                        <h3 class="font-semibold text-dark dark:text-white">
+                                    <div class="flex-1 min-w-0 w-full sm:w-auto">
+                                        <h3
+                                            class="font-semibold text-sm sm:text-base text-dark dark:text-white break-words line-clamp-2"
+                                        >
                                             {{ getProductTitle(item) }}
                                         </h3>
-                                        <p class="text-sm text-gray-600 dark:text-gray-400">
+                                        <p
+                                            class="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1"
+                                        >
                                             {{ formatCurrency(item.price) }} ×
                                             {{ item.quantity }} шт.
                                         </p>
                                     </div>
 
                                     <!-- Управление количеством -->
-                                    <div class="flex items-center gap-3">
+                                    <div
+                                        class="flex items-center gap-2 sm:gap-3 w-full sm:w-auto justify-between sm:justify-start"
+                                    >
                                         <div class="quantity-control-checkout">
                                             <button
                                                 class="qty-btn"
@@ -1741,6 +1751,19 @@ function onPrimaryPromoClick() {
 
 /* Адаптивность */
 @media (max-width: 768px) {
+    .product-image-wrapper-checkout {
+        width: 60px;
+        height: 60px;
+    }
+
+    .product-cart-item {
+        padding: 0.75rem;
+    }
+
+    .quantity-control-checkout {
+        font-size: 0.875rem;
+    }
+
     .purchase-rules-modal {
         max-height: 90vh;
     }

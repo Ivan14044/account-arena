@@ -27,7 +27,8 @@ app.use(vuetify);
 app.use(pinia);
 app.use(Toast, {
     position: POSITION.TOP_RIGHT,
-    timeout: 5000
+    timeout: 5000,
+    transition: 'Vue-Toastification__fade'
 });
 app.use(Vue3Lottie);
 app.directive('intersect', IntersectDirective);

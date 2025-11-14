@@ -283,22 +283,6 @@ button.swal2-cancel {
     margin-right: 0.75rem;
 }
 
-/* Анимация появления */
-.Vue-Toastification__toast {
-    animation: toastSlideIn 0.3s cubic-bezier(0.22, 0.9, 0.36, 1);
-}
-
-@keyframes toastSlideIn {
-    from {
-        transform: translateX(100%);
-        opacity: 0;
-    }
-    to {
-        transform: translateX(0);
-        opacity: 1;
-    }
-}
-
 /* Темная тема для toast */
 .dark .Vue-Toastification__toast--warning {
     background: linear-gradient(135deg, #5b4bcf 0%, #9189e8 100%);

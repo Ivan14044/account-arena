@@ -179,6 +179,7 @@
         "rules_not_available": "Purchase rules are temporarily unavailable",
         "title": "Checkout",
         "empty": "Your cart is empty. Start adding some items!",
+        "products_in_cart": "Products in cart",
         "payment_method": "Payment method",
         "payment_method_placeholder": "Select payment method",
         "submit": "Place order",

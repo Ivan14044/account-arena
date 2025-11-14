@@ -32,7 +32,10 @@
                 <button
                     v-for="subcategory in selectedSubcategories"
                     :key="subcategory.id"
-                    :class="['subcategory-btn', { active: selectedSubcategoryId === subcategory.id }]"
+                    :class="[
+                        'subcategory-btn',
+                        { active: selectedSubcategoryId === subcategory.id }
+                    ]"
                     @click="selectSubcategory(subcategory.id)"
                 >
                     <span class="subcategory-name">{{ getSubcategoryName(subcategory) }}</span>
@@ -115,13 +118,17 @@ const selectedSubcategories = computed(() => {
     if (!selectedCategoryId.value || selectedCategoryId.value === 0) {
         return [];
     }
-    
+
     const category = categoriesStore.list.find(cat => cat.id === selectedCategoryId.value);
     return category?.subcategories || [];
 });
 
 const getSubcategoryName = (subcategory: any): string => {
-    if (subcategory.translations && subcategory.translations[locale.value] && subcategory.translations[locale.value]['name']) {
+    if (
+        subcategory.translations &&
+        subcategory.translations[locale.value] &&
+        subcategory.translations[locale.value]['name']
+    ) {
         return subcategory.translations[locale.value]['name'];
     }
     return subcategory.name || '';
@@ -130,7 +137,7 @@ const getSubcategoryName = (subcategory: any): string => {
 const selectCategory = (categoryId: number | null) => {
     selectedCategoryId.value = categoryId === 0 ? null : categoryId;
     selectedSubcategoryId.value = null; // Сбрасываем выбранную подкатегорию при смене категории
-    
+
     emit('filter-change', {
         categoryId: selectedCategoryId.value,
         subcategoryId: null,
@@ -142,7 +149,7 @@ const selectCategory = (categoryId: number | null) => {
 
 const selectSubcategory = (subcategoryId: number | null) => {
     selectedSubcategoryId.value = subcategoryId;
-    
+
     emit('filter-change', {
         categoryId: selectedCategoryId.value,
         subcategoryId: selectedSubcategoryId.value,

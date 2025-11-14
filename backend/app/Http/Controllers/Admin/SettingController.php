@@ -29,19 +29,24 @@ class SettingController extends Controller
             }
         }
 
+
         // Сохраняем сообщения для разных языков (приветствие)
         if ($request->form === 'support_chat') {
             foreach (config('langs') as $locale => $flag) {
                 $greetingKey = 'support_chat_greeting_message_' . $locale;
                 if ($request->has($greetingKey)) {
-                    Option::set($greetingKey, $request->input($greetingKey, ''));
+                    $value = $request->input($greetingKey);
+                    // Convert null to empty string to avoid database constraint violation
+                    Option::set($greetingKey, $value ?? '');
                 }
             }
         }
 
         // Очищаем кеш настроек чата поддержки при изменении настроек чата
         if ($request->form === 'support_chat') {
-            Cache::forget('support_chat_settings');
+            foreach (config('langs') as $locale => $flag) {
+                Cache::forget('support_chat_settings_' . $locale);
+            }
         }
 
         return redirect()->route('admin.settings.index')

@@ -10,15 +10,11 @@
             </div>
         </div>
     </Transition>
-
-    <PluginWarningModal v-if="showPluginWarning" @close="showPluginWarning = false" />
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { computed } from 'vue';
 import { useLoadingStore } from '../stores/loading';
-import PluginWarningModal from './PluginWarningModal.vue';
-import { usePluginDetection } from '@/composables/usePluginDetection';
 
 const logo = '/img/logo_trans.webp'; // Новое изображение прелоадера с социальными сетями
 
@@ -33,110 +29,6 @@ defineEmits<{
 
 const loadingStore = useLoadingStore();
 const hasOverlay = computed(() => props.overlay !== false);
-
-const activeMessageKey = ref<
-    | 'loader.starting'
-    | 'loader.checking_plugin'
-    | 'loader.preparing'
-    | 'loader.syncing'
-    | 'loader.browser'
->('loader.starting');
-const showPluginWarning = ref(false);
-const continueLoading = ref(false);
-const dots = ref('.');
-
-let dotsIntervalId: number | null = null;
-const statusTimeoutIds: number[] = [];
-
-const { checkPluginInstalled } = usePluginDetection();
-
-/** --- helpers --- */
-const startDots = () => {
-    if (dotsIntervalId !== null) return;
-    let step = 0;
-    dotsIntervalId = window.setInterval(() => {
-        step = (step + 1) % 3;
-        dots.value = '.'.repeat(step + 1);
-    }, 400);
-};
-
-const stopDots = () => {
-    if (dotsIntervalId !== null) {
-        clearInterval(dotsIntervalId);
-        dotsIntervalId = null;
-    }
-};
-
-const clearStatusTimeouts = () => {
-    statusTimeoutIds.splice(0).forEach(id => clearTimeout(id));
-};
-
-const startLoadingSequence = () => {
-    statusTimeoutIds.push(
-        window.setTimeout(() => {
-            activeMessageKey.value = 'loader.preparing';
-        }, 1000)
-    );
-    statusTimeoutIds.push(
-        window.setTimeout(() => {
-            activeMessageKey.value = 'loader.syncing';
-        }, 4000)
-    );
-    statusTimeoutIds.push(
-        window.setTimeout(() => {
-            activeMessageKey.value = 'loader.browser';
-        }, 7000)
-    );
-};
-
-/** --- handlers --- */
-const handleContinueWithoutPlugin = () => {
-    continueLoading.value = true;
-    showPluginWarning.value = false;
-
-    window.dispatchEvent(
-        new CustomEvent('app:plugin-status', {
-            detail: { pluginInstalled: false, pluginSkipped: true }
-        })
-    );
-
-    startLoadingSequence();
-};
-
-const handleCheckPluginStatus = async () => {
-    const pluginResult = await checkPluginInstalled();
-    window.dispatchEvent(
-        new CustomEvent('app:plugin-status', {
-            detail: { pluginInstalled: pluginResult.isInstalled, pluginSkipped: false }
-        })
-    );
-};
-
-const handlePluginStatus = (event: Event) => {
-    const { pluginInstalled, pluginSkipped } = (event as CustomEvent).detail || {};
-    console.log('FullPageLoader: received app:plugin-status event:', {
-        pluginInstalled,
-        pluginSkipped
-    });
-
-    if (pluginInstalled) {
-        console.log('FullPageLoader: Plugin installed successfully, starting loading sequence...');
-        showPluginWarning.value = false;
-        continueLoading.value = true;
-        startLoadingSequence();
-    } else if (pluginSkipped) {
-        console.log('FullPageLoader: Plugin installation skipped, starting loading sequence...');
-        showPluginWarning.value = false;
-        continueLoading.value = true;
-        startLoadingSequence();
-    }
-};
-
-/** --- lifecycle --- */
-onBeforeUnmount(() => {
-    clearStatusTimeouts();
-    stopDots();
-});
 </script>
 
 <style scoped>

@@ -3,13 +3,17 @@
         <!-- Кнопка чата -->
         <button
             v-if="!isChatOpen || isMinimized"
-            @click="toggleChat"
             class="support-chat-button"
             :aria-label="$t('supportChat.title')"
+            @click="toggleChat"
         >
             <svg class="support-chat-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                    d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                />
             </svg>
             <span v-if="unreadCount > 0" class="support-chat-badge">{{ unreadCount }}</span>
         </button>
@@ -21,59 +25,124 @@
                     <div class="support-chat-header-info">
                         <h3 class="support-chat-title">{{ $t('supportChat.title') }}</h3>
                         <p v-if="chat" class="support-chat-status">
-                            <span v-if="chat.status === 'open'">{{ $t('supportChat.statusOpen') }}</span>
-                            <span v-else-if="chat.status === 'closed'">{{ $t('supportChat.statusClosed') }}</span>
-                            <span v-else-if="chat.status === 'pending'">{{ $t('supportChat.statusPending') }}</span>
+                            <span v-if="chat.status === 'open'">{{
+                                $t('supportChat.statusOpen')
+                            }}</span>
+                            <span v-else-if="chat.status === 'closed'">{{
+                                $t('supportChat.statusClosed')
+                            }}</span>
+                            <span v-else-if="chat.status === 'pending'">{{
+                                $t('supportChat.statusPending')
+                            }}</span>
                         </p>
                     </div>
                     <div class="support-chat-header-actions">
                         <!-- Кнопка истории (только для авторизованных пользователей) -->
                         <button
                             v-if="authStore.isAuthenticated && !showChoiceScreen"
-                            @click.stop.prevent="toggleChatHistory"
-                            :class="['support-chat-history-button', { 'active': showChatHistory }]"
+                            :class="['support-chat-history-button', { active: showChatHistory }]"
                             :aria-label="$t('supportChat.chatHistory')"
-                            :title="showChatHistory ? $t('supportChat.hideHistory') : $t('supportChat.showHistory')"
+                            :title="
+                                showChatHistory
+                                    ? $t('supportChat.hideHistory')
+                                    : $t('supportChat.showHistory')
+                            "
+                            @click.stop.prevent="toggleChatHistory"
                         >
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                            <svg
+                                class="w-5 h-5"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                                />
                             </svg>
                         </button>
                         <!-- Кнопка свернуть -->
-                        <button @click.stop.prevent="minimizeChat" class="support-chat-minimize" :aria-label="$t('supportChat.minimize')">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
+                        <button
+                            class="support-chat-minimize"
+                            :aria-label="$t('supportChat.minimize')"
+                            @click.stop.prevent="minimizeChat"
+                        >
+                            <svg
+                                class="w-5 h-5"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M20 12H4"
+                                />
                             </svg>
                         </button>
                         <!-- Кнопка закрыть -->
-                        <button @click.stop.prevent="closeChat" class="support-chat-close" :aria-label="$t('supportChat.close')">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        <button
+                            class="support-chat-close"
+                            :aria-label="$t('supportChat.close')"
+                            @click.stop.prevent="closeChat"
+                        >
+                            <svg
+                                class="w-5 h-5"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M6 18L18 6M6 6l12 12"
+                                />
                             </svg>
                         </button>
                     </div>
                 </div>
 
                 <!-- Экран выбора между Telegram и встроенным чатом -->
-                <div v-if="showChoiceScreen && !chat && isChatOpen" class="support-chat-choice-screen">
+                <div
+                    v-if="showChoiceScreen && !chat && isChatOpen"
+                    class="support-chat-choice-screen"
+                >
                     <div class="choice-content">
                         <h4 class="choice-title">{{ $t('supportChat.chooseMethod') }}</h4>
-                        <p class="choice-description">{{ $t('supportChat.chooseMethodDescription') }}</p>
-                        
+                        <p class="choice-description">
+                            {{ $t('supportChat.chooseMethodDescription') }}
+                        </p>
+
                         <div class="choice-buttons">
-                            <button @click="chooseInlineChat" class="choice-button choice-inline">
-                                <svg class="choice-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                            <button class="choice-button choice-inline" @click="chooseInlineChat">
+                                <svg
+                                    class="choice-icon"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                                    />
                                 </svg>
                                 <span class="choice-button-text">
                                     <strong>{{ $t('supportChat.inlineChat') }}</strong>
                                     <small>{{ $t('supportChat.inlineChatDescription') }}</small>
                                 </span>
                             </button>
-                            
-                            <button @click="goToTelegram" class="choice-button choice-telegram">
+
+                            <button class="choice-button choice-telegram" @click="goToTelegram">
                                 <svg class="choice-icon" fill="currentColor" viewBox="0 0 24 24">
-                                    <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
+                                    <path
+                                        d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"
+                                    />
                                 </svg>
                                 <span class="choice-button-text">
                                     <strong>{{ $t('supportChat.telegram') }}</strong>
@@ -85,30 +154,54 @@
                 </div>
 
                 <!-- Форма для гостей (если не авторизован, нет чата и не показываем экран выбора) -->
-                <div v-if="!authStore.isAuthenticated && !chat && !showChoiceScreen && isChatOpen" class="support-chat-guest-form">
+                <div
+                    v-if="!authStore.isAuthenticated && !chat && !showChoiceScreen && isChatOpen"
+                    class="support-chat-guest-form"
+                >
                     <div class="form-group">
                         <label>{{ $t('supportChat.guestName') }}</label>
-                        <input v-model="guestName" type="text" class="form-input" :placeholder="$t('supportChat.guestNamePlaceholder')" required />
+                        <input
+                            v-model="guestName"
+                            type="text"
+                            class="form-input"
+                            :placeholder="$t('supportChat.guestNamePlaceholder')"
+                            required
+                        />
                     </div>
                     <div class="form-group">
                         <label>{{ $t('supportChat.guestEmail') }}</label>
-                        <input v-model="guestEmail" type="email" class="form-input" :placeholder="$t('supportChat.guestEmailPlaceholder')" required />
+                        <input
+                            v-model="guestEmail"
+                            type="email"
+                            class="form-input"
+                            :placeholder="$t('supportChat.guestEmailPlaceholder')"
+                            required
+                        />
                     </div>
-                    <button @click="createGuestChat" :disabled="!guestName || !guestEmail || isLoading" class="btn-primary">
+                    <button
+                        :disabled="!guestName || !guestEmail || isLoading"
+                        class="btn-primary"
+                        @click="createGuestChat"
+                    >
                         {{ isLoading ? $t('supportChat.loading') : $t('supportChat.startChat') }}
                     </button>
                 </div>
 
                 <!-- Список истории чатов -->
                 <div
-                    v-if="authStore.isAuthenticated && showChatHistory && isChatOpen && !showChoiceScreen"
+                    v-if="
+                        authStore.isAuthenticated &&
+                        showChatHistory &&
+                        isChatOpen &&
+                        !showChoiceScreen
+                    "
                     class="support-chat-history-view"
                     @click.stop
                 >
                     <div class="chat-history-header-inline">
                         <h4>{{ $t('supportChat.chatHistory') }}</h4>
                     </div>
-                    <div class="chat-history-list-inline" ref="chatHistoryList">
+                    <div ref="chatHistoryList" class="chat-history-list-inline">
                         <div v-if="isLoadingChatHistory" class="chat-history-loading">
                             {{ $t('supportChat.loading') }}...
                         </div>
@@ -119,21 +212,48 @@
                             <button
                                 v-for="historyChat in chatHistory"
                                 :key="historyChat.id"
+                                :class="[
+                                    'chat-history-item',
+                                    { active: chat?.id === historyChat.id }
+                                ]"
                                 @click.stop.prevent="selectChatFromHistory(historyChat)"
-                                :class="['chat-history-item', { 'active': chat?.id === historyChat.id }]"
                             >
                                 <div class="chat-history-item-header">
                                     <span class="chat-history-item-date">
-                                        {{ formatDate(historyChat.last_message_at || historyChat.created_at) }}
+                                        {{
+                                            formatDate(
+                                                historyChat.last_message_at ||
+                                                    historyChat.created_at
+                                            )
+                                        }}
                                     </span>
-                                    <span :class="['chat-history-item-status', `status-${historyChat.status}`]">
-                                        <span v-if="historyChat.status === 'open'">{{ $t('supportChat.statusOpen') }}</span>
-                                        <span v-else-if="historyChat.status === 'closed'">{{ $t('supportChat.statusClosed') }}</span>
-                                        <span v-else-if="historyChat.status === 'pending'">{{ $t('supportChat.statusPending') }}</span>
+                                    <span
+                                        :class="[
+                                            'chat-history-item-status',
+                                            `status-${historyChat.status}`
+                                        ]"
+                                    >
+                                        <span v-if="historyChat.status === 'open'">{{
+                                            $t('supportChat.statusOpen')
+                                        }}</span>
+                                        <span v-else-if="historyChat.status === 'closed'">{{
+                                            $t('supportChat.statusClosed')
+                                        }}</span>
+                                        <span v-else-if="historyChat.status === 'pending'">{{
+                                            $t('supportChat.statusPending')
+                                        }}</span>
                                     </span>
                                 </div>
-                                <div v-if="historyChat.last_message && historyChat.last_message.message" class="chat-history-item-preview">
-                                    {{ historyChat.last_message.message.substring(0, 60) }}{{ historyChat.last_message.message.length > 60 ? '...' : '' }}
+                                <div
+                                    v-if="
+                                        historyChat.last_message && historyChat.last_message.message
+                                    "
+                                    class="chat-history-item-preview"
+                                >
+                                    {{ historyChat.last_message.message.substring(0, 60)
+                                    }}{{
+                                        historyChat.last_message.message.length > 60 ? '...' : ''
+                                    }}
                                 </div>
                                 <div v-else class="chat-history-item-preview">
                                     {{ $t('supportChat.noMessages') }}
@@ -142,40 +262,87 @@
                         </template>
                     </div>
                     <div class="chat-history-footer-inline">
-                        <button @click="startNewChat" class="btn-primary new-chat-from-history-button" :disabled="isLoading">
+                        <button
+                            class="btn-primary new-chat-from-history-button"
+                            :disabled="isLoading"
+                            @click="startNewChat"
+                        >
                             {{ $t('supportChat.startNewChat') }}
                         </button>
                     </div>
                 </div>
 
                 <!-- Окно сообщений (показываем только когда есть активный чат, окно открыто, не показываем экран выбора и не показываем историю) -->
-                <div v-if="chat && isChatOpen && !showChoiceScreen && !showChatHistory" class="support-chat-messages" ref="messagesContainer">
+                <div
+                    v-if="chat && isChatOpen && !showChoiceScreen && !showChatHistory"
+                    ref="messagesContainer"
+                    class="support-chat-messages"
+                >
                     <div v-if="messages.length === 0" class="support-chat-empty">
                         <p>{{ $t('supportChat.noMessages') }}</p>
                     </div>
                     <div
                         v-for="message in messages"
                         :key="message.id"
-                        :class="['support-chat-message', message.sender_type === 'admin' ? 'message-admin' : 'message-user']"
+                        :class="[
+                            'support-chat-message',
+                            message.sender_type === 'admin' ? 'message-admin' : 'message-user'
+                        ]"
                     >
                         <div class="message-content">
                             <div class="message-header">
                                 <span class="message-sender">{{ getMessageSender(message) }}</span>
-                                <span class="message-time">{{ formatTime(message.created_at) }}</span>
+                                <span class="message-time">{{
+                                    formatTime(message.created_at)
+                                }}</span>
                             </div>
                             <div class="message-text">{{ message.message }}</div>
                             <!-- Вложения -->
-                            <div v-if="message.attachments && message.attachments.length > 0" class="message-attachments">
-                                <div v-for="attachment in message.attachments" :key="attachment.id" class="attachment-item">
-                                    <a v-if="isImageAttachment(attachment)" :href="attachment.file_url || attachment.full_url" target="_blank" class="attachment-link">
-                                        <img :src="attachment.file_url || attachment.full_url" :alt="attachment.file_name" class="attachment-image">
+                            <div
+                                v-if="message.attachments && message.attachments.length > 0"
+                                class="message-attachments"
+                            >
+                                <div
+                                    v-for="attachment in message.attachments"
+                                    :key="attachment.id"
+                                    class="attachment-item"
+                                >
+                                    <a
+                                        v-if="isImageAttachment(attachment)"
+                                        :href="attachment.file_url || attachment.full_url"
+                                        target="_blank"
+                                        class="attachment-link"
+                                    >
+                                        <img
+                                            :src="attachment.file_url || attachment.full_url"
+                                            :alt="attachment.file_name"
+                                            class="attachment-image"
+                                        />
                                     </a>
-                                    <a v-else :href="attachment.file_url || attachment.full_url" target="_blank" :download="attachment.file_name" class="attachment-link attachment-file">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                    <a
+                                        v-else
+                                        :href="attachment.file_url || attachment.full_url"
+                                        target="_blank"
+                                        :download="attachment.file_name"
+                                        class="attachment-link attachment-file"
+                                    >
+                                        <svg
+                                            class="w-4 h-4"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            viewBox="0 0 24 24"
+                                        >
+                                            <path
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                                stroke-width="2"
+                                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                                            />
                                         </svg>
                                         <span>{{ attachment.file_name }}</span>
-                                        <span v-if="attachment.file_size" class="attachment-size">({{ formatFileSize(attachment.file_size) }})</span>
+                                        <span v-if="attachment.file_size" class="attachment-size"
+                                            >({{ formatFileSize(attachment.file_size) }})</span
+                                        >
                                     </a>
                                 </div>
                             </div>
@@ -184,12 +351,25 @@
                 </div>
 
                 <!-- Сообщение о закрытом диалоге и форма оценки -->
-                <div v-if="chat && isChatOpen && !showChoiceScreen && !showChatHistory && chat.status === 'closed'" class="support-chat-closed-info">
+                <div
+                    v-if="
+                        chat &&
+                        isChatOpen &&
+                        !showChoiceScreen &&
+                        !showChatHistory &&
+                        chat.status === 'closed'
+                    "
+                    class="support-chat-closed-info"
+                >
                     <!-- Форма оценки качества поддержки -->
                     <div v-if="!chat.rating && !showRatingForm" class="rating-prompt">
                         <p class="closed-text">{{ $t('supportChat.closedInfo') }}</p>
                         <p class="rating-text">{{ $t('supportChat.rateSupport') }}</p>
-                        <button class="btn-primary rating-button" @click="showRatingForm = true" :disabled="isLoading">
+                        <button
+                            class="btn-primary rating-button"
+                            :disabled="isLoading"
+                            @click="showRatingForm = true"
+                        >
                             {{ $t('supportChat.rateSupportButton') }}
                         </button>
                     </div>
@@ -200,12 +380,14 @@
                             <button
                                 v-for="star in 5"
                                 :key="star"
-                                @click="selectedRating = star"
                                 class="star-button"
-                                :class="{ 'active': star <= selectedRating }"
+                                :class="{ active: star <= selectedRating }"
+                                @click="selectedRating = star"
                             >
                                 <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                    <path
+                                        d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
+                                    />
                                 </svg>
                             </button>
                         </div>
@@ -216,10 +398,18 @@
                             rows="3"
                         ></textarea>
                         <div class="rating-buttons">
-                            <button @click="submitRating" class="btn-primary" :disabled="!selectedRating || isSending">
+                            <button
+                                class="btn-primary"
+                                :disabled="!selectedRating || isSending"
+                                @click="submitRating"
+                            >
                                 {{ $t('supportChat.submitRating') }}
                             </button>
-                            <button @click="showRatingForm = false" class="btn-secondary" :disabled="isSending">
+                            <button
+                                class="btn-secondary"
+                                :disabled="isSending"
+                                @click="showRatingForm = false"
+                            >
                                 {{ $t('supportChat.cancel') }}
                             </button>
                         </div>
@@ -233,39 +423,63 @@
                                     v-for="star in 5"
                                     :key="star"
                                     class="w-5 h-5"
-                                    :class="{ 'text-warning': star <= chat.rating, 'text-muted': star > chat.rating }"
+                                    :class="{
+                                        'text-warning': star <= chat.rating,
+                                        'text-muted': star > chat.rating
+                                    }"
                                     fill="currentColor"
                                     viewBox="0 0 20 20"
                                 >
-                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                    <path
+                                        d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
+                                    />
                                 </svg>
                             </div>
-                            <p v-if="chat.rating_comment" class="rating-comment-text">{{ chat.rating_comment }}</p>
+                            <p v-if="chat.rating_comment" class="rating-comment-text">
+                                {{ chat.rating_comment }}
+                            </p>
                         </div>
-                        <button class="btn-primary new-chat-button" @click="startNewChat" :disabled="isLoading">
+                        <button
+                            class="btn-primary new-chat-button"
+                            :disabled="isLoading"
+                            @click="startNewChat"
+                        >
                             {{ $t('supportChat.startNewChat') }}
                         </button>
                     </div>
                     <!-- Кнопка создания нового чата (если оценка не требуется) -->
                     <div v-if="chat.rating && !showRatingForm" class="new-chat-section">
-                        <button class="btn-primary new-chat-button" @click="startNewChat" :disabled="isLoading">
+                        <button
+                            class="btn-primary new-chat-button"
+                            :disabled="isLoading"
+                            @click="startNewChat"
+                        >
                             {{ $t('supportChat.startNewChat') }}
                         </button>
                     </div>
                 </div>
 
                 <!-- Форма отправки сообщения -->
-                <div v-if="chat && isChatOpen && !showChoiceScreen && !showChatHistory && chat.status !== 'closed'" class="support-chat-input">
+                <div
+                    v-if="
+                        chat &&
+                        isChatOpen &&
+                        !showChoiceScreen &&
+                        !showChatHistory &&
+                        chat.status !== 'closed'
+                    "
+                    class="support-chat-input"
+                >
                     <div class="message-input-wrapper">
                         <textarea
                             v-model="newMessage"
-                            @keydown.enter.exact.prevent="sendMessage"
-                            @keydown.shift.enter.exact="newLine"
-                            @input="handleTyping"
-                            @keydown="handleTyping"
                             class="message-input"
                             :placeholder="$t('supportChat.messagePlaceholder')"
                             rows="2"
+                            @keydown.enter.exact.prevent="sendMessage"
+                            @keydown.shift.enter.exact="newLine"
+                            @keydown.exact="handleTyping"
+                            @input="handleTyping"
                         ></textarea>
                     </div>
                     <input
@@ -273,39 +487,87 @@
                         type="file"
                         multiple
                         accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt,.zip,.rar"
+                        style="display: none"
                         @change="handleFileSelect"
-                        style="display: none;"
-                    >
+                    />
                     <!-- Превью выбранных файлов -->
                     <div v-if="selectedFiles.length > 0" class="attachments-preview">
-                        <div v-for="(file, index) in selectedFiles" :key="index" class="attachment-preview-item">
+                        <div
+                            v-for="(file, index) in selectedFiles"
+                            :key="index"
+                            class="attachment-preview-item"
+                        >
                             <span class="attachment-preview-name">{{ file.name }}</span>
-                            <span class="attachment-preview-size">({{ formatFileSize(file.size) }})</span>
-                            <button @click="removeFile(index)" class="attachment-preview-remove" type="button">×</button>
+                            <span class="attachment-preview-size"
+                                >({{ formatFileSize(file.size) }})</span
+                            >
+                            <button
+                                class="attachment-preview-remove"
+                                type="button"
+                                @click="removeFile(index)"
+                            >
+                                ×
+                            </button>
                         </div>
                     </div>
                     <div class="message-input-actions">
-                        <button @click.stop.prevent="triggerFileInput" class="attach-button" :disabled="isSending" title="Прикрепить файл">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                        <button
+                            class="attach-button"
+                            :disabled="isSending"
+                            title="Прикрепить файл"
+                            @click.stop.prevent="triggerFileInput"
+                        >
+                            <svg
+                                class="w-5 h-5"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"
+                                />
                             </svg>
                         </button>
-                        <button @click="sendMessage" :disabled="(!newMessage.trim() && selectedFiles.length === 0) || isSending" class="send-button">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                        <button
+                            :disabled="
+                                (!newMessage.trim() && selectedFiles.length === 0) || isSending
+                            "
+                            class="send-button"
+                            @click="sendMessage"
+                        >
+                            <svg
+                                class="w-5 h-5"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
+                                />
                             </svg>
                         </button>
                     </div>
                 </div>
-                
+
                 <!-- Индикатор печати администратора -->
-                <div v-if="adminIsTyping && chat && chat.status !== 'closed'" class="support-chat-typing-indicator">
+                <div
+                    v-if="adminIsTyping && chat && chat.status !== 'closed'"
+                    class="support-chat-typing-indicator"
+                >
                     <div class="typing-indicator">
                         <span></span>
                         <span></span>
                         <span></span>
                     </div>
-                    <span class="typing-text">{{ $t('supportChat.admin') }} {{ $t('supportChat.typing') }}</span>
+                    <span class="typing-text"
+                        >{{ $t('supportChat.admin') }} {{ $t('supportChat.typing') }}</span
+                    >
                 </div>
             </div>
         </Transition>
@@ -313,7 +575,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, nextTick, watch, onBeforeUnmount } from 'vue';
+import { ref, onMounted, onUnmounted, nextTick, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useAuthStore } from '@/stores/auth';
 import axios from '@/bootstrap';
@@ -340,14 +602,14 @@ const showChatHistory = ref(false);
 const chatHistory = ref<any[]>([]);
 const isLoadingChatHistory = ref(false);
 let pollInterval: number | null = null;
-const previousMessagesCount = ref(0);
+// const previousMessagesCount = ref(0);
 const previousUnreadCountForSound = ref(0);
 const notificationPermission = ref<NotificationPermission>('default');
 const soundEnabled = ref(true); // Можно сделать настраиваемым
 const isTyping = ref(false);
 const adminIsTyping = ref(false);
 let typingTimeout: number | null = null;
-let typingInterval: number | null = null;
+let typingThrottleTimeout: number | null = null;
 const selectedFiles = ref<File[]>([]);
 const fileInputRef = ref<HTMLInputElement | null>(null);
 const showRatingForm = ref(false);
@@ -357,7 +619,7 @@ const ratingComment = ref<string>('');
 // Звуковые уведомления
 const playNotificationSound = () => {
     if (!soundEnabled.value) return;
-    
+
     try {
         const audio = new Audio('/sounds/notification.mp3');
         audio.volume = 0.3; // 30% громкости
@@ -374,7 +636,7 @@ const requestNotificationPermission = async () => {
     if (!('Notification' in window)) {
         return;
     }
-    
+
     if (Notification.permission === 'default') {
         notificationPermission.value = await Notification.requestPermission();
     } else {
@@ -385,16 +647,16 @@ const requestNotificationPermission = async () => {
 const showBrowserNotification = (title: string, body: string, icon?: string) => {
     if (Notification.permission !== 'granted') return;
     if (document.visibilityState === 'visible' && isChatOpen.value) return; // Не показывать если чат открыт
-    
+
     try {
         const notification = new Notification(title, {
             body,
             icon: icon || '/favicon.ico',
             badge: '/favicon.ico',
             tag: 'support-chat',
-            requireInteraction: false,
+            requireInteraction: false
         });
-        
+
         notification.onclick = () => {
             window.focus();
             notification.close();
@@ -402,7 +664,7 @@ const showBrowserNotification = (title: string, body: string, icon?: string) => 
                 toggleChat();
             }
         };
-        
+
         // Автоматически закрывать через 5 секунд
         setTimeout(() => notification.close(), 5000);
     } catch (error) {
@@ -414,9 +676,12 @@ const showBrowserNotification = (title: string, body: string, icon?: string) => 
 const loadSettings = async () => {
     try {
         const response = await axios.get('/support-chat-settings', { timeout: 5000 });
-        enabled.value = response.data.enabled === true || response.data.enabled === 'true' || response.data.enabled === 1;
+        enabled.value =
+            typeof response.data.enabled === 'string'
+                ? response.data.enabled === 'true'
+                : Boolean(response.data.enabled);
         telegramLink.value = response.data.telegram_link || 'https://t.me/support';
-        
+
         // Запрашиваем разрешение на уведомления при первой загрузке
         if (enabled.value && 'Notification' in window) {
             await requestNotificationPermission();
@@ -433,7 +698,7 @@ const getOrCreateChat = async () => {
     isLoading.value = true;
     try {
         const data: any = {};
-        
+
         if (!authStore.isAuthenticated) {
             if (!guestEmail.value || !guestName.value) {
                 isLoading.value = false;
@@ -444,7 +709,7 @@ const getOrCreateChat = async () => {
         }
 
         const response = await axios.post('/support-chat/create', data, { timeout: 10000 });
-        
+
         if (response.data.success && response.data.chat) {
             chat.value = response.data.chat;
             messages.value = response.data.chat.messages || [];
@@ -477,12 +742,12 @@ const toggleChat = async () => {
         }
         return;
     }
-    
+
     if (isChatOpen.value) {
         minimizeChat();
         return;
     }
-    
+
     await openChat();
 };
 
@@ -503,7 +768,7 @@ const openChat = async () => {
         await nextTick();
         scrollToBottom();
         updateUnreadCount();
-        
+
         // Загружаем историю для авторизованных пользователей, если её ещё нет
         if (authStore.isAuthenticated && chatHistory.value.length === 0) {
             await loadChatHistory();
@@ -514,14 +779,18 @@ const openChat = async () => {
     isChatOpen.value = true;
     isMinimized.value = false;
     showChatHistory.value = false;
-    
+
     // Для авторизованных пользователей сразу загружаем историю чатов
     if (authStore.isAuthenticated && chatHistory.value.length === 0) {
         await loadChatHistory();
     }
-    
+
     // Показываем экран выбора, если есть валидная Telegram ссылка и чат ещё не создан
-    if (telegramLink.value && telegramLink.value.trim() !== '' && telegramLink.value.startsWith('http')) {
+    if (
+        telegramLink.value &&
+        telegramLink.value.trim() !== '' &&
+        telegramLink.value.startsWith('http')
+    ) {
         showChoiceScreen.value = true;
     } else {
         // Если нет Telegram ссылки, сразу открываем встроенный чат
@@ -566,14 +835,20 @@ const startNewChat = async () => {
     messages.value = [];
     newMessage.value = '';
     showChatHistory.value = false;
-    
+
     await getOrCreateChat();
 };
 
 // Отправка сообщения
 const sendMessage = async () => {
     const messageText = newMessage.value.trim();
-    if ((!messageText && selectedFiles.value.length === 0) || !chat.value || isSending.value || chat.value.status === 'closed') return;
+    if (
+        (!messageText && selectedFiles.value.length === 0) ||
+        !chat.value ||
+        isSending.value ||
+        chat.value.status === 'closed'
+    )
+        return;
 
     isSending.value = true;
     const tempMessage = messageText;
@@ -583,16 +858,51 @@ const sendMessage = async () => {
     if (fileInputRef.value) {
         fileInputRef.value.value = '';
     }
-    
+
+    // Создаем временный ID для оптимистичного обновления
+    const tempId = `temp_${Date.now()}_${Math.random()}`;
+    const optimisticMessage: any = {
+        id: tempId,
+        message: tempMessage,
+        sender_type: authStore.isAuthenticated ? 'user' : 'guest',
+        user_id: authStore.user?.id || null,
+        user: authStore.isAuthenticated
+            ? {
+                  id: authStore.user?.id,
+                  name: authStore.user?.name,
+                  email: authStore.user?.email
+              }
+            : {
+                  name: guestName.value,
+                  email: guestEmail.value
+              },
+        created_at: new Date().toISOString(),
+        is_read: false,
+        attachments: tempFiles.map((file, index) => ({
+            id: `temp_${index}`,
+            file_name: file.name,
+            file_path: URL.createObjectURL(file),
+            file_size: file.size,
+            mime_type: file.type
+        })),
+        is_optimistic: true // Флаг для идентификации временного сообщения
+    };
+
+    // Оптимистично добавляем сообщение сразу
+    messages.value.push(optimisticMessage);
+    await nextTick();
+    scrollToBottom();
+    sendStopTypingEvent();
+
     try {
         const formData = new FormData();
         formData.append('message', tempMessage || '');
-        
+
         // Добавляем файлы
-        tempFiles.forEach((file) => {
+        tempFiles.forEach(file => {
             formData.append('attachments[]', file);
         });
-        
+
         if (!authStore.isAuthenticated) {
             formData.append('email', guestEmail.value);
         }
@@ -600,22 +910,44 @@ const sendMessage = async () => {
         const response = await axios.post(`/support-chat/${chat.value.id}/messages`, formData, {
             timeout: 30000, // Увеличиваем таймаут для загрузки файлов
             headers: {
-                'Content-Type': 'multipart/form-data',
-            },
+                'Content-Type': 'multipart/form-data'
+            }
         });
-        
+
         if (response.data.success && response.data.message) {
-            messages.value.push(response.data.message);
+            // Заменяем оптимистическое сообщение на реальное
+            const optimisticIndex = messages.value.findIndex((m: any) => m.id === tempId);
+            if (optimisticIndex !== -1) {
+                messages.value[optimisticIndex] = response.data.message;
+            } else {
+                // Если не нашли оптимистическое, проверяем на дубликат
+                const existingIndex = messages.value.findIndex(
+                    (m: any) => m.id === response.data.message.id
+                );
+                if (existingIndex === -1) {
+                    messages.value.push(response.data.message);
+                }
+            }
+
             await nextTick();
             scrollToBottom();
             updateUnreadCount();
-            sendStopTypingEvent(); // Останавливаем индикатор после отправки
         } else {
+            // Удаляем оптимистическое сообщение при ошибке
+            const optimisticIndex = messages.value.findIndex((m: any) => m.id === tempId);
+            if (optimisticIndex !== -1) {
+                messages.value.splice(optimisticIndex, 1);
+            }
             newMessage.value = tempMessage;
             selectedFiles.value = tempFiles;
         }
     } catch (error: any) {
         console.error('[SupportChat] Failed to send message:', error);
+        // Удаляем оптимистическое сообщение при ошибке
+        const optimisticIndex = messages.value.findIndex((m: any) => m.id === tempId);
+        if (optimisticIndex !== -1) {
+            messages.value.splice(optimisticIndex, 1);
+        }
         newMessage.value = tempMessage;
         selectedFiles.value = tempFiles;
     } finally {
@@ -633,24 +965,48 @@ const loadMessages = async () => {
             params.email = guestEmail.value;
         }
 
-        const response = await axios.get(`/support-chat/${chat.value.id}/messages`, { params, timeout: 8000 });
-        
+        const response = await axios.get(`/support-chat/${chat.value.id}/messages`, {
+            params,
+            timeout: 8000
+        });
+
         if (response.data.success && response.data.messages) {
-            const oldLength = messages.value.length;
             const oldMessageIds = new Set(messages.value.map((m: any) => m.id));
-            messages.value = response.data.messages;
+
+            // Сохраняем оптимистические сообщения (временные)
+            const optimisticMessages = messages.value.filter((m: any) => m.is_optimistic);
+
+            // Объединяем сообщения: берем все из сервера и добавляем оптимистические, которых еще нет
+            const serverMessageIds = new Set(response.data.messages.map((m: any) => m.id));
+            const mergedMessages = [...response.data.messages];
+
+            // Добавляем оптимистические сообщения, которых еще нет на сервере
+            optimisticMessages.forEach((optMsg: any) => {
+                if (!serverMessageIds.has(optMsg.id)) {
+                    mergedMessages.push(optMsg);
+                }
+            });
+
+            // Сортируем по дате создания
+            mergedMessages.sort((a: any, b: any) => {
+                return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+            });
+
+            messages.value = mergedMessages;
 
             if (response.data.chat && chat.value) {
                 chat.value.status = response.data.chat.status;
             }
-            
+
             // Проверяем новые сообщения для уведомлений
-            if (response.data.messages.length > oldLength) {
-                const newMessages = response.data.messages.filter((m: any) => !oldMessageIds.has(m.id));
-                const newMessagesFromAdmin = newMessages.filter((m: any) => 
-                    m.sender_type === 'admin' && (!authStore.isAuthenticated || m.user_id !== authStore.user?.id)
+            const newMessages = response.data.messages.filter((m: any) => !oldMessageIds.has(m.id));
+            if (newMessages.length > 0) {
+                const newMessagesFromAdmin = newMessages.filter(
+                    (m: any) =>
+                        m.sender_type === 'admin' &&
+                        (!authStore.isAuthenticated || m.user_id !== authStore.user?.id)
                 );
-                
+
                 // Звук и браузерное уведомление для новых сообщений от админов
                 if (newMessagesFromAdmin.length > 0) {
                     const lastMessage = newMessagesFromAdmin[newMessagesFromAdmin.length - 1];
@@ -662,7 +1018,7 @@ const loadMessages = async () => {
                         );
                     }
                 }
-                
+
                 await nextTick();
                 scrollToBottom();
             }
@@ -675,23 +1031,33 @@ const loadMessages = async () => {
     }
 };
 
-// Отправка события "печатает"
+// Отправка события "печатает" с throttle
 const sendTypingEvent = async () => {
     if (!chat.value || !newMessage.value.trim()) {
         sendStopTypingEvent();
         return;
     }
-    
+
+    // Throttle: отправляем событие не чаще чем раз в 2 секунды
+    if (typingThrottleTimeout) {
+        return;
+    }
+
     if (!isTyping.value) {
         isTyping.value = true;
     }
-    
+
     try {
         await axios.post(`/support-chat/${chat.value.id}/typing`, {}, { timeout: 3000 });
-    } catch (error) {
+    } catch {
         // Игнорируем ошибки
     }
-    
+
+    // Устанавливаем throttle на 2 секунды
+    typingThrottleTimeout = window.setTimeout(() => {
+        typingThrottleTimeout = null;
+    }, 2000);
+
     // Автоматически останавливаем через 3 секунды бездействия
     if (typingTimeout) {
         clearTimeout(typingTimeout);
@@ -704,11 +1070,18 @@ const sendTypingEvent = async () => {
 // Остановка события "печатает"
 const sendStopTypingEvent = async () => {
     if (!chat.value || !isTyping.value) return;
-    
+
     isTyping.value = false;
+
+    // Очищаем throttle timeout
+    if (typingThrottleTimeout) {
+        clearTimeout(typingThrottleTimeout);
+        typingThrottleTimeout = null;
+    }
+
     try {
         await axios.post(`/support-chat/${chat.value.id}/typing/stop`, {}, { timeout: 3000 });
-    } catch (error) {
+    } catch {
         // Игнорируем ошибки
     }
 };
@@ -723,13 +1096,15 @@ const handleTyping = () => {
 // Проверка статуса печати администратора
 const checkAdminTyping = async () => {
     if (!chat.value || !isChatOpen.value) return;
-    
+
     try {
-        const response = await axios.get(`/support-chat/${chat.value.id}/typing/status`, { timeout: 3000 });
+        const response = await axios.get(`/support-chat/${chat.value.id}/typing/status`, {
+            timeout: 3000
+        });
         if (response.data.success) {
             adminIsTyping.value = response.data.is_typing || false;
         }
-    } catch (error) {
+    } catch {
         // Игнорируем ошибки
     }
 };
@@ -754,6 +1129,10 @@ const stopPolling = () => {
         clearTimeout(typingTimeout);
         typingTimeout = null;
     }
+    if (typingThrottleTimeout) {
+        clearTimeout(typingThrottleTimeout);
+        typingThrottleTimeout = null;
+    }
     sendStopTypingEvent();
 };
 
@@ -764,7 +1143,7 @@ const updateUnreadCount = async () => {
         previousUnreadCountForSound.value = 0;
         return;
     }
-    
+
     try {
         const unread = messages.value.filter((msg: any) => {
             if (authStore.isAuthenticated) {
@@ -773,14 +1152,17 @@ const updateUnreadCount = async () => {
                 return !msg.is_read && msg.sender_type === 'admin';
             }
         });
-        
+
         const currentCount = unread.length;
-        
+
         // Звук при появлении нового непрочитанного сообщения (только если чат закрыт или свернут)
-        if (currentCount > previousUnreadCountForSound.value && previousUnreadCountForSound.value >= 0) {
+        if (
+            currentCount > previousUnreadCountForSound.value &&
+            previousUnreadCountForSound.value >= 0
+        ) {
             if (!isChatOpen.value || isMinimized.value) {
                 playNotificationSound();
-                
+
                 const latestUnread = unread[unread.length - 1];
                 if (latestUnread && Notification.permission === 'granted') {
                     showBrowserNotification(
@@ -790,7 +1172,7 @@ const updateUnreadCount = async () => {
                 }
             }
         }
-        
+
         unreadCount.value = currentCount;
         previousUnreadCountForSound.value = currentCount;
     } catch (error) {
@@ -817,14 +1199,17 @@ const handleFileSelect = (event: Event) => {
     if (target.files) {
         const files = Array.from(target.files);
         // Ограничиваем до 5 файлов и 10MB каждый
-        const validFiles = files.filter((file) => {
-            if (file.size > 10 * 1024 * 1024) { // 10MB
-                alert(`Файл "${file.name}" слишком большой. Максимальный размер: 10MB`);
-                return false;
-            }
-            return true;
-        }).slice(0, 5); // Максимум 5 файлов
-        
+        const validFiles = files
+            .filter(file => {
+                if (file.size > 10 * 1024 * 1024) {
+                    // 10MB
+                    alert(`Файл "${file.name}" слишком большой. Максимальный размер: 10MB`);
+                    return false;
+                }
+                return true;
+            })
+            .slice(0, 5); // Максимум 5 файлов
+
         selectedFiles.value = [...selectedFiles.value, ...validFiles].slice(0, 5);
     }
 };
@@ -843,36 +1228,34 @@ const formatFileSize = (bytes: number): string => {
     const units = ['B', 'KB', 'MB', 'GB'];
     let size = bytes;
     let unit = 0;
-    
+
     while (size >= 1024 && unit < units.length - 1) {
         size /= 1024;
         unit++;
     }
-    
+
     return `${size.toFixed(2)} ${units[unit]}`;
 };
 
 // Отправка рейтинга качества поддержки
 const submitRating = async () => {
     if (!chat.value || !selectedRating.value) return;
-    
+
     try {
         isSending.value = true;
         const data: any = {
             rating: selectedRating.value,
-            rating_comment: ratingComment.value.trim() || null,
+            rating_comment: ratingComment.value.trim() || null
         };
-        
+
         if (!authStore.isAuthenticated) {
             data.email = guestEmail.value;
         }
-        
-        const response = await axios.post(
-            `/support-chat/${chat.value.id}/rating`,
-            data,
-            { timeout: 5000 }
-        );
-        
+
+        const response = await axios.post(`/support-chat/${chat.value.id}/rating`, data, {
+            timeout: 5000
+        });
+
         if (response.data.success && response.data.chat) {
             chat.value = response.data.chat;
             showRatingForm.value = false;
@@ -904,10 +1287,10 @@ const formatTime = (dateString: string): string => {
 
     if (minutes < 1) return t('supportChat.justNow');
     if (minutes < 60) return `${minutes} ${t('supportChat.minutesAgo')}`;
-    
+
     const hours = Math.floor(minutes / 60);
     if (hours < 24) return `${hours} ${t('supportChat.hoursAgo')}`;
-    
+
     return date.toLocaleDateString();
 };
 
@@ -933,7 +1316,7 @@ const loadChatHistory = async () => {
 // Переключение истории чатов
 const toggleChatHistory = async () => {
     if (!authStore.isAuthenticated) return;
-    
+
     if (showChatHistory.value) {
         showChatHistory.value = false;
         if (chat.value) {
@@ -941,13 +1324,13 @@ const toggleChatHistory = async () => {
         }
         return;
     }
-    
+
     showChatHistory.value = true;
-    
+
     if (chatHistory.value.length === 0) {
         await loadChatHistory();
     }
-    
+
     await nextTick();
     if (chatHistoryList.value) {
         chatHistoryList.value.scrollTop = 0;
@@ -963,14 +1346,16 @@ const selectChatFromHistory = async (historyChat: any) => {
 
     isLoading.value = true;
     try {
-        const response = await axios.get(`/support-chat/${historyChat.id}/messages`, { timeout: 10000 });
+        const response = await axios.get(`/support-chat/${historyChat.id}/messages`, {
+            timeout: 10000
+        });
 
         if (response.data.success) {
             chat.value = {
                 ...historyChat,
                 ...(response.data.chat || {}),
                 user: historyChat.user,
-                assignedAdmin: historyChat.assignedAdmin,
+                assignedAdmin: historyChat.assignedAdmin
             };
             messages.value = response.data.messages || [];
 
@@ -999,11 +1384,11 @@ const selectChatFromHistory = async (historyChat: any) => {
 // Форматирование даты для истории чатов
 const formatDate = (dateString: string | null | undefined): string => {
     if (!dateString) return '';
-    
+
     try {
         const date = new Date(dateString);
         if (isNaN(date.getTime())) return '';
-        
+
         const now = new Date();
         const diff = now.getTime() - date.getTime();
         const days = Math.floor(diff / (1000 * 60 * 60 * 24));
@@ -1015,7 +1400,11 @@ const formatDate = (dateString: string | null | undefined): string => {
         } else if (days < 7) {
             return date.toLocaleDateString('ru-RU', { weekday: 'short' });
         } else {
-            return date.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: '2-digit' });
+            return date.toLocaleDateString('ru-RU', {
+                day: '2-digit',
+                month: '2-digit',
+                year: '2-digit'
+            });
         }
     } catch (error) {
         console.error('[SupportChat] Error formatting date:', error);
@@ -1035,7 +1424,7 @@ onUnmounted(() => {
     stopPolling();
 });
 
-watch(isChatOpen, (newVal) => {
+watch(isChatOpen, newVal => {
     if (!newVal) {
         stopPolling();
     } else if (chat.value) {
@@ -1044,9 +1433,13 @@ watch(isChatOpen, (newVal) => {
     }
 });
 
-watch(messages, () => {
-    updateUnreadCount();
-}, { deep: true });
+watch(
+    messages,
+    () => {
+        updateUnreadCount();
+    },
+    { deep: true }
+);
 </script>
 
 <style scoped>
@@ -1512,6 +1905,8 @@ watch(messages, () => {
 
 .support-chat-input {
     display: flex;
+    justify-content: space-between;
+    align-items: center;
     gap: 8px;
     padding: 16px;
     border-top: 1px solid rgba(229, 231, 235, 0.5);
@@ -1768,6 +2163,7 @@ watch(messages, () => {
     position: relative;
     display: flex;
     align-items: flex-end;
+    width: 100%;
     margin-bottom: 8px;
 }
 
@@ -1833,7 +2229,6 @@ watch(messages, () => {
     opacity: 0.5;
     cursor: not-allowed;
 }
-
 
 .attachments-preview {
     display: flex;

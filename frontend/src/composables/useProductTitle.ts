@@ -57,7 +57,6 @@ export function useProductTitle() {
     return {
         getProductTitle,
         getProductDescription,
-        getLocalizedField,
+        getLocalizedField
     };
 }
-

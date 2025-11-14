@@ -434,11 +434,10 @@ const addToCart = (account: any) => {
     productCartStore.addItem(account, quantity);
 
     toast.success(
-        t('account.detail.product_added_to_cart', { title: getProductTitle(account), quantity: quantity }),
-        {
-            position: 'top-right',
-            duration: 3000
-        }
+        t('account.detail.product_added_to_cart', {
+            title: getProductTitle(account),
+            quantity: quantity
+        })
     );
 
     // Сбрасываем количество после добавления

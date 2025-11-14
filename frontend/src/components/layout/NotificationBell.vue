@@ -67,13 +67,13 @@
                     </div>
                 </div>
 
-                <div v-else class="p-4 text-sm text-gray-300 dark:text-gray-500 text-center">
+                <div v-else class="p-4 text-sm text-gray-900 dark:text-gray-500 text-center">
                     {{ $t('notifications.empty') }}
                 </div>
 
                 <div
                     v-if="store.total > 3 && store.total > items.length"
-                    class="text-gray-600 dark:text-blue-600 dark:text-white text-sm"
+                    class="text-gray-600 dark:text-white text-sm"
                     @click="loadMore"
                 >
                     <div
@@ -105,7 +105,6 @@ sound.volume = 0.5;
 const isFirstLoad = ref(true);
 const dropdownRef = ref(null);
 
-const notificationStore = useNotificationStore();
 const store = useNotificationStore();
 const authStore = useAuthStore();
 const isAuthenticated = computed(() => !!authStore.user);
@@ -127,7 +126,7 @@ const loadMore = async () => {
 
     try {
         const offset = (page.value - 1) * limit;
-        const response = await notificationStore.fetchChunk(limit, offset, false);
+        const response = await store.fetchChunk(limit, offset, false);
 
         firstNewItemId.value = response[0]?.id ?? null;
 
@@ -145,7 +144,7 @@ const loadMore = async () => {
         const unreadIds = response.filter(i => !i.read_at).map(i => i.id);
         if (unreadIds.length > 0) {
             unreadIds.forEach(id => recentlyRead.value.add(id));
-            await notificationStore.markNotificationsAsRead(unreadIds);
+            await store.markNotificationsAsRead(unreadIds);
         }
     } catch (e) {
         console.error('Failed to load notifications:', e);
