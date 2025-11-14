@@ -1,12 +1,19 @@
 import { defineStore } from 'pinia';
 import axios from '../bootstrap'; // Используем настроенный axios из bootstrap
 
+export interface ProductSubcategory {
+    id: number;
+    name: string;
+    translations?: Record<string, Record<string, string>>;
+}
+
 export interface ProductCategory {
     id: number;
     type: string;
     image_url?: string | null;
     name: string;
     translations?: Record<string, Record<string, string>>;
+    subcategories?: ProductSubcategory[];
 }
 
 export const useProductCategoriesStore = defineStore('productCategories', {
@@ -34,7 +41,12 @@ export const useProductCategoriesStore = defineStore('productCategories', {
                         type: cat.type || 'product',
                         image_url: cat.image_url || null,
                         name: cat.name || '',
-                        translations: cat.translations || {}
+                        translations: cat.translations || {},
+                        subcategories: (cat.subcategories || []).map((sub: any) => ({
+                            id: sub.id,
+                            name: sub.name || '',
+                            translations: sub.translations || {}
+                        }))
                     };
                 });
 

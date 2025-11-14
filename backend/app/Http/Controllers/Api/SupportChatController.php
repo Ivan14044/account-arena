@@ -1,0 +1,461 @@
+<?php
+
+namespace App\Http\Controllers\Api;
+
+use App\Http\Controllers\Controller;
+use App\Models\SupportChat;
+use App\Models\SupportMessage;
+use App\Models\SupportMessageAttachment;
+use App\Models\SupportMessageReaction;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Storage;
+
+class SupportChatController extends Controller
+{
+    /**
+     * Получить или создать чат для текущего пользователя
+     */
+    public function getOrCreateChat(Request $request)
+    {
+        $user = $request->user('sanctum');
+        
+        // Для авторизованных пользователей
+        if ($user) {
+            // Проверяем, есть ли незакрытый чат
+            $existingChat = SupportChat::where('user_id', $user->id)
+                ->notClosed()
+                ->orderBy('created_at', 'desc')
+                ->first();
+            
+            if ($existingChat) {
+                $existingChat->load(['messages' => function($query) {
+                    $query->orderBy('created_at', 'asc')->with(['user', 'attachments']);
+                }, 'user', 'assignedAdmin']);
+                
+                return response()->json([
+                    'success' => true,
+                    'chat' => $existingChat,
+                ]);
+            }
+            
+            // Создаём новый чат
+            $chat = SupportChat::create([
+                'user_id' => $user->id,
+                'status' => SupportChat::STATUS_PENDING,
+            ]);
+        } else {
+            // Для гостей - валидация email и имени
+            $validator = Validator::make($request->all(), [
+                'email' => 'required|email|max:255',
+                'name' => 'required|string|max:255',
+            ]);
+            
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'errors' => $validator->errors(),
+                ], 422);
+            }
+            
+            // Проверяем, есть ли незакрытый чат для этого email
+            $existingChat = SupportChat::where('guest_email', $request->email)
+                ->notClosed()
+                ->orderBy('created_at', 'desc')
+                ->first();
+            
+            if ($existingChat) {
+                $existingChat->load(['messages' => function($query) {
+                    $query->orderBy('created_at', 'asc')->with(['user', 'attachments']);
+                }, 'user', 'assignedAdmin']);
+                
+                return response()->json([
+                    'success' => true,
+                    'chat' => $existingChat,
+                ]);
+            }
+            
+            // Создаём новый чат для гостя
+            $chat = SupportChat::create([
+                'guest_email' => $request->email,
+                'guest_name' => $request->name,
+                'status' => SupportChat::STATUS_PENDING,
+            ]);
+        }
+        
+        $chat->load(['messages' => function($query) {
+            $query->orderBy('created_at', 'asc')->with(['user', 'attachments']);
+        }, 'user', 'assignedAdmin']);
+        
+        // Автоматическое приветственное сообщение - если это новый чат и включено
+        $greetingEnabled = \App\Models\Option::get('support_chat_greeting_enabled', false);
+        
+        if ($greetingEnabled && $chat->messages()->count() === 0) {
+            // Получаем язык пользователя из запроса или используем текущую локаль
+            $locale = $request->header('X-Locale') ?? $request->query('locale') ?? app()->getLocale();
+            if (!in_array($locale, array_keys(config('langs')))) {
+                $locale = app()->getLocale();
+            }
+            
+            $greetingMessage = \App\Models\Option::get('support_chat_greeting_message_' . $locale, '');
+            // Fallback на русский, если нет перевода
+            if (empty($greetingMessage)) {
+                $greetingMessage = \App\Models\Option::get('support_chat_greeting_message_ru', '');
+            }
+            
+            if (!empty($greetingMessage)) {
+                // Отправляем приветственное сообщение от бота
+                $greeting = SupportMessage::create([
+                    'support_chat_id' => $chat->id,
+                    'user_id' => null,
+                    'sender_type' => SupportMessage::SENDER_ADMIN,
+                    'message' => trim($greetingMessage),
+                    'is_read' => false,
+                ]);
+                
+                // Перезагружаем сообщения
+                $chat->load(['messages' => function($query) {
+                    $query->orderBy('created_at', 'asc')->with(['user', 'attachments']);
+                }, 'user', 'assignedAdmin']);
+            }
+        }
+        
+        return response()->json([
+            'success' => true,
+            'chat' => $chat,
+        ]);
+    }
+    
+    /**
+     * Получить сообщения чата
+     */
+    public function getMessages(Request $request, $chatId)
+    {
+        $user = $request->user('sanctum');
+        $chat = SupportChat::findOrFail($chatId);
+        
+        // Проверка доступа
+        if ($user) {
+            if ($chat->user_id !== $user->id) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'У вас нет доступа к этому чату'
+                ], 403);
+            }
+        } else {
+            // Для гостей проверяем email
+            if (!$request->has('email') || $chat->guest_email !== $request->input('email')) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'У вас нет доступа к этому чату'
+                ], 403);
+            }
+        }
+        
+        $messages = $chat->messages()
+            ->with(['user', 'attachments'])
+            ->orderBy('created_at', 'asc')
+            ->get();
+        
+        // Отмечаем сообщения от админов как прочитанные
+        $chat->messages()
+            ->where('sender_type', SupportMessage::SENDER_ADMIN)
+            ->where('is_read', false)
+            ->update([
+                'is_read' => true,
+                'read_at' => now(),
+            ]);
+        
+        return response()->json([
+            'success' => true,
+            'messages' => $messages,
+            'chat' => [
+                'id' => $chat->id,
+                'status' => $chat->status,
+                'last_message_at' => $chat->last_message_at,
+            ],
+        ]);
+    }
+    
+    /**
+     * Отправить сообщение
+     */
+    public function sendMessage(Request $request, $chatId)
+    {
+        $validator = Validator::make($request->all(), [
+            'message' => 'nullable|string|max:5000',
+            'attachments' => 'nullable|array|max:5', // Максимум 5 файлов
+            'attachments.*' => 'file|mimes:jpeg,png,jpg,gif,webp,svg,pdf,doc,docx,xls,xlsx,txt,zip,rar|max:10240', // 10MB max per file
+        ]);
+        
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+        
+        // Сообщение или файлы обязательны
+        $messageText = trim($request->input('message', ''));
+        if (empty($messageText) && !$request->hasFile('attachments')) {
+            return response()->json([
+                'success' => false,
+                'errors' => ['message' => ['Необходимо указать сообщение или прикрепить файл.']],
+            ], 422);
+        }
+        
+        $user = $request->user('sanctum');
+        $chat = SupportChat::findOrFail($chatId);
+        
+        // Проверка доступа и статуса чата
+        if ($chat->status === SupportChat::STATUS_CLOSED) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Этот чат закрыт'
+            ], 403);
+        }
+        
+        if ($user) {
+            if ($chat->user_id !== $user->id) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'У вас нет доступа к этому чату'
+                ], 403);
+            }
+            $senderType = SupportMessage::SENDER_USER;
+            $userId = $user->id;
+        } else {
+            // Для гостей
+            if (!$request->has('email') || $chat->guest_email !== $request->input('email')) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'У вас нет доступа к этому чату'
+                ], 403);
+            }
+            $senderType = SupportMessage::SENDER_GUEST;
+            $userId = null;
+        }
+        
+        $message = SupportMessage::create([
+            'support_chat_id' => $chat->id,
+            'user_id' => $userId,
+            'sender_type' => $senderType,
+            'message' => trim($request->input('message', '')),
+            'is_read' => false,
+        ]);
+        
+        // Обработка вложений
+        if ($request->hasFile('attachments')) {
+            foreach ($request->file('attachments') as $file) {
+                $path = $file->store('support-chat/attachments', 'public');
+                $url = Storage::url($path);
+                
+                SupportMessageAttachment::create([
+                    'support_message_id' => $message->id,
+                    'file_name' => $file->getClientOriginalName(),
+                    'file_path' => $path,
+                    'file_url' => $url,
+                    'mime_type' => $file->getMimeType(),
+                    'file_size' => $file->getSize(),
+                ]);
+            }
+        }
+        
+        // Обновляем время последнего сообщения
+        $chat->update([
+            'last_message_at' => now(),
+        ]);
+        
+        // Очищаем кеш счетчика непрочитанных сообщений для админ-панели
+        \Illuminate\Support\Facades\Cache::forget('support_chats_unread_count');
+        
+        $message->load(['user', 'attachments']);
+
+        return response()->json([
+            'success' => true,
+            'message' => $message,
+        ]);
+    }
+    
+    /**
+     * Добавить рейтинг к чату (для пользователей)
+     */
+    public function addRating(Request $request, $chatId)
+    {
+        $validator = Validator::make($request->all(), [
+            'rating' => 'required|integer|min:1|max:5',
+            'rating_comment' => 'nullable|string|max:1000',
+        ]);
+        
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+        
+        $user = $request->user('sanctum');
+        $chat = SupportChat::findOrFail($chatId);
+        
+        // Проверка доступа
+        if ($user) {
+            if ($chat->user_id !== $user->id) {
+                return response()->json(['success' => false, 'message' => 'У вас нет доступа к этому чату'], 403);
+            }
+        } else {
+            if (!$request->has('email') || $chat->guest_email !== $request->input('email')) {
+                return response()->json(['success' => false, 'message' => 'У вас нет доступа к этому чату'], 403);
+            }
+        }
+        
+        // Проверяем, что чат закрыт
+        if ($chat->status !== SupportChat::STATUS_CLOSED) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Оценить можно только закрытый чат'
+            ], 403);
+        }
+        
+        // Проверяем, что рейтинг еще не поставлен
+        if ($chat->rating) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Рейтинг уже поставлен'
+            ], 403);
+        }
+        
+        $chat->update([
+            'rating' => $request->rating,
+            'rating_comment' => $request->rating_comment ? trim($request->rating_comment) : null,
+            'rated_at' => now(),
+        ]);
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Рейтинг добавлен',
+            'chat' => $chat,
+        ]);
+    }
+    
+    /**
+     * Получить список чатов пользователя (только для авторизованных)
+     */
+    public function getChats(Request $request)
+    {
+        $user = $request->user('sanctum');
+        
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Необходима авторизация'
+            ], 401);
+        }
+        
+        $chats = SupportChat::where('user_id', $user->id)
+            ->with(['lastMessage', 'assignedAdmin'])
+            ->orderByRaw('COALESCE(last_message_at, created_at) DESC')
+            ->get();
+        
+        return response()->json([
+            'success' => true,
+            'chats' => $chats,
+        ]);
+    }
+    
+    /**
+     * Отправить событие "печатает"
+     */
+    public function sendTyping(Request $request, $chatId)
+    {
+        $user = $request->user('sanctum');
+        $chat = SupportChat::findOrFail($chatId);
+        
+        // Проверка доступа
+        if ($user) {
+            if ($chat->user_id !== $user->id) {
+                return response()->json(['success' => false, 'message' => 'У вас нет доступа к этому чату'], 403);
+            }
+        } else {
+            if (!$request->has('email') || $chat->guest_email !== $request->input('email')) {
+                return response()->json(['success' => false, 'message' => 'У вас нет доступа к этому чату'], 403);
+            }
+        }
+        
+        // Сохраняем в кеш с ключом по chat_id и user_id/email
+        $key = 'support_chat_typing_' . $chatId . '_' . ($user ? $user->id : md5($request->input('email')));
+        \Illuminate\Support\Facades\Cache::put($key, true, 5); // 5 секунд
+        
+        return response()->json(['success' => true]);
+    }
+    
+    /**
+     * Остановить событие "печатает"
+     */
+    public function stopTyping(Request $request, $chatId)
+    {
+        $user = $request->user('sanctum');
+        $chat = SupportChat::findOrFail($chatId);
+        
+        // Проверка доступа
+        if ($user) {
+            if ($chat->user_id !== $user->id) {
+                return response()->json(['success' => false, 'message' => 'У вас нет доступа к этому чату'], 403);
+            }
+        } else {
+            if (!$request->has('email') || $chat->guest_email !== $request->input('email')) {
+                return response()->json(['success' => false, 'message' => 'У вас нет доступа к этому чату'], 403);
+            }
+        }
+        
+        // Удаляем из кеша
+        $key = 'support_chat_typing_' . $chatId . '_' . ($user ? $user->id : md5($request->input('email')));
+        \Illuminate\Support\Facades\Cache::forget($key);
+        
+        return response()->json(['success' => true]);
+    }
+    
+    /**
+     * Получить статус печати (проверяем, печатает ли противоположная сторона)
+     */
+    public function getTypingStatus(Request $request, $chatId)
+    {
+        $user = $request->user('sanctum');
+        $chat = SupportChat::findOrFail($chatId);
+        
+        // Проверка доступа
+        if ($user) {
+            if ($chat->user_id !== $user->id) {
+                return response()->json(['success' => false, 'message' => 'У вас нет доступа к этому чату'], 403);
+            }
+            // Проверяем, печатает ли администратор (любой админ для этого чата)
+            $isTyping = false;
+            $admins = \App\Models\User::where('is_admin', true)->pluck('id');
+            foreach ($admins as $adminId) {
+                $key = 'support_chat_typing_' . $chatId . '_admin_' . $adminId;
+                if (\Illuminate\Support\Facades\Cache::has($key)) {
+                    $isTyping = true;
+                    break;
+                }
+            }
+        } else {
+            if (!$request->has('email') || $chat->guest_email !== $request->input('email')) {
+                return response()->json(['success' => false, 'message' => 'У вас нет доступа к этому чату'], 403);
+            }
+            // Проверяем, печатает ли администратор
+            $isTyping = false;
+            $admins = \App\Models\User::where('is_admin', true)->pluck('id');
+            foreach ($admins as $adminId) {
+                $key = 'support_chat_typing_' . $chatId . '_admin_' . $adminId;
+                if (\Illuminate\Support\Facades\Cache::has($key)) {
+                    $isTyping = true;
+                    break;
+                }
+            }
+        }
+        
+        return response()->json([
+            'success' => true,
+            'is_typing' => $isTyping,
+        ]);
+    }
+}

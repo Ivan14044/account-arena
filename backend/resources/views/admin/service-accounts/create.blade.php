@@ -221,13 +221,24 @@
                                 <select name="category_id" id="category_id"
                                         class="form-control @error('category_id') is-invalid @enderror">
                                     <option value="">Без категории</option>
-                                    @foreach(\App\Models\Category::productCategories()->with('translations')->get() as $category)
+                                    @foreach(\App\Models\Category::productCategories()->parentCategories()->with('translations')->get() as $category)
                                         <option value="{{ $category->id }}" {{ old('category_id') == $category->id ? 'selected' : '' }}>
                                             {{ $category->admin_name ?? 'Category #' . $category->id }}
                                         </option>
                                     @endforeach
                                 </select>
                                 @error('category_id')
+                                <div class="invalid-feedback d-block">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            <div class="form-group" id="subcategory_group" style="display: none;">
+                                <label for="subcategory_id">Подкатегория товара</label>
+                                <select name="subcategory_id" id="subcategory_id"
+                                        class="form-control @error('subcategory_id') is-invalid @enderror">
+                                    <option value="">Без подкатегории</option>
+                                </select>
+                                @error('subcategory_id')
                                 <div class="invalid-feedback d-block">{{ $message }}</div>
                                 @enderror
                             </div>
@@ -303,6 +314,49 @@
     <script>
         // Wait for DOM to be ready
         document.addEventListener('DOMContentLoaded', function() {
+            // Загрузка подкатегорий при выборе категории
+            const categorySelect = document.getElementById('category_id');
+            const subcategoryGroup = document.getElementById('subcategory_group');
+            const subcategorySelect = document.getElementById('subcategory_id');
+
+            if (categorySelect) {
+                categorySelect.addEventListener('change', function() {
+                    const categoryId = this.value;
+                    
+                    // Очищаем подкатегории
+                    subcategorySelect.innerHTML = '<option value="">Без подкатегории</option>';
+                    subcategoryGroup.style.display = 'none';
+                    
+                    if (categoryId) {
+                        // Загружаем подкатегории через AJAX
+                        fetch(`/api/categories/${categoryId}/subcategories`)
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.length > 0) {
+                                    // Добавляем подкатегории в select
+                                    data.forEach(subcategory => {
+                                        const option = document.createElement('option');
+                                        option.value = subcategory.id;
+                                        option.textContent = subcategory.name || 'Подкатегория #' + subcategory.id;
+                                        subcategorySelect.appendChild(option);
+                                    });
+                                    
+                                    // Показываем поле подкатегории
+                                    subcategoryGroup.style.display = 'block';
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Ошибка загрузки подкатегорий:', error);
+                            });
+                    }
+                });
+
+                // Загружаем подкатегории при загрузке страницы, если категория уже выбрана
+                if (categorySelect.value) {
+                    categorySelect.dispatchEvent(new Event('change'));
+                }
+            }
+
             // Preview image from file input
             const imageInput = document.getElementById('image');
             if (imageInput) {

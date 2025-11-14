@@ -18,6 +18,7 @@ use App\Http\Controllers\Admin\NotificationTemplateController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\ArticleController;
 use App\Http\Controllers\Admin\ProductCategoryController;
+use App\Http\Controllers\Admin\ProductSubcategoryController;
 use App\Http\Controllers\Admin\ArticleCategoryController;
 // use App\Http\Controllers\Admin\BrowserSessionController; // DISABLED
 use App\Http\Controllers\Admin\AdminNotificationController;
@@ -59,6 +60,7 @@ Route::prefix('/admin')
             Route::resource('contents', ContentController::class)->except(['show']);
             Route::resource('articles', ArticleController::class)->except(['show']);
             Route::resource('product-categories', ProductCategoryController::class)->except(['show']);
+            Route::resource('product-subcategories', ProductSubcategoryController::class)->except(['show']);
             Route::resource('article-categories', ArticleCategoryController::class)->except(['show']);
             Route::resource('categories', CategoryController::class)->except(['show']); // For backward compatibility
             Route::resource('banners', BannerController::class)->except(['show']);
@@ -121,6 +123,20 @@ Route::prefix('/admin')
             Route::post('disputes/{dispute}/reject', [ProductDisputeController::class, 'reject'])->name('disputes.reject');
             Route::get('disputes/{dispute}/replacement-products', [ProductDisputeController::class, 'getReplacementProducts'])->name('disputes.replacement-products');
 
+            // Support chats management
+            Route::get('support-chats', [\App\Http\Controllers\Admin\SupportChatController::class, 'index'])->name('support-chats.index');
+            Route::get('support-chats/unread-count', [\App\Http\Controllers\Admin\SupportChatController::class, 'getUnreadCount'])->name('support-chats.unread-count');
+            Route::get('support-chats/{id}', [\App\Http\Controllers\Admin\SupportChatController::class, 'show'])->name('support-chats.show');
+            Route::post('support-chats/{id}/message', [\App\Http\Controllers\Admin\SupportChatController::class, 'sendMessage'])->name('support-chats.send-message');
+            Route::post('support-chats/{id}/assign', [\App\Http\Controllers\Admin\SupportChatController::class, 'assign'])->name('support-chats.assign');
+            Route::post('support-chats/{id}/status', [\App\Http\Controllers\Admin\SupportChatController::class, 'updateStatus'])->name('support-chats.update-status');
+            Route::post('support-chats/{id}/typing', [\App\Http\Controllers\Admin\SupportChatController::class, 'sendTyping'])->name('support-chats.send-typing');
+            Route::post('support-chats/{id}/typing/stop', [\App\Http\Controllers\Admin\SupportChatController::class, 'stopTyping'])->name('support-chats.stop-typing');
+            Route::get('support-chats/{id}/typing/user-status', [\App\Http\Controllers\Admin\SupportChatController::class, 'getUserTypingStatus'])->name('support-chats.user-typing-status');
+            Route::post('support-chats/{id}/notes', [\App\Http\Controllers\Admin\SupportChatController::class, 'addNote'])->name('support-chats.add-note');
+            Route::delete('support-chats/{id}/notes/{noteId}', [\App\Http\Controllers\Admin\SupportChatController::class, 'deleteNote'])->name('support-chats.delete-note');
+
+
             Route::resource('profile', ProfileController::class)->only(['index', 'store']);
             Route::match(['get', 'post'], '/logout', [LoginController::class, 'logout'])->name('logout');
         });
@@ -162,6 +178,11 @@ Route::prefix('supplier')
             Route::get('/disputes/{dispute}', [SupplierDisputeController::class, 'show'])->name('disputes.show');
         });
     });
+
+// Redirect /login to /admin/login for convenience
+Route::get('/login', function () {
+    return redirect()->route('admin.login');
+})->name('login');
 
 // Auth routes
 Route::prefix('auth')->group(function () {

@@ -3,6 +3,8 @@
 
     <!-- Глобальный прелоадер для навигации между страницами -->
     <NavigationLoader />
+    <!-- Виджет чата поддержки -->
+    <SupportChatWidget />
 </template>
 
 <script setup lang="ts">
@@ -11,6 +13,7 @@ import { useI18n } from 'vue-i18n';
 
 import DefaultLayout from '@/components/layout/DefaultLayout.vue';
 import NavigationLoader from '@/components/NavigationLoader.vue';
+import SupportChatWidget from '@/components/SupportChatWidget.vue';
 
 import { usePageStore } from '@/stores/pages';
 import { useOptionStore } from '@/stores/options';

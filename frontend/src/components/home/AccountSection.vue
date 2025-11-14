@@ -285,9 +285,11 @@ import { useOptionStore } from '@/stores/options';
 import { useToast } from 'vue-toastification';
 import { useRouter } from 'vue-router';
 import { useProductTitle } from '@/composables/useProductTitle';
+import { useProductCategoriesStore } from '@/stores/productCategories';
 
 interface FilterProps {
     categoryId?: number | null;
+    subcategoryId?: number | null;
     hideOutOfStock?: boolean;
     showFavoritesOnly?: boolean;
     searchQuery?: string;
@@ -299,6 +301,7 @@ const props = defineProps<{
 
 const accountsStore = useAccountsStore();
 const productCartStore = useProductCartStore();
+const categoriesStore = useProductCategoriesStore();
 const { t } = useI18n();
 const optionStore = useOptionStore();
 const toast = useToast();
@@ -311,9 +314,19 @@ const accounts = computed(() => accountsStore.list);
 const filteredAccounts = computed(() => {
     let result = [...accounts.value];
 
-    // Filter by category
-    if (props.filters?.categoryId !== null && props.filters?.categoryId !== undefined) {
-        result = result.filter(account => account.category?.id === props.filters?.categoryId);
+    // Filter by category and subcategory
+    if (props.filters?.subcategoryId !== null && props.filters?.subcategoryId !== undefined) {
+        // Если выбрана подкатегория - показываем только товары из этой подкатегории
+        result = result.filter(account => account.category?.id === props.filters?.subcategoryId);
+    } else if (props.filters?.categoryId !== null && props.filters?.categoryId !== undefined) {
+        // Если выбрана только категория - показываем товары из категории и всех её подкатегорий
+        const category = categoriesStore.list.find(cat => cat.id === props.filters?.categoryId);
+        const subcategoryIds = category?.subcategories?.map(sub => sub.id) || [];
+        const categoryIds = [props.filters.categoryId, ...subcategoryIds];
+        result = result.filter(account => {
+            const accountCategoryId = account.category?.id;
+            return accountCategoryId && categoryIds.includes(accountCategoryId);
+        });
     }
 
     // Filter out of stock
@@ -478,6 +491,8 @@ const formatTotalPrice = (price: number, quantity: number) => {
 };
 
 onMounted(async () => {
+    // Загружаем категории для фильтрации по подкатегориям
+    await categoriesStore.fetchAll();
     try {
         // Загружаем только если еще не загружены (предзагрузка в App.vue)
         if (!accountsStore.loaded) {

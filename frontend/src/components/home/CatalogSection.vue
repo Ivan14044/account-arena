@@ -26,6 +26,20 @@
             </div>
         </div>
 
+        <!-- Subcategories -->
+        <div v-if="selectedSubcategories.length > 0" class="subcategories-wrapper">
+            <div class="subcategories">
+                <button
+                    v-for="subcategory in selectedSubcategories"
+                    :key="subcategory.id"
+                    :class="['subcategory-btn', { active: selectedSubcategoryId === subcategory.id }]"
+                    @click="selectSubcategory(subcategory.id)"
+                >
+                    <span class="subcategory-name">{{ getSubcategoryName(subcategory) }}</span>
+                </button>
+            </div>
+        </div>
+
         <!-- Filters -->
         <div class="filters-wrapper">
             <div class="filters-left">
@@ -71,6 +85,7 @@ const categoriesStore = useProductCategoriesStore();
 const { locale } = useI18n();
 
 const selectedCategoryId = ref<number | null>(null);
+const selectedSubcategoryId = ref<number | null>(null);
 const hideOutOfStock = ref(false);
 const showFavoritesOnly = ref(false);
 const searchQuery = ref('');
@@ -96,10 +111,41 @@ const categories = computed(() => {
     return allCategories;
 });
 
+const selectedSubcategories = computed(() => {
+    if (!selectedCategoryId.value || selectedCategoryId.value === 0) {
+        return [];
+    }
+    
+    const category = categoriesStore.list.find(cat => cat.id === selectedCategoryId.value);
+    return category?.subcategories || [];
+});
+
+const getSubcategoryName = (subcategory: any): string => {
+    if (subcategory.translations && subcategory.translations[locale.value] && subcategory.translations[locale.value]['name']) {
+        return subcategory.translations[locale.value]['name'];
+    }
+    return subcategory.name || '';
+};
+
 const selectCategory = (categoryId: number | null) => {
     selectedCategoryId.value = categoryId === 0 ? null : categoryId;
+    selectedSubcategoryId.value = null; // Сбрасываем выбранную подкатегорию при смене категории
+    
     emit('filter-change', {
         categoryId: selectedCategoryId.value,
+        subcategoryId: null,
+        hideOutOfStock: hideOutOfStock.value,
+        showFavoritesOnly: showFavoritesOnly.value,
+        searchQuery: searchQuery.value
+    });
+};
+
+const selectSubcategory = (subcategoryId: number | null) => {
+    selectedSubcategoryId.value = subcategoryId;
+    
+    emit('filter-change', {
+        categoryId: selectedCategoryId.value,
+        subcategoryId: selectedSubcategoryId.value,
         hideOutOfStock: hideOutOfStock.value,
         showFavoritesOnly: showFavoritesOnly.value,
         searchQuery: searchQuery.value
@@ -110,6 +156,7 @@ const emit = defineEmits<{
     'filter-change': [
         filters: {
             categoryId: number | null;
+            subcategoryId: number | null;
             hideOutOfStock: boolean;
             showFavoritesOnly: boolean;
             searchQuery: string;
@@ -120,6 +167,7 @@ const emit = defineEmits<{
 watch([hideOutOfStock, showFavoritesOnly, searchQuery], () => {
     emit('filter-change', {
         categoryId: selectedCategoryId.value,
+        subcategoryId: selectedSubcategoryId.value,
         hideOutOfStock: hideOutOfStock.value,
         showFavoritesOnly: showFavoritesOnly.value,
         searchQuery: searchQuery.value
@@ -390,5 +438,69 @@ onMounted(async () => {
     .category-buttons {
         flex-wrap: wrap;
     }
+}
+
+/* Subcategories */
+.subcategories-wrapper {
+    margin-top: 20px;
+    margin-bottom: 20px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.dark .subcategories-wrapper {
+    border-top-color: rgba(255, 255, 255, 0.1);
+}
+
+.subcategories {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.subcategory-btn {
+    padding: 8px 16px;
+    background: #f3f4f6;
+    border: 2px solid transparent;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 14px;
+    font-weight: 500;
+    color: #374151;
+    white-space: nowrap;
+    font-family: 'SFT Schrifted Sans', sans-serif;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+}
+
+.dark .subcategory-btn {
+    background: #4b5563;
+    color: #e5e7eb;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+}
+
+.subcategory-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.dark .subcategory-btn:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.subcategory-btn.active {
+    background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%);
+    color: #ffffff;
+    border-color: #6c5ce7;
+    box-shadow: 0 2px 12px rgba(108, 92, 231, 0.3);
+}
+
+.dark .subcategory-btn.active {
+    background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%);
+    box-shadow: 0 2px 12px rgba(108, 92, 231, 0.4);
+}
+
+.subcategory-name {
+    font-weight: 500;
 }
 </style>
