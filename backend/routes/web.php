@@ -19,6 +19,7 @@ use App\Http\Controllers\Admin\NotificationTemplateController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\ArticleController;
 use App\Http\Controllers\Admin\ProductCategoryController;
+use App\Http\Controllers\Admin\ProductSubcategoryController;
 use App\Http\Controllers\Admin\ArticleCategoryController;
 // use App\Http\Controllers\Admin\BrowserSessionController; // DISABLED
 use App\Http\Controllers\Admin\AdminNotificationController;
@@ -61,6 +62,7 @@ Route::prefix('/admin')
             Route::resource('contents', ContentController::class)->except(['show']);
             Route::resource('articles', ArticleController::class)->except(['show']);
             Route::resource('product-categories', ProductCategoryController::class)->except(['show']);
+            Route::resource('product-subcategories', ProductSubcategoryController::class)->except(['show']);
             Route::resource('article-categories', ArticleCategoryController::class)->except(['show']);
             Route::resource('categories', CategoryController::class)->except(['show']); // For backward compatibility
             Route::resource('banners', BannerController::class)->except(['show']);
@@ -133,12 +135,9 @@ Route::prefix('/admin')
             Route::post('support-chats/{id}/typing', [\App\Http\Controllers\Admin\SupportChatController::class, 'sendTyping'])->name('support-chats.send-typing');
             Route::post('support-chats/{id}/typing/stop', [\App\Http\Controllers\Admin\SupportChatController::class, 'stopTyping'])->name('support-chats.stop-typing');
             Route::get('support-chats/{id}/typing/user-status', [\App\Http\Controllers\Admin\SupportChatController::class, 'getUserTypingStatus'])->name('support-chats.user-typing-status');
-            Route::post('support-chats/templates/increment-usage', [\App\Http\Controllers\Admin\SupportChatController::class, 'incrementTemplateUsage'])->name('support-chats.templates.increment-usage');
-            Route::post('support-chats/{id}/priority', [\App\Http\Controllers\Admin\SupportChatController::class, 'updatePriority'])->name('support-chats.update-priority');
             Route::post('support-chats/{id}/notes', [\App\Http\Controllers\Admin\SupportChatController::class, 'addNote'])->name('support-chats.add-note');
             Route::delete('support-chats/{id}/notes/{noteId}', [\App\Http\Controllers\Admin\SupportChatController::class, 'deleteNote'])->name('support-chats.delete-note');
-            Route::post('support-chats/{id}/rating', [\App\Http\Controllers\Admin\SupportChatController::class, 'addRating'])->name('support-chats.add-rating');
-            Route::get('support-chats/statistics', [\App\Http\Controllers\Admin\SupportChatController::class, 'statistics'])->name('support-chats.statistics');
+
 
             Route::resource('profile', ProfileController::class)->only(['index', 'store']);
             Route::match(['get', 'post'], '/logout', [LoginController::class, 'logout'])->name('logout');

@@ -99,25 +99,7 @@
                     <form method="POST" action="{{ route('admin.support-chats.send-message', $chat->id) }}" id="send-message-form" enctype="multipart/form-data">
                         @csrf
                         <div class="form-group">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <label class="mb-0">Ваше сообщение</label>
-                                @if(isset($templates) && $templates->count() > 0)
-                                    <div class="btn-group">
-                                        <button type="button" class="btn btn-sm btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                            <i class="fas fa-file-alt mr-1"></i> Шаблоны
-                                        </button>
-                                        <div class="dropdown-menu dropdown-menu-right" style="max-height: 300px; overflow-y: auto;">
-                                            @foreach($templates as $template)
-                                                <a class="dropdown-item template-item" href="#" data-template-content="{{ htmlspecialchars($template->content) }}">
-                                                    <strong>{{ $template->title }}</strong>
-                                                    <br>
-                                                    <small class="text-muted">{{ Str::limit($template->content, 50) }}</small>
-                                                </a>
-                                            @endforeach
-                                        </div>
-                                    </div>
-                                @endif
-                            </div>
+                            <label>Ваше сообщение</label>
                             <textarea name="message" id="admin-message-input" class="form-control" rows="3" required placeholder="Введите сообщение..."></textarea>
                         </div>
                         <div class="form-group">
@@ -223,33 +205,6 @@
                                 }
                             });
                         }
-                        
-                        // Шаблоны ответов
-                        const messageInput = document.getElementById('admin-message-input');
-                        const templateItems = document.querySelectorAll('.template-item');
-                        
-                        templateItems.forEach(function(item) {
-                            item.addEventListener('click', function(e) {
-                                e.preventDefault();
-                                const content = this.getAttribute('data-template-content');
-                                if (messageInput && content) {
-                                    messageInput.value = content;
-                                    messageInput.focus();
-                                    
-                                    // Увеличиваем счетчик использования через AJAX
-                                    const templateTitle = this.querySelector('strong').textContent;
-                                    $.ajax({
-                                        url: '/admin/support-chats/templates/increment-usage',
-                                        method: 'POST',
-                                        data: {
-                                            _token: '{{ csrf_token() }}',
-                                            title: templateTitle
-                                        },
-                                        error: function() {}
-                                    });
-                                }
-                            });
-                        });
                         
                         // Поиск по сообщениям
                         const searchInput = document.getElementById('search-messages-input');

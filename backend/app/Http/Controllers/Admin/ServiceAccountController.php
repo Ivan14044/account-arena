@@ -35,6 +35,11 @@ class ServiceAccountController extends Controller
             $validated['image_url'] = Storage::url($path);
         }
         
+        // Если выбрана подкатегория, используем её ID как category_id
+        if ($request->has('subcategory_id') && !empty($request->input('subcategory_id'))) {
+            $validated['category_id'] = $request->input('subcategory_id');
+        }
+        
         // Check if bulk accounts are provided (non-empty)
         if ($request->has('bulk_accounts') && !empty(trim($request->input('bulk_accounts')))) {
             return $this->storeBulkAccounts($request);
@@ -67,7 +72,8 @@ class ServiceAccountController extends Controller
         $price = $request->input('price');
         $description = $request->input('description');
         $additionalDescription = $request->input('additional_description');
-        $categoryId = $request->input('category_id');
+        // Если выбрана подкатегория, используем её ID как category_id
+        $categoryId = $request->input('subcategory_id') ?: $request->input('category_id');
         $isActive = $request->input('is_active', true);
         $imageUrl = null;
 
@@ -131,7 +137,25 @@ class ServiceAccountController extends Controller
 
     public function edit(ServiceAccount $serviceAccount)
     {
-        return view('admin.service-accounts.edit', compact('serviceAccount'));
+        // Определяем родительскую категорию и подкатегорию
+        $parentCategoryId = null;
+        $subcategoryId = null;
+        
+        if ($serviceAccount->category_id) {
+            $category = \App\Models\Category::find($serviceAccount->category_id);
+            if ($category) {
+                if ($category->isSubcategory()) {
+                    // Товар привязан к подкатегории
+                    $subcategoryId = $category->id;
+                    $parentCategoryId = $category->parent_id;
+                } else {
+                    // Товар привязан к родительской категории
+                    $parentCategoryId = $category->id;
+                }
+            }
+        }
+        
+        return view('admin.service-accounts.edit', compact('serviceAccount', 'parentCategoryId', 'subcategoryId'));
     }
 
     public function update(Request $request, ServiceAccount $serviceAccount)
@@ -154,6 +178,11 @@ class ServiceAccountController extends Controller
         $validationRules = $this->getRules($serviceAccount->id);
         unset($validationRules['accounts_data']);
         $validated = $request->validate($validationRules);
+        
+        // Если выбрана подкатегория, используем её ID как category_id
+        if ($request->has('subcategory_id') && !empty($request->input('subcategory_id'))) {
+            $validated['category_id'] = $request->input('subcategory_id');
+        }
         
         // Handle image upload
         if ($request->hasFile('image')) {
@@ -274,6 +303,7 @@ class ServiceAccountController extends Controller
         return [
             'service_id' => ['nullable', 'exists:services,id'],
             'category_id' => ['nullable', 'exists:categories,id'],
+            'subcategory_id' => ['nullable', 'exists:categories,id'],
             // sku убран из правил валидации - генерируется автоматически
             'profile_id' => [
                 'nullable',

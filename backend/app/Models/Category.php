@@ -9,7 +9,7 @@ class Category extends Model
 {
     use HasFactory;
 
-    public $fillable = ['type', 'image_url'];
+    public $fillable = ['type', 'image_url', 'parent_id'];
 
     public $hidden = ['updated_at', 'pivot'];
 
@@ -31,11 +31,39 @@ class Category extends Model
         return $this->hasMany(ServiceAccount::class);
     }
 
+    // Отношения для подкатегорий
+    public function parent()
+    {
+        return $this->belongsTo(Category::class, 'parent_id');
+    }
+
+    public function children()
+    {
+        return $this->hasMany(Category::class, 'parent_id');
+    }
+
+    // Проверка, является ли категория подкатегорией
+    public function isSubcategory()
+    {
+        return $this->parent_id !== null;
+    }
+
+    // Проверка, является ли категория родительской
+    public function isParent()
+    {
+        return $this->children()->exists();
+    }
+
     public static function boot()
     {
         parent::boot();
         static::deleting(function ($category) {
             $category->articles()->detach();
+            // Подкатегории удалятся автоматически через каскадное удаление в БД
+            // Но также отвязываем товары от подкатегорий
+            foreach ($category->children as $child) {
+                $child->products()->update(['category_id' => null]);
+            }
         });
     }
 
@@ -48,6 +76,18 @@ class Category extends Model
     public function scopeArticleCategories($query)
     {
         return $query->where('type', self::TYPE_ARTICLE);
+    }
+
+    // Получить только родительские категории (без подкатегорий)
+    public function scopeParentCategories($query)
+    {
+        return $query->whereNull('parent_id');
+    }
+
+    // Получить только подкатегории
+    public function scopeSubcategories($query)
+    {
+        return $query->whereNotNull('parent_id');
     }
 
     public function translations()

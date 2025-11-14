@@ -45,6 +45,7 @@ Route::middleware('throttle:60,1')->group(function () {
     Route::get('/articles', [ArticleController::class, 'index']);
     Route::get('/articles/{article}', [ArticleController::class, 'show']);
     Route::get('/categories', [CategoryController::class, 'index']);
+    Route::get('/categories/{categoryId}/subcategories', [CategoryController::class, 'getSubcategories']);
     Route::get('/pages', [PageController::class, 'index']);
     Route::get('/options', [OptionController::class, 'index']);
     Route::get('/cookie/check', [CookieConsentController::class, 'check']);

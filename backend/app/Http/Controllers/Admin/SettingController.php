@@ -22,10 +22,20 @@ class SettingController extends Controller
 
         foreach ($validated as $key => $value) {
             // Для checkbox полей нужно сохранять даже если они false
-            if (in_array($key, ['support_chat_enabled', 'support_chat_greeting_enabled', 'support_chat_auto_reply_enabled'])) {
+            if (in_array($key, ['support_chat_enabled', 'support_chat_greeting_enabled'])) {
                 Option::set($key, $request->has($key) ? true : false);
             } elseif (!empty($value) || $value === '0' || $value === 0) {
                 Option::set($key, $value);
+            }
+        }
+
+        // Сохраняем сообщения для разных языков (приветствие)
+        if ($request->form === 'support_chat') {
+            foreach (config('langs') as $locale => $flag) {
+                $greetingKey = 'support_chat_greeting_message_' . $locale;
+                if ($request->has($greetingKey)) {
+                    Option::set($greetingKey, $request->input($greetingKey, ''));
+                }
             }
         }
 
@@ -140,9 +150,6 @@ class SettingController extends Controller
                 'support_chat_enabled' => ['nullable', 'boolean'],
                 'support_chat_telegram_link' => ['nullable', 'url', 'max:255'],
                 'support_chat_greeting_enabled' => ['nullable', 'boolean'],
-                'support_chat_greeting_message' => ['nullable', 'string', 'max:1000'],
-                'support_chat_auto_reply_enabled' => ['nullable', 'boolean'],
-                'support_chat_auto_reply_message' => ['nullable', 'string', 'max:1000'],
             ],
             default => [
                 'currency' => ['required', 'string'],

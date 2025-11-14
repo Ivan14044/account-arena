@@ -169,6 +169,7 @@ const contents = useContentsStore();
 // Filters for products
 const filters = ref({
     categoryId: null as number | null,
+    subcategoryId: null as number | null,
     hideOutOfStock: false,
     showFavoritesOnly: false,
     searchQuery: ''
@@ -176,6 +177,7 @@ const filters = ref({
 
 const handleFilterChange = (newFilters: {
     categoryId: number | null;
+    subcategoryId: number | null;
     hideOutOfStock: boolean;
     showFavoritesOnly: boolean;
     searchQuery: string;

@@ -839,6 +839,64 @@
                                     </small>
                                 </div>
 
+                                <div class="form-group">
+                                    <div class="custom-control custom-switch">
+                                        <input type="checkbox" 
+                                               class="custom-control-input" 
+                                               id="support_chat_greeting_enabled" 
+                                               name="support_chat_greeting_enabled" 
+                                               value="1"
+                                               {{ old('support_chat_greeting_enabled', \App\Models\Option::get('support_chat_greeting_enabled')) ? 'checked' : '' }}>
+                                        <label class="custom-control-label" for="support_chat_greeting_enabled">
+                                            Включить приветственное сообщение
+                                        </label>
+                                    </div>
+                                    <small class="form-text text-muted">
+                                        Когда включено, пользователи будут автоматически получать приветственное сообщение при создании нового чата.
+                                    </small>
+                                </div>
+
+                                <div class="card mt-3">
+                                    <div class="card-header no-border border-0 p-0">
+                                        <ul class="nav nav-tabs" id="greeting-tabs" role="tablist">
+                                            @foreach(config('langs') as $code => $flag)
+                                                <li class="nav-item">
+                                                    <a class="nav-link {{ $code == 'ru' ? 'active' : null }}"
+                                                       id="greeting_tab_{{ $code }}" data-toggle="pill" href="#greeting_content_{{ $code }}" role="tab">
+                                                        <span class="flag-icon flag-icon-{{ $flag }} mr-1"></span> {{ strtoupper($code) }}
+                                                    </a>
+                                                </li>
+                                            @endforeach
+                                        </ul>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="tab-content">
+                                            @foreach(config('langs') as $code => $flag)
+                                                <div class="tab-pane fade show {{ $code == 'ru' ? 'active' : null }}" id="greeting_content_{{ $code }}" role="tabpanel">
+                                                    <div class="form-group">
+                                                        <label for="support_chat_greeting_message_{{ $code }}">
+                                                            <i class="fas fa-comment-dots mr-2"></i>Текст приветственного сообщения ({{ strtoupper($code) }})
+                                                        </label>
+                                                        <textarea 
+                                                            name="support_chat_greeting_message_{{ $code }}" 
+                                                            id="support_chat_greeting_message_{{ $code }}" 
+                                                            class="form-control @error('support_chat_greeting_message_' . $code) is-invalid @enderror"
+                                                            rows="4"
+                                                            placeholder="Добро пожаловать! Мы рады помочь вам. Опишите вашу проблему, и мы постараемся решить её как можно скорее.">{{ old('support_chat_greeting_message_' . $code, \App\Models\Option::get('support_chat_greeting_message_' . $code, '')) }}</textarea>
+                                                        @error('support_chat_greeting_message_' . $code)
+                                                            <div class="invalid-feedback">{{ $message }}</div>
+                                                        @enderror
+                                                        <small class="form-text text-muted">
+                                                            Это сообщение будет автоматически отправлено пользователю при создании нового чата на языке {{ strtoupper($code) }} (если включено приветствие).
+                                                        </small>
+                                                    </div>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                </div>
+
+
                                 <div class="alert alert-success">
                                     <i class="fas fa-check-circle"></i>
                                     <strong>Готово к использованию:</strong> После включения чат будет автоматически работать. 

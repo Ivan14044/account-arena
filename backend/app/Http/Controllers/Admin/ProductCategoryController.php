@@ -11,7 +11,11 @@ class ProductCategoryController extends Controller
 {
     public function index()
     {
-        $categories = Category::productCategories()->with('translations')->get();
+        // Получаем только родительские категории (без подкатегорий) с их подкатегориями
+        $categories = Category::productCategories()
+            ->parentCategories()
+            ->with(['translations', 'children.translations'])
+            ->get();
 
         return view('admin.product-categories.index', compact('categories'));
     }
@@ -29,7 +33,10 @@ class ProductCategoryController extends Controller
             getTransAttributes(['name', 'meta_title', 'meta_description', 'text'])
         );
 
-        $data = ['type' => Category::TYPE_PRODUCT];
+        $data = [
+            'type' => Category::TYPE_PRODUCT,
+            'parent_id' => null, // Категории товаров всегда родительские
+        ];
         
         // Handle image upload
         if ($request->hasFile('image')) {
@@ -48,6 +55,7 @@ class ProductCategoryController extends Controller
     {
         $category = Category::where('id', $product_category)
             ->where('type', Category::TYPE_PRODUCT)
+            ->whereNull('parent_id') // Редактируем только родительские категории
             ->firstOrFail();
         
         $validated = $request->validate(
@@ -76,6 +84,7 @@ class ProductCategoryController extends Controller
     {
         $category = Category::where('id', $product_category)
             ->where('type', Category::TYPE_PRODUCT)
+            ->whereNull('parent_id') // Редактируем только родительские категории
             ->firstOrFail();
         
         $category->load('translations');
@@ -98,10 +107,12 @@ class ProductCategoryController extends Controller
     {
         $category = Category::where('id', $product_category)
             ->where('type', Category::TYPE_PRODUCT)
+            ->whereNull('parent_id') // Удаляем только родительские категории
             ->firstOrFail();
         
         // Detach products before deleting
         $category->products()->update(['category_id' => null]);
+        // Подкатегории удалятся автоматически через каскадное удаление
         $category->delete();
 
         return redirect()->route('admin.product-categories.index')->with('success', 'Категория товаров успешно удалена.');

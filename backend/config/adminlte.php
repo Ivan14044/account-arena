@@ -525,8 +525,8 @@ return [
 
         [
             'text' => 'Чат поддержки',
-            'route' => 'admin.support-chats.index',
             'icon' => 'fas fa-fw mr-1 fa-comments',
+            'route' => 'admin.support-chats.index',
             'active' => ['admin/support-chats*'],
             'can' => 'admin-only',
             'label' => '0',

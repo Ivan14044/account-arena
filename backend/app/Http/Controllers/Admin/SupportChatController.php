@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\SupportChat;
 use App\Models\SupportMessage;
 use App\Models\SupportMessageAttachment;
-use App\Models\SupportReplyTemplate;
 use App\Models\SupportChatNote;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -63,13 +62,10 @@ class SupportChatController extends Controller
         // Очищаем кеш счетчика непрочитанных сообщений
         \Illuminate\Support\Facades\Cache::forget('support_chats_unread_count');
         
-        // Загружаем активные шаблоны ответов
-        $templates = SupportReplyTemplate::active()->ordered()->get();
-        
         // Загружаем заметки администраторов
         $chat->load('notes.user');
         
-        return view('admin.support-chats.show', compact('chat', 'templates'));
+        return view('admin.support-chats.show', compact('chat'));
     }
     
     /**
@@ -183,22 +179,6 @@ class SupportChatController extends Controller
     }
     
     /**
-     * Увеличить счетчик использования шаблона
-     */
-    public function incrementTemplateUsage(Request $request)
-    {
-        $title = $request->input('title');
-        $template = SupportReplyTemplate::where('title', $title)->first();
-        
-        if ($template) {
-            $template->incrementUsage();
-            return response()->json(['success' => true]);
-        }
-        
-        return response()->json(['success' => false], 404);
-    }
-    
-    /**
      * Назначить администратора на чат
      */
     public function assign(Request $request, $id)
@@ -295,38 +275,6 @@ class SupportChatController extends Controller
         $note->delete();
         
         return redirect()->back()->with('success', 'Заметка удалена');
-    }
-    
-    /**
-     * Статистика и аналитика
-     */
-    public function statistics()
-    {
-        $totalChats = SupportChat::count();
-        $openChats = SupportChat::where('status', SupportChat::STATUS_OPEN)->count();
-        $pendingChats = SupportChat::where('status', SupportChat::STATUS_PENDING)->count();
-        $closedChats = SupportChat::where('status', SupportChat::STATUS_CLOSED)->count();
-        
-        $todayChats = SupportChat::whereDate('created_at', today())->count();
-        $weekChats = SupportChat::where('created_at', '>=', now()->subWeek())->count();
-        $monthChats = SupportChat::where('created_at', '>=', now()->subMonth())->count();
-        
-        // Используем DB::raw для SQLite
-        $averageResponseTime = \DB::table('support_chats')
-            ->whereNotNull('last_message_at')
-            ->where('created_at', '>=', now()->subMonth())
-            ->selectRaw('AVG((julianday(last_message_at) - julianday(created_at)) * 1440 as avg_time')
-            ->first();
-        
-        $averageRating = SupportChat::whereNotNull('rating')
-            ->where('rated_at', '>=', now()->subMonth())
-            ->avg('rating');
-        
-        return view('admin.support-chats.statistics', compact(
-            'totalChats', 'openChats', 'pendingChats', 'closedChats',
-            'todayChats', 'weekChats', 'monthChats',
-            'averageResponseTime', 'averageRating'
-        ));
     }
     
     /**

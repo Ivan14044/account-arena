@@ -58,22 +58,32 @@ class AppServiceProvider extends ServiceProvider
         // Обновляем label для Чат поддержки
         foreach ($menu as $idx => $item) {
             if (is_array($item) && isset($item['id']) && $item['id'] === 'support-chats-unread-count') {
-                // Получаем количество непрочитанных сообщений
-                $unreadCount = Cache::remember('support_chats_unread_count', 30, function () {
-                    return SupportMessage::whereHas('chat', function($query) {
-                        $query->where('status', '!=', SupportChat::STATUS_CLOSED);
-                    })
-                    ->fromUserOrGuest()
-                    ->where('is_read', false)
-                    ->count();
-                });
-                
-                if ($unreadCount > 0) {
-                    $item['label'] = (string)$unreadCount;
-                    $item['label_color'] = 'danger';
-                } else {
-                    $item['label'] = '';
-                    $item['label_color'] = 'secondary';
+                try {
+                    // Получаем количество непрочитанных сообщений
+                    $unreadCount = Cache::remember('support_chats_unread_count', 30, function () {
+                        try {
+                            return SupportMessage::whereHas('chat', function($query) {
+                                $query->where('status', '!=', SupportChat::STATUS_CLOSED);
+                            })
+                            ->fromUserOrGuest()
+                            ->where('is_read', false)
+                            ->count();
+                        } catch (\Throwable $e) {
+                            // Если ошибка при запросе к БД, возвращаем 0
+                            return 0;
+                        }
+                    });
+                    
+                    if ($unreadCount > 0) {
+                        $item['label'] = (string)$unreadCount;
+                        $item['label_color'] = 'danger';
+                    } else {
+                        $item['label'] = '';
+                        $item['label_color'] = 'secondary';
+                    }
+                } catch (\Throwable $e) {
+                    // Если произошла ошибка, оставляем пункт меню без изменений
+                    // Не удаляем его из меню
                 }
                 $menu[$idx] = $item;
                 break;

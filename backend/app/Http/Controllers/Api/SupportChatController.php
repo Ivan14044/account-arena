@@ -89,22 +89,35 @@ class SupportChatController extends Controller
         
         // Автоматическое приветственное сообщение - если это новый чат и включено
         $greetingEnabled = \App\Models\Option::get('support_chat_greeting_enabled', false);
-        $greetingMessage = \App\Models\Option::get('support_chat_greeting_message', '');
         
-        if ($greetingEnabled && $greetingMessage && $chat->messages()->count() === 0) {
-            // Отправляем приветственное сообщение от бота
-            $greeting = SupportMessage::create([
-                'support_chat_id' => $chat->id,
-                'user_id' => null,
-                'sender_type' => SupportMessage::SENDER_ADMIN,
-                'message' => trim($greetingMessage),
-                'is_read' => false,
-            ]);
+        if ($greetingEnabled && $chat->messages()->count() === 0) {
+            // Получаем язык пользователя из запроса или используем текущую локаль
+            $locale = $request->header('X-Locale') ?? $request->query('locale') ?? app()->getLocale();
+            if (!in_array($locale, array_keys(config('langs')))) {
+                $locale = app()->getLocale();
+            }
             
-            // Перезагружаем сообщения
-            $chat->load(['messages' => function($query) {
-                $query->orderBy('created_at', 'asc')->with(['user', 'attachments']);
-            }, 'user', 'assignedAdmin']);
+            $greetingMessage = \App\Models\Option::get('support_chat_greeting_message_' . $locale, '');
+            // Fallback на русский, если нет перевода
+            if (empty($greetingMessage)) {
+                $greetingMessage = \App\Models\Option::get('support_chat_greeting_message_ru', '');
+            }
+            
+            if (!empty($greetingMessage)) {
+                // Отправляем приветственное сообщение от бота
+                $greeting = SupportMessage::create([
+                    'support_chat_id' => $chat->id,
+                    'user_id' => null,
+                    'sender_type' => SupportMessage::SENDER_ADMIN,
+                    'message' => trim($greetingMessage),
+                    'is_read' => false,
+                ]);
+                
+                // Перезагружаем сообщения
+                $chat->load(['messages' => function($query) {
+                    $query->orderBy('created_at', 'asc')->with(['user', 'attachments']);
+                }, 'user', 'assignedAdmin']);
+            }
         }
         
         return response()->json([
@@ -252,25 +265,6 @@ class SupportChatController extends Controller
         $chat->update([
             'last_message_at' => now(),
         ]);
-        
-        // Автоматический ответ (бот) - если это первое сообщение и включены автоответы
-        $autoReplyEnabled = \App\Models\Option::get('support_chat_auto_reply_enabled', false);
-        $autoReplyMessage = \App\Models\Option::get('support_chat_auto_reply_message', '');
-        
-        if ($autoReplyEnabled && $autoReplyMessage && $chat->messages()->count() === 1) {
-            // Отправляем автоматическое сообщение от бота
-            $botMessage = SupportMessage::create([
-                'support_chat_id' => $chat->id,
-                'user_id' => null,
-                'sender_type' => SupportMessage::SENDER_ADMIN,
-                'message' => trim($autoReplyMessage),
-                'is_read' => false,
-            ]);
-            
-            $chat->update([
-                'last_message_at' => now(),
-            ]);
-        }
         
         // Очищаем кеш счетчика непрочитанных сообщений для админ-панели
         \Illuminate\Support\Facades\Cache::forget('support_chats_unread_count');

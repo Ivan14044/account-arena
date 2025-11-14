@@ -1,9 +1,9 @@
 @extends('adminlte::page')
 
-@section('title', 'Категории товаров')
+@section('title', 'Подкатегории товаров')
 
 @section('content_header')
-    <h1>Категории товаров</h1>
+    <h1>Подкатегории товаров</h1>
 @endsection
 
 @section('content')
@@ -17,51 +17,44 @@
                 <div class="card-header">
                     <h3 class="card-title"></h3>
                     <div class="float-right">
-                        <a href="{{ route('admin.product-subcategories.index') }}" class="btn btn-info mr-2">
-                            <i class="fas fa-list"></i> Подкатегории
+                        <a href="{{ route('admin.product-categories.index') }}" class="btn btn-info mr-2">
+                            <i class="fas fa-list"></i> Категории
                         </a>
-                        <a href="{{ route('admin.product-categories.create') }}" class="btn btn-primary">+ Добавить</a>
+                        <a href="{{ route('admin.product-subcategories.create') }}" class="btn btn-primary">+ Добавить</a>
                     </div>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
-                        <table id="categories-table" class="table table-bordered table-striped">
+                        <table id="subcategories-table" class="table table-bordered table-striped">
                             <thead>
                                 <tr>
                                     <th style="width: 60px">ID</th>
                                     <th>Название</th>
-                                    <th>Подкатегории</th>
+                                    <th>Родительская категория</th>
                                     <th style="width: 120px">Действия</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach($categories as $category)
+                                @foreach($subcategories as $subcategory)
                                     <tr>
-                                        <td>{{ $category->id }}</td>
-                                        <td><strong>{{ $category->admin_name }}</strong></td>
+                                        <td>{{ $subcategory->id }}</td>
+                                        <td>{{ $subcategory->admin_name }}</td>
                                         <td>
-                                            @if($category->children->count() > 0)
-                                                <ul class="list-unstyled mb-0">
-                                                    @foreach($category->children as $subcategory)
-                                                        <li>
-                                                            <i class="fas fa-arrow-right text-muted mr-1"></i>
-                                                            {{ $subcategory->admin_name }}
-                                                        </li>
-                                                    @endforeach
-                                                </ul>
+                                            @if($subcategory->parent)
+                                                {{ $subcategory->parent->admin_name }}
                                             @else
-                                                <span class="text-muted">Нет подкатегорий</span>
+                                                <span class="text-muted">-</span>
                                             @endif
                                         </td>
                                         <td>
-                                            <a href="{{ route('admin.product-categories.edit', $category) }}" class="btn btn-sm btn-warning">
+                                            <a href="{{ route('admin.product-subcategories.edit', $subcategory) }}" class="btn btn-sm btn-warning">
                                                 <i class="fas fa-edit"></i>
                                             </a>
-                                            <button class="btn btn-sm btn-danger" data-toggle="modal" data-target="#deleteModal{{ $category->id }}">
+                                            <button class="btn btn-sm btn-danger" data-toggle="modal" data-target="#deleteModal{{ $subcategory->id }}">
                                                 <i class="fas fa-trash"></i>
                                             </button>
 
-                                            <div class="modal fade" id="deleteModal{{ $category->id }}" tabindex="-1" role="dialog" aria-hidden="true">
+                                            <div class="modal fade" id="deleteModal{{ $subcategory->id }}" tabindex="-1" role="dialog" aria-hidden="true">
                                                 <div class="modal-dialog" role="document">
                                                     <div class="modal-content">
                                                         <div class="modal-header">
@@ -71,15 +64,10 @@
                                                             </button>
                                                         </div>
                                                         <div class="modal-body">
-                                                            @if($category->children->count() > 0)
-                                                                <div class="alert alert-warning">
-                                                                    <strong>Внимание!</strong> У этой категории есть {{ $category->children->count() }} подкатегорий. Они также будут удалены.
-                                                                </div>
-                                                            @endif
-                                                            Вы уверены, что хотите удалить категорию "{{ $category->admin_name }}"?
+                                                            Вы уверены, что хотите удалить подкатегорию "{{ $subcategory->admin_name }}"?
                                                         </div>
                                                         <div class="modal-footer">
-                                                            <form action="{{ route('admin.product-categories.destroy', $category) }}" method="POST" class="d-inline">
+                                                            <form action="{{ route('admin.product-subcategories.destroy', $subcategory) }}" method="POST" class="d-inline">
                                                                 @csrf
                                                                 @method('DELETE')
                                                                 <button type="submit" class="btn btn-danger">Да, удалить</button>
@@ -104,7 +92,7 @@
 @section('js')
     <script>
         $(function () {
-            $('#categories-table').DataTable({
+            $('#subcategories-table').DataTable({
                 "order": [[0, "asc"]],
                 "columnDefs": [
                     { "orderable": false, "targets": 3 }

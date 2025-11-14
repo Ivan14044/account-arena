@@ -61,22 +61,30 @@ class OptionController extends Controller
      */
     public function getSupportChatSettings()
     {
-        $settings = Cache::remember('support_chat_settings', 3600, function () {
+        // Получаем язык из запроса или используем текущую локаль
+        $locale = request()->header('X-Locale') ?? request()->query('locale') ?? app()->getLocale();
+        if (!in_array($locale, array_keys(config('langs')))) {
+            $locale = app()->getLocale();
+        }
+        
+        $cacheKey = 'support_chat_settings_' . $locale;
+        $settings = Cache::remember($cacheKey, 3600, function () use ($locale) {
             $enabled = Option::get('support_chat_enabled', false);
             $enabled = filter_var($enabled, FILTER_VALIDATE_BOOLEAN);
             $telegramLink = Option::get('support_chat_telegram_link', 'https://t.me/support');
             $greetingEnabled = filter_var(Option::get('support_chat_greeting_enabled', false), FILTER_VALIDATE_BOOLEAN);
-            $greetingMessage = Option::get('support_chat_greeting_message', '');
-            $autoReplyEnabled = filter_var(Option::get('support_chat_auto_reply_enabled', false), FILTER_VALIDATE_BOOLEAN);
-            $autoReplyMessage = Option::get('support_chat_auto_reply_message', '');
+            
+            // Получаем сообщения для нужного языка
+            $greetingMessage = Option::get('support_chat_greeting_message_' . $locale, '');
+            if (empty($greetingMessage)) {
+                $greetingMessage = Option::get('support_chat_greeting_message_ru', ''); // Fallback
+            }
             
             return [
                 'enabled' => $enabled,
                 'telegram_link' => $telegramLink,
                 'greeting_enabled' => $greetingEnabled,
                 'greeting_message' => $greetingMessage,
-                'auto_reply_enabled' => $autoReplyEnabled,
-                'auto_reply_message' => $autoReplyMessage,
             ];
         });
         
