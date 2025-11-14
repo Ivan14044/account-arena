@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use App\Models\Promocode;
-use App\Models\Service;
 
 class PromocodeValidationService
 {
@@ -18,7 +17,7 @@ class PromocodeValidationService
             ];
         }
 
-        $promocode = Promocode::with(['services.translations'])->where('code', $code)->first();
+        $promocode = Promocode::where('code', $code)->first();
         if (!$promocode) {
             return [
                 'ok' => false,
@@ -74,15 +73,9 @@ class PromocodeValidationService
 
         if ($promocode->type === 'discount') {
             $payload['discount_percent'] = (int)$promocode->percent_discount;
-        } else { 
-            $services = $promocode->services->map(function (Service $service) {
-                return [
-                    'id' => $service->id,
-                    'name' => $service->getTranslation('name', 'en') ?? $service->admin_name ?? ('Service #' . $service->id),
-                    'free_days' => (int)($service->pivot->free_days ?? 0),
-                ];
-            })->values()->all();
-            $payload['services'] = $services;
+        } else {
+            // Services are no longer supported - free_access type is not available
+            $payload['services'] = [];
         }
 
         return $payload;

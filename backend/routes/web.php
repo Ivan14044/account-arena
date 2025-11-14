@@ -8,7 +8,6 @@ use App\Http\Controllers\Admin\ProxyController;
 use App\Http\Controllers\Admin\PromocodeController;
 use App\Http\Controllers\Admin\PromocodeUsageController;
 use App\Http\Controllers\Admin\ServiceAccountController;
-use App\Http\Controllers\Admin\ServiceController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\LoginController;
@@ -54,7 +53,6 @@ Route::prefix('/admin')
             Route::resource('promocodes', PromocodeController::class)->except(['show']);
             Route::get('promocode-usages', [PromocodeUsageController::class, 'index'])->name('promocode-usages.index');
             Route::delete('promocodes-bulk', [PromocodeController::class, 'bulkDestroy'])->name('promocodes.bulk-destroy');
-            Route::resource('services', ServiceController::class)->except(['show']);
             Route::resource('pages', PageController::class)->except(['show']);
             Route::resource('notification-templates', NotificationTemplateController::class)->only(['index', 'edit', 'update', 'destroy']);
             Route::resource('notifications', NotificationController::class)->only(['index', 'create', 'store', 'destroy']);
@@ -71,10 +69,10 @@ Route::prefix('/admin')
             Route::post('service-accounts/{serviceAccount}/import', [ServiceAccountController::class, 'import'])->name('service-accounts.import');
             Route::post('service-accounts/upload-image', [ServiceAccountController::class, 'uploadImage'])->name('service-accounts.upload-image');
             Route::resource('vouchers', VoucherController::class);
-            
+
             // Purchases (покупки товаров)
             Route::resource('purchases', PurchaseController::class)->only(['index', 'show', 'destroy']);
-            
+
             // Purchase Rules (правила покупки)
             Route::get('purchase-rules', [PurchaseRulesController::class, 'index'])->name('purchase-rules.index');
             Route::post('purchase-rules', [PurchaseRulesController::class, 'store'])->name('purchase-rules.store');
@@ -144,7 +142,7 @@ Route::prefix('supplier')
             Route::post('/products/upload-image', [SupplierProductController::class, 'uploadImage'])->name('products.upload-image');
             Route::get('/orders', [\App\Http\Controllers\Supplier\OrderController::class, 'index'])->name('orders.index');
             Route::resource('discounts', \App\Http\Controllers\Supplier\DiscountController::class)->except(['show']);
-            
+
             // Withdrawals
             Route::get('/withdrawals', [WithdrawalController::class, 'index'])->name('withdrawals.index');
             Route::get('/withdrawals/create', [WithdrawalController::class, 'create'])->name('withdrawals.create');
@@ -152,13 +150,13 @@ Route::prefix('supplier')
             Route::post('/withdrawals/{withdrawal}/cancel', [WithdrawalController::class, 'cancel'])->name('withdrawals.cancel');
             Route::get('/withdrawals/payment-details', [WithdrawalController::class, 'editPaymentDetails'])->name('withdrawals.payment-details');
             Route::post('/withdrawals/payment-details', [WithdrawalController::class, 'updatePaymentDetails'])->name('withdrawals.payment-details.update');
-            
+
             // Notifications
             Route::get('/notifications', [\App\Http\Controllers\Supplier\NotificationController::class, 'index'])->name('notifications.index');
             Route::post('/notifications/{id}/mark-read', [\App\Http\Controllers\Supplier\NotificationController::class, 'markAsRead'])->name('notifications.mark-read');
             Route::post('/notifications/mark-all-read', [\App\Http\Controllers\Supplier\NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-read');
             Route::get('/notifications/unread-count', [\App\Http\Controllers\Supplier\NotificationController::class, 'getUnreadCount'])->name('notifications.unread-count');
-            
+
             // Disputes
             Route::get('/disputes', [SupplierDisputeController::class, 'index'])->name('disputes.index');
             Route::get('/disputes/{dispute}', [SupplierDisputeController::class, 'show'])->name('disputes.show');

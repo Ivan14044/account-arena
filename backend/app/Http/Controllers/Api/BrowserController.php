@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Service;
 use App\Models\ServiceAccount;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
@@ -13,16 +12,15 @@ class BrowserController extends Controller
 {
     public function new(Request $request)
     {
-        $service = Service::findOrFail($request->service_id);
-
+        // Services are no longer supported - use default URL
         $base = rtrim(config('services.browser_api.url'), '/');
-        $appUrl = $service->params['link'] ?? null;
+        $appUrl = $request->app_url ?? 'https://google.com';
 
         if ($request->has('profile')) {
             $profile = $request->profile;
         } else {
-            $account = ServiceAccount::where('service_id', $service->id)
-                ->where('is_active', true)
+            // Get any available account if needed
+            $account = ServiceAccount::where('is_active', true)
                 ->where(function ($q) {
                     $q->whereNull('expiring_at')->orWhere('expiring_at', '>', now());
                 })

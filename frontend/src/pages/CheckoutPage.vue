@@ -33,7 +33,7 @@
                                     <div class="product-image-wrapper-checkout">
                                         <img
                                             :src="item.image_url || '/img/no-logo.png'"
-                                            :alt="item.title"
+                                            :alt="getProductTitle(item)"
                                             class="product-image-checkout"
                                         />
                                     </div>
@@ -41,7 +41,7 @@
                                     <!-- Информация -->
                                     <div class="flex-1 min-w-0">
                                         <h3 class="font-semibold text-dark dark:text-white">
-                                            {{ item.title }}
+                                            {{ getProductTitle(item) }}
                                         </h3>
                                         <p class="text-sm text-gray-600 dark:text-gray-400">
                                             {{ formatCurrency(item.price) }} ×
@@ -476,6 +476,7 @@ import { useToast } from 'vue-toastification';
 import { useAlert } from '@/utils/alert';
 import axios from '@/bootstrap'; // Используем настроенный axios из bootstrap
 import { useProductCartStore } from '@/stores/productCart';
+import { useProductTitle } from '@/composables/useProductTitle';
 import { useAuthStore } from '@/stores/auth';
 import { useLoadingStore } from '@/stores/loading';
 import { useOptionStore } from '@/stores/options';
@@ -490,6 +491,7 @@ const toast = useToast();
 const { showAlert } = useAlert();
 const { locale, t } = useI18n();
 const productCartStore = useProductCartStore();
+const { getProductTitle } = useProductTitle();
 const authStore = useAuthStore();
 const loadingStore = useLoadingStore();
 const optionStore = useOptionStore();

@@ -118,7 +118,7 @@
                                             <img
                                                 v-if="account.image_url"
                                                 :src="account.image_url"
-                                                :alt="account.title"
+                                                :alt="getProductTitle(account)"
                                                 loading="lazy"
                                                 class="product-image"
                                             />
@@ -173,7 +173,7 @@
                                             <h2
                                                 class="text-xl font-bold text-dark dark:text-white mb-1"
                                             >
-                                                {{ account.title }}
+                                                {{ getProductTitle(account) }}
                                             </h2>
                                             <!-- Артикул товара -->
                                             <div
@@ -398,7 +398,7 @@
                                                 <h1
                                                     class="text-2xl lg:text-3xl text-gray-900 dark:text-white font-extrabold mb-1.5 info-heading"
                                                 >
-                                                    {{ account.title }}
+                                                    {{ getProductTitle(account) }}
                                                 </h1>
                                                 <div
                                                     class="flex items-center gap-2.5 text-xs text-gray-500 dark:text-gray-400"
@@ -466,9 +466,9 @@
                                                 {{ $t('account.detail.description_title') }}
                                             </h3>
                                             <div
-                                                v-if="account.description"
+                                                v-if="getProductDescription(account)"
                                                 class="text-gray-900 dark:text-gray-300 info-body product-content"
-                                                v-html="account.description"
+                                                v-html="getProductDescription(account)"
                                             />
                                             <p
                                                 v-else
@@ -498,6 +498,7 @@ import { useTheme } from '@/composables/useTheme';
 import { useToast } from 'vue-toastification';
 import { useI18n } from 'vue-i18n';
 import { useLoadingStore } from '@/stores/loading';
+import { useProductTitle } from '@/composables/useProductTitle';
 
 const route = useRoute();
 const router = useRouter();
@@ -508,6 +509,7 @@ const loadingStore = useLoadingStore();
 const { isDark } = useTheme();
 const toast = useToast();
 const { t } = useI18n();
+const { getProductTitle, getProductDescription } = useProductTitle();
 const account = ref<AccountItem | null>(null);
 const quantity = ref(1);
 

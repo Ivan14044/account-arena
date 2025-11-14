@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
-use App\Models\Service;
 use App\Models\Notification;
 use App\Models\NotificationTemplate;
 use Illuminate\Http\Request;
@@ -23,7 +22,8 @@ class NotificationController extends Controller
 
     public function create()
     {
-        $services = Service::all();
+        // Services are no longer supported
+        $services = collect();
 
         return view('admin.notifications.create', compact('services'));
     }

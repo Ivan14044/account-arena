@@ -4,8 +4,6 @@ import RegisterPage from './components/auth/RegisterPage.vue';
 import AuthCallback from './components/auth/AuthCallback.vue';
 import MainPage from './pages/MainPage.vue';
 import ProfilePage from './pages/account/ProfilePage.vue';
-import ServicePage from './pages/ServicePage.vue';
-import SessionStart from './pages/SessionStart.vue';
 import ForgotPasswordPage from './components/auth/ForgotPasswordPage.vue';
 import ResetPasswordPage from './components/auth/ResetPasswordPage.vue';
 import CheckoutPage from './pages/CheckoutPage.vue';
@@ -51,10 +49,6 @@ const routes = [
         meta: { requiresAuth: true }
     },
     {
-        path: '/service/:id',
-        component: ServicePage
-    },
-    {
         path: '/articles',
         component: ArticlesAll,
         meta: { isArticlesList: true }
@@ -86,11 +80,6 @@ const routes = [
     {
         path: '/order-success',
         component: OrderSuccessPage,
-        meta: { requiresAuth: true }
-    },
-    {
-        path: '/session-start/:id?',
-        component: SessionStart,
         meta: { requiresAuth: true }
     },
     {

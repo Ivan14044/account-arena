@@ -312,7 +312,6 @@ VITE_API_URL=http://localhost:8000/api
 ### Публичные
 
 ```http
-GET  /api/services         # Список сервисов
 GET  /api/accounts         # Каталог товаров
 GET  /api/articles         # Статьи
 GET  /api/categories       # Категории

@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Content;
-use App\Models\Service;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -36,7 +35,8 @@ class ContentController extends Controller
     public function edit(Content $content)
     {
         $content->load('translations');
-        $services = Service::with('translations')->get();
+        // Services are no longer supported
+        $services = collect();
         $contentData = $content->translations->groupBy('locale')->map(function ($translations) use ($content) {
             $entries = [];
 

@@ -2,8 +2,6 @@
 
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\CartController;
-use App\Http\Controllers\SubscriptionController;
-use App\Http\Controllers\Api\ServiceController;
 use App\Http\Controllers\OptionController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\NotificationController;
@@ -39,7 +37,6 @@ Route::get('/health', [\App\Http\Controllers\HealthController::class, 'check']);
 Route::get('/ping', [\App\Http\Controllers\HealthController::class, 'ping']);
 
 Route::middleware('throttle:60,1')->group(function () {
-    Route::get('/services', [ServiceController::class, 'index']);
     Route::get('/accounts', [\App\Http\Controllers\Api\AccountController::class, 'index']);
     Route::get('/accounts/{account}', [\App\Http\Controllers\Api\AccountController::class, 'show']);
     Route::get('/articles', [ArticleController::class, 'index']);

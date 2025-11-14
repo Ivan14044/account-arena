@@ -41,12 +41,12 @@
                 <!-- Left: Product Image -->
                 <div
                     class="product-image-wrapper clickable"
-                    :title="$t('account.detail.go_to_product', { title: account.title })"
+                    :title="$t('account.detail.go_to_product', { title: getProductTitle(account) })"
                     @click="$router.push(`/account/${account.sku || account.id}`)"
                 >
                     <img
                         :src="account.image_url || '/img/no-logo.png'"
-                        :alt="account.title"
+                        :alt="getProductTitle(account)"
                         class="product-image"
                         :loading="index < 6 ? 'eager' : 'lazy'"
                         :fetchpriority="index < 3 ? 'high' : 'auto'"
@@ -85,10 +85,10 @@
 
                         <h3
                             class="product-title clickable-title"
-                            :title="'Перейти к ' + account.title"
+                            :title="'Перейти к ' + getProductTitle(account)"
                             @click="$router.push(`/account/${account.sku || account.id}`)"
                         >
-                            {{ account.title }}
+                            {{ getProductTitle(account) }}
                         </h3>
                     </div>
 
@@ -106,9 +106,9 @@
                     </div>
 
                     <p
-                        v-if="account.description"
+                        v-if="getProductDescription(account)"
                         class="product-description"
-                        v-html="account.description"
+                        v-html="getProductDescription(account)"
                     ></p>
                 </div>
 
@@ -283,6 +283,7 @@ import { useI18n } from 'vue-i18n';
 import { useOptionStore } from '@/stores/options';
 import { useToast } from 'vue-toastification';
 import { useRouter } from 'vue-router';
+import { useProductTitle } from '@/composables/useProductTitle';
 
 interface FilterProps {
     categoryId?: number | null;
@@ -301,6 +302,7 @@ const { t } = useI18n();
 const optionStore = useOptionStore();
 const toast = useToast();
 const router = useRouter();
+const { getProductTitle, getProductDescription } = useProductTitle();
 const showAll = ref(false);
 
 const accounts = computed(() => accountsStore.list);
@@ -327,8 +329,8 @@ const filteredAccounts = computed(() => {
     if (props.filters?.searchQuery && props.filters.searchQuery.trim()) {
         const query = props.filters.searchQuery.toLowerCase().trim();
         result = result.filter(account => {
-            const title = (account.title || '').toLowerCase();
-            const description = (account.description || '').toLowerCase();
+            const title = (getProductTitle(account) || '').toLowerCase();
+            const description = (getProductDescription(account) || '').toLowerCase();
             const sku = (account.sku || '').toLowerCase();
             return title.includes(query) || description.includes(query) || sku.includes(query);
         });
@@ -418,7 +420,7 @@ const addToCart = (account: any) => {
     productCartStore.addItem(account, quantity);
 
     toast.success(
-        t('account.detail.product_added_to_cart', { title: account.title, quantity: quantity }),
+        t('account.detail.product_added_to_cart', { title: getProductTitle(account), quantity: quantity }),
         {
             position: 'top-right',
             duration: 3000

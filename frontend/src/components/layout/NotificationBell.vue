@@ -93,7 +93,6 @@ import { useNotificationStore } from '@/stores/notifications';
 import { useAuthStore } from '@/stores/auth';
 import BoxLoader from '@/components/BoxLoader.vue';
 import { useI18n } from 'vue-i18n';
-import { useServiceStore } from '@/stores/services';
 import { Bell } from 'lucide-vue-next';
 
 const { locale } = useI18n();
@@ -107,7 +106,6 @@ const isFirstLoad = ref(true);
 const dropdownRef = ref(null);
 
 const notificationStore = useNotificationStore();
-const serviceStore = useServiceStore();
 const store = useNotificationStore();
 const authStore = useAuthStore();
 const isAuthenticated = computed(() => !!authStore.user);
@@ -194,17 +192,8 @@ function getTranslation(item, key) {
     if (!variables || typeof variables !== 'object') return text;
 
     for (const [k, v] of Object.entries(variables)) {
-        if (k === 'service') {
-            const service = serviceStore.services.find(s => s.code === v);
-            const name =
-                service?.translations?.[locale.value]?.name ||
-                service?.translations?.['en']?.name ||
-                v;
-
-            text = text.replace(new RegExp(`:${k}\\b`, 'g'), name);
-        } else {
-            text = text.replace(new RegExp(`:${k}\\b`, 'g'), v);
-        }
+        // Services are no longer available, use the code directly
+        text = text.replace(new RegExp(`:${k}\\b`, 'g'), v);
     }
 
     return text;

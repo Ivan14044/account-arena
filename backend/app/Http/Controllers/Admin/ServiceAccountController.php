@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Service;
 use App\Models\ServiceAccount;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -272,7 +271,7 @@ class ServiceAccountController extends Controller
     private function getRules($id = null): array
     {
         return [
-            'service_id' => ['nullable', 'exists:services,id'],
+            'service_id' => ['nullable'], // Services are no longer supported
             'category_id' => ['nullable', 'exists:categories,id'],
             // sku убран из правил валидации - генерируется автоматически
             'profile_id' => [

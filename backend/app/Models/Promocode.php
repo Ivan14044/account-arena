@@ -26,12 +26,7 @@ class Promocode extends Model
         'is_active' => 'boolean',
     ];
 
-    public function services()
-    {
-        return $this->belongsToMany(Service::class)
-            ->withPivot(['free_days'])
-            ->withTimestamps();
-    }
+    // Services are no longer supported - this relationship has been removed
 
     public function isUnlimited(): bool
     {

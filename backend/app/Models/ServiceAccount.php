@@ -73,11 +73,6 @@ class ServiceAccount extends Model
         'discount_percent' => 'decimal:2',
     ];
 
-    public function service()
-    {
-        return $this->belongsTo(Service::class);
-    }
-
     public function category()
     {
         return $this->belongsTo(Category::class);
@@ -168,11 +163,11 @@ class ServiceAccount extends Model
             $timestamp = substr(time(), -6); // Последние 6 цифр timestamp
             $random = strtoupper(Str::random(4)); // 4 случайных символа
             $sku = "PRD-{$timestamp}-{$random}";
-            
+
             // Проверяем уникальность
             $exists = self::where('sku', $sku)->exists();
         } while ($exists);
-        
+
         return $sku;
     }
 }

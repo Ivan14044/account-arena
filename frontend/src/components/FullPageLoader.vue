@@ -7,19 +7,6 @@
         >
             <div class="flex flex-col items-center">
                 <img :src="logo" alt="Loading..." class="w-32 h-32 object-contain loader-pulse" />
-                <div
-                    v-if="isStartSessionPage"
-                    class="mt-[35px] text-gray-700 dark:text-gray-200 text-sm sm:text-base text-center"
-                >
-                    <div class="relative">
-                        <Transition name="text-fade" mode="out-in">
-                            <span :key="activeMessageKey" style="padding-left: 31px">
-                                {{ $t(activeMessageKey)
-                                }}<span class="ellipsis" aria-hidden="true">{{ dots }}</span>
-                            </span>
-                        </Transition>
-                    </div>
-                </div>
             </div>
         </div>
     </Transition>
@@ -34,7 +21,6 @@ import PluginWarningModal from './PluginWarningModal.vue';
 import { usePluginDetection } from '@/composables/usePluginDetection';
 
 const logo = '/img/logo_trans.webp'; // Новое изображение прелоадера с социальными сетями
-const isStartSessionPage = /^\/session-start(\/\d+)?$/.test(window.location.pathname);
 
 const props = defineProps<{
     overlay?: boolean;
@@ -147,69 +133,10 @@ const handlePluginStatus = (event: Event) => {
 };
 
 /** --- lifecycle --- */
-if (isStartSessionPage) {
-    activeMessageKey.value = 'loader.checking_plugin';
-
-    onMounted(async () => {
-        startDots();
-
-        const pluginResult = await checkPluginInstalled();
-
-        if (pluginResult.isInstalled) {
-            window.dispatchEvent(
-                new CustomEvent('app:plugin-status', {
-                    detail: { pluginInstalled: true, pluginSkipped: false }
-                })
-            );
-            startLoadingSequence();
-        } else {
-            console.warn(
-                'Account Arena plugin not detected. Please install the browser extension first.'
-            );
-
-            if (!continueLoading.value) {
-                activeMessageKey.value = 'loader.checking_plugin';
-
-                const showModalTimeout = window.setTimeout(() => {
-                    showPluginWarning.value = true;
-                }, 1500);
-
-                onBeforeUnmount(() => {
-                    clearTimeout(showModalTimeout);
-                });
-
-                return;
-            } else {
-                window.dispatchEvent(
-                    new CustomEvent('app:plugin-status', {
-                        detail: { pluginInstalled: false, pluginSkipped: true }
-                    })
-                );
-                startLoadingSequence();
-            }
-        }
-    });
-
-    onMounted(() => {
-        window.addEventListener('app:continue-without-plugin', handleContinueWithoutPlugin);
-        window.addEventListener('app:check-plugin-status', handleCheckPluginStatus);
-        window.addEventListener('app:plugin-status', handlePluginStatus);
-    });
-
-    onBeforeUnmount(() => {
-        clearStatusTimeouts();
-        stopDots();
-        window.removeEventListener('app:continue-without-plugin', handleContinueWithoutPlugin);
-        window.removeEventListener('app:check-plugin-status', handleCheckPluginStatus);
-        window.removeEventListener('app:plugin-status', handlePluginStatus);
-    });
-} else {
-    // Если это не страница запуска сессии — убедимся, что анимация точек не крутится.
-    onBeforeUnmount(() => {
-        clearStatusTimeouts();
-        stopDots();
-    });
-}
+onBeforeUnmount(() => {
+    clearStatusTimeouts();
+    stopDots();
+});
 </script>
 
 <style scoped>

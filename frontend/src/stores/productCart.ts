@@ -3,6 +3,8 @@ import { defineStore } from 'pinia';
 export interface CartItem {
     id: number;
     title: string;
+    title_uk?: string;
+    title_en?: string;
     price: number;
     quantity: number;
     image_url?: string;
@@ -47,7 +49,9 @@ export const useProductCartStore = defineStore('productCart', {
         addItem(
             product: {
                 id: number;
-                title: string;
+                title?: string;
+                title_uk?: string;
+                title_en?: string;
                 price: number;
                 image_url?: string;
                 quantity: number;
@@ -69,7 +73,9 @@ export const useProductCartStore = defineStore('productCart', {
                 // Добавляем новый товар
                 this.items.push({
                     id: product.id,
-                    title: product.title,
+                    title: product.title || '',
+                    title_uk: product.title_uk,
+                    title_en: product.title_en,
                     price: product.price,
                     quantity: Math.min(quantity, product.quantity),
                     image_url: product.image_url,

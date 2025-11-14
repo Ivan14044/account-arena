@@ -177,7 +177,6 @@ import { useAuthStore } from '@/stores/auth';
 import { useToast } from 'vue-toastification';
 import { useI18n } from 'vue-i18n';
 import { ref, computed } from 'vue';
-import { useServiceStore } from '@/stores/services';
 import { useOptionStore } from '@/stores/options';
 import { useAlert } from '@/utils/alert';
 
@@ -187,27 +186,26 @@ const { locale, t } = useI18n();
 const { showConfirm } = useAlert();
 
 const activeTab = ref<'active' | 'inactive'>('active');
-const serviceStore = useServiceStore();
 const serviceOption = useOptionStore();
 
 function getServiceName(serviceId) {
-    const service = serviceStore.services.find(s => s.id === serviceId);
-    return service?.translations?.[locale.value]?.name ?? `#${serviceId}`;
+    // Services are no longer available
+    return `#${serviceId}`;
 }
 
 function getServiceSubtitle(serviceId) {
-    const service = serviceStore.services.find(s => s.id === serviceId);
-    return service?.translations?.[locale.value]?.subtitle ?? null;
+    // Services are no longer available
+    return null;
 }
 
 function getServiceLogo(id) {
-    const service = serviceStore.services.find(s => s.id === id);
-    return service?.logo ?? '';
+    // Services are no longer available
+    return '';
 }
 
 function getServiceAmount(id) {
-    const service = serviceStore.services.find(s => s.id === id);
-    return service?.amount.toFixed(2) ?? '';
+    // Services are no longer available
+    return '';
 }
 
 const filteredSubscriptions = computed(() => {

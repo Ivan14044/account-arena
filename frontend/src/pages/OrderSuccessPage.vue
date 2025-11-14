@@ -60,12 +60,12 @@
                         <img
                             v-if="purchase.product.image_url"
                             :src="purchase.product.image_url"
-                            :alt="purchase.product.title"
+                            :alt="getProductTitle(purchase.product)"
                             class="w-16 h-16 rounded-lg object-contain"
                         />
                         <div class="flex-1">
                             <h3 class="text-lg font-bold text-gray-900 dark:text-white">
-                                {{ purchase.product.title }}
+                                {{ getProductTitle(purchase.product) }}
                             </h3>
                             <p class="text-sm font-medium text-blue-600 dark:text-blue-400">
                                 Заказ: #{{ purchase.order_number || purchase.id }}
@@ -304,9 +304,11 @@ import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useToast } from 'vue-toastification';
 import axios from '@/bootstrap'; // Используем настроенный axios из bootstrap
+import { useProductTitle } from '@/composables/useProductTitle';
 
 const router = useRouter();
 const toast = useToast();
+const { getProductTitle } = useProductTitle();
 
 const purchases = ref([]);
 const loading = ref(true);
@@ -454,7 +456,7 @@ const downloadSingleAccount = (purchase, accountItem, index) => {
     const orderNumber = purchase.order_number || `ID${purchase.id}`;
     const header = `======================================
 ЗАКАЗ: ${orderNumber}
-ТОВАР: ${purchase.product.title || 'Unknown'}
+ТОВАР: ${getProductTitle(purchase.product) || 'Unknown'}
 ДАТА: ${formatDate(purchase.purchased_at)}
 АККАУНТ: ${index + 1}
 ======================================\n\n`;
@@ -470,7 +472,7 @@ const downloadAllAccounts = purchase => {
     // Заголовок с информацией о заказе
     const header = `======================================
 ЗАКАЗ: ${orderNumber}
-ТОВАР: ${purchase.product.title || 'Unknown'}
+ТОВАР: ${getProductTitle(purchase.product) || 'Unknown'}
 ДАТА: ${formatDate(purchase.purchased_at)}
 КОЛИЧЕСТВО: ${purchase.account_data.length} шт.
 ======================================\n\n`;
@@ -479,7 +481,7 @@ const downloadAllAccounts = purchase => {
         .map((item, index) => `=== Аккаунт ${index + 1} ===\n${formatAccountData(item)}`)
         .join('\n\n');
 
-    downloadAsText(header + allData, `ORDER_${orderNumber}_${purchase.product.title}.txt`);
+    downloadAsText(header + allData, `ORDER_${orderNumber}_${getProductTitle(purchase.product)}.txt`);
 };
 </script>
 

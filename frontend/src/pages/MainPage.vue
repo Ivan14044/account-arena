@@ -8,31 +8,6 @@
         </section>
     </div>
     <div
-        v-if="hasSavings"
-        v-intersect="{
-            class: 'animate-fade-in-up',
-            once: true,
-            threshold: 0.08,
-            rootMargin: '0px 0px -40% 0px'
-        }"
-        class="mx-auto px-4 pt-24 pb-16 sm:px-6 lg:px-8"
-    >
-        <!-- Steps Section -->
-        <section id="savings">
-            <div class="text-center mb-8 relative z-2">
-                <h2
-                    class="text-[32px] md:text-[48px] lg:text-[64px]m text-gray-900 dark:text-white mt-3 leading-none"
-                    v-html="$t('savings.title')"
-                ></h2>
-            </div>
-            <p
-                class="text-center mb-10 text-lg leading-6 text-gray-700 dark:text-gray-300"
-                v-html="$t('savings.description')"
-            ></p>
-            <SavingsOn />
-        </section>
-    </div>
-    <div
         v-intersect="{
             class: 'animate-fade-in-up',
             once: true,
@@ -151,20 +126,17 @@
 import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useSiteContentStore } from '@/stores/siteContent';
-import { useContentsStore } from '@/stores/contents';
 import AboutSection from '../components/home/AboutSection.vue';
 import ArticleSection from '../components/home/ArticleSection.vue';
 import HeroSection from '../components/home/HeroSection.vue';
 import PromoteSection from '../components/home/PromoteSection.vue';
 import StepsSection from '../components/home/StepsSection.vue';
 import SubscribeSection from '../components/home/SubscribeSection.vue';
-import SavingsOn from '../components/home/SavingsOn.vue';
 import AccountSection from '../components/home/AccountSection.vue';
 import CatalogSection from '../components/home/CatalogSection.vue';
 
 const { t, locale } = useI18n();
 const siteContentStore = useSiteContentStore();
-const contents = useContentsStore();
 
 // Filters for products
 const filters = ref({
@@ -186,8 +158,6 @@ const handleFilterChange = (newFilters: {
 onMounted(() => {
     // Load site content
     siteContentStore.loadContent();
-    // Ensure content is fetched so we can decide visibility
-    contents.fetchContent('saving_on_subscriptions', locale.value);
 });
 
 // Get dynamic content with fallback to i18n
@@ -200,10 +170,5 @@ const promoteTitle = computed(() => {
 
 const stepsTitle = computed(() => {
     return stepsContent.value?.title || t('steps.title');
-});
-
-const hasSavings = computed(() => {
-    const byLang = contents.itemsByCode['saving_on_subscriptions']?.[locale.value];
-    return Array.isArray(byLang) && byLang.length > 0;
 });
 </script>

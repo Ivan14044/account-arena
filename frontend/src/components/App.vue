@@ -1,15 +1,8 @@
 <template>
     <component :is="layoutComponent" :is-loading="isLoading" />
 
-    <!-- FullPageLoader для session-start (с особой логикой плагина) -->
-    <FullPageLoader
-        v-if="isStartSessionPage"
-        :overlay="!isLoading"
-        @call-hide-loader="hideLoader"
-    />
-
     <!-- Глобальный прелоадер для навигации между страницами -->
-    <NavigationLoader v-else />
+    <NavigationLoader />
 </template>
 
 <script setup lang="ts">
@@ -17,11 +10,8 @@ import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import DefaultLayout from '@/components/layout/DefaultLayout.vue';
-import EmptyLayout from '@/components/layout/EmptyLayout.vue';
-import FullPageLoader from '@/components/FullPageLoader.vue';
 import NavigationLoader from '@/components/NavigationLoader.vue';
 
-import { useServiceStore } from '@/stores/services';
 import { usePageStore } from '@/stores/pages';
 import { useOptionStore } from '@/stores/options';
 import { useNotificationStore } from '@/stores/notifications';
@@ -38,9 +28,7 @@ const loadingStore = useLoadingStore();
 const authStore = useAuthStore();
 const bannersStore = useBannersStore();
 
-const isStartSessionPage = /^\/session-start(\/\d+)?$/.test(window.location.pathname);
-
-const layoutComponent = computed(() => (isStartSessionPage ? EmptyLayout : DefaultLayout));
+const layoutComponent = computed(() => DefaultLayout);
 
 /**
  * Скрывает начальный прелоадер с плавной анимацией
@@ -75,20 +63,12 @@ onMounted(async () => {
     loadingStore.start();
     window.addEventListener('app:hide-loader', hideLoader);
 
-    // Для страницы session-start используем старую логику с FullPageLoader
-    if (isStartSessionPage) {
-        // На странице session-start скрываем начальный прелоадер сразу
-        hideAppPreloader();
-        return;
-    }
-
     try {
         console.log('[APP] Начало инициализации приложения...');
         await authStore.init();
         console.log('[APP] Auth store инициализирован');
 
         const pageStore = usePageStore();
-        const serviceStore = useServiceStore();
         const optionStore = useOptionStore();
         const notificationStore = useNotificationStore();
         const accountsStore = useAccountsStore();
@@ -99,10 +79,6 @@ onMounted(async () => {
                 .fetchData()
                 .then(() => console.log('[APP] Pages загружены'))
                 .catch(e => console.error('[APP] Ошибка загрузки pages:', e)),
-            serviceStore
-                .fetchData()
-                .then(() => console.log('[APP] Services загружены'))
-                .catch(e => console.error('[APP] Ошибка загрузки services:', e)),
             optionStore
                 .fetchData()
                 .then(() => console.log('[APP] Options загружены'))
