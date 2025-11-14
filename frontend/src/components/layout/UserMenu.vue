@@ -147,11 +147,11 @@ import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { useAuthStore } from '@/stores/auth';
 import { useRouter } from 'vue-router';
 import { LogIn, User, ChevronDown, LogOut, UserPen } from 'lucide-vue-next';
-import { useCartStore } from '@/stores/cart';
 import { useOptionStore } from '@/stores/options';
+import { useProductCartStore } from '@/stores/productCart';
 
-const cartStore = useCartStore();
 const authStore = useAuthStore();
+const productCartStore = useProductCartStore();
 const optionStore = useOptionStore();
 const router = useRouter();
 const isOpen = ref(false);
@@ -169,7 +169,7 @@ const handleAuthAction = () => {
     if (isAuthenticated.value) {
         authStore.logout();
         isOpen.value = false;
-        cartStore.clearCart();
+        productCartStore.clearCart();
         router.push('/');
     } else {
         router.push('/login');

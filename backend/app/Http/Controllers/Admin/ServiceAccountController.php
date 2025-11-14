@@ -29,12 +29,12 @@ class ServiceAccountController extends Controller
     {
         // Handle image upload first
         $validated = $request->validate($this->getRules());
-        
+
         if ($request->hasFile('image')) {
             $path = $request->file('image')->store('products', 'public');
             $validated['image_url'] = Storage::url($path);
         }
-        
+
         // Check if bulk accounts are provided (non-empty)
         if ($request->has('bulk_accounts') && !empty(trim($request->input('bulk_accounts')))) {
             return $this->storeBulkAccounts($request);
@@ -45,7 +45,7 @@ class ServiceAccountController extends Controller
         $accountsList = [];
         $validated['accounts_data'] = $accountsList;
         $validated['used'] = 0;
-        
+
         ServiceAccount::create($validated);
 
         return redirect()->route('admin.service-accounts.index')->with('success', 'Товар успешно создан.');
@@ -79,7 +79,7 @@ class ServiceAccountController extends Controller
 
         $lines = array_filter(explode("\n", $bulkAccounts));
         $accountsList = [];
-        
+
         // Collect all account lines
         foreach ($lines as $line) {
             $line = trim($line);
@@ -121,7 +121,7 @@ class ServiceAccountController extends Controller
             ]);
 
             $message = "Товар успешно создан! Аккаунтов в наличии: " . count($accountsList);
-            
+
             return redirect()->route('admin.service-accounts.index')
                 ->with('success', $message);
         } catch (\Exception $e) {
@@ -141,7 +141,7 @@ class ServiceAccountController extends Controller
         if ($request->has('accounts_data')) {
             $accountsData = $request->input('accounts_data');
             $lines = array_filter(explode("\n", $accountsData));
-            
+
             foreach ($lines as $line) {
                 $line = trim($line);
                 if (!empty($line)) {
@@ -149,30 +149,30 @@ class ServiceAccountController extends Controller
                 }
             }
         }
-        
+
         // Validate without accounts_data
         $validationRules = $this->getRules($serviceAccount->id);
         unset($validationRules['accounts_data']);
         $validated = $request->validate($validationRules);
-        
+
         // Handle image upload
         if ($request->hasFile('image')) {
             $path = $request->file('image')->store('products', 'public');
             $validated['image_url'] = Storage::url($path);
         }
-        
+
         // ИСПРАВЛЕНО: Сохраняем проданные аккаунты и добавляем новые
         $existingAccountsData = is_array($serviceAccount->accounts_data) ? $serviceAccount->accounts_data : [];
         $usedCount = $serviceAccount->used ?? 0;
-        
+
         // Получаем проданные аккаунты (первые $usedCount элементов)
         $soldAccounts = array_slice($existingAccountsData, 0, $usedCount);
-        
+
         // Объединяем: проданные аккаунты + новые аккаунты
         $finalAccountsList = array_merge($soldAccounts, $newAccountsList);
-        
+
         $validated['accounts_data'] = $finalAccountsList;
-        
+
         // Логируем для отладки
         \Log::info('Service Account updated', [
             'id' => $serviceAccount->id,
@@ -181,7 +181,7 @@ class ServiceAccountController extends Controller
             'total_accounts' => count($finalAccountsList),
             'used' => $usedCount,
         ]);
-        
+
         $serviceAccount->update($validated);
 
         $route = $request->has('save')
@@ -200,36 +200,36 @@ class ServiceAccountController extends Controller
     public function export(Request $request, ServiceAccount $serviceAccount)
     {
         $allAccountsData = is_array($serviceAccount->accounts_data) ? $serviceAccount->accounts_data : [];
-        
+
         if (empty($allAccountsData)) {
             return redirect()->route('admin.service-accounts.index')
                 ->with('error', 'Нет товаров для выгрузки');
         }
-        
+
         $exportCount = count($allAccountsData);
-        
+
         // If limit is provided, slice the array
         if ($request->has('limit')) {
             $limit = (int) $request->input('limit');
             $exportCount = max(1, min($limit, count($allAccountsData)));
         }
-        
+
         // Get accounts to export
         $accountsData = array_slice($allAccountsData, 0, $exportCount);
         $content = implode("\n", $accountsData);
-        
+
         $filename = 'product_' . $serviceAccount->id . '_' . date('Y-m-d') . '.txt';
-        
+
         // Remove exported accounts from database
         $remainingAccounts = array_slice($allAccountsData, $exportCount);
-        
+
         // Update service account with remaining data
         $serviceAccount->accounts_data = $remainingAccounts;
         $serviceAccount->save();
-        
+
         // Store success message in session for redirect after download
         session()->flash('export_success', 'Выгружено ' . $exportCount . ' товаров. Осталось: ' . count($remainingAccounts));
-        
+
         return response($content)
             ->header('Content-Type', 'text/plain; charset=utf-8')
             ->header('Content-Disposition', 'attachment; filename="' . $filename . '"');
@@ -243,7 +243,7 @@ class ServiceAccountController extends Controller
 
         $importData = $request->input('import_data');
         $importLines = array_filter(explode("\n", $importData));
-        
+
         $newAccounts = [];
         foreach ($importLines as $line) {
             $line = trim($line);
@@ -254,7 +254,7 @@ class ServiceAccountController extends Controller
 
         $existingAccounts = is_array($serviceAccount->accounts_data) ? $serviceAccount->accounts_data : [];
         $combinedAccounts = array_merge($existingAccounts, $newAccounts);
-        
+
         $serviceAccount->accounts_data = $combinedAccounts;
         $serviceAccount->save();
 

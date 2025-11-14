@@ -266,9 +266,9 @@ server {
         access_log off;
     }
 
-    # Storage
-    location /storage {
-        alias /var/www/subcloudy/backend/storage/app/public;
+    # Storage - must be before / location
+    location ^~ /storage/ {
+        alias /var/www/subcloudy/backend/public/storage/;
         expires 1y;
         add_header Cache-Control "public, immutable";
         access_log off;

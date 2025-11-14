@@ -183,12 +183,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed, watch } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { useTheme } from '@/composables/useTheme';
 import { useServiceStore } from '@/stores/services';
-import { useCartStore } from '@/stores/cart';
 import { useAuthStore } from '@/stores/auth';
 import { useOptionStore } from '@/stores/options';
 
@@ -204,7 +203,6 @@ const route = useRoute();
 const router = useRouter();
 const { isDark } = useTheme();
 const serviceStore = useServiceStore();
-const cartStore = useCartStore();
 const authStore = useAuthStore();
 const serviceOption = useOptionStore();
 const service = ref<Service | null>(null);
@@ -257,8 +255,7 @@ const canShowTrialButton = computed(() => {
     return (
         !trialActivatedIds.value.includes(service.value.id) &&
         service.value.trial_amount &&
-        (!isAuthenticated.value || !authStore.user.active_services?.includes(service.value.id)) &&
-        cartStore.subscriptionTypes[service.value.id] !== 'trial'
+        (!isAuthenticated.value || !authStore.user.active_services?.includes(service.value.id))
     );
 });
 
@@ -269,31 +266,24 @@ const getTranslation = (service, key) => {
 const tryTrial = () => {
     const serviceId = service.value.id;
 
-    if (cartStore.hasService(serviceId) && cartStore.subscriptionTypes[serviceId] === 'premium') {
-        cartStore.removeFromCart(serviceId);
-    }
-
     if (!trialActivatedIds.value.includes(serviceId)) {
         trialActivatedIds.value.push(serviceId);
     }
 
     isAdded.value = true;
-    cartStore.addToCart(service.value, 'trial');
+    // Service cart functionality removed - only product cart is used
 };
 
 const onAdd = () => {
-    if (cartStore.hasService(service.value.id)) {
-        goToCheckout();
-    } else {
-        isAdded.value = true;
+    isAdded.value = true;
 
-        addedState.value = 'check';
-        setTimeout(() => {
-            addedState.value = 'checkout';
-        }, 1000);
+    addedState.value = 'check';
+    setTimeout(() => {
+        addedState.value = 'checkout';
+    }, 1000);
 
-        cartStore.addToCart(service.value, 'premium');
-    }
+    // Service cart functionality removed - only product cart is used
+    goToCheckout();
 };
 
 const goToCheckout = () => {
@@ -320,23 +310,13 @@ onMounted(async () => {
         await router.replace('/404');
     }
 
-    isAdded.value = cartStore.hasService(service.value.id);
+    isAdded.value = false;
     if (isAdded.value) {
         addedState.value = 'checkout';
     }
 });
 
-watch(
-    () => cartStore.services,
-    () => {
-        if (service.value?.id) {
-            isAdded.value = cartStore.hasService(service.value.id);
-        } else {
-            isAdded.value = false;
-        }
-    },
-    { deep: true }
-);
+// Service cart watch removed - only product cart is used
 </script>
 
 <style scoped>

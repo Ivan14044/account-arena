@@ -2,8 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Service;
-use App\Models\Subscription;
 use App\Models\Transaction;
 use App\Models\Option;
 use App\Models\User;
@@ -12,10 +10,9 @@ use App\Models\PromocodeUsage;
 use App\Models\ServiceAccount;
 use App\Models\Purchase;
 use App\Http\Controllers\GuestCartController;
-use App\Services\NotificationTemplateService;
 use App\Services\NotifierService;
 use App\Services\BalanceService;
-use Carbon\Carbon;
+use App\Services\ProductPurchaseService;
 use Cryptomus\Api\RequestBuilderException;
 use FunnyDev\Cryptomus\CryptomusSdk;
 use Illuminate\Http\Request;
@@ -26,11 +23,15 @@ use Illuminate\Support\Facades\DB;
 
 class CryptomusController extends Controller
 {
-    public function createPayment(Request $request, PromocodeValidationService $promoService)
+    /**
+     * Создание платежа для авторизованного пользователя (покупка товаров)
+     */
+    public function createPayment(Request $request, PromocodeValidationService $promoService, ProductPurchaseService $purchaseService)
     {
         $request->validate([
-            'services' => 'required|array|min:1',
-            'services.*' => 'integer',
+            'products' => 'required|array|min:1',
+            'products.*.id' => 'required|integer|exists:service_accounts,id',
+            'products.*.quantity' => 'required|integer|min:1',
             'promocode' => 'nullable|string',
         ]);
 
@@ -39,27 +40,17 @@ class CryptomusController extends Controller
             return response()->json(['message' => 'Invalid token'], 401);
         }
 
-        $services = Service::whereIn('id', $request->services)->get();
-        if ($services->isEmpty()) {
+        // Подготавливаем данные о товарах используя сервис
+        $prepareResult = $purchaseService->prepareProductsData($request->products);
+        if (!$prepareResult['success']) {
             return response()->json([
                 'success' => false,
-                'message' => 'Invalid services',
+                'message' => $prepareResult['message']
             ], 422);
         }
 
-        $originalAmount = $services->sum('amount');
-
-        $discount2 = (int)Option::get('discount_2', 0);
-        $discount3 = (int)Option::get('discount_3', 0);
-
-        $count = $services->count();
-
-        $appliedDiscountPercent = 0;
-        if ($count >= 3 && $discount3 > 0) {
-            $appliedDiscountPercent = $discount3;
-        } elseif ($count >= 2 && $discount2 > 0) {
-            $appliedDiscountPercent = $discount2;
-        }
+        $productsData = $prepareResult['data'];
+        $productsTotal = $prepareResult['total'];
 
         // Apply promocode if provided
         $promoData = null;
@@ -75,67 +66,68 @@ class CryptomusController extends Controller
             }
         }
 
-        $discountAmount = round($originalAmount * $appliedDiscountPercent / 100, 2);
+        $totalAmount = $productsTotal;
 
-        if ($promoData && ($promoData['type'] ?? '') === 'free_access') {
-            $freeMap = collect($promoData['services'] ?? [])->keyBy('id');
-            $originalAmount = round($services->sum(function ($s) use ($freeMap) {
-                return $freeMap->has($s->id) ? 0.00 : $s->amount;
-            }), 2);
-
-            $discountAmount = round($originalAmount * $appliedDiscountPercent / 100, 2);
-        } elseif ($promoData && ($promoData['type'] ?? '') === 'discount') {
-            $promoPercent = (int)($promoData['discount_percent'] ?? 0);
-            // Оба процента считаем от исходной суммы (как на фронте)
-            $promoDiscount = $promoPercent > 0 ? round($originalAmount * $promoPercent / 100, 2) : 0.00;
-            $discountAmount += $promoDiscount;
+        // Применяем скидку по промокоду если есть
+        if ($promoData && ($promoData['type'] ?? '') === 'discount') {
+            $discountPercent = floatval($promoData['discount_percent'] ?? 0);
+            $totalAmount = $totalAmount - ($totalAmount * $discountPercent / 100);
         }
 
-        $totalAmount = round($originalAmount - $discountAmount, 2);
-
-        if ($totalAmount <= 0) {
-            $totalAmount = 0.01;
-        }
+        $totalAmount = max(round($totalAmount, 2), 0.01); // Минимальная сумма
 
         $orderId = 'order_' . $user->id . '_' . time();
         $sdk = new CryptomusSdk();
 
-        $promoQuery = [];
-        if ($promoData) {
-            $promoQuery['promocode'] = $promoData['code'] ?? $promocodeParam;
-            $promoQuery['promo_type'] = $promoData['type'] ?? '';
-            if (($promoData['type'] ?? '') === 'free_access') {
-                $pairs = collect($promoData['services'] ?? [])->map(function ($s) {
-                    return ($s['id'] ?? 0) . ':' . ($s['free_days'] ?? 0);
-                })->implode(',');
-                $promoQuery['promo_free'] = $pairs;
-            } else {
-                $promoQuery['promo_percent'] = (int)($promoData['discount_percent'] ?? 0);
+        // Подготавливаем данные для webhook
+        $productsDataForWebhook = collect($productsData)->map(function($item) {
+            return [
+                'product_id' => $item['product']->id,
+                'quantity' => $item['quantity'],
+                'price' => $item['price'],
+                'total' => $item['total'],
+            ];
+        })->toArray();
+
+        $webhookParams = [
+            'user_id' => $user->id,
+            'products_data' => base64_encode(json_encode($productsDataForWebhook)),
+        ];
+
+        if ($promocodeParam !== '') {
+            $webhookParams['promocode'] = $promocodeParam;
+        }
+
+        try {
+            $response = $sdk->create_payment(
+                $orderId,
+                $totalAmount,
+                Option::get('currency'),
+                '',
+                '',
+                config('app.url') . '/checkout',
+                config('app.url') . '/api/cryptomus/webhook?' . http_build_query($webhookParams),
+                config('app.url') . '/checkout?success=true',
+            );
+
+            if ($response) {
+                return response()->json([
+                    'success' => true,
+                    'url' => $response,
+                ]);
             }
-        }
 
-        $response = $sdk->create_payment(
-            $orderId,
-            $totalAmount,
-            Option::get('currency'),
-            '',
-            '',
-            config('app.url') . '/checkout',
-            config('app.url') . '/api/cryptomus/webhook?service_ids=' . implode(',', $request->services) . '&user_id=' . $user->id . (count($promoQuery) ? '&' . http_build_query($promoQuery) : ''),
-            config('app.url') . '/checkout?success=true',
-        );
-
-        if ($response) {
             return response()->json([
-                'success' => true,
-                'url' => $response,
+                'success' => false,
+                'message' => 'Failed to create payment',
+            ], 422);
+        } catch (\Exception $e) {
+            \Log::error('Cryptomus payment creation failed', [
+                'error' => $e->getMessage(),
+                'user_id' => $user->id,
             ]);
+            return response()->json(['success' => false, 'message' => 'Payment creation failed'], 500);
         }
-
-        return response()->json([
-            'success' => false,
-            'message' => 'Failed to create payment',
-        ], 422);
     }
 
     /**
@@ -175,117 +167,9 @@ class CryptomusController extends Controller
                 return $this->handleGuestWebhook($request, $data);
             }
 
-            if (Subscription::where('order_id', $data['order_id'])->exists()) {
-                return response('OK', 200);
-            }
-
-            $nextPaymentDate = Carbon::now()->addMonth();
-            $user = User::find($request->user_id);
-            $totalAmount = 0;
-            $serviceIds = explode(',', $request->service_ids);
-            $services = Service::with('translations')->whereIn('id', $serviceIds)->get();
-
-            $promoCode = trim((string)($request->promocode ?? ''));
-            $promoType = trim((string)($request->promo_type ?? ''));
-            $promoFreeRaw = trim((string)($request->promo_free ?? ''));
-            $promoPercent = (int)($request->promo_percent ?? 0);
-            $promoFreeMap = collect();
-            if ($promoType === 'free_access' && $promoFreeRaw !== '') {
-                $promoFreeMap = collect(explode(',', $promoFreeRaw))->mapWithKeys(function ($pair) {
-                    [$sid, $days] = array_pad(explode(':', $pair), 2, 0);
-                    return [(int)$sid => (int)$days];
-                });
-            }
-
-            foreach ($services as $service) {
-                $existing = Subscription::where('user_id', $user->id)
-                    ->where('service_id', $service->id)
-                    ->orderByDesc('id')
-                    ->first();
-
-                $baseDate = $existing && $existing->next_payment_at && Carbon::parse($existing->next_payment_at)->gt(Carbon::now())
-                    ? Carbon::parse($existing->next_payment_at)
-                    : $nextPaymentDate;
-
-                $nextAt = ($promoType === 'free_access' && $promoFreeMap->has($service->id))
-                    ? (clone $baseDate)->addDays(max(0, (int)$promoFreeMap->get($service->id)))
-                    : $baseDate;
-
-                if ($existing) {
-                    $existing->status = Subscription::STATUS_ACTIVE;
-                    $existing->payment_method = 'crypto';
-                    $existing->is_auto_renew = 0;
-                    $existing->next_payment_at = $nextAt;
-                    $existing->order_id = $data['order_id'];
-                    $existing->save();
-                    $subId = $existing->id;
-                } else {
-                    $subscription = Subscription::create([
-                        'user_id' => $user->id,
-                        'status' => Subscription::STATUS_ACTIVE,
-                        'payment_method' => 'crypto',
-                        'service_id' => $service->id,
-                        'is_auto_renew' => 0,
-                        'next_payment_at' => $nextAt,
-                        'order_id' => $data['order_id']
-                    ]);
-                    $subId = $subscription->id;
-                }
-
-                Transaction::create([
-                    'user_id' => $user->id,
-                    'amount' => ($promoType === 'free_access' && $promoFreeMap->has($service->id)) ? 0.00 : $service->amount,
-                    'currency' => Option::get('currency'),
-                    'payment_method' => 'crypto',
-                    'subscription_id' => $subId
-                ]);
-
-                $totalAmount += $service->amount;
-
-                app(NotificationTemplateService::class)->sendToUser($user, 'purchase', [
-                    'service' => $service->code,
-                    'date' => $nextPaymentDate->format('d.m.Y'),
-                ]);
-
-                $serviceName = $service?->getTranslation('name', $user->lang ?? 'en') ?? $service?->name;
-
-                EmailService::send('subscription_activated', $user->id, [
-                    'service_name' => $serviceName
-                ]);
-            }
-
-            EmailService::send('payment_confirmation', $user->id, [
-                'amount' => number_format($totalAmount, 2, '.', '') . ' ' . strtoupper(Option::get('currency'))
-            ]);
-
-            NotifierService::send(
-                'payment',
-                __('notifier.new_payment_title', array(
-                    'method' => 'Crypto'
-                )),
-                __('notifier.new_payment_message', array(
-                    'method' => 'Crypto',
-                    'email' => $user->email,
-                    'name' => $user->name
-                ))
-            );
-            // Record promocode usage if present
-            if ($promoCode !== '') {
-                DB::transaction(function () use ($promoCode, $user, $data) {
-                    $promo = Promocode::where('code', $promoCode)->lockForUpdate()->first();
-                    if ($promo) {
-                        PromocodeUsage::create([
-                                'promocode_id' => $promo->id,
-                                'user_id' => $user->id,
-                                'order_id' => (string)($data['order_id'] ?? ''),
-                        ]);
-                        
-                        if ((int)$promo->usage_limit > 0 && (int)$promo->usage_count < (int)$promo->usage_limit) {
-                            $promo->usage_count = (int)$promo->usage_count + 1;
-                            $promo->save();
-                        }
-                    }
-                });
+            // Проверяем, это покупка товаров для авторизованного пользователя?
+            if ($request->has('user_id') && $request->has('products_data')) {
+                return $this->handleUserPurchaseWebhook($request, $data);
             }
         }
 
@@ -616,6 +500,120 @@ class CryptomusController extends Controller
                 'user_id' => $user->id,
                 'order_id' => $orderId,
                 'amount' => $amount,
+            ]);
+            return response('Processing failed', 500);
+        }
+    }
+
+    /**
+     * Обработка webhook для покупки товаров авторизованным пользователем
+     */
+    private function handleUserPurchaseWebhook(Request $request, array $data)
+    {
+        $userId = $request->user_id;
+        if (!$userId) {
+            \Log::error('Invalid user_id in user purchase webhook');
+            return response('Invalid user_id', 400);
+        }
+
+        $user = User::find($userId);
+        if (!$user) {
+            \Log::error('User not found in webhook', ['user_id' => $userId]);
+            return response('User not found', 404);
+        }
+
+        $productsDataEncoded = $request->products_data ?? '';
+        $productsData = json_decode(base64_decode($productsDataEncoded), true);
+        
+        if (!is_array($productsData) || empty($productsData)) {
+            \Log::error('Invalid products data in user purchase webhook');
+            return response('Invalid products data', 400);
+        }
+
+        $promocode = trim((string)($request->promocode ?? ''));
+
+        try {
+            $purchaseService = app(ProductPurchaseService::class);
+            
+            // Подготавливаем данные о товарах для создания покупок
+            $preparedProductsData = [];
+            foreach ($productsData as $item) {
+                $product = ServiceAccount::find($item['product_id']);
+                if (!$product) {
+                    \Log::warning('Product not found in webhook', ['product_id' => $item['product_id']]);
+                    continue;
+                }
+                
+                $preparedProductsData[] = [
+                    'product' => $product,
+                    'quantity' => $item['quantity'],
+                    'price' => $item['price'],
+                    'total' => $item['total'],
+                ];
+            }
+            
+            if (empty($preparedProductsData)) {
+                \Log::error('No valid products found in webhook');
+                return response('No valid products', 400);
+            }
+            
+            // Создаем покупки для авторизованного пользователя
+            $purchases = $purchaseService->createMultiplePurchases(
+                $preparedProductsData,
+                $user->id,
+                null, // guest_email = null для авторизованных
+                'crypto'
+            );
+
+            // Отправляем email уведомление пользователю
+            $totalAmount = array_sum(array_column($productsData, 'total'));
+            EmailService::send('payment_confirmation', $user->id, [
+                'amount' => number_format($totalAmount, 2, '.', '') . ' ' . strtoupper(Option::get('currency'))
+            ]);
+
+            // Уведомление админу о новой покупке
+            NotifierService::send(
+                'product_purchase',
+                __('notifier.new_product_purchase_title', ['method' => 'Cryptomus']),
+                __('notifier.new_product_purchase_message', [
+                    'email' => $user->email,
+                    'name' => $user->name,
+                    'products' => count($productsData),
+                    'amount' => number_format($totalAmount, 2),
+                ])
+            );
+
+            LoggingService::info('User purchase completed via Cryptomus', [
+                'user_id' => $user->id,
+                'user_email' => $user->email,
+                'order_id' => $data['order_id'] ?? 'unknown',
+                'products_count' => count($productsData),
+            ]);
+
+            // Записываем использование промокода если есть
+            if ($promocode !== '') {
+                DB::transaction(function () use ($promocode, $user, $data) {
+                    $promo = Promocode::where('code', $promocode)->lockForUpdate()->first();
+                    if ($promo) {
+                        PromocodeUsage::create([
+                            'promocode_id' => $promo->id,
+                            'user_id' => $user->id,
+                            'order_id' => (string)($data['order_id'] ?? ''),
+                        ]);
+                        if ((int)$promo->usage_limit > 0 && (int)$promo->usage_count < (int)$promo->usage_limit) {
+                            $promo->usage_count = (int)$promo->usage_count + 1;
+                            $promo->save();
+                        }
+                    }
+                });
+            }
+
+            return response('OK', 200);
+        } catch (\Exception $e) {
+            \Log::error('User purchase webhook processing failed', [
+                'error' => $e->getMessage(),
+                'user_id' => $userId,
+                'trace' => $e->getTraceAsString(),
             ]);
             return response('Processing failed', 500);
         }

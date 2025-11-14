@@ -145,8 +145,6 @@ import { useI18n } from 'vue-i18n';
 import axios from '@/bootstrap'; // Используем настроенный axios из bootstrap
 import { useServiceStore } from '@/stores/services';
 import { useAuthStore } from '@/stores/auth';
-import { useCartStore } from '@/stores/cart';
-import { useRouter } from 'vue-router';
 
 const isMobile = ref(window.innerWidth <= 768);
 
@@ -169,8 +167,6 @@ const { locale } = useI18n();
 const contentStore = useContentsStore();
 const serviceStore = useServiceStore();
 const authStore = useAuthStore();
-const cartStore = useCartStore();
-const router = useRouter();
 
 const isAuthenticated = computed(() => !!authStore.user);
 const ready = computed(() => serviceStore.isLoaded && authStore.userLoaded === true);
@@ -185,7 +181,7 @@ function canShowTrial(serviceId: number) {
     const svc = serviceStore.getById(serviceId) as any;
     if (!svc || !svc.trial_amount) return false;
     if (isAuthenticated.value && isActiveService(serviceId)) return false;
-    return cartStore.subscriptionTypes[serviceId] !== 'trial';
+    return true;
 }
 
 // новые обёртки, вся проверка готовности тут
@@ -308,40 +304,6 @@ watchEffect(() => {
 // Actions
 function openService(id: number) {
     window.open('/session-start/' + id, '_blank');
-}
-function tryTrial(serviceId: number) {
-    const svc = serviceStore.getById(serviceId);
-    if (!svc) return;
-    if (cartStore.hasService(serviceId) && cartStore.subscriptionTypes[serviceId] === 'premium') {
-        cartStore.removeFromCart(serviceId);
-    }
-    cartStore.addToCart(svc as any, 'trial');
-    goToCheckout();
-}
-function addPremium(serviceId: number) {
-    const svc = serviceStore.getById(serviceId);
-    if (!svc) return goToServices();
-    if (cartStore.hasService(serviceId)) return goToCheckout();
-    cartStore.addToCart(svc as any, 'premium');
-    goToCheckout();
-}
-function goToServices() {
-    try {
-        router.push({ path: '/', hash: '#services' });
-    } catch {
-        // ignore error
-    }
-}
-function goToCheckout() {
-    try {
-        router.push(
-            isAuthenticated.value
-                ? '/checkout'
-                : { path: '/login', query: { redirect: 'checkout' } as any }
-        );
-    } catch {
-        // ignore error
-    }
 }
 
 function getServiceName(serviceId?: number) {

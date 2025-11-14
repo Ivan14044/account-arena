@@ -237,7 +237,6 @@ import { useI18n } from 'vue-i18n';
 import { useTheme } from '@/composables/useTheme';
 import { useAuthStore } from '@/stores/auth';
 import { useOptionStore } from '@/stores/options';
-import { useCartStore } from '@/stores/cart';
 import { useRouter } from 'vue-router';
 
 interface Props {
@@ -260,7 +259,6 @@ const router = useRouter();
 
 const optionStore = useOptionStore();
 const authStore = useAuthStore();
-const cartStore = useCartStore();
 
 const isAuthenticated = computed(() => !!authStore.user);
 const addedState = ref<'check' | 'checkout'>('check');
@@ -269,16 +267,12 @@ const trialActivatedIds = ref<number[]>([]);
 const tryTrial = () => {
     const serviceId = props.service.id;
 
-    if (cartStore.hasService(serviceId) && cartStore.subscriptionTypes[serviceId] === 'premium') {
-        cartStore.removeFromCart(serviceId);
-    }
-
     if (!trialActivatedIds.value.includes(serviceId)) {
         trialActivatedIds.value.push(serviceId);
     }
 
     isAdded.value = true;
-    cartStore.addToCart(props.service, 'trial');
+    // Service cart functionality removed - only product cart is used
 };
 
 const canShowTrialBadge = computed(() => {
@@ -292,8 +286,7 @@ const canShowTrialButton = computed(() => {
     return (
         !trialActivatedIds.value.includes(props.service.id) &&
         props.service.trial_amount &&
-        (!isAuthenticated.value || !authStore.user.active_services?.includes(props.service.id)) &&
-        cartStore.subscriptionTypes[props.service.id] !== 'trial'
+        (!isAuthenticated.value || !authStore.user.active_services?.includes(props.service.id))
     );
 });
 
@@ -468,18 +461,15 @@ const onBackClick = () => {
 };
 
 const onAdd = () => {
-    if (cartStore.hasService(props.service.id)) {
-        goToCheckout();
-    } else {
-        isAdded.value = true;
+    isAdded.value = true;
 
-        addedState.value = 'check';
-        setTimeout(() => {
-            addedState.value = 'checkout';
-        }, 1000);
+    addedState.value = 'check';
+    setTimeout(() => {
+        addedState.value = 'checkout';
+    }, 1000);
 
-        cartStore.addToCart(props.service, 'premium');
-    }
+    // Service cart functionality removed - only product cart is used
+    goToCheckout();
 };
 
 const handleResize = () => {

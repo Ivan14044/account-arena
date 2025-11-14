@@ -4,16 +4,14 @@
             v-for="service in serviceStore.services"
             :key="service.id"
             :service="service"
-            :is-added="cartStore.hasService(service.id)"
+            :is-added="false"
         />
     </div>
 </template>
 
 <script setup lang="ts">
 import { useServiceStore } from '@/stores/services';
-import { useCartStore } from '@/stores/cart';
 import ServiceCard from '@/components/services/ServiceCard.vue';
 
 const serviceStore = useServiceStore();
-const cartStore = useCartStore();
 </script>

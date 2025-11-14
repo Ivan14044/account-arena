@@ -1,7 +1,7 @@
 <template>
     <div class="max-w-7xl mx-auto px-4 py-16 sm:px-6 lg:px-8 relative z-1">
         <div
-            v-if="cartStore.items.length || productCartStore.items.length"
+            v-if="productCartStore.items.length"
             class="mx-auto grid gap-8 lg:grid-cols-[minmax(0,1fr)_24rem]"
         >
             <div class="flex items-center justify-between mt-6 mb-2 lg:col-span-2">
@@ -16,9 +16,6 @@
 
             <div class="min-w-0">
                 <form class="space-y-6" @submit.prevent="handleSubmit">
-                    <!-- Подписки (если есть) - только для авторизованных пользователей -->
-                    <ServiceList v-if="cartStore.items.length && authStore.isAuthenticated" />
-
                     <!-- Товары (если есть) -->
                     <div v-if="productCartStore.items.length" class="product-cart-section">
                         <h2 class="text-xl font-semibold mb-4 text-dark dark:text-white">
@@ -187,35 +184,6 @@
                             </div>
                         </div>
 
-                        <transition name="fade" appear>
-                            <div
-                                v-if="selectedPayment !== '' && cartStore.items.length > 0"
-                                class="mt-3 rounded-lg overflow-hidden glass-card"
-                            >
-                                <div class="px-3 py-2">
-                                    <div class="text-xs text-dark dark:text-white font-medium mb-1">
-                                        {{ $t('checkout.next_payments') }}:
-                                    </div>
-                                    <transition-group
-                                        name="fade-slide"
-                                        tag="ul"
-                                        class="text-xs space-y-1 text-dark dark:text-white"
-                                    >
-                                        <li
-                                            v-for="(d, idx) in nextPaymentPerItem"
-                                            :key="d.id"
-                                            class="flex items-center gap-2"
-                                            :style="{ transitionDelay: `${idx * 60}ms` }"
-                                        >
-                                            <span class="font-medium">{{ d.name }}</span>
-                                            <span class="ml-2">—</span>
-                                            <span class="ml-2">{{ d.date }}</span>
-                                        </li>
-                                    </transition-group>
-                                </div>
-                            </div>
-                        </transition>
-
                         <div
                             v-if="upsellPercent > 0"
                             class="mt-3 rounded-lg overflow-hidden glass-card"
@@ -334,8 +302,7 @@
                         type="button"
                         :disabled="
                             (isZeroTotalWithServices ? false : !selectedPayment) ||
-                            (cartStore.items.length === 0 && productCartStore.items.length === 0) ||
-                            (hasTrial && selectedPayment === 'crypto') ||
+                            productCartStore.items.length === 0 ||
                             (purchaseRulesEnabled && !agreedToRules)
                         "
                         class="checkout-btn w-full py-4 rounded-lg font-normal transition-all duration-300 disabled:opacity-50 pointer-events-none"
@@ -508,13 +475,11 @@ import { useI18n } from 'vue-i18n';
 import { useToast } from 'vue-toastification';
 import { useAlert } from '@/utils/alert';
 import axios from '@/bootstrap'; // Используем настроенный axios из bootstrap
-import { useCartStore } from '@/stores/cart';
 import { useProductCartStore } from '@/stores/productCart';
 import { useAuthStore } from '@/stores/auth';
 import { useLoadingStore } from '@/stores/loading';
 import { useOptionStore } from '@/stores/options';
 import { usePromoStore } from '@/stores/promo';
-import ServiceList from '@/components/checkout/ServiceList.vue';
 import PaymentList from '@/components/checkout/PaymentList.vue';
 import BackLink from '@/components/layout/BackLink.vue';
 import BoxLoader from '@/components/BoxLoader.vue';
@@ -524,7 +489,6 @@ const router = useRouter();
 const toast = useToast();
 const { showAlert } = useAlert();
 const { locale, t } = useI18n();
-const cartStore = useCartStore();
 const productCartStore = useProductCartStore();
 const authStore = useAuthStore();
 const loadingStore = useLoadingStore();
@@ -546,7 +510,7 @@ const isApplied = computed(
 );
 
 // Discounts (from options, only if > 0)
-const itemCount = computed(() => cartStore.items.length + productCartStore.itemCount);
+const itemCount = computed(() => productCartStore.itemCount);
 const discountPercent = computed(() => {
     const d2 = Number(optionStore.options.discount_2 || 0);
     const d3 = Number(optionStore.options.discount_3 || 0);
@@ -556,9 +520,7 @@ const discountPercent = computed(() => {
 });
 
 const subtotalPaid = computed(() => {
-    const servicesTotal = cartStore.subtotalPaid;
-    const productsTotal = productCartStore.totalAmount;
-    return servicesTotal + productsTotal;
+    return productCartStore.totalAmount;
 });
 
 const optionDiscountAmount = computed(() => (subtotalPaid.value * discountPercent.value) / 100);
@@ -570,8 +532,7 @@ const finalTotal = computed(() =>
     Math.max(0, subtotalPaid.value - optionDiscountAmount.value - promoDiscountAmount.value)
 );
 const isZeroTotalWithServices = computed(
-    () =>
-        finalTotal.value === 0 && (cartStore.items.length > 0 || productCartStore.items.length > 0)
+    () => finalTotal.value === 0 && productCartStore.items.length > 0
 );
 
 const upsellPercent = computed(() => {
@@ -585,59 +546,6 @@ const upsellPercent = computed(() => {
 const formatCurrency = (value: number) => {
     return `${value.toFixed(2)} ${optionStore.options.currency.toUpperCase()}`;
 };
-
-const nextPaymentPerItem = computed(() => {
-    if (!selectedPayment.value) return [];
-    const now = new Date();
-    return cartStore.items.map(item => {
-        const plan = cartStore.getSubscriptionType(item.id);
-        let nextDate: Date;
-        if (plan === 'trial') {
-            nextDate = addDays(now, 3);
-        } else {
-            nextDate = addMonths(now, 1);
-        }
-        return { id: item.id, name: getTranslation(item, 'name'), date: fmt(nextDate) };
-    });
-});
-
-const hasTrial = computed(() => {
-    return cartStore.items.some(service => cartStore.getSubscriptionType(service.id) === 'trial');
-});
-
-const getTranslation = (service: any, key: string) => {
-    return service.translations[locale.value]?.[key] ?? service.translations['en']?.[key] ?? null;
-};
-
-const addDays = (d: Date, days: number) => {
-    const r = new Date(d.getTime());
-    r.setDate(r.getDate() + days);
-    return r;
-};
-
-const addMonths = (d: Date, months: number) => {
-    const r = new Date(d.getTime());
-    r.setMonth(r.getMonth() + months);
-    return r;
-};
-
-const fmt = (d: Date) => {
-    const dd = String(d.getDate()).padStart(2, '0');
-    const mm = String(d.getMonth() + 1).padStart(2, '0');
-    const yyyy = d.getFullYear();
-    return `${dd}.${mm}.${yyyy}`;
-};
-
-// const servicesSummary = computed(() => {
-//     const parts: string[] = [];
-//     if (cartStore.trialServicesCount > 0) {
-//         parts.push(`${cartStore.trialServicesCount} ${t('checkout.trial_services')}`);
-//     }
-//     if (cartStore.premiumServicesCount > 0) {
-//         parts.push(`${cartStore.premiumServicesCount} ${t('checkout.premium_services')}`);
-//     }
-//     return parts.join(', ');
-// });
 
 // Загрузка правил покупки
 const loadPurchaseRules = async () => {
@@ -662,24 +570,6 @@ const loadPurchaseRules = async () => {
 onMounted(() => {
     loadingStore.stop();
 
-    // Проверяем, если пользователь не авторизован и есть подписки в корзине
-    if (!authStore.isAuthenticated && cartStore.items.length > 0) {
-        toast.warning(
-            'Для покупки подписок необходимо авторизоваться. Только товары доступны для гостей.'
-        );
-        // Очищаем корзину подписок для гостей
-        cartStore.clearCart();
-    }
-
-    // Restore applied promocode into input and free access services after reload
-    if (promo.code && promo.result) {
-        inputCode.value = promo.code;
-        if (promo.result.type === 'free_access' && cartStore.promoFreeIds.length === 0) {
-            // Re-apply free access services if flags weren't persisted
-            cartStore.applyFreeAccessServices(promo.result.services || []);
-        }
-    }
-
     // Загружаем правила покупки
     loadPurchaseRules();
 
@@ -700,7 +590,7 @@ onMounted(() => {
 
     const query = new URLSearchParams(window.location.search);
     if (query.get('success') === 'true') {
-        cartStore.clearCart();
+        productCartStore.clearCart();
         promo.clear();
 
         router.replace({ path: '/' }).then(() => {
@@ -743,7 +633,7 @@ const handleCheckoutClick = (event: Event) => {
     }
 
     // Проверяем другие условия
-    if (cartStore.items.length === 0 && productCartStore.items.length === 0) {
+    if (productCartStore.items.length === 0) {
         toast.error(t('checkout.empty'));
         return;
     }
@@ -771,11 +661,6 @@ const handleCheckoutClick = (event: Event) => {
 
     if (!isZeroTotalWithServices.value && !selectedPayment.value) {
         toast.warning(t('checkout.select_payment_method'));
-        return;
-    }
-
-    if (hasTrial.value && selectedPayment.value === 'crypto') {
-        toast.warning(t('checkout.trial_crypto_not_allowed'));
         return;
     }
 
@@ -837,8 +722,10 @@ const processMonoPayment = async () => {
         } else {
             // Авторизованный пользователь
             const payload = {
-                services: cartStore.items.map(item => item.id),
-                subscriptionTypes: cartStore.subscriptionTypes,
+                products: productCartStore.items.map(item => ({
+                    id: item.id,
+                    quantity: item.quantity
+                })),
                 ...(promo.code ? { promocode: promo.code } : {})
             };
             const { data } = await axios.post('/mono/create-payment', payload, {
@@ -894,7 +781,10 @@ const processCryptoPayment = async () => {
         } else {
             // Авторизованный пользователь
             const payload = {
-                services: cartStore.items.map(item => item.id),
+                products: productCartStore.items.map(item => ({
+                    id: item.id,
+                    quantity: item.quantity
+                })),
                 ...(promo.code ? { promocode: promo.code } : {})
             };
             const { data } = await axios.post('/cryptomus/create-payment', payload, {
@@ -918,10 +808,8 @@ const processCryptoPayment = async () => {
 
 const buyFree = async () => {
     try {
-        await cartStore.submitCart({
-            paymentMethod: 'free',
-            promocode: promo.code || undefined
-        });
+        // For products, free purchases are handled differently
+        // This might need to be implemented if free products are needed
         await authStore.fetchUser();
         promo.clear();
         inputCode.value = '';
@@ -945,11 +833,21 @@ const processBalancePayment = async () => {
             return;
         }
 
-        await cartStore.submitCart({
-            paymentMethod: 'balance',
-            promocode: promo.code || undefined
+        // Submit products purchase with balance
+        const payload = {
+            products: productCartStore.items.map(item => ({
+                id: item.id,
+                quantity: item.quantity
+            })),
+            payment_method: 'balance',
+            ...(promo.code ? { promocode: promo.code } : {})
+        };
+
+        await axios.post('/cart', payload, {
+            headers: { Authorization: `Bearer ${authStore.token}` }
         });
 
+        productCartStore.clearCart();
         await authStore.fetchUser();
         promo.clear();
         inputCode.value = '';
@@ -982,8 +880,9 @@ async function onApply() {
             return;
         }
         if (promo.result?.type === 'free_access') {
-            await cartStore.applyFreeAccessServices(promo.result.services || []);
-        } else if (promo.result?.type === 'discount' && cartStore.items.length === 0) {
+            // Free access for products might need different handling
+            // This functionality may need to be implemented if needed
+        } else if (promo.result?.type === 'discount' && productCartStore.items.length === 0) {
             await showAlert({
                 title: t('alert.title'),
                 text: t('checkout.promocode_discount_empty_cart'),
@@ -996,7 +895,6 @@ async function onApply() {
 
 function onClear() {
     promo.clear();
-    cartStore.removeFreeAccessServices();
     inputCode.value = '';
 }
 

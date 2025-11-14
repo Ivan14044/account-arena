@@ -2,7 +2,7 @@
     <div ref="dropdownRef" class="z-50 relative">
         <!-- Language Button -->
         <button class="language-selector" @click="toggleDropdown">
-            <img :src="`/img/lang/${currentLanguage.code}.png`" style="width: 24px; height: 16px" />
+            <img :src="`/img/lang/${currentLanguage.code}.svg`" style="width: 24px; height: 16px" />
             <Globe v-if="!currentLanguage.code" class="w-5 h-5 text-gray-600" />
             <span
                 class="flex items-center text-gray-700 dark:text-white text-sm font-normal group-hover:text-gray-900 transition-colors pl-2"
@@ -45,7 +45,7 @@
                         <span class="relative z-10 flex items-center">
                             <span class="pr-2 flex items-center">
                                 <img
-                                    :src="`/img/lang/${language.code}.png`"
+                                    :src="`/img/lang/${language.code}.svg`"
                                     class="w-6 h-4 object-cover transition-opacity duration-300 align-middle inline-block"
                                 />
                             </span>
@@ -111,7 +111,7 @@ onMounted(() => {
 
     languages.forEach(lang => {
         const img = new Image();
-        img.src = `/img/lang/${lang.code}.png`;
+        img.src = `/img/lang/${lang.code}.svg`;
     });
 
     document.addEventListener('mousedown', handleClickOutside);

@@ -203,7 +203,6 @@ class SocialAuthController extends Controller
 
         // Calculate hash and compare with the one received from Telegram
         $hash = hash_hmac('sha256', $dataCheckString, $secretKey);
-
         return hash_equals($hash, $checkHash);
     }
 }

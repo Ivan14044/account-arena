@@ -176,8 +176,6 @@
 
 <script setup lang="ts">
 import { ref, watch } from 'vue';
-import { computed } from 'vue';
-import { useCartStore } from '@/stores/cart';
 import applePayLogo from '@/assets/payment-icons/Apple_Pay_logo.svg.png';
 import googlePayLogo from '@/assets/payment-icons/Google_Pay_Logo.svg.png';
 import visaLogo from '@/assets/payment-icons/VISA-logo.png';
@@ -196,7 +194,6 @@ const emit = defineEmits<{
 }>();
 
 const selectedPaymentMethod = ref(props.modelValue);
-const cartStore = useCartStore();
 
 watch(
     () => props.modelValue,
@@ -204,10 +201,6 @@ watch(
         selectedPaymentMethod.value = val;
     }
 );
-
-const hasTrial = computed(() => {
-    return cartStore.items.some(service => cartStore.getSubscriptionType(service.id) === 'trial');
-});
 
 const selectPaymentMethod = (method: 'card' | 'crypto' | 'balance') => {
     if (props.disabled) return;
@@ -221,7 +214,6 @@ const paymentClass = (method: 'card' | 'crypto' | 'balance') => {
         selectedPaymentMethod.value === method
             ? 'border-blue-400 bg-blue-400/10'
             : 'border-transparent glass-card hover:border-blue-400/50',
-        hasTrial.value && method === 'crypto' ? 'opacity-50 pointer-events-none' : '',
         props.disabled ? 'opacity-50 pointer-events-none' : ''
     ];
 };

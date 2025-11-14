@@ -20,17 +20,15 @@
 <script setup>
 import { computed } from 'vue';
 import { ShoppingBag } from 'lucide-vue-next';
-import { useCartStore } from '@/stores/cart';
 import { useProductCartStore } from '@/stores/productCart';
 import { useRouter } from 'vue-router';
 
-const cartStore = useCartStore();
 const productCartStore = useProductCartStore();
 const router = useRouter();
 
-// Общее количество товаров в обеих корзинах
+// Общее количество товаров в корзине
 const totalItems = computed(() => {
-    return cartStore.items.length + productCartStore.itemCount;
+    return productCartStore.itemCount;
 });
 </script>
 

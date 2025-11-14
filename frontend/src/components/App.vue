@@ -144,7 +144,7 @@ onMounted(async () => {
         console.log('[APP] Все данные загружены');
 
         // Предзагружаем критичные изображения
-        preloadImages([logo, `/img/lang/${locale.value}.png`]);
+        preloadImages([logo, `/img/lang/${locale.value}.svg`]);
 
         // Даём небольшую задержку, чтобы Vue успел отрендерить первый кадр
         await new Promise(resolve => setTimeout(resolve, 100));
