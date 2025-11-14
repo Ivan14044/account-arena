@@ -53,7 +53,17 @@ Route::middleware('throttle:60,1')->group(function () {
     Route::get('/banners/all', [ApiBannerController::class, 'all']);
     Route::get('/site-content', [SiteContentController::class, 'index']);
     Route::get('/purchase-rules', [OptionController::class, 'getPurchaseRules']);
-
+    Route::get('/support-chat-settings', [OptionController::class, 'getSupportChatSettings']);
+    
+    // Чат поддержки (публичные endpoints)
+    Route::post('/support-chat/create', [\App\Http\Controllers\Api\SupportChatController::class, 'getOrCreateChat']);
+    Route::get('/support-chat/{chatId}/messages', [\App\Http\Controllers\Api\SupportChatController::class, 'getMessages']);
+    Route::post('/support-chat/{chatId}/messages', [\App\Http\Controllers\Api\SupportChatController::class, 'sendMessage']);
+    Route::post('/support-chat/{chatId}/typing', [\App\Http\Controllers\Api\SupportChatController::class, 'sendTyping']);
+    Route::post('/support-chat/{chatId}/typing/stop', [\App\Http\Controllers\Api\SupportChatController::class, 'stopTyping']);
+    Route::get('/support-chat/{chatId}/typing/status', [\App\Http\Controllers\Api\SupportChatController::class, 'getTypingStatus']);
+    Route::post('/support-chat/{chatId}/rating', [\App\Http\Controllers\Api\SupportChatController::class, 'addRating']);
+    
     // Гостевые покупки (без авторизации) - только товары
     Route::post('/guest/cart', [\App\Http\Controllers\GuestCartController::class, 'store']);
     Route::post('/guest/mono/create-payment', [MonoController::class, 'createGuestPayment']);
@@ -69,23 +79,26 @@ Route::middleware(['auth:sanctum', 'throttle:120,1'])->group(function () {
     Route::get('/notifications', [NotificationController::class, 'index']);
     Route::post('/notifications/read', [NotificationController::class, 'markNotificationsAsRead']);
     Route::post('/cart', [CartController::class, 'store']);
-    // Route::post('/toggle-auto-renew', [SubscriptionController::class, 'toggleAutoRenew']);
-    // Route::post('/cancel-subscription', [SubscriptionController::class, 'cancelSubscription']); // TODO: uncomment when subscription system will be implemented
-
+    Route::post('/toggle-auto-renew', [SubscriptionController::class, 'toggleAutoRenew']);
+    Route::post('/cancel-subscription', [SubscriptionController::class, 'cancelSubscription']);
+    
     // Vouchers
     Route::post('/vouchers/activate', [\App\Http\Controllers\VoucherController::class, 'activate']);
-
+    
     // Product disputes
     Route::get('/disputes', [ProductDisputeController::class, 'index']);
     Route::post('/disputes', [ProductDisputeController::class, 'store']);
     Route::get('/disputes/{id}', [ProductDisputeController::class, 'show']);
     Route::get('/transactions/{transactionId}/can-dispute', [ProductDisputeController::class, 'canDispute']);
-
+    
     // Purchases (купленные товары)
     Route::get('/purchases', [PurchaseController::class, 'index']);
     Route::get('/purchases/{id}', [PurchaseController::class, 'show']);
     Route::get('/purchases/{id}/download', [PurchaseController::class, 'download']);
-
+    
+    // Чат поддержки (для авторизованных пользователей)
+    Route::get('/support-chats', [\App\Http\Controllers\Api\SupportChatController::class, 'getChats']);
+    
     // Balance API (новая система управления балансом)
     Route::prefix('balance')->group(function () {
         Route::get('/', [\App\Http\Controllers\BalanceController::class, 'getBalance']);
@@ -99,7 +112,7 @@ Route::middleware(['auth:sanctum', 'throttle:120,1'])->group(function () {
 Route::middleware(['auth:sanctum', 'throttle:10,1'])->group(function () {
     Route::post('/cryptomus/create-payment', [CryptomusController::class, 'createPayment']);
     Route::post('/mono/create-payment', [MonoController::class, 'createPayment']);
-
+    
     // Пополнение баланса
     Route::post('/mono/topup', [MonoController::class, 'createTopUpPayment']);
     Route::post('/cryptomus/topup', [CryptomusController::class, 'createTopUpPayment']);

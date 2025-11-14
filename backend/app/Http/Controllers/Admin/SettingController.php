@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Option;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class SettingController extends Controller
 {
@@ -18,15 +19,19 @@ class SettingController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate($this->getRules($request->form));
-        echo '<pre>';
-        print_r($validated);
-        echo '</pre>';
-        // exit;
 
         foreach ($validated as $key => $value) {
-            if (!empty($value)) {
+            // Для checkbox полей нужно сохранять даже если они false
+            if (in_array($key, ['support_chat_enabled', 'support_chat_greeting_enabled', 'support_chat_auto_reply_enabled'])) {
+                Option::set($key, $request->has($key) ? true : false);
+            } elseif (!empty($value) || $value === '0' || $value === 0) {
                 Option::set($key, $value);
             }
+        }
+
+        // Очищаем кеш настроек чата поддержки при изменении настроек чата
+        if ($request->form === 'support_chat') {
+            Cache::forget('support_chat_settings');
         }
 
         return redirect()->route('admin.settings.index')
@@ -130,6 +135,14 @@ class SettingController extends Controller
                 'steps_description_ru' => ['nullable', 'string'],
                 'steps_description_en' => ['nullable', 'string'],
                 'steps_description_uk' => ['nullable', 'string'],
+            ],
+            'support_chat' => [
+                'support_chat_enabled' => ['nullable', 'boolean'],
+                'support_chat_telegram_link' => ['nullable', 'url', 'max:255'],
+                'support_chat_greeting_enabled' => ['nullable', 'boolean'],
+                'support_chat_greeting_message' => ['nullable', 'string', 'max:1000'],
+                'support_chat_auto_reply_enabled' => ['nullable', 'boolean'],
+                'support_chat_auto_reply_message' => ['nullable', 'string', 'max:1000'],
             ],
             default => [
                 'currency' => ['required', 'string'],

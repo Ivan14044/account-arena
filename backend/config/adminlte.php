@@ -524,6 +524,17 @@ return [
         ],
 
         [
+            'text' => 'Чат поддержки',
+            'route' => 'admin.support-chats.index',
+            'icon' => 'fas fa-fw mr-1 fa-comments',
+            'active' => ['admin/support-chats*'],
+            'can' => 'admin-only',
+            'label' => '0',
+            'label_color' => 'danger',
+            'id' => 'support-chats-unread-count',
+        ],
+
+        [
             'text' => 'Настройки',
             'route' => 'admin.settings.index',
             'icon' => 'fas fa-fw mr-1 fa-cog',

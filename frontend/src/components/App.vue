@@ -10,6 +10,9 @@
 
     <!-- Глобальный прелоадер для навигации между страницами -->
     <NavigationLoader v-else />
+
+    <!-- Виджет чата поддержки -->
+    <SupportChatWidget />
 </template>
 
 <script setup lang="ts">
@@ -20,6 +23,7 @@ import DefaultLayout from '@/components/layout/DefaultLayout.vue';
 import EmptyLayout from '@/components/layout/EmptyLayout.vue';
 import FullPageLoader from '@/components/FullPageLoader.vue';
 import NavigationLoader from '@/components/NavigationLoader.vue';
+import SupportChatWidget from '@/components/SupportChatWidget.vue';
 
 import { useServiceStore } from '@/stores/services';
 import { usePageStore } from '@/stores/pages';

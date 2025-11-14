@@ -56,6 +56,11 @@
                         <i class="fas fa-file-alt mr-2"></i>Контент сайта
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="tab_support_chat" data-toggle="pill" href="#content_support_chat" role="tab">
+                        <i class="fas fa-comments mr-2"></i>Чат поддержки
+                    </a>
+                </li>
             </ul>
         </div>
         <div class="card-body">
@@ -784,6 +789,63 @@
                                 </div>
 
                                 <button type="submit" class="btn btn-primary mt-3">Сохранить изменения</button>
+                            </form>
+                        </div>
+
+                        <div class="tab-pane" id="content_support_chat" role="tabpanel">
+                            <form method="POST" action="{{ route('admin.settings.store') }}">
+                                @csrf
+                                <input type="hidden" name="form" value="support_chat">
+                                
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle"></i>
+                                    <strong>Информация:</strong> Включите встроенный чат поддержки для вашего сайта. 
+                                    Пользователи смогут общаться с поддержкой прямо на сайте. Все чаты доступны в разделе "Чат поддержки" в админ-панели.
+                                </div>
+
+                                <div class="form-group">
+                                    <div class="custom-control custom-switch">
+                                        <input type="checkbox" 
+                                               class="custom-control-input" 
+                                               id="support_chat_enabled" 
+                                               name="support_chat_enabled" 
+                                               value="1"
+                                               {{ old('support_chat_enabled', \App\Models\Option::get('support_chat_enabled')) ? 'checked' : '' }}>
+                                        <label class="custom-control-label" for="support_chat_enabled">
+                                            Включить чат поддержки
+                                        </label>
+                                    </div>
+                                    <small class="form-text text-muted">
+                                        Когда включено, виджет чата будет отображаться в правом нижнем углу сайта. 
+                                        Пользователи смогут создавать чаты и общаться с поддержкой в реальном времени.
+                                    </small>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="support_chat_telegram_link">
+                                        <i class="fab fa-telegram mr-2"></i>Ссылка на Telegram для чата поддержки
+                                    </label>
+                                    <input type="url" 
+                                           name="support_chat_telegram_link" 
+                                           id="support_chat_telegram_link" 
+                                           class="form-control @error('support_chat_telegram_link') is-invalid @enderror"
+                                           value="{{ old('support_chat_telegram_link', \App\Models\Option::get('support_chat_telegram_link', 'https://t.me/support')) }}"
+                                           placeholder="https://t.me/your_support">
+                                    @error('support_chat_telegram_link')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                    <small class="form-text text-muted">
+                                        Эта ссылка будет показана пользователям при открытии чата. Они смогут выбрать - общаться в окне или перейти в Telegram.
+                                    </small>
+                                </div>
+
+                                <div class="alert alert-success">
+                                    <i class="fas fa-check-circle"></i>
+                                    <strong>Готово к использованию:</strong> После включения чат будет автоматически работать. 
+                                    Все сообщения будут сохраняться в базе данных и доступны для просмотра в админ-панели.
+                                </div>
+
+                                <button type="submit" class="btn btn-primary mt-3">Сохранить настройки</button>
                             </form>
                         </div>
                         

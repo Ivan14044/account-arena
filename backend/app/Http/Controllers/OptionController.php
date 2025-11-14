@@ -55,4 +55,31 @@ class OptionController extends Controller
         
         return response()->json($rules);
     }
+
+    /**
+     * Получить настройки чата поддержки с кешированием
+     */
+    public function getSupportChatSettings()
+    {
+        $settings = Cache::remember('support_chat_settings', 3600, function () {
+            $enabled = Option::get('support_chat_enabled', false);
+            $enabled = filter_var($enabled, FILTER_VALIDATE_BOOLEAN);
+            $telegramLink = Option::get('support_chat_telegram_link', 'https://t.me/support');
+            $greetingEnabled = filter_var(Option::get('support_chat_greeting_enabled', false), FILTER_VALIDATE_BOOLEAN);
+            $greetingMessage = Option::get('support_chat_greeting_message', '');
+            $autoReplyEnabled = filter_var(Option::get('support_chat_auto_reply_enabled', false), FILTER_VALIDATE_BOOLEAN);
+            $autoReplyMessage = Option::get('support_chat_auto_reply_message', '');
+            
+            return [
+                'enabled' => $enabled,
+                'telegram_link' => $telegramLink,
+                'greeting_enabled' => $greetingEnabled,
+                'greeting_message' => $greetingMessage,
+                'auto_reply_enabled' => $autoReplyEnabled,
+                'auto_reply_message' => $autoReplyMessage,
+            ];
+        });
+        
+        return response()->json($settings);
+    }
 }
