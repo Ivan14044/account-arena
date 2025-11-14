@@ -37,6 +37,7 @@
                 v-for="(account, index) in displayedAccounts"
                 :key="account.id"
                 class="product-card"
+                :class="{ 'out-of-stock-card': account.quantity <= 0 }"
             >
                 <!-- Left: Product Image -->
                 <div
@@ -537,6 +538,91 @@ onMounted(async () => {
 
 .dark .product-card:hover {
     box-shadow: 0 8px 24px rgba(108, 92, 231, 0.2);
+}
+
+/* Стили для товаров, которые закончились */
+.product-card.out-of-stock-card {
+    opacity: 0.6;
+    background: #f5f5f5;
+    border-color: #d1d5db;
+    filter: grayscale(0.4);
+}
+
+.dark .product-card.out-of-stock-card {
+    background: #2d3748;
+    border-color: #4a5568;
+    opacity: 0.5;
+}
+
+.product-card.out-of-stock-card:hover {
+    transform: none;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    border-color: #d1d5db;
+}
+
+.dark .product-card.out-of-stock-card:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    border-color: #4a5568;
+}
+
+.product-card.out-of-stock-card::before {
+    display: none;
+}
+
+.product-card.out-of-stock-card .product-image {
+    filter: grayscale(0.5) brightness(0.9);
+}
+
+.product-card.out-of-stock-card .product-title {
+    color: #6b7280;
+}
+
+.dark .product-card.out-of-stock-card .product-title {
+    color: #9ca3af;
+}
+
+.product-card.out-of-stock-card .product-description {
+    color: #9ca3af;
+}
+
+.dark .product-card.out-of-stock-card .product-description {
+    color: #6b7280;
+}
+
+.product-card.out-of-stock-card .price {
+    color: #9ca3af;
+}
+
+.dark .product-card.out-of-stock-card .price {
+    color: #6b7280;
+}
+
+.product-card.out-of-stock-card .price-per-unit {
+    color: #9ca3af;
+}
+
+.dark .product-card.out-of-stock-card .price-per-unit {
+    color: #6b7280;
+}
+
+.product-card.out-of-stock-card .btn-cart {
+    opacity: 0.5;
+    cursor: not-allowed;
+    filter: grayscale(0.5);
+}
+
+.product-card.out-of-stock-card .btn-secondary {
+    opacity: 0.6;
+    filter: grayscale(0.3);
+}
+
+.product-card.out-of-stock-card .quantity-control {
+    opacity: 0.6;
+}
+
+.product-card.out-of-stock-card .quantity-btn {
+    opacity: 0.5;
+    cursor: not-allowed;
 }
 
 /* Обертка изображения */

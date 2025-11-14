@@ -70,10 +70,10 @@ class AccountController extends Controller
             ];
         });
 
-        // Filter out items with 0 quantity (no available items to sell)
-        $data = $data->filter(function ($item) {
-            return $item['quantity'] > 0;
-        });
+        // // Filter out items with 0 quantity (no available items to sell)
+        // $data = $data->filter(function ($item) {
+        //     return $item['quantity'] > 0;
+        // });
 
         return response()->json($data->values());
     }
