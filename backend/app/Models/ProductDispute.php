@@ -270,29 +270,94 @@ class ProductDispute extends Model
     /**
      * Получить текст решения
      */
-    public function getDecisionText(): string
+    public function getDecisionText(?string $locale = null): string
     {
+        $locale = $locale ?? app()->getLocale();
+        if (!in_array($locale, array_keys(config('langs')))) {
+            $locale = app()->getLocale();
+        }
+
+        $translations = [
+            'ru' => [
+                self::DECISION_REFUND => 'Возврат средств',
+                self::DECISION_REPLACEMENT => 'Замена товара',
+                self::DECISION_REJECTED => 'Отклонено',
+                'default' => 'Не обработано',
+            ],
+            'en' => [
+                self::DECISION_REFUND => 'Refund',
+                self::DECISION_REPLACEMENT => 'Replacement',
+                self::DECISION_REJECTED => 'Rejected',
+                'default' => 'Not processed',
+            ],
+            'uk' => [
+                self::DECISION_REFUND => 'Повернення коштів',
+                self::DECISION_REPLACEMENT => 'Заміна товару',
+                self::DECISION_REJECTED => 'Відхилено',
+                'default' => 'Не оброблено',
+            ],
+        ];
+
+        $localeTranslations = $translations[$locale] ?? $translations['ru'];
+        
         return match($this->admin_decision) {
-            self::DECISION_REFUND => 'Возврат средств',
-            self::DECISION_REPLACEMENT => 'Замена товара',
-            self::DECISION_REJECTED => 'Отклонено',
-            default => 'Не обработано',
+            self::DECISION_REFUND => $localeTranslations[self::DECISION_REFUND],
+            self::DECISION_REPLACEMENT => $localeTranslations[self::DECISION_REPLACEMENT],
+            self::DECISION_REJECTED => $localeTranslations[self::DECISION_REJECTED],
+            default => $localeTranslations['default'],
         };
     }
 
     /**
      * Получить текст причины
      */
-    public function getReasonText(): string
+    public function getReasonText(?string $locale = null): string
     {
+        $locale = $locale ?? app()->getLocale();
+        if (!in_array($locale, array_keys(config('langs')))) {
+            $locale = app()->getLocale();
+        }
+
+        $translations = [
+            'ru' => [
+                self::REASON_INVALID_ACCOUNT => 'Невалидный аккаунт',
+                self::REASON_WRONG_DATA => 'Неверные данные',
+                self::REASON_NOT_WORKING => 'Не работает',
+                self::REASON_ALREADY_USED => 'Уже использован',
+                self::REASON_BANNED => 'Заблокирован',
+                self::REASON_OTHER => 'Другое',
+                'default' => 'Не указано',
+            ],
+            'en' => [
+                self::REASON_INVALID_ACCOUNT => 'Invalid account',
+                self::REASON_WRONG_DATA => 'Wrong data',
+                self::REASON_NOT_WORKING => 'Not working',
+                self::REASON_ALREADY_USED => 'Already used',
+                self::REASON_BANNED => 'Banned',
+                self::REASON_OTHER => 'Other',
+                'default' => 'Not specified',
+            ],
+            'uk' => [
+                self::REASON_INVALID_ACCOUNT => 'Невалідний акаунт',
+                self::REASON_WRONG_DATA => 'Невірні дані',
+                self::REASON_NOT_WORKING => 'Не працює',
+                self::REASON_ALREADY_USED => 'Вже використано',
+                self::REASON_BANNED => 'Заблоковано',
+                self::REASON_OTHER => 'Інше',
+                'default' => 'Не вказано',
+            ],
+        ];
+
+        $localeTranslations = $translations[$locale] ?? $translations['ru'];
+        
         return match($this->reason) {
-            self::REASON_INVALID_ACCOUNT => 'Невалидный аккаунт',
-            self::REASON_WRONG_DATA => 'Неверные данные',
-            self::REASON_NOT_WORKING => 'Не работает',
-            self::REASON_ALREADY_USED => 'Уже использован',
-            self::REASON_BANNED => 'Заблокирован',
-            self::REASON_OTHER => 'Другое',
-            default => 'Не указано',
+            self::REASON_INVALID_ACCOUNT => $localeTranslations[self::REASON_INVALID_ACCOUNT],
+            self::REASON_WRONG_DATA => $localeTranslations[self::REASON_WRONG_DATA],
+            self::REASON_NOT_WORKING => $localeTranslations[self::REASON_NOT_WORKING],
+            self::REASON_ALREADY_USED => $localeTranslations[self::REASON_ALREADY_USED],
+            self::REASON_BANNED => $localeTranslations[self::REASON_BANNED],
+            self::REASON_OTHER => $localeTranslations[self::REASON_OTHER],
+            default => $localeTranslations['default'],
         };
     }
 
@@ -313,14 +378,45 @@ class ProductDispute extends Model
     /**
      * Получить текст статуса
      */
-    public function getStatusText(): string
+    public function getStatusText(?string $locale = null): string
     {
+        $locale = $locale ?? app()->getLocale();
+        if (!in_array($locale, array_keys(config('langs')))) {
+            $locale = app()->getLocale();
+        }
+
+        $translations = [
+            'ru' => [
+                self::STATUS_NEW => 'Новая',
+                self::STATUS_IN_REVIEW => 'На рассмотрении',
+                self::STATUS_RESOLVED => 'Решена',
+                self::STATUS_REJECTED => 'Отклонена',
+                'default' => 'Неизвестно',
+            ],
+            'en' => [
+                self::STATUS_NEW => 'New',
+                self::STATUS_IN_REVIEW => 'In review',
+                self::STATUS_RESOLVED => 'Resolved',
+                self::STATUS_REJECTED => 'Rejected',
+                'default' => 'Unknown',
+            ],
+            'uk' => [
+                self::STATUS_NEW => 'Нова',
+                self::STATUS_IN_REVIEW => 'На розгляді',
+                self::STATUS_RESOLVED => 'Вирішено',
+                self::STATUS_REJECTED => 'Відхилено',
+                'default' => 'Невідомо',
+            ],
+        ];
+
+        $localeTranslations = $translations[$locale] ?? $translations['ru'];
+        
         return match($this->status) {
-            self::STATUS_NEW => 'Новая',
-            self::STATUS_IN_REVIEW => 'На рассмотрении',
-            self::STATUS_RESOLVED => 'Решена',
-            self::STATUS_REJECTED => 'Отклонена',
-            default => 'Неизвестно',
+            self::STATUS_NEW => $localeTranslations[self::STATUS_NEW],
+            self::STATUS_IN_REVIEW => $localeTranslations[self::STATUS_IN_REVIEW],
+            self::STATUS_RESOLVED => $localeTranslations[self::STATUS_RESOLVED],
+            self::STATUS_REJECTED => $localeTranslations[self::STATUS_REJECTED],
+            default => $localeTranslations['default'],
         };
     }
 }

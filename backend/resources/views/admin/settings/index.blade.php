@@ -27,8 +27,8 @@
         <div class="card-header-modern p-0 border-0">
             <ul class="nav nav-tabs-modern" id="settings-tabs" role="tablist">
                 <li class="nav-item">
-                    <a class="nav-link active" id="tab_subscriptions" data-toggle="pill" href="#content_subscriptions" role="tab">
-                        <i class="fas fa-cog mr-2"></i>Настройки подписок
+                    <a class="nav-link active" id="tab_site_content" data-toggle="pill" href="#content_site_content" role="tab">
+                        <i class="fas fa-file-alt mr-2"></i>Контент сайта
                     </a>
                 </li>
                 <li class="nav-item">
@@ -52,11 +52,6 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" id="tab_site_content" data-toggle="pill" href="#content_site_content" role="tab">
-                        <i class="fas fa-file-alt mr-2"></i>Контент сайта
-                    </a>
-                </li>
-                <li class="nav-item">
                     <a class="nav-link" id="tab_support_chat" data-toggle="pill" href="#content_support_chat" role="tab">
                         <i class="fas fa-comments mr-2"></i>Чат поддержки
                     </a>
@@ -65,61 +60,6 @@
         </div>
         <div class="card-body">
             <div class="tab-content">
-                        <div class="tab-pane fade show active" id="content_subscriptions" role="tabpanel">
-                            <form method="POST" action="{{ route('admin.settings.store') }}">
-                                <input type="hidden" name="form" value="subscriptions">
-                                @csrf
-                                <div class="form-group">
-                                    <label for="trial_days">Trial days</label>
-                                    <input type="text" name="trial_days" id="trial_days" class="form-control @error('trial_days') is-invalid @enderror"
-                                           value="{{ old('trial_days', \App\Models\Option::get('trial_days')) }}">
-                                    @error('trial_days')
-                                        <div class="invalid-feedback d-block">{{ $message }}</div>
-                                    @enderror
-                                </div>
-
-                                <div class="form-group">
-                                    <label for="currency">Currency</label>
-                                    <select name="currency" id="currency" class="form-control @error('currency') is-invalid @enderror">
-                                        <option value="usd" {{ old('currency', $currency) == 'usd' ? 'selected' : '' }}>USD</option>
-                                        <option value="eur" {{ old('currency', $currency) == 'eur' ? 'selected' : '' }}>EUR</option>
-                                        <option value="uah" {{ old('currency', $currency) == 'uah' ? 'selected' : '' }}>UAH</option>
-                                        <option value="rub" {{ old('currency', $currency) == 'rub' ? 'selected' : '' }}>RUB</option>
-                                        <option value="byn" {{ old('currency', $currency) == 'byn' ? 'selected' : '' }}>BYN</option>
-                                        <option value="kzt" {{ old('currency', $currency) == 'kzt' ? 'selected' : '' }}>KZT</option>
-                                        <option value="gel" {{ old('currency', $currency) == 'gel' ? 'selected' : '' }}>GEL</option>
-                                        <option value="mdl" {{ old('currency', $currency) == 'mdl' ? 'selected' : '' }}>MDL</option>
-                                        <option value="pln" {{ old('currency', $currency) == 'pln' ? 'selected' : '' }}>PLN</option>
-                                        <option value="chf" {{ old('currency', $currency) == 'chf' ? 'selected' : '' }}>CHF</option>
-                                        <option value="sek" {{ old('currency', $currency) == 'sek' ? 'selected' : '' }}>SEK</option>
-                                        <option value="czk" {{ old('currency', $currency) == 'czk' ? 'selected' : '' }}>CZK</option>
-                                    </select>
-                                    @error('currency')
-                                        <div class="invalid-feedback d-block">{{ $message }}</div>
-                                    @enderror
-                                </div>
-
-                                <div class="form-group">
-                                    <label for="discount_2">Discount for 2 services (%)</label>
-                                    <input type="number" step="1" min="0" max="99" name="discount_2" id="discount_2" class="form-control @error('discount_2') is-invalid @enderror"
-                                           value="{{ old('discount_2', \App\Models\Option::get('discount_2')) }}">
-                                    @error('discount_2')
-                                        <div class="invalid-feedback d-block">{{ $message }}</div>
-                                    @enderror
-                                </div>
-
-                                <div class="form-group">
-                                    <label for="discount_3">Discount for 3 services (%)</label>
-                                    <input type="number" step="1" min="0" max="99" name="discount_3" id="discount_3" class="form-control @error('discount_3') is-invalid @enderror"
-                                           value="{{ old('discount_3', \App\Models\Option::get('discount_3')) }}">
-                                    @error('discount_3')
-                                        <div class="invalid-feedback d-block">{{ $message }}</div>
-                                    @enderror
-                                </div>
-
-                                <button type="submit" class="btn btn-primary">Save</button>
-                            </form>
-                        </div>
                         <div class="tab-pane" id="content_header_menu" role="tabpanel">
                             <div class="card">
                                 <div class="card-header no-border border-0 p-0">
@@ -330,7 +270,7 @@
                             </form>
                         </div>
 
-                        <div class="tab-pane" id="content_site_content" role="tabpanel">
+                        <div class="tab-pane fade show active" id="content_site_content" role="tabpanel">
                             <form method="POST" action="{{ route('admin.settings.store') }}">
                                 @csrf
                                 <input type="hidden" name="form" value="site_content">
@@ -338,8 +278,34 @@
                                 <div class="alert alert-info">
                                     <i class="fas fa-info-circle"></i>
                                     <strong>Информация:</strong> Здесь вы можете редактировать весь текстовый контент главной страницы сайта. 
-                                    HTML теги поддерживаются (например, &lt;span class='gradient-text'&gt;текст&lt;/span&gt;).
+                                    HTML теги поддерживаются. Для выделения текста градиентом используйте классы: 
+                                    <code>gradient-text</code> (базовый градиент) или <code>gradient-text bg-gradient-1</code> (альтернативный градиент). 
+                                    <strong>Пример:</strong> <code>Магазин &lt;span class="gradient-text"&gt;цифровых товаров&lt;/span&gt; и &lt;span class="gradient-text bg-gradient-1"&gt;премиум аккаунтов&lt;/span&gt;</code>
                                 </div>
+
+                                <!-- Currency -->
+                                <div class="form-group mb-4">
+                                    <label for="currency">Валюта</label>
+                                    <select name="currency" id="currency" class="form-control @error('currency') is-invalid @enderror">
+                                        <option value="usd" {{ old('currency', $currency) == 'usd' ? 'selected' : '' }}>USD</option>
+                                        <option value="eur" {{ old('currency', $currency) == 'eur' ? 'selected' : '' }}>EUR</option>
+                                        <option value="uah" {{ old('currency', $currency) == 'uah' ? 'selected' : '' }}>UAH</option>
+                                        <option value="rub" {{ old('currency', $currency) == 'rub' ? 'selected' : '' }}>RUB</option>
+                                        <option value="byn" {{ old('currency', $currency) == 'byn' ? 'selected' : '' }}>BYN</option>
+                                        <option value="kzt" {{ old('currency', $currency) == 'kzt' ? 'selected' : '' }}>KZT</option>
+                                        <option value="gel" {{ old('currency', $currency) == 'gel' ? 'selected' : '' }}>GEL</option>
+                                        <option value="mdl" {{ old('currency', $currency) == 'mdl' ? 'selected' : '' }}>MDL</option>
+                                        <option value="pln" {{ old('currency', $currency) == 'pln' ? 'selected' : '' }}>PLN</option>
+                                        <option value="chf" {{ old('currency', $currency) == 'chf' ? 'selected' : '' }}>CHF</option>
+                                        <option value="sek" {{ old('currency', $currency) == 'sek' ? 'selected' : '' }}>SEK</option>
+                                        <option value="czk" {{ old('currency', $currency) == 'czk' ? 'selected' : '' }}>CZK</option>
+                                    </select>
+                                    @error('currency')
+                                        <div class="invalid-feedback d-block">{{ $message }}</div>
+                                    @enderror
+                                </div>
+
+                                <hr class="my-4">
 
                                 <!-- Language Tabs -->
                                 <ul class="nav nav-tabs" id="content-lang-tabs" role="tablist">

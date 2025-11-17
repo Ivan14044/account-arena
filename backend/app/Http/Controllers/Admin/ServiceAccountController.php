@@ -234,33 +234,47 @@ class ServiceAccountController extends Controller
                 ->with('error', 'Нет товаров для выгрузки');
         }
 
-        $exportCount = count($allAccountsData);
-
-        // If limit is provided, slice the array
-        if ($request->has('limit')) {
-            $limit = (int) $request->input('limit');
-            $exportCount = max(1, min($limit, count($allAccountsData)));
+        // Get current used count (same logic as purchase)
+        $usedCount = $serviceAccount->used ?? 0;
+        
+        // If count is provided, use it; otherwise export all remaining
+        if ($request->has('count')) {
+            $count = (int) $request->input('count');
+            $availableCount = count($allAccountsData) - $usedCount;
+            $exportCount = max(1, min($count, $availableCount));
+        } else {
+            $exportCount = count($allAccountsData) - $usedCount;
         }
 
-        // Get accounts to export
-        $accountsData = array_slice($allAccountsData, 0, $exportCount);
-        $content = implode("\n", $accountsData);
+        // Get accounts to export starting from used index (same as purchase logic)
+        $assignedAccounts = [];
+        for ($i = 0; $i < $exportCount; $i++) {
+            if (isset($allAccountsData[$usedCount + $i])) {
+                $assignedAccounts[] = $allAccountsData[$usedCount + $i];
+            }
+        }
+
+        $content = implode("\n", $assignedAccounts);
+
+        // Ensure UTF-8 encoding with BOM for Windows compatibility
+        $content = "\xEF\xBB\xBF" . $content;
 
         $filename = 'product_' . $serviceAccount->id . '_' . date('Y-m-d') . '.txt';
 
-        // Remove exported accounts from database
-        $remainingAccounts = array_slice($allAccountsData, $exportCount);
-
-        // Update service account with remaining data
-        $serviceAccount->accounts_data = $remainingAccounts;
+        // Increment used count (same as purchase logic - don't remove from array)
+        $serviceAccount->used = $usedCount + $exportCount;
         $serviceAccount->save();
 
-        // Store success message in session for redirect after download
-        session()->flash('export_success', 'Выгружено ' . $exportCount . ' товаров. Осталось: ' . count($remainingAccounts));
+        // Calculate remaining count
+        $remainingCount = count($allAccountsData) - $serviceAccount->used;
 
-        return response($content)
-            ->header('Content-Type', 'text/plain; charset=utf-8')
-            ->header('Content-Disposition', 'attachment; filename="' . $filename . '"');
+        // Store success message in session for redirect after download
+        session()->flash('export_success', 'Выгружено ' . $exportCount . ' товаров. Осталось: ' . $remainingCount);
+
+        return response($content, 200, [
+            'Content-Type' => 'text/plain; charset=utf-8',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ]);
     }
 
     public function import(Request $request, ServiceAccount $serviceAccount)

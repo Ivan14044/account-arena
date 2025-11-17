@@ -117,14 +117,14 @@
                             <div class="flex justify-between items-center">
                                 <h3 class="font-normal">
                                     {{
-                                        discountPercent > 0 || promoDiscountPercent > 0
+                                        personalDiscountPercent > 0 || promoDiscountPercent > 0
                                             ? $t('checkout.original_total')
                                             : $t('checkout.total_amount')
                                     }}:
                                 </h3>
                                 <span
                                     :class="
-                                        discountPercent > 0 || promoDiscountPercent > 0
+                                        personalDiscountPercent > 0 || promoDiscountPercent > 0
                                             ? 'line-through opacity-60'
                                             : ''
                                     "
@@ -134,11 +134,11 @@
                                 </span>
                             </div>
                             <div
-                                v-if="discountPercent > 0"
+                                v-if="personalDiscountPercent > 0"
                                 class="flex justify-between items-center text-sm"
                             >
-                                <span>{{ $t('checkout.discount') }} ({{ discountPercent }}%)</span>
-                                <span>-{{ formatCurrency(optionDiscountAmount) }}</span>
+                                <span>Персональная скидка ({{ personalDiscountPercent }}%)</span>
+                                <span>-{{ formatCurrency(personalDiscountAmount) }}</span>
                             </div>
                             <div
                                 v-if="promoDiscountPercent > 0"
@@ -152,7 +152,7 @@
                                 <span>-{{ formatCurrency(promoDiscountAmount) }}</span>
                             </div>
                             <div
-                                v-if="discountPercent > 0 || promoDiscountPercent > 0"
+                                v-if="personalDiscountPercent > 0 || promoDiscountPercent > 0"
                                 class="flex justify-between items-center"
                             >
                                 <h3 class="font-normal">{{ $t('checkout.total_amount') }}:</h3>
@@ -191,30 +191,6 @@
                                     <X v-if="isApplied" class="w-5 h-5" />
                                     <Check v-else class="w-5 h-5" />
                                 </button>
-                            </div>
-                        </div>
-
-                        <div
-                            v-if="upsellPercent > 0"
-                            class="mt-3 rounded-lg overflow-hidden glass-card"
-                        >
-                            <div class="px-3 py-2">
-                                <div class="flex items-center justify-between gap-3">
-                                    <div
-                                        class="text-left text-xs text-dark dark:text-white leading-snug"
-                                    >
-                                        <div class="whitespace-pre-line">
-                                            <i18n-t keypath="checkout.upsell_generic" tag="span">
-                                                <span class="font-semibold">1</span>
-                                            </i18n-t>
-                                        </div>
-                                    </div>
-                                    <span
-                                        class="px-2 py-0.5 bg-green-500 text-white rounded-xl text-sm font-semibold"
-                                    >
-                                        -{{ upsellPercent }}%
-                                    </span>
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -521,39 +497,59 @@ const isApplied = computed(
     () => !!promo.code && !!promo.result && !promo.error && promo.code === inputCode.value
 );
 
-// Discounts (from options, only if > 0)
-const itemCount = computed(() => productCartStore.itemCount);
-const discountPercent = computed(() => {
-    const d2 = Number(optionStore.options.discount_2 || 0);
-    const d3 = Number(optionStore.options.discount_3 || 0);
-    if (itemCount.value >= 3) return d3 > 0 ? d3 : 0;
-    if (itemCount.value === 2) return d2 > 0 ? d2 : 0;
-    return 0;
-});
-
 const subtotalPaid = computed(() => {
     return productCartStore.totalAmount;
 });
 
-const optionDiscountAmount = computed(() => (subtotalPaid.value * discountPercent.value) / 100);
+// Personal discount (only for authenticated users)
+const personalDiscountPercent = computed(() => {
+    if (!authStore.isAuthenticated || !authStore.user) {
+        return 0;
+    }
+
+    const discount = authStore.user.personal_discount || 0;
+    const expiresAt = authStore.user.personal_discount_expires_at;
+
+    // Check if discount is active
+    if (discount <= 0) {
+        return 0;
+    }
+
+    // Check expiration date if exists
+    if (expiresAt) {
+        const expiryDate = new Date(expiresAt);
+        if (new Date() > expiryDate) {
+            return 0;
+        }
+    }
+
+    return Number(discount);
+});
+
+const personalDiscountAmount = computed(() => {
+    if (personalDiscountPercent.value <= 0) {
+        return 0;
+    }
+    return (subtotalPaid.value * personalDiscountPercent.value) / 100;
+});
+
+// Apply personal discount first, then promo discount
+const subtotalAfterPersonalDiscount = computed(() => {
+    return Math.max(0, subtotalPaid.value - personalDiscountAmount.value);
+});
+
 const promoDiscountPercent = computed(() =>
     promo.result?.type === 'discount' ? Number(promo.result.discount_percent || 0) : 0
 );
-const promoDiscountAmount = computed(() => (subtotalPaid.value * promoDiscountPercent.value) / 100);
+const promoDiscountAmount = computed(
+    () => (subtotalAfterPersonalDiscount.value * promoDiscountPercent.value) / 100
+);
 const finalTotal = computed(() =>
-    Math.max(0, subtotalPaid.value - optionDiscountAmount.value - promoDiscountAmount.value)
+    Math.max(0, subtotalAfterPersonalDiscount.value - promoDiscountAmount.value)
 );
 const isZeroTotalWithServices = computed(
     () => finalTotal.value === 0 && productCartStore.items.length > 0
 );
-
-const upsellPercent = computed(() => {
-    const d2 = Number(optionStore.options.discount_2 || 0);
-    const d3 = Number(optionStore.options.discount_3 || 0);
-    if (itemCount.value === 1) return d2 > 0 ? d2 : 0;
-    if (itemCount.value === 2) return d3 > 0 ? d3 : 0;
-    return 0;
-});
 
 const formatCurrency = (value: number) => {
     return `${value.toFixed(2)} ${optionStore.options.currency.toUpperCase()}`;

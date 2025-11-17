@@ -62,7 +62,7 @@ class SecurityHeaders
             "style-src 'self' 'unsafe-inline' http://fonts.googleapis.com https://fonts.googleapis.com http://cdn.jsdelivr.net https://cdn.jsdelivr.net http://cdn.datatables.net https://cdn.datatables.net http://cdnjs.cloudflare.com https://cdnjs.cloudflare.com http://code.jquery.com https://code.jquery.com",
             "font-src 'self' http://fonts.gstatic.com https://fonts.gstatic.com data: http://cdn.jsdelivr.net https://cdn.jsdelivr.net",
             "img-src 'self' data: http: https: blob:",
-            "connect-src 'self' {$appUrl} {$frontendUrl} https://api.monobank.ua https://api.cryptomus.com http://cdn.ckeditor.com https://cdn.ckeditor.com",
+            "connect-src 'self' {$appUrl} {$frontendUrl} https://api.monobank.ua https://api.cryptomus.com http://cdn.ckeditor.com https://cdn.ckeditor.com http://cdn.datatables.net https://cdn.datatables.net",
             "frame-src 'self'",
             "object-src 'none'",
             "base-uri 'self'",

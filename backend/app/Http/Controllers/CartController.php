@@ -48,7 +48,13 @@ class CartController extends Controller
 
             $totalAmount = $productsTotal;
 
-            // Применяем скидку по промокоду если есть
+            // Применяем персональную скидку пользователя (если есть и активна)
+            $personalDiscountPercent = $user->getActivePersonalDiscount();
+            if ($personalDiscountPercent > 0) {
+                $totalAmount = $totalAmount - ($totalAmount * $personalDiscountPercent / 100);
+            }
+
+            // Применяем скидку по промокоду если есть (применяется после персональной скидки)
             if ($promoData && ($promoData['type'] ?? '') === 'discount') {
                 $discountPercent = floatval($promoData['discount_percent'] ?? 0);
                 $totalAmount = $totalAmount - ($totalAmount * $discountPercent / 100);

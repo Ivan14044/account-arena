@@ -90,6 +90,29 @@
                             </div>
                         </div>
                     @endforeach
+                    <!-- Индикатор печати пользователя -->
+                    <div id="user-typing-indicator" style="display: none;" class="mb-3 message-item">
+                        <div class="d-flex justify-content-start">
+                            <div class="message-bubble message-user" style="max-width: 70%;">
+                                <div class="message-header mb-1">
+                                    <strong>
+                                        @if($chat->user)
+                                            {{ $chat->user->name ?? 'Пользователь' }}
+                                        @else
+                                            {{ $chat->guest_name ?? 'Гость' }}
+                                        @endif
+                                    </strong>
+                                </div>
+                                <div class="message-text typing-message">
+                                    <span class="typing-indicator">
+                                        <span></span>
+                                        <span></span>
+                                        <span></span>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -108,12 +131,6 @@
                             <small class="form-text text-muted">Поддерживаемые форматы: изображения, PDF, DOC, DOCX, XLS, XLSX, TXT, ZIP, RAR</small>
                             <div id="admin-attachments-preview" style="margin-top: 10px;"></div>
                         </div>
-                        <div id="user-typing-indicator" style="display: none; margin-bottom: 10px; font-size: 12px; color: #6b7280; font-style: italic;">
-                            <span class="typing-dots">
-                                <span>.</span><span>.</span><span>.</span>
-                            </span>
-                            Пользователь печатает...
-                        </div>
                         <button type="submit" class="btn btn-primary">
                             <i class="fas fa-paper-plane"></i> Отправить
                         </button>
@@ -123,12 +140,168 @@
                     (function() {
                         const messageInput = document.getElementById('admin-message-input');
                         const typingIndicator = document.getElementById('user-typing-indicator');
+                        const messagesContainer = document.getElementById('messages-container');
                         let typingTimeout = null;
+                        let typingThrottleTimeout = null;
                         let typingCheckInterval = null;
+                        let messagesPollInterval = null;
+                        
+                        // Получаем ID последнего сообщения
+                        function getLastMessageId() {
+                            const messageItems = messagesContainer.querySelectorAll('.message-item[data-message-id]');
+                            if (messageItems.length === 0) return 0;
+                            const lastItem = messageItems[messageItems.length - 1];
+                            return parseInt(lastItem.getAttribute('data-message-id')) || 0;
+                        }
+                        
+                        // Функция для форматирования даты
+                        function formatDateTime(dateString) {
+                            const date = new Date(dateString);
+                            const day = String(date.getDate()).padStart(2, '0');
+                            const month = String(date.getMonth() + 1).padStart(2, '0');
+                            const year = date.getFullYear();
+                            const hours = String(date.getHours()).padStart(2, '0');
+                            const minutes = String(date.getMinutes()).padStart(2, '0');
+                            return `${day}.${month}.${year} ${hours}:${minutes}`;
+                        }
+                        
+                        // Функция для форматирования размера файла
+                        function formatFileSize(bytes) {
+                            if (!bytes) return '0 B';
+                            const units = ['B', 'KB', 'MB', 'GB'];
+                            let size = bytes;
+                            let unit = 0;
+                            while (size >= 1024 && unit < units.length - 1) {
+                                size /= 1024;
+                                unit++;
+                            }
+                            return `${size.toFixed(2)} ${units[unit]}`;
+                        }
+                        
+                        // Функция для проверки, является ли файл изображением
+                        function isImage(mimeType) {
+                            return ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'].includes(mimeType);
+                        }
+                        
+                        // Добавление нового сообщения в DOM
+                        function addMessageToDOM(message, chat) {
+                            const messageDiv = document.createElement('div');
+                            messageDiv.className = 'mb-3 message-item';
+                            messageDiv.setAttribute('data-message-id', message.id);
+                            
+                            const isAdmin = message.sender_type === 'admin';
+                            let senderName;
+                            if (isAdmin) {
+                                senderName = (message.user && message.user.name) ? message.user.name : 'Администратор';
+                            } else {
+                                if (chat.user) {
+                                    senderName = (message.user && message.user.name) ? message.user.name : 'Пользователь';
+                                } else {
+                                    senderName = chat.guest_name || 'Гость';
+                                }
+                            }
+                            
+                            let attachmentsHtml = '';
+                            if (message.attachments && message.attachments.length > 0) {
+                                attachmentsHtml = '<div class="message-attachments mt-2">';
+                                message.attachments.forEach(function(attachment) {
+                                    if (isImage(attachment.mime_type)) {
+                                        attachmentsHtml += `
+                                            <div class="attachment-item mb-2">
+                                                <a href="${attachment.file_url}" target="_blank" class="d-block">
+                                                    <img src="${attachment.file_url}" alt="${attachment.file_name}" class="img-thumbnail" style="max-width: 200px; max-height: 200px; cursor: pointer;">
+                                                </a>
+                                            </div>
+                                        `;
+                                    } else {
+                                        attachmentsHtml += `
+                                            <div class="attachment-item mb-2">
+                                                <a href="${attachment.file_url}" target="_blank" class="d-flex align-items-center text-decoration-none" download>
+                                                    <i class="fas fa-file mr-2"></i>
+                                                    <span>${attachment.file_name}</span>
+                                                    <small class="ml-2">(${formatFileSize(attachment.file_size)})</small>
+                                                </a>
+                                            </div>
+                                        `;
+                                    }
+                                });
+                                attachmentsHtml += '</div>';
+                            }
+                            
+                            messageDiv.innerHTML = `
+                                <div class="d-flex ${isAdmin ? 'justify-content-end' : 'justify-content-start'}">
+                                    <div class="message-bubble ${isAdmin ? 'message-admin' : 'message-user'}" style="max-width: 70%;">
+                                        <div class="message-header mb-1">
+                                            <strong>${senderName}</strong>
+                                            <span class="text-muted ml-2" style="font-size: 0.85em;">
+                                                ${formatDateTime(message.created_at)}
+                                            </span>
+                                        </div>
+                                        <div class="message-text">
+                                            ${message.message}
+                                        </div>
+                                        ${attachmentsHtml}
+                                    </div>
+                                </div>
+                            `;
+                            
+                            // Вставляем перед индикатором печати
+                            const typingIndicator = document.getElementById('user-typing-indicator');
+                            if (typingIndicator) {
+                                messagesContainer.insertBefore(messageDiv, typingIndicator);
+                            } else {
+                                messagesContainer.appendChild(messageDiv);
+                            }
+                        }
+                        
+                        // Загрузка новых сообщений
+                        function loadNewMessages() {
+                            const lastMessageId = getLastMessageId();
+                            
+                            $.ajax({
+                                url: '/admin/support-chats/{{ $chat->id }}/messages',
+                                method: 'GET',
+                                data: {
+                                    last_message_id: lastMessageId
+                                },
+                                success: function(data) {
+                                    if (data.success && data.messages && data.messages.length > 0) {
+                                        const wasAtBottom = messagesContainer.scrollHeight - messagesContainer.scrollTop <= messagesContainer.clientHeight + 50;
+                                        
+                                        const chatData = {
+                                            user: @json($chat->user),
+                                            guest_name: @json($chat->guest_name)
+                                        };
+                                        
+                                        data.messages.forEach(function(message) {
+                                            addMessageToDOM(message, chatData);
+                                        });
+                                        
+                                        // Прокрутка вниз, если пользователь был внизу
+                                        if (wasAtBottom) {
+                                            setTimeout(function() {
+                                                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                                            }, 100);
+                                        }
+                                    }
+                                },
+                                error: function() {
+                                    // Игнорируем ошибки
+                                }
+                            });
+                        }
+                        
+                        // Запуск polling для новых сообщений
+                        messagesPollInterval = setInterval(loadNewMessages, 3000);
                         
                         function sendTyping() {
                             if (!messageInput.value.trim()) {
                                 sendStopTyping();
+                                return;
+                            }
+                            
+                            // Throttle: отправляем событие не чаще чем раз в 2 секунды
+                            if (typingThrottleTimeout) {
                                 return;
                             }
                             
@@ -139,6 +312,12 @@
                                 error: function() {}
                             });
                             
+                            // Устанавливаем throttle на 2 секунды
+                            typingThrottleTimeout = setTimeout(function() {
+                                typingThrottleTimeout = null;
+                            }, 2000);
+                            
+                            // Автоматически останавливаем через 3 секунды бездействия
                             clearTimeout(typingTimeout);
                             typingTimeout = setTimeout(function() {
                                 sendStopTyping();
@@ -146,6 +325,12 @@
                         }
                         
                         function sendStopTyping() {
+                            // Очищаем throttle timeout
+                            if (typingThrottleTimeout) {
+                                clearTimeout(typingThrottleTimeout);
+                                typingThrottleTimeout = null;
+                            }
+                            
                             $.ajax({
                                 url: '/admin/support-chats/{{ $chat->id }}/typing/stop',
                                 method: 'POST',
@@ -165,8 +350,15 @@
                                 url: '/admin/support-chats/{{ $chat->id }}/typing/user-status',
                                 method: 'GET',
                                 success: function(data) {
+                                    const messagesContainer = document.getElementById('messages-container');
                                     if (data.is_typing) {
                                         typingIndicator.style.display = 'block';
+                                        // Прокрутка вниз при появлении индикатора
+                                        if (messagesContainer) {
+                                            setTimeout(function() {
+                                                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                                            }, 100);
+                                        }
                                     } else {
                                         typingIndicator.style.display = 'none';
                                     }
@@ -178,12 +370,32 @@
                         typingCheckInterval = setInterval(checkUserTyping, 2000);
                         
                         // Остановка при отправке
-                        $('#send-message-form').on('submit', function() {
+                        document.getElementById('send-message-form').addEventListener('submit', function() {
                             sendStopTyping();
+                            // После отправки сообщения перезагружаем страницу для обновления сообщений
+                            // Или можно вызвать loadNewMessages() через небольшую задержку
+                            setTimeout(function() {
+                                loadNewMessages();
+                            }, 1000);
                         });
                         
                         // Остановка при уходе со страницы
-                        window.addEventListener('beforeunload', sendStopTyping);
+                        window.addEventListener('beforeunload', function() {
+                            sendStopTyping();
+                            // Очищаем все таймауты и интервалы
+                            if (typingTimeout) {
+                                clearTimeout(typingTimeout);
+                            }
+                            if (typingThrottleTimeout) {
+                                clearTimeout(typingThrottleTimeout);
+                            }
+                            if (typingCheckInterval) {
+                                clearInterval(typingCheckInterval);
+                            }
+                            if (messagesPollInterval) {
+                                clearInterval(messagesPollInterval);
+                            }
+                        });
                         
                         // Превью выбранных файлов
                         const attachmentsInput = document.getElementById('admin-attachments-input');
@@ -208,7 +420,6 @@
                         
                         // Поиск по сообщениям
                         const searchInput = document.getElementById('search-messages-input');
-                        const messagesContainer = document.getElementById('messages-container');
                         const allMessages = Array.from(messagesContainer.querySelectorAll('.message-bubble'));
                         
                         if (searchInput && messagesContainer) {
@@ -281,6 +492,37 @@
                                 }
                             });
                         }
+                        
+                        // Прокрутка вниз при загрузке страницы
+                        function scrollToBottom() {
+                            const messagesContainer = document.getElementById('messages-container');
+                            if (messagesContainer) {
+                                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                            }
+                        }
+                        
+                        // Прокручиваем при загрузке страницы (несколько попыток для надежности)
+                        function attemptScroll() {
+                            scrollToBottom();
+                            // Повторяем еще раз через небольшую задержку на случай, если контент еще загружается
+                            setTimeout(scrollToBottom, 300);
+                            setTimeout(scrollToBottom, 600);
+                        }
+                        
+                        // Прокручиваем при загрузке DOM и window
+                        if (document.readyState === 'loading') {
+                            document.addEventListener('DOMContentLoaded', function() {
+                                attemptScroll();
+                            });
+                        } else {
+                            // DOM уже загружен
+                            attemptScroll();
+                        }
+                        
+                        // Также прокручиваем при полной загрузке страницы
+                        window.addEventListener('load', function() {
+                            setTimeout(scrollToBottom, 100);
+                        });
                     })();
                     </script>
                 </div>
@@ -393,6 +635,44 @@
         }
         .message-text {
             word-wrap: break-word;
+        }
+        .typing-message {
+            display: flex;
+            align-items: center;
+            min-height: 20px;
+        }
+        .typing-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 0;
+        }
+        .typing-indicator span {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: currentColor;
+            opacity: 0.6;
+            animation: typing-bounce 1.4s infinite ease-in-out;
+        }
+        .typing-indicator span:nth-child(1) {
+            animation-delay: 0s;
+        }
+        .typing-indicator span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        .typing-indicator span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        @keyframes typing-bounce {
+            0%, 60%, 100% {
+                transform: translateY(0);
+                opacity: 0.6;
+            }
+            30% {
+                transform: translateY(-10px);
+                opacity: 1;
+            }
         }
     </style>
 @stop

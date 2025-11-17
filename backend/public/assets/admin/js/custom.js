@@ -89,7 +89,7 @@
                 // Воспроизводим звук при появлении нового непрочитанного сообщения
                 if (count > previousUnreadCount && previousUnreadCount >= 0) {
                     try {
-                        const audio = new Audio('/sounds/notification.mp3');
+                        const audio = new Audio('/assets/admin/sounds/notification.mp3');
                         audio.volume = 0.3; // 30% громкости
                         audio.play().catch(function(error) {
                             // Игнорируем ошибки воспроизведения

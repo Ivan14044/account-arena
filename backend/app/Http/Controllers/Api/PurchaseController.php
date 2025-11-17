@@ -21,11 +21,17 @@ class PurchaseController extends Controller
             return response()->json(['error' => 'Unauthorized'], 401);
         }
         
+        // Получаем locale из заголовка X-Locale
+        $locale = $request->header('X-Locale') ?? $request->query('locale') ?? app()->getLocale();
+        if (!in_array($locale, array_keys(config('langs')))) {
+            $locale = app()->getLocale();
+        }
+        
         // Начинаем запрос с основными условиями
         // Eager loading для избежания N+1 запросов
         $query = Purchase::with([
             'serviceAccount' => function($q) {
-                $q->select('id', 'title', 'image_url');
+                $q->select('id', 'title', 'title_en', 'title_uk', 'image_url');
             },
             'transaction' => function($q) {
                 $q->select('id', 'currency', 'payment_method');
@@ -50,14 +56,17 @@ class PurchaseController extends Controller
         
         $purchases = $query->orderBy('created_at', 'desc')
             ->get()
-            ->map(function ($purchase) {
+            ->map(function ($purchase) use ($locale) {
+                // Получаем локализованное название товара
+                $localizedTitle = $this->getLocalizedTitle($purchase->serviceAccount, $locale);
+                
                 return [
                     'id' => $purchase->id,
                     'order_number' => $purchase->order_number,
                     'transaction_id' => $purchase->transaction_id, // Для создания претензий
                     'product' => [
                         'id' => $purchase->serviceAccount->id,
-                        'title' => $purchase->serviceAccount->title,
+                        'title' => $localizedTitle,
                         'image_url' => $purchase->serviceAccount->image_url,
                     ],
                     'quantity' => $purchase->quantity,
@@ -68,7 +77,7 @@ class PurchaseController extends Controller
                     'purchased_at' => $purchase->created_at->format('Y-m-d H:i:s'),
                     
                     // Дополнительные поля для совместимости с ProfilePage
-                    'service_name' => $purchase->serviceAccount->title,
+                    'service_name' => $localizedTitle,
                     'amount' => $purchase->total_amount,
                     'currency' => $purchase->transaction ? $purchase->transaction->currency : Option::get('currency', 'USD'),
                     'payment_method' => $purchase->transaction ? $purchase->transaction->payment_method : 'unknown',
@@ -100,6 +109,12 @@ class PurchaseController extends Controller
             return response()->json(['error' => 'Unauthorized'], 401);
         }
         
+        // Получаем locale из заголовка X-Locale
+        $locale = $request->header('X-Locale') ?? $request->query('locale') ?? app()->getLocale();
+        if (!in_array($locale, array_keys(config('langs')))) {
+            $locale = app()->getLocale();
+        }
+        
         $purchase = Purchase::with(['serviceAccount', 'transaction'])
             ->where('user_id', $user->id)
             ->where('id', $id)
@@ -109,13 +124,16 @@ class PurchaseController extends Controller
             return response()->json(['error' => 'Purchase not found'], 404);
         }
         
+        // Получаем локализованное название товара
+        $localizedTitle = $this->getLocalizedTitle($purchase->serviceAccount, $locale);
+        
         return \App\Http\Responses\ApiResponse::success([
             'purchase' => [
                 'id' => $purchase->id,
                 'order_number' => $purchase->order_number,
                 'product' => [
                     'id' => $purchase->serviceAccount->id,
-                    'title' => $purchase->serviceAccount->title,
+                    'title' => $localizedTitle,
                     'description' => $purchase->serviceAccount->description,
                     'image_url' => $purchase->serviceAccount->image_url,
                 ],
@@ -127,6 +145,23 @@ class PurchaseController extends Controller
                 'purchased_at' => $purchase->created_at->format('Y-m-d H:i:s'),
             ],
         ]);
+    }
+    
+    /**
+     * Получить локализованное название товара
+     */
+    private function getLocalizedTitle($serviceAccount, $locale)
+    {
+        if ($locale === 'en' && !empty($serviceAccount->title_en)) {
+            return $serviceAccount->title_en;
+        }
+        
+        if ($locale === 'uk' && !empty($serviceAccount->title_uk)) {
+            return $serviceAccount->title_uk;
+        }
+        
+        // Fallback на базовое название (ru)
+        return $serviceAccount->title;
     }
     
     /**

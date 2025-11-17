@@ -126,6 +126,7 @@ Route::prefix('/admin')
             // Support chats management
             Route::get('support-chats', [\App\Http\Controllers\Admin\SupportChatController::class, 'index'])->name('support-chats.index');
             Route::get('support-chats/unread-count', [\App\Http\Controllers\Admin\SupportChatController::class, 'getUnreadCount'])->name('support-chats.unread-count');
+            Route::get('support-chats/{id}/messages', [\App\Http\Controllers\Admin\SupportChatController::class, 'getMessages'])->name('support-chats.messages');
             Route::get('support-chats/{id}', [\App\Http\Controllers\Admin\SupportChatController::class, 'show'])->name('support-chats.show');
             Route::post('support-chats/{id}/message', [\App\Http\Controllers\Admin\SupportChatController::class, 'sendMessage'])->name('support-chats.send-message');
             Route::post('support-chats/{id}/assign', [\App\Http\Controllers\Admin\SupportChatController::class, 'assign'])->name('support-chats.assign');

@@ -36,10 +36,6 @@ class MonoController extends Controller
             return \App\Http\Responses\ApiResponse::success();
         }
 
-        if ($this->invoiceAlreadyProcessed($request->invoiceId)) {
-            return response()->json(['success' => false], 403);
-        }
-
         // Проверяем, это пополнение баланса?
         if ($request->has('is_topup') && $request->is_topup == '1') {
             return $this->handleTopUpWebhook($request);
@@ -48,6 +44,11 @@ class MonoController extends Controller
         // Проверяем, это гостевой платеж?
         if ($request->has('is_guest') && $request->is_guest == '1') {
             return $this->handleGuestWebhook($request);
+        }
+
+        // Проверяем, это покупка товаров для авторизованного пользователя?
+        if ($request->has('user_id') && $request->has('products_data')) {
+            return $this->handleUserPurchaseWebhook($request);
         }
 
         // Services are no longer supported - only products are available
@@ -147,13 +148,92 @@ class MonoController extends Controller
         return response()->json(['success' => false, 'message' => 'Failed to create payment'], 422);
     }
 
-    private function invoiceAlreadyProcessed(string $invoiceId): bool
+    /**
+     * Создание платежа для авторизованного пользователя (покупка товаров)
+     */
+    public function createPayment(Request $request, PromocodeValidationService $promoService, \App\Services\ProductPurchaseService $purchaseService): JsonResponse
     {
-        return Subscription::where('order_id', $invoiceId)->exists() ||
-               Transaction::where('payment_method', 'credit_card')
-                   ->where('status', 'completed')
-                   ->where('created_at', '>', now()->subMinutes(5))
-                   ->exists();
+        $request->validate([
+            'products' => 'required|array|min:1',
+            'products.*.id' => 'required|integer|exists:service_accounts,id',
+            'products.*.quantity' => 'required|integer|min:1',
+            'promocode' => 'nullable|string',
+        ]);
+
+        $user = $this->getApiUser($request);
+        if (!$user) {
+            return response()->json(['message' => 'Invalid token'], 401);
+        }
+
+        // Подготавливаем данные о товарах используя сервис
+        $prepareResult = $purchaseService->prepareProductsData($request->products);
+        if (!$prepareResult['success']) {
+            return response()->json([
+                'success' => false,
+                'message' => $prepareResult['message']
+            ], 422);
+        }
+
+        $productsData = $prepareResult['data'];
+        $productsTotal = $prepareResult['total'];
+
+        // Apply promocode if provided
+        $promoData = null;
+        $promocodeParam = trim((string) $request->promocode);
+        if ($promocodeParam !== '') {
+            $promoData = $promoService->validate($promocodeParam, $user->id);
+
+            if (!($promoData['ok'] ?? false)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $promoData['message'] ?? 'Invalid promocode'
+                ], 422);
+            }
+        }
+
+        $totalAmount = $productsTotal;
+
+        // Применяем персональную скидку пользователя (если есть и активна)
+        $personalDiscountPercent = $user->getActivePersonalDiscount();
+        if ($personalDiscountPercent > 0) {
+            $totalAmount = $totalAmount - ($totalAmount * $personalDiscountPercent / 100);
+        }
+
+        // Применяем скидку по промокоду если есть (применяется после персональной скидки)
+        if ($promoData && ($promoData['type'] ?? '') === 'discount') {
+            $discountPercent = floatval($promoData['discount_percent'] ?? 0);
+            $totalAmount = $totalAmount - ($totalAmount * $discountPercent / 100);
+        }
+
+        $totalAmount = max(round($totalAmount, 2), 0.01); // Минимальная сумма
+
+        // Подготавливаем данные для webhook
+        $productsDataForWebhook = collect($productsData)->map(function($item) {
+            return [
+                'product_id' => $item['product']->id,
+                'quantity' => $item['quantity'],
+                'price' => $item['price'],
+                'total' => $item['total'],
+            ];
+        })->toArray();
+
+        // Создаем invoice через Mono
+        $invoice = MonoPaymentService::createInvoice(
+            amount: $totalAmount,
+            redirectUrl: config('app.url') . '/checkout?success=true',
+            webhookUrl: config('app.url') . '/api/mono/webhook?' . http_build_query([
+                'user_id' => $user->id,
+                'products_data' => base64_encode(json_encode($productsDataForWebhook)),
+                'promocode' => $promocodeParam,
+            ]),
+            walletId: 'wallet_user_' . $user->id . '_' . time(),
+        );
+
+        if (isset($invoice['pageUrl'])) {
+            return \App\Http\Responses\ApiResponse::success(['url' => $invoice['pageUrl']]);
+        }
+
+        return response()->json(['success' => false, 'message' => 'Failed to create payment'], 422);
     }
 
     /**
@@ -288,6 +368,120 @@ class MonoController extends Controller
                 'success' => false,
                 'message' => 'Processing failed'
             ], 500);
+        }
+    }
+
+    /**
+     * Обработка webhook для покупки товаров авторизованным пользователем
+     */
+    private function handleUserPurchaseWebhook(Request $request): JsonResponse
+    {
+        $userId = $request->user_id;
+        if (!$userId) {
+            Log::error('Invalid user_id in user purchase webhook');
+            return response()->json(['success' => false, 'message' => 'Invalid user_id'], 400);
+        }
+
+        $user = User::find($userId);
+        if (!$user) {
+            Log::error('User not found in webhook', ['user_id' => $userId]);
+            return response()->json(['success' => false, 'message' => 'User not found'], 404);
+        }
+
+        $productsDataEncoded = $request->products_data ?? '';
+        $productsData = json_decode(base64_decode($productsDataEncoded), true);
+        
+        if (!is_array($productsData) || empty($productsData)) {
+            Log::error('Invalid products data in user purchase webhook');
+            return response()->json(['success' => false, 'message' => 'Invalid products data'], 400);
+        }
+
+        $promocode = trim((string)($request->promocode ?? ''));
+
+        try {
+            $purchaseService = app(\App\Services\ProductPurchaseService::class);
+            
+            // Подготавливаем данные о товарах для создания покупок
+            $preparedProductsData = [];
+            foreach ($productsData as $item) {
+                $product = ServiceAccount::find($item['product_id']);
+                if (!$product) {
+                    Log::warning('Product not found in webhook', ['product_id' => $item['product_id']]);
+                    continue;
+                }
+                
+                $preparedProductsData[] = [
+                    'product' => $product,
+                    'quantity' => $item['quantity'],
+                    'price' => $item['price'],
+                    'total' => $item['total'],
+                ];
+            }
+            
+            if (empty($preparedProductsData)) {
+                Log::error('No valid products found in webhook');
+                return response()->json(['success' => false, 'message' => 'No valid products'], 400);
+            }
+            
+            // Создаем покупки для авторизованного пользователя
+            $purchases = $purchaseService->createMultiplePurchases(
+                $preparedProductsData,
+                $user->id,
+                null, // guest_email = null для авторизованных
+                'credit_card'
+            );
+
+            // Отправляем email уведомление пользователю
+            $totalAmount = array_sum(array_column($productsData, 'total'));
+            EmailService::send('payment_confirmation', $user->id, [
+                'amount' => number_format($totalAmount, 2, '.', '') . ' ' . strtoupper(Option::get('currency'))
+            ]);
+
+            // Уведомление админу о новой покупке
+            NotifierService::send(
+                'product_purchase',
+                __('notifier.new_product_purchase_title', ['method' => 'Monobank']),
+                __('notifier.new_product_purchase_message', [
+                    'email' => $user->email,
+                    'name' => $user->name,
+                    'products' => count($productsData),
+                    'amount' => number_format($totalAmount, 2),
+                ])
+            );
+
+            Log::info('User purchase completed via Monobank', [
+                'user_id' => $user->id,
+                'user_email' => $user->email,
+                'invoice_id' => $request->invoiceId ?? 'unknown',
+                'products_count' => count($productsData),
+            ]);
+
+            // Записываем использование промокода если есть
+            if ($promocode !== '') {
+                DB::transaction(function () use ($promocode, $user, $request) {
+                    $promo = Promocode::where('code', $promocode)->lockForUpdate()->first();
+                    if ($promo) {
+                        PromocodeUsage::create([
+                            'promocode_id' => $promo->id,
+                            'user_id' => $user->id,
+                            'order_id' => (string)($request->invoiceId ?? ''),
+                        ]);
+                        if ((int)$promo->usage_limit > 0 && (int)$promo->usage_count < (int)$promo->usage_limit) {
+                            $promo->usage_count = (int)$promo->usage_count + 1;
+                            $promo->save();
+                        }
+                    }
+                });
+            }
+
+            return \App\Http\Responses\ApiResponse::success();
+        } catch (\Exception $e) {
+            Log::error('User purchase webhook processing failed', [
+                'error' => $e->getMessage(),
+                'user_id' => $userId,
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return response()->json(['success' => false, 'message' => 'Processing failed'], 500);
         }
     }
 

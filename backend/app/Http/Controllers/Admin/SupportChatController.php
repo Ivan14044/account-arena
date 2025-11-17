@@ -291,4 +291,67 @@ class SupportChatController extends Controller
         
         return response()->json(['count' => $unreadCount]);
     }
+    
+    /**
+     * Получить новые сообщения для админа (для polling)
+     */
+    public function getMessages(Request $request, $id)
+    {
+        $chat = SupportChat::findOrFail($id);
+        $lastMessageId = $request->input('last_message_id', 0);
+        
+        // Получаем сообщения, которые появились после last_message_id
+        $messages = $chat->messages()
+            ->with(['user', 'attachments'])
+            ->where('id', '>', $lastMessageId)
+            ->orderBy('created_at', 'asc')
+            ->get();
+        
+        // Отмечаем новые сообщения от пользователей/гостей как прочитанные
+        $newUserMessages = $messages->filter(function($message) {
+            return in_array($message->sender_type, [SupportMessage::SENDER_USER, SupportMessage::SENDER_GUEST]);
+        });
+        
+        if ($newUserMessages->isNotEmpty()) {
+            SupportMessage::whereIn('id', $newUserMessages->pluck('id'))
+                ->where('is_read', false)
+                ->update([
+                    'is_read' => true,
+                    'read_at' => now(),
+                ]);
+            
+            // Очищаем кеш счетчика непрочитанных сообщений
+            \Illuminate\Support\Facades\Cache::forget('support_chats_unread_count');
+        }
+        
+        return response()->json([
+            'success' => true,
+            'messages' => $messages->map(function($message) {
+                return [
+                    'id' => $message->id,
+                    'message' => $message->message,
+                    'sender_type' => $message->sender_type,
+                    'user' => $message->user ? [
+                        'id' => $message->user->id,
+                        'name' => $message->user->name,
+                        'email' => $message->user->email,
+                    ] : null,
+                    'created_at' => $message->created_at->toISOString(),
+                    'attachments' => $message->attachments->map(function($attachment) {
+                        return [
+                            'id' => $attachment->id,
+                            'file_name' => $attachment->file_name,
+                            'file_url' => $attachment->file_url ?? $attachment->full_url,
+                            'file_size' => $attachment->file_size,
+                            'mime_type' => $attachment->mime_type,
+                        ];
+                    }),
+                ];
+            }),
+            'chat' => [
+                'id' => $chat->id,
+                'status' => $chat->status,
+            ],
+        ]);
+    }
 }

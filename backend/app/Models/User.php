@@ -344,4 +344,36 @@ class User extends Authenticatable
             'invalid_percent' => round(($invalidSales / $totalSales) * 100, 2),
         ];
     }
+
+    /**
+     * Проверить, активна ли персональная скидка пользователя
+     */
+    public function hasActivePersonalDiscount(): bool
+    {
+        $discount = $this->personal_discount ?? 0;
+        
+        if ($discount <= 0) {
+            return false;
+        }
+        
+        // Проверяем срок действия скидки
+        if ($this->personal_discount_expires_at) {
+            return now()->lessThanOrEqualTo($this->personal_discount_expires_at);
+        }
+        
+        // Если срок действия не указан, скидка действует бессрочно
+        return true;
+    }
+
+    /**
+     * Получить размер активной персональной скидки
+     */
+    public function getActivePersonalDiscount(): int
+    {
+        if ($this->hasActivePersonalDiscount()) {
+            return (int)($this->personal_discount ?? 0);
+        }
+        
+        return 0;
+    }
 }

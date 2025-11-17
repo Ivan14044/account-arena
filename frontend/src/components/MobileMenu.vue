@@ -69,7 +69,7 @@ const emit = defineEmits<{
 }>();
 
 const handleClick = (item: any) => {
-    if (item.is_target) {
+    if (item.is_blank) {
         window.open(item.link, '_blank');
     } else {
         router.push(item.link);

@@ -235,11 +235,12 @@
 
                                     @if($totalQuantity > 0)
                                     <button class="btn btn-sm btn-success" 
-                                            onclick="exportAccountsFromIndex({{ $serviceAccount->id }}, {{ $totalQuantity }})"
+                                            onclick="exportAccountsFromIndex({{ $serviceAccount->id }}, {{ $availableCount }})"
                                             title="Экспорт товаров"
                                             data-toggle="tooltip">
                                         <i class="fas fa-download"></i>
                                     </button>
+                                    @endif
 
                                     <button class="btn btn-sm btn-info" 
                                             data-toggle="modal"
@@ -248,7 +249,6 @@
                                             data-toggle-tooltip="tooltip">
                                         <i class="fas fa-upload"></i>
                                     </button>
-                                    @endif
 
                                     <button class="btn btn-sm btn-danger" 
                                             data-toggle="modal"
@@ -434,7 +434,7 @@
             // Create hidden iframe for download
             const iframe = document.createElement('iframe');
             iframe.style.display = 'none';
-            iframe.src = '/service-accounts/' + productId + '/export?limit=' + count;
+            iframe.src = '/admin/service-accounts/' + productId + '/export?count=' + count;
             document.body.appendChild(iframe);
 
             // After download completes, reload page

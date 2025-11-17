@@ -76,6 +76,7 @@ class SettingController extends Controller
                 'password' => ['required', 'string'],
             ],
             'site_content' => [
+                'currency' => ['required', 'string'],
                 // Hero
                 'hero_title_ru' => ['nullable', 'string'],
                 'hero_title_en' => ['nullable', 'string'],
@@ -156,12 +157,7 @@ class SettingController extends Controller
                 'support_chat_telegram_link' => ['nullable', 'url', 'max:255'],
                 'support_chat_greeting_enabled' => ['nullable', 'boolean'],
             ],
-            default => [
-                'currency' => ['required', 'string'],
-                'trial_days' => ['required', 'integer', 'between:0,30'],
-                'discount_2' => ['required', 'integer'],
-                'discount_3' => ['required', 'integer'],
-            ],
+            default => [],
         };
     }
 }

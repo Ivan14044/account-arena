@@ -14,28 +14,44 @@ class ProductDisputeController extends Controller
      */
     public function index(Request $request)
     {
+        // Получаем locale из заголовка X-Locale
+        $locale = $request->header('X-Locale') ?? $request->query('locale') ?? app()->getLocale();
+        if (!in_array($locale, array_keys(config('langs')))) {
+            $locale = app()->getLocale();
+        }
+
         $disputes = $request->user()
             ->disputes()
-            ->with(['transaction.serviceAccount', 'serviceAccount'])
+            ->with([
+                'transaction.serviceAccount' => function($q) {
+                    $q->select('id', 'title', 'title_en', 'title_uk');
+                },
+                'serviceAccount' => function($q) {
+                    $q->select('id', 'title', 'title_en', 'title_uk');
+                }
+            ])
             ->latest()
             ->paginate(20);
 
         return response()->json([
-            'disputes' => $disputes->map(function($dispute) {
+            'disputes' => $disputes->map(function($dispute) use ($locale) {
+                // Получаем локализованное название товара
+                $localizedTitle = $this->getLocalizedTitle($dispute->serviceAccount, $locale);
+                
                 return [
                     'id' => $dispute->id,
                     'transaction_id' => $dispute->transaction_id,
-                    'product_title' => $dispute->serviceAccount->title ?? 'Удален',
+                    'product_title' => $localizedTitle ?? 'Удален',
                     'amount' => $dispute->transaction->amount,
                     'reason' => $dispute->reason,
-                    'reason_text' => $dispute->getReasonText(),
+                    'reason_text' => $dispute->getReasonText($locale),
                     'customer_description' => $dispute->customer_description,
                     'screenshot_url' => $dispute->screenshot_url, // Для просмотра скриншота
                     'screenshot_type' => $dispute->screenshot_type,
                     'status' => $dispute->status,
-                    'status_text' => $dispute->getStatusText(),
+                    'status_text' => $dispute->getStatusText($locale),
                     'admin_decision' => $dispute->admin_decision,
-                    'admin_decision_text' => $dispute->getDecisionText(),
+                    'admin_decision_text' => $dispute->getDecisionText($locale),
                     'admin_comment' => $dispute->admin_comment,
                     'refund_amount' => $dispute->refund_amount,
                     'created_at' => $dispute->created_at->format('Y-m-d H:i:s'),
@@ -181,27 +197,43 @@ class ProductDisputeController extends Controller
      */
     public function show(Request $request, $id)
     {
+        // Получаем locale из заголовка X-Locale
+        $locale = $request->header('X-Locale') ?? $request->query('locale') ?? app()->getLocale();
+        if (!in_array($locale, array_keys(config('langs')))) {
+            $locale = app()->getLocale();
+        }
+
         $dispute = $request->user()
             ->disputes()
-            ->with(['transaction.serviceAccount', 'serviceAccount'])
+            ->with([
+                'transaction.serviceAccount' => function($q) {
+                    $q->select('id', 'title', 'title_en', 'title_uk');
+                },
+                'serviceAccount' => function($q) {
+                    $q->select('id', 'title', 'title_en', 'title_uk', 'login');
+                }
+            ])
             ->findOrFail($id);
+
+        // Получаем локализованное название товара
+        $localizedTitle = $this->getLocalizedTitle($dispute->serviceAccount, $locale);
 
         return response()->json([
             'dispute' => [
                 'id' => $dispute->id,
                 'transaction_id' => $dispute->transaction_id,
-                'product_title' => $dispute->serviceAccount->title ?? 'Удален',
+                'product_title' => $localizedTitle ?? 'Удален',
                 'product_login' => $dispute->serviceAccount->login ?? null,
                 'amount' => $dispute->transaction->amount,
                 'reason' => $dispute->reason,
-                'reason_text' => $dispute->getReasonText(),
+                'reason_text' => $dispute->getReasonText($locale),
                 'customer_description' => $dispute->customer_description,
                 'screenshot_url' => $dispute->screenshot_url,
                 'screenshot_type' => $dispute->screenshot_type,
                 'status' => $dispute->status,
-                'status_text' => $dispute->getStatusText(),
+                'status_text' => $dispute->getStatusText($locale),
                 'admin_decision' => $dispute->admin_decision,
-                'admin_decision_text' => $dispute->getDecisionText(),
+                'admin_decision_text' => $dispute->getDecisionText($locale),
                 'admin_comment' => $dispute->admin_comment,
                 'refund_amount' => $dispute->refund_amount,
                 'created_at' => $dispute->created_at->format('Y-m-d H:i:s'),
@@ -256,5 +288,26 @@ class ProductDisputeController extends Controller
             'reason' => $reason,
             'checks' => $checks,
         ]);
+    }
+
+    /**
+     * Получить локализованное название товара
+     */
+    private function getLocalizedTitle($serviceAccount, $locale)
+    {
+        if (!$serviceAccount) {
+            return null;
+        }
+
+        if ($locale === 'en' && !empty($serviceAccount->title_en)) {
+            return $serviceAccount->title_en;
+        }
+        
+        if ($locale === 'uk' && !empty($serviceAccount->title_uk)) {
+            return $serviceAccount->title_uk;
+        }
+        
+        // Fallback на базовое название (ru)
+        return $serviceAccount->title;
     }
 }

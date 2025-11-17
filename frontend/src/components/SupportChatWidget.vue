@@ -348,6 +348,24 @@
                             </div>
                         </div>
                     </div>
+                    <!-- Индикатор печати администратора -->
+                    <div
+                        v-if="adminIsTyping && chat && chat.status !== 'closed'"
+                        class="support-chat-message message-admin"
+                    >
+                        <div class="message-content">
+                            <div class="message-header">
+                                <span class="message-sender">{{ $t('supportChat.admin') }}</span>
+                            </div>
+                            <div class="message-text typing-message">
+                                <div class="typing-indicator">
+                                    <span></span>
+                                    <span></span>
+                                    <span></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Сообщение о закрытом диалоге и форма оценки -->
@@ -439,16 +457,6 @@
                                 {{ chat.rating_comment }}
                             </p>
                         </div>
-                        <button
-                            class="btn-primary new-chat-button"
-                            :disabled="isLoading"
-                            @click="startNewChat"
-                        >
-                            {{ $t('supportChat.startNewChat') }}
-                        </button>
-                    </div>
-                    <!-- Кнопка создания нового чата (если оценка не требуется) -->
-                    <div v-if="chat.rating && !showRatingForm" class="new-chat-section">
                         <button
                             class="btn-primary new-chat-button"
                             :disabled="isLoading"
@@ -553,21 +561,6 @@
                             </svg>
                         </button>
                     </div>
-                </div>
-
-                <!-- Индикатор печати администратора -->
-                <div
-                    v-if="adminIsTyping && chat && chat.status !== 'closed'"
-                    class="support-chat-typing-indicator"
-                >
-                    <div class="typing-indicator">
-                        <span></span>
-                        <span></span>
-                        <span></span>
-                    </div>
-                    <span class="typing-text"
-                        >{{ $t('supportChat.admin') }} {{ $t('supportChat.typing') }}</span
-                    >
                 </div>
             </div>
         </Transition>
@@ -1440,6 +1433,14 @@ watch(
     },
     { deep: true }
 );
+
+watch(adminIsTyping, newVal => {
+    if (newVal) {
+        nextTick(() => {
+            scrollToBottom();
+        });
+    }
+});
 </script>
 
 <style scoped>
@@ -1905,8 +1906,7 @@ watch(
 
 .support-chat-input {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    flex-direction: column;
     gap: 8px;
     padding: 16px;
     border-top: 1px solid rgba(229, 231, 235, 0.5);
@@ -2164,7 +2164,6 @@ watch(
     display: flex;
     align-items: flex-end;
     width: 100%;
-    margin-bottom: 8px;
 }
 
 .message-input-actions {
@@ -2172,6 +2171,7 @@ watch(
     align-items: center;
     gap: 8px;
     justify-content: flex-end;
+    flex-shrink: 0;
 }
 
 .attach-button {
@@ -2238,6 +2238,8 @@ watch(
     background: #f9fafb;
     border-radius: 8px;
     border: 1px solid #e5e7eb;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .dark .attachments-preview {
@@ -2254,6 +2256,8 @@ watch(
     border: 1px solid #e5e7eb;
     border-radius: 6px;
     font-size: 13px;
+    flex: 1 1 auto;
+    min-width: 0;
 }
 
 .dark .attachment-preview-item {
@@ -2263,10 +2267,12 @@ watch(
 
 .attachment-preview-name {
     color: #374151;
-    max-width: 150px;
+    max-width: 100%;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    flex: 1;
+    min-width: 0;
 }
 
 .dark .attachment-preview-name {
@@ -2518,6 +2524,54 @@ watch(
     color: #9ca3af;
 }
 
+/* Typing indicator styles */
+.typing-message {
+    display: flex;
+    align-items: center;
+    min-height: 20px;
+}
+
+.typing-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 0;
+}
+
+.typing-indicator span {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: currentColor;
+    opacity: 0.6;
+    animation: typing-bounce 1.4s infinite ease-in-out;
+}
+
+.typing-indicator span:nth-child(1) {
+    animation-delay: 0s;
+}
+
+.typing-indicator span:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.typing-indicator span:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+@keyframes typing-bounce {
+    0%,
+    60%,
+    100% {
+        transform: translateY(0);
+        opacity: 0.6;
+    }
+    30% {
+        transform: translateY(-5px);
+        opacity: 1;
+    }
+}
+
 @media (max-width: 640px) {
     .support-chat-window {
         width: calc(100vw - 20px);
@@ -2532,6 +2586,47 @@ watch(
         height: 56px;
         bottom: 16px;
         right: 16px;
+    }
+
+    .support-chat-input {
+        padding: 12px;
+        gap: 8px;
+    }
+
+    .message-input-wrapper {
+        width: 100%;
+    }
+
+    .message-input {
+        font-size: 16px; /* Prevents zoom on iOS */
+    }
+
+    .message-input-actions {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .attach-button,
+    .send-button {
+        min-width: 44px;
+        height: 44px;
+        padding: 8px;
+    }
+
+    .attachments-preview {
+        padding: 6px;
+        gap: 6px;
+    }
+
+    .attachment-preview-item {
+        padding: 6px 10px;
+        font-size: 12px;
+        flex: 1 1 100%;
+        max-width: 100%;
+    }
+
+    .attachment-preview-name {
+        max-width: calc(100% - 80px);
     }
 }
 </style>

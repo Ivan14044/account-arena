@@ -23,8 +23,8 @@ const serviceOption = useOptionStore();
 const router = useRouter();
 const { locale } = useI18n();
 
-function handleClick(item: { link: string; is_target: boolean }) {
-    if (item.is_target) {
+function handleClick(item: { link: string; is_blank: boolean }) {
+    if (item.is_blank) {
         window.open(item.link, '_blank');
     } else {
         router.push(item.link);
