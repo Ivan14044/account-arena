@@ -23,13 +23,10 @@
                     </svg>
                 </div>
                 <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-                    {{ $t('order_success.title') || 'Заказ оформлен успешно!' }}
+                    {{ $t('order_success.title') }}
                 </h1>
                 <p class="text-gray-600 dark:text-gray-300 mb-4">
-                    {{
-                        $t('order_success.subtitle') ||
-                        'Спасибо за покупку! Ваши товары доступны для скачивания ниже.'
-                    }}
+                    {{ $t('order_success.subtitle') }}
                 </p>
                 <div
                     v-if="!loading && recentPurchases.length > 0"
@@ -43,7 +40,7 @@
                             d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
                         ></path>
                     </svg>
-                    Куплено товаров: {{ recentPurchases.length }}
+                    {{ $t('order_success.items_purchased', { count: recentPurchases.length }) }}
                 </div>
             </div>
 
@@ -60,22 +57,36 @@
                         <img
                             v-if="purchase.product.image_url"
                             :src="purchase.product.image_url"
-                            :alt="getProductTitle(purchase.product)"
+                            :alt="getProductTitle(purchase.product.title || {})"
                             class="w-16 h-16 rounded-lg object-contain"
                         />
                         <div class="flex-1">
                             <h3 class="text-lg font-bold text-gray-900 dark:text-white">
-                                {{ getProductTitle(purchase.product) }}
+                                {{ getProductTitle(purchase.product.title || {}) }}
                             </h3>
                             <p class="text-sm font-medium text-blue-600 dark:text-blue-400">
-                                Заказ: #{{ purchase.order_number || purchase.id }}
+                                {{
+                                    $t('order_success.order_number', {
+                                        number: purchase.order_number || purchase.id
+                                    })
+                                }}
                             </p>
                             <p class="text-sm text-gray-600 dark:text-gray-400">
-                                Количество: {{ purchase.quantity }} шт. × ${{ purchase.price }} =
-                                ${{ purchase.total_amount }}
+                                {{
+                                    $t('order_success.quantity_price', {
+                                        quantity: purchase.quantity,
+                                        unit: $t('profile.purchases.quantity_unit'),
+                                        price: purchase.price,
+                                        total: purchase.total_amount
+                                    })
+                                }}
                             </p>
                             <p class="text-xs text-gray-500 dark:text-gray-500 mt-1">
-                                Куплено: {{ formatDate(purchase.purchased_at) }}
+                                {{
+                                    $t('order_success.purchased_at', {
+                                        date: formatDate(purchase.purchased_at)
+                                    })
+                                }}
                             </p>
                         </div>
                     </div>
@@ -101,16 +112,18 @@
                                     ></path>
                                 </svg>
                                 <h4 class="font-semibold text-gray-900 dark:text-white">
-                                    Ваши данные для доступа:
+                                    {{ $t('order_success.access_data') }}:
                                 </h4>
                             </div>
                             <span class="text-sm text-gray-500 dark:text-gray-400">
                                 {{
-                                    isPurchaseExpanded(purchase.id)
-                                        ? purchase.account_data.length
-                                        : Math.min(5, purchase.account_data.length)
+                                    $t('order_success.accounts_shown', {
+                                        shown: isPurchaseExpanded(purchase.id)
+                                            ? purchase.account_data.length
+                                            : Math.min(5, purchase.account_data.length),
+                                        total: purchase.account_data.length
+                                    })
                                 }}
-                                из {{ purchase.account_data.length }} аккаунтов
                             </span>
                         </div>
 
@@ -129,7 +142,7 @@
                                 </div>
                                 <button
                                     class="shrink-0 p-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200"
-                                    title="Копировать"
+                                    :title="$t('profile.purchases.copy')"
                                     @click="copyToClipboard(formatAccountData(accountItem))"
                                 >
                                     <svg
@@ -148,7 +161,7 @@
                                 </button>
                                 <button
                                     class="shrink-0 p-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors duration-200"
-                                    title="Скачать"
+                                    :title="$t('profile.purchases.download')"
                                     @click="downloadSingleAccount(purchase, accountItem, index)"
                                 >
                                     <svg
@@ -189,11 +202,19 @@
                                 ></path>
                             </svg>
                             <span v-if="isPurchaseExpanded(purchase.id)">
-                                Скрыть {{ purchase.account_data.length - 5 }} аккаунтов
+                                {{
+                                    $t('order_success.hide_accounts', {
+                                        count: purchase.account_data.length - 5
+                                    })
+                                }}
                             </span>
                             <span v-else>
-                                Показать все {{ purchase.account_data.length }} аккаунтов (ещё
-                                {{ purchase.account_data.length - 5 }})
+                                {{
+                                    $t('order_success.show_all_accounts', {
+                                        total: purchase.account_data.length,
+                                        more: purchase.account_data.length - 5
+                                    })
+                                }}
                             </span>
                         </button>
 
@@ -216,7 +237,11 @@
                                     d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
                                 ></path>
                             </svg>
-                            Скачать все аккаунты ({{ purchase.account_data.length }} шт.)
+                            {{
+                                $t('order_success.download_all_accounts', {
+                                    count: purchase.account_data.length
+                                })
+                            }}
                         </button>
                     </div>
 
@@ -235,7 +260,7 @@
                                 d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                             ></path>
                         </svg>
-                        <p>Нет данных для этого товара</p>
+                        <p>{{ $t('order_success.no_data') }}</p>
                     </div>
                 </div>
             </div>
@@ -257,10 +282,10 @@
                         ></path>
                     </svg>
                     <p class="text-gray-600 dark:text-gray-400 text-lg mb-4">
-                        Покупки загружаются...
+                        {{ $t('order_success.loading') }}
                     </p>
                     <p class="text-sm text-gray-500 dark:text-gray-500 mb-4">
-                        Если покупки не появились, нажмите кнопку ниже
+                        {{ $t('order_success.loading_hint') }}
                     </p>
 
                     <button
@@ -275,7 +300,7 @@
                                 d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
                             ></path>
                         </svg>
-                        Обновить
+                        {{ $t('order_success.refresh') }}
                     </button>
                 </div>
             </div>
@@ -286,13 +311,13 @@
                     to="/profile"
                     class="px-6 py-3 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-lg font-medium hover:shadow-lg transition-all duration-300 border border-gray-200 dark:border-gray-700"
                 >
-                    Перейти в профиль
+                    {{ $t('order_success.go_to_profile') }}
                 </router-link>
                 <router-link
                     to="/"
                     class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-all duration-300"
                 >
-                    Вернуться на главную
+                    {{ $t('order_success.back_to_home') }}
                 </router-link>
             </div>
         </div>
@@ -303,11 +328,13 @@
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useToast } from 'vue-toastification';
+import { useI18n } from 'vue-i18n';
 import axios from '@/bootstrap'; // Используем настроенный axios из bootstrap
 import { useProductTitle } from '@/composables/useProductTitle';
 
 const router = useRouter();
 const toast = useToast();
+const { t } = useI18n();
 const { getProductTitle } = useProductTitle();
 
 const purchases = ref([]);
@@ -374,7 +401,7 @@ const fetchPurchases = async () => {
         });
 
         if (!token) {
-            toast.error('Вы не авторизованы. Войдите в систему.');
+            toast.error(t('order_success.not_authorized'));
             await router.push('/login');
             return;
         }
@@ -405,7 +432,7 @@ const fetchPurchases = async () => {
             status: error.response?.status
         });
         toast.error(
-            'Ошибка при загрузке покупок: ' + (error.response?.data?.message || error.message)
+            t('order_success.load_error') + ': ' + (error.response?.data?.message || error.message)
         );
     } finally {
         loading.value = false;
@@ -432,10 +459,10 @@ const formatDate = dateString => {
 const copyToClipboard = async text => {
     try {
         await navigator.clipboard.writeText(text);
-        toast.success('Скопировано в буфер обмена!');
+        toast.success(t('profile.purchases.copy_success'));
     } catch (error) {
         console.error('Failed to copy:', error);
-        toast.error('Ошибка при копировании');
+        toast.error(t('profile.purchases.copy_error'));
     }
 };
 
@@ -449,16 +476,18 @@ const downloadAsText = (content, filename) => {
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
-    toast.success('Файл скачан!');
+    toast.success(t('profile.purchases.download_success'));
 };
 
 const downloadSingleAccount = (purchase, accountItem, index) => {
     const orderNumber = purchase.order_number || `ID${purchase.id}`;
+    const productTitle =
+        getProductTitle(purchase.product.title || {}) || t('profile.purchases.unknown');
     const header = `======================================
-ЗАКАЗ: ${orderNumber}
-ТОВАР: ${getProductTitle(purchase.product) || 'Unknown'}
-ДАТА: ${formatDate(purchase.purchased_at)}
-АККАУНТ: ${index + 1}
+${t('profile.purchases.download_labels.order')}: ${orderNumber}
+${t('profile.purchases.download_labels.product')}: ${productTitle}
+${t('profile.purchases.download_labels.date')}: ${formatDate(purchase.purchased_at)}
+${t('profile.purchases.download_labels.account')}: ${index + 1}
 ======================================\n\n`;
 
     const content = formatAccountData(accountItem);
@@ -468,23 +497,25 @@ const downloadSingleAccount = (purchase, accountItem, index) => {
 
 const downloadAllAccounts = purchase => {
     const orderNumber = purchase.order_number || `ID${purchase.id}`;
+    const productTitle =
+        getProductTitle(purchase.product.title || {}) || t('profile.purchases.unknown');
 
     // Заголовок с информацией о заказе
     const header = `======================================
-ЗАКАЗ: ${orderNumber}
-ТОВАР: ${getProductTitle(purchase.product) || 'Unknown'}
-ДАТА: ${formatDate(purchase.purchased_at)}
-КОЛИЧЕСТВО: ${purchase.account_data.length} шт.
+${t('profile.purchases.download_labels.order')}: ${orderNumber}
+${t('profile.purchases.download_labels.product')}: ${productTitle}
+${t('profile.purchases.download_labels.date')}: ${formatDate(purchase.purchased_at)}
+${t('profile.purchases.download_labels.quantity')}: ${purchase.account_data.length} ${t('profile.purchases.quantity_unit')}
 ======================================\n\n`;
 
     const allData = purchase.account_data
-        .map((item, index) => `=== Аккаунт ${index + 1} ===\n${formatAccountData(item)}`)
+        .map(
+            (item, index) =>
+                `=== ${t('profile.purchases.account')} ${index + 1} ===\n${formatAccountData(item)}`
+        )
         .join('\n\n');
 
-    downloadAsText(
-        header + allData,
-        `ORDER_${orderNumber}_${getProductTitle(purchase.product)}.txt`
-    );
+    downloadAsText(header + allData, `ORDER_${orderNumber}_${productTitle}.txt`);
 };
 </script>
 

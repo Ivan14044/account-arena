@@ -63,7 +63,9 @@
                         class="px-4 py-3 border-b border-indigo-soft-400 dark:border-gray-700 bg-green-500/10 dark:bg-green-600/10"
                     >
                         <div class="flex items-center justify-between">
-                            <span class="text-xs text-gray-600 dark:text-gray-400">Баланс:</span>
+                            <span class="text-xs text-gray-600 dark:text-gray-400"
+                                >{{ $t('profile.balance') }}:</span
+                            >
                             <span
                                 class="text-sm font-bold text-green-700 dark:text-green-400 flex items-center gap-1"
                             >
@@ -103,7 +105,7 @@
                                     d="M12 4v16m8-8H4"
                                 />
                             </svg>
-                            Пополнить баланс
+                            {{ $t('profile.topup') }}
                         </span>
                     </button>
 

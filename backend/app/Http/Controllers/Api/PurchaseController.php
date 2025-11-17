@@ -56,9 +56,13 @@ class PurchaseController extends Controller
         
         $purchases = $query->orderBy('created_at', 'desc')
             ->get()
-            ->map(function ($purchase) use ($locale) {
-                // Получаем локализованное название товара
-                $localizedTitle = $this->getLocalizedTitle($purchase->serviceAccount, $locale);
+            ->map(function ($purchase) {
+                // Возвращаем все названия товара для локализации на frontend
+                $productTitle = $purchase->serviceAccount ? [
+                    'title' => $purchase->serviceAccount->title,
+                    'title_en' => $purchase->serviceAccount->title_en,
+                    'title_uk' => $purchase->serviceAccount->title_uk,
+                ] : null;
                 
                 return [
                     'id' => $purchase->id,
@@ -66,7 +70,7 @@ class PurchaseController extends Controller
                     'transaction_id' => $purchase->transaction_id, // Для создания претензий
                     'product' => [
                         'id' => $purchase->serviceAccount->id,
-                        'title' => $localizedTitle,
+                        'title' => $productTitle, // Объект с названиями на всех языках
                         'image_url' => $purchase->serviceAccount->image_url,
                     ],
                     'quantity' => $purchase->quantity,
@@ -77,7 +81,7 @@ class PurchaseController extends Controller
                     'purchased_at' => $purchase->created_at->format('Y-m-d H:i:s'),
                     
                     // Дополнительные поля для совместимости с ProfilePage
-                    'service_name' => $localizedTitle,
+                    'service_name' => $productTitle, // Объект с названиями на всех языках
                     'amount' => $purchase->total_amount,
                     'currency' => $purchase->transaction ? $purchase->transaction->currency : Option::get('currency', 'USD'),
                     'payment_method' => $purchase->transaction ? $purchase->transaction->payment_method : 'unknown',
@@ -124,8 +128,12 @@ class PurchaseController extends Controller
             return response()->json(['error' => 'Purchase not found'], 404);
         }
         
-        // Получаем локализованное название товара
-        $localizedTitle = $this->getLocalizedTitle($purchase->serviceAccount, $locale);
+        // Возвращаем все названия товара для локализации на frontend
+        $productTitle = $purchase->serviceAccount ? [
+            'title' => $purchase->serviceAccount->title,
+            'title_en' => $purchase->serviceAccount->title_en,
+            'title_uk' => $purchase->serviceAccount->title_uk,
+        ] : null;
         
         return \App\Http\Responses\ApiResponse::success([
             'purchase' => [
@@ -133,7 +141,7 @@ class PurchaseController extends Controller
                 'order_number' => $purchase->order_number,
                 'product' => [
                     'id' => $purchase->serviceAccount->id,
-                    'title' => $localizedTitle,
+                    'title' => $productTitle, // Объект с названиями на всех языках
                     'description' => $purchase->serviceAccount->description,
                     'image_url' => $purchase->serviceAccount->image_url,
                 ],
@@ -147,22 +155,6 @@ class PurchaseController extends Controller
         ]);
     }
     
-    /**
-     * Получить локализованное название товара
-     */
-    private function getLocalizedTitle($serviceAccount, $locale)
-    {
-        if ($locale === 'en' && !empty($serviceAccount->title_en)) {
-            return $serviceAccount->title_en;
-        }
-        
-        if ($locale === 'uk' && !empty($serviceAccount->title_uk)) {
-            return $serviceAccount->title_uk;
-        }
-        
-        // Fallback на базовое название (ru)
-        return $serviceAccount->title;
-    }
     
     /**
      * Скачать купленные товары в виде текстового файла с кодировкой UTF-8

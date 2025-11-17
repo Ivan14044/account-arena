@@ -35,13 +35,17 @@ class ProductDisputeController extends Controller
 
         return response()->json([
             'disputes' => $disputes->map(function($dispute) use ($locale) {
-                // Получаем локализованное название товара
-                $localizedTitle = $this->getLocalizedTitle($dispute->serviceAccount, $locale);
+                // Возвращаем все названия товара для локализации на frontend
+                $productTitle = $dispute->serviceAccount ? [
+                    'title' => $dispute->serviceAccount->title,
+                    'title_en' => $dispute->serviceAccount->title_en,
+                    'title_uk' => $dispute->serviceAccount->title_uk,
+                ] : null;
                 
                 return [
                     'id' => $dispute->id,
                     'transaction_id' => $dispute->transaction_id,
-                    'product_title' => $localizedTitle ?? 'Удален',
+                    'product_title' => $productTitle, // Объект с названиями на всех языках
                     'amount' => $dispute->transaction->amount,
                     'reason' => $dispute->reason,
                     'reason_text' => $dispute->getReasonText($locale),
@@ -215,14 +219,18 @@ class ProductDisputeController extends Controller
             ])
             ->findOrFail($id);
 
-        // Получаем локализованное название товара
-        $localizedTitle = $this->getLocalizedTitle($dispute->serviceAccount, $locale);
+        // Возвращаем все названия товара для локализации на frontend
+        $productTitle = $dispute->serviceAccount ? [
+            'title' => $dispute->serviceAccount->title,
+            'title_en' => $dispute->serviceAccount->title_en,
+            'title_uk' => $dispute->serviceAccount->title_uk,
+        ] : null;
 
         return response()->json([
             'dispute' => [
                 'id' => $dispute->id,
                 'transaction_id' => $dispute->transaction_id,
-                'product_title' => $localizedTitle ?? 'Удален',
+                'product_title' => $productTitle, // Объект с названиями на всех языках
                 'product_login' => $dispute->serviceAccount->login ?? null,
                 'amount' => $dispute->transaction->amount,
                 'reason' => $dispute->reason,
@@ -290,24 +298,4 @@ class ProductDisputeController extends Controller
         ]);
     }
 
-    /**
-     * Получить локализованное название товара
-     */
-    private function getLocalizedTitle($serviceAccount, $locale)
-    {
-        if (!$serviceAccount) {
-            return null;
-        }
-
-        if ($locale === 'en' && !empty($serviceAccount->title_en)) {
-            return $serviceAccount->title_en;
-        }
-        
-        if ($locale === 'uk' && !empty($serviceAccount->title_uk)) {
-            return $serviceAccount->title_uk;
-        }
-        
-        // Fallback на базовое название (ru)
-        return $serviceAccount->title;
-    }
 }

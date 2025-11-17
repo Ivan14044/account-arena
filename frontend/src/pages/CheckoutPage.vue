@@ -85,7 +85,7 @@
 
                                         <button
                                             class="remove-btn"
-                                            title="Удалить"
+                                            :title="$t('cart.confirm.remove_single.title')"
                                             @click="productCartStore.removeItem(item.id)"
                                         >
                                             <svg
@@ -137,7 +137,11 @@
                                 v-if="personalDiscountPercent > 0"
                                 class="flex justify-between items-center text-sm"
                             >
-                                <span>Персональная скидка ({{ personalDiscountPercent }}%)</span>
+                                <span>{{
+                                    $t('checkout.personal_discount', {
+                                        percent: personalDiscountPercent
+                                    })
+                                }}</span>
                                 <span>-{{ formatCurrency(personalDiscountAmount) }}</span>
                             </div>
                             <div
@@ -208,7 +212,7 @@
                         v-if="!authStore.isAuthenticated"
                         class="text-xs text-gray-600 dark:text-gray-400 mt-3"
                     >
-                        Для гостей доступны только оплата картой и криптовалютой
+                        {{ $t('checkout.guest_payment_methods') }}
                     </p>
                 </div>
 
@@ -218,17 +222,17 @@
                     class="glass-card rounded-2xl p-6"
                 >
                     <label class="block text-sm font-medium text-dark dark:text-white mb-2">
-                        Ваш e-mail *
+                        {{ $t('checkout.guest_email_label') }}
                     </label>
                     <input
                         v-model="guestEmail"
                         type="email"
                         required
-                        placeholder="your-email@example.com"
+                        :placeholder="$t('checkout.guest_email_placeholder')"
                         class="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-dark dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                     <p class="mt-2 text-xs text-gray-600 dark:text-gray-400">
-                        Информация о покупке и доступы будут отправлены на этот email
+                        {{ $t('checkout.guest_email_hint') }}
                     </p>
                 </div>
 
@@ -276,7 +280,7 @@
                             <p
                                 class="text-xs text-gray-600 dark:text-gray-400 mt-1.5 leading-relaxed"
                             >
-                                Пожалуйста, ознакомьтесь с правилами перед оформлением заказа
+                                {{ $t('checkout.rules_hint') }}
                             </p>
                         </div>
                     </label>
@@ -384,7 +388,7 @@
                             </div>
                             <button
                                 class="purchase-rules-close"
-                                aria-label="Закрыть"
+                                :aria-label="$t('checkout.close')"
                                 @click="showRulesModal = false"
                             >
                                 <svg
@@ -649,7 +653,7 @@ const handleCheckoutClick = (event: Event) => {
     // Проверяем email для гостей (если есть товары и пользователь не авторизован)
     if (!authStore.isAuthenticated && productCartStore.items.length > 0) {
         if (!guestEmail.value || !guestEmail.value.trim()) {
-            toast.error('Пожалуйста, укажите ваш email для получения информации о заказе');
+            toast.error(t('checkout.guest_email_required'));
             // Прокручиваем к полю email
             const emailField = document.querySelector('input[type="email"]');
             if (emailField) {
@@ -662,7 +666,7 @@ const handleCheckoutClick = (event: Event) => {
         // Проверяем валидность email
         const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailPattern.test(guestEmail.value.trim())) {
-            toast.error('Пожалуйста, укажите корректный email адрес');
+            toast.error(t('checkout.guest_email_invalid'));
             return;
         }
     }
@@ -706,7 +710,7 @@ const processMonoPayment = async () => {
         if (isGuest) {
             // Гостевой платеж (только для товаров)
             if (!guestEmail.value || !guestEmail.value.trim()) {
-                toast.error('Пожалуйста, укажите ваш email');
+                toast.error(t('checkout.guest_email_required_short'));
                 loadingStore.stop();
                 return;
             }
@@ -765,7 +769,7 @@ const processCryptoPayment = async () => {
         if (isGuest) {
             // Гостевой платеж (только для товаров)
             if (!guestEmail.value || !guestEmail.value.trim()) {
-                toast.error('Пожалуйста, укажите ваш email');
+                toast.error(t('checkout.guest_email_required_short'));
                 loadingStore.stop();
                 return;
             }
@@ -836,7 +840,7 @@ const processBalancePayment = async () => {
     try {
         // Проверяем достаточно ли средств на балансе
         if (authStore.user && authStore.user.balance < finalTotal.value) {
-            toast.error('Недостаточно средств на балансе');
+            toast.error(t('checkout.insufficient_balance'));
             loadingStore.stop();
             return;
         }
@@ -859,13 +863,14 @@ const processBalancePayment = async () => {
         await authStore.fetchUser();
         promo.clear();
         inputCode.value = '';
-        toast.success('Оплата с баланса прошла успешно!');
+        toast.success(t('checkout.balance_success'));
         // Перенаправляем на страницу успешного заказа
         await router.push('/order-success');
     } catch (error) {
         console.error('Balance payment error:', error);
         const errMsg =
-            (error && (error as any).response?.data?.message) || 'Ошибка при оплате с баланса';
+            (error && (error as any).response?.data?.message) ||
+            t('checkout.balance_payment_error');
         toast.error(errMsg as string);
     } finally {
         loadingStore.stop();

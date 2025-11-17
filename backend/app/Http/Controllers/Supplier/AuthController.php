@@ -17,7 +17,7 @@ class AuthController extends Controller
                 return redirect()->route('supplier.dashboard');
             }
             // Если не поставщик - выходим и показываем форму
-            auth()->logout();
+            // auth()->logout();
         }
 
         return view('supplier.login');
@@ -29,9 +29,9 @@ class AuthController extends Controller
 
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
             $request->session()->regenerate();
-            
+
             $user = Auth::user();
-            
+
             // Проверяем, является ли пользователь поставщиком
             if (!$user->is_supplier) {
                 Auth::logout();

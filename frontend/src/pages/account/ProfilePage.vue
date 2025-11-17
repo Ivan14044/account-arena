@@ -39,7 +39,7 @@
                                 d="M12 4v16m8-8H4"
                             />
                         </svg>
-                        Пополнить
+                        {{ $t('profile.topup') }}
                     </button>
                 </div>
             </div>
@@ -227,7 +227,9 @@
             </h2>
 
             <div v-if="loadingDisputes" class="text-center py-8">
-                <p class="text-gray-500 dark:text-gray-400">Загрузка претензий...</p>
+                <p class="text-gray-500 dark:text-gray-400">
+                    {{ $t('profile.purchases.disputes.loading') }}
+                </p>
             </div>
 
             <div
@@ -257,9 +259,11 @@
                     <div class="flex items-start justify-between gap-4">
                         <div class="flex-1">
                             <div class="flex items-center gap-2 mb-2">
-                                <span class="text-sm font-bold text-gray-900 dark:text-white"
-                                    >Претензия #{{ dispute.id }}</span
-                                >
+                                <span class="text-sm font-bold text-gray-900 dark:text-white">{{
+                                    $t('profile.purchases.disputes.dispute_number', {
+                                        id: dispute.id
+                                    })
+                                }}</span>
                                 <span
                                     :class="getDisputeStatusClass(dispute.status)"
                                     class="px-2 py-1 text-xs rounded-lg font-semibold"
@@ -268,10 +272,16 @@
                                 </span>
                             </div>
                             <p class="text-sm text-gray-600 dark:text-gray-400 mb-1">
-                                <strong>Товар:</strong> {{ dispute.product_title }}
+                                <strong>{{ $t('profile.purchases.disputes.product') }}:</strong>
+                                {{
+                                    dispute.product_title
+                                        ? getProductTitle(dispute.product_title)
+                                        : $t('profile.purchases.disputes.deleted')
+                                }}
                             </p>
                             <p class="text-sm text-gray-600 dark:text-gray-400 mb-1">
-                                <strong>Причина:</strong> {{ dispute.reason_text }}
+                                <strong>{{ $t('profile.purchases.disputes.reason') }}:</strong>
+                                {{ dispute.reason_text }}
                             </p>
                             <p class="text-sm text-gray-500 dark:text-gray-500">
                                 {{ formatDate(dispute.created_at) }}
@@ -283,7 +293,7 @@
                         >
                             {{
                                 expandedDisputes.has(dispute.id)
-                                    ? 'Скрыть'
+                                    ? $t('profile.purchases.disputes.hide')
                                     : $t('profile.purchases.disputes.view_details')
                             }}
                         </button>
@@ -297,7 +307,7 @@
                         >
                             <div>
                                 <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">
-                                    Ваше описание:
+                                    {{ $t('profile.purchases.disputes.your_description') }}:
                                 </p>
                                 <p
                                     class="text-sm text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg"
@@ -308,7 +318,7 @@
 
                             <div v-if="dispute.screenshot_url">
                                 <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">
-                                    Скриншот:
+                                    {{ $t('profile.purchases.disputes.screenshot') }}:
                                 </p>
                                 <a
                                     :href="dispute.screenshot_url"
@@ -328,7 +338,7 @@
                                             d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
                                         />
                                     </svg>
-                                    Открыть скриншот
+                                    {{ $t('profile.purchases.disputes.open_screenshot') }}
                                 </a>
                             </div>
 
@@ -361,13 +371,25 @@
                                         <p
                                             class="text-sm font-semibold text-gray-900 dark:text-white mb-2"
                                         >
-                                            Решение администратора:
+                                            {{
+                                                $t(
+                                                    'profile.purchases.disputes.admin_decision_title'
+                                                )
+                                            }}:
                                         </p>
                                         <div class="space-y-2">
                                             <div v-if="dispute.admin_decision">
                                                 <span
                                                     class="text-xs text-gray-600 dark:text-gray-400"
-                                                    >Решение:</span
+                                                    >{{
+                                                        $t(
+                                                            'profile.purchases.disputes.decision.' +
+                                                                dispute.admin_decision
+                                                        ) ||
+                                                        $t(
+                                                            'profile.purchases.disputes.admin_decision_title'
+                                                        )
+                                                    }}:</span
                                                 >
                                                 <span
                                                     class="ml-2 text-sm font-bold"
@@ -386,7 +408,11 @@
                                             >
                                                 <span
                                                     class="text-xs text-gray-600 dark:text-gray-400"
-                                                    >Сумма возврата:</span
+                                                    >{{
+                                                        $t(
+                                                            'profile.purchases.disputes.refund_amount'
+                                                        )
+                                                    }}:</span
                                                 >
                                                 <span
                                                     class="ml-2 text-sm font-bold text-green-600 dark:text-green-400"
@@ -414,7 +440,8 @@
                                                 <span
                                                     class="text-xs text-gray-500 dark:text-gray-400"
                                                 >
-                                                    Решено: {{ formatDate(dispute.resolved_at) }}
+                                                    {{ $t('profile.purchases.disputes.resolved') }}:
+                                                    {{ formatDate(dispute.resolved_at) }}
                                                 </span>
                                             </div>
                                         </div>
@@ -536,10 +563,11 @@
                                 >#{{ purchase.order_number || purchase.id }}</span
                             >
                             <span v-if="purchase.service_name" class="purchase-service-name">{{
-                                purchase.service_name
+                                getProductTitle(purchase.service_name)
                             }}</span>
                             <span v-if="purchase.quantity" class="purchase-quantity-badge"
-                                >{{ purchase.quantity }} шт.</span
+                                >{{ purchase.quantity }}
+                                {{ $t('profile.purchases.quantity_unit') }}</span
                             >
                         </div>
                         <div class="flex items-center gap-3">
@@ -587,14 +615,12 @@
                                     ></path>
                                 </svg>
                                 <span v-if="expandedPurchases.has(purchase.id)">{{
-                                    $t('profile.purchases.hide_data') || 'Скрыть данные товара'
+                                    $t('profile.purchases.hide_data')
                                 }}</span>
                                 <span v-else
-                                    >{{
-                                        $t('profile.purchases.show_data') ||
-                                        'Показать данные товара'
-                                    }}
-                                    ({{ purchase.account_data.length }})</span
+                                    >{{ $t('profile.purchases.show_data') }} ({{
+                                        purchase.account_data.length
+                                    }})</span
                                 >
                             </button>
 
@@ -727,7 +753,7 @@
                                         d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
                                     ></path>
                                 </svg>
-                                {{ $t('profile.purchases.download_all') || 'Скачать все' }} ({{
+                                {{ $t('profile.purchases.download_all') }} ({{
                                     purchase.account_data.length
                                 }})
                             </button>
@@ -742,7 +768,7 @@
             <Transition name="modal">
                 <div
                     v-if="showDisputeModal"
-                    class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/30 backdrop-blur-sm p-4"
+                    class="fixed inset-0 z-[9998] flex items-center justify-center bg-black/30 backdrop-blur-sm p-4"
                     @click.self="closeDisputeModal"
                 >
                     <div
@@ -833,7 +859,9 @@
                                         </svg>
                                         <span
                                             class="text-sm font-semibold text-gray-700 dark:text-gray-300"
-                                            >Информация о покупке</span
+                                            >{{
+                                                $t('profile.purchases.disputes.purchase_info')
+                                            }}</span
                                         >
                                     </div>
                                     <div class="grid grid-cols-2 gap-3 text-sm">
@@ -859,10 +887,14 @@
                                             class="col-span-2 flex items-center gap-2"
                                         >
                                             <span class="text-gray-500 dark:text-gray-400"
-                                                >Товар:</span
+                                                >{{
+                                                    $t('profile.purchases.disputes.product')
+                                                }}:</span
                                             >
                                             <span class="font-bold text-gray-900 dark:text-white">{{
                                                 selectedPurchase?.service_name
+                                                    ? getProductTitle(selectedPurchase.service_name)
+                                                    : ''
                                             }}</span>
                                         </div>
                                     </div>
@@ -888,7 +920,7 @@
                                                     {{
                                                         $t(
                                                             'profile.purchases.disputes.select_reason'
-                                                        ) || 'Выберите причину'
+                                                        )
                                                     }}
                                                 </option>
                                                 <option value="invalid_account">
@@ -977,7 +1009,7 @@
                                             required
                                         ></textarea>
                                         <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                                            Минимум 3 символа
+                                            {{ $t('profile.purchases.disputes.min_chars') }}
                                         </p>
                                     </div>
 
@@ -986,7 +1018,10 @@
                                         <label
                                             class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3"
                                         >
-                                            📸 Скриншот проблемы <span class="text-red-500">*</span>
+                                            {{
+                                                $t('profile.purchases.disputes.screenshot_problem')
+                                            }}
+                                            <span class="text-red-500">*</span>
                                         </label>
                                         <div class="flex gap-3 mb-4">
                                             <label
@@ -1019,9 +1054,9 @@
                                                             d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
                                                         />
                                                     </svg>
-                                                    <span class="text-sm font-medium"
-                                                        >Загрузить файл</span
-                                                    >
+                                                    <span class="text-sm font-medium">{{
+                                                        $t('profile.purchases.disputes.upload_file')
+                                                    }}</span>
                                                 </div>
                                             </label>
                                             <label
@@ -1054,9 +1089,9 @@
                                                             d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
                                                         />
                                                     </svg>
-                                                    <span class="text-sm font-medium"
-                                                        >Вставить ссылку</span
-                                                    >
+                                                    <span class="text-sm font-medium">{{
+                                                        $t('profile.purchases.disputes.paste_link')
+                                                    }}</span>
                                                 </div>
                                             </label>
                                         </div>
@@ -1087,7 +1122,11 @@
                                                         d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                                                     />
                                                 </svg>
-                                                Максимум 5MB. Форматы: JPG, PNG, WEBP
+                                                {{
+                                                    $t(
+                                                        'profile.purchases.disputes.file_requirements'
+                                                    )
+                                                }}
                                             </p>
 
                                             <!-- Предпросмотр -->
@@ -1097,7 +1136,9 @@
                                                 >
                                                     <img
                                                         :src="screenshotPreview"
-                                                        alt="Предпросмотр"
+                                                        :alt="
+                                                            $t('profile.purchases.disputes.preview')
+                                                        "
                                                         class="w-full max-h-64 object-contain bg-gray-50 dark:bg-gray-900"
                                                     />
                                                     <div
@@ -1116,7 +1157,11 @@
                                                                 d="M5 13l4 4L19 7"
                                                             />
                                                         </svg>
-                                                        Загружено
+                                                        {{
+                                                            $t(
+                                                                'profile.purchases.disputes.uploaded'
+                                                            )
+                                                        }}
                                                     </div>
                                                 </div>
                                             </div>
@@ -1165,8 +1210,11 @@
                                                         d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                                                     />
                                                 </svg>
-                                                Вставьте прямую ссылку на изображение (Imgur,
-                                                Dropbox и т.д.)
+                                                {{
+                                                    $t(
+                                                        'profile.purchases.disputes.link_instruction'
+                                                    )
+                                                }}
                                             </p>
 
                                             <!-- Предпросмотр по ссылке -->
@@ -1182,7 +1230,9 @@
                                                 >
                                                     <img
                                                         :src="disputeForm.screenshot_link"
-                                                        alt="Предпросмотр"
+                                                        :alt="
+                                                            $t('profile.purchases.disputes.preview')
+                                                        "
                                                         class="w-full max-h-64 object-contain bg-gray-50 dark:bg-gray-900"
                                                         @error="screenshotLinkError = true"
                                                     />
@@ -1202,7 +1252,11 @@
                                                                 d="M5 13l4 4L19 7"
                                                             />
                                                         </svg>
-                                                        Ссылка валидна
+                                                        {{
+                                                            $t(
+                                                                'profile.purchases.disputes.link_valid'
+                                                            )
+                                                        }}
                                                     </div>
                                                 </div>
                                             </div>
@@ -1224,8 +1278,9 @@
                                                     />
                                                 </svg>
                                                 <p class="text-sm text-red-600 dark:text-red-400">
-                                                    Не удалось загрузить изображение по ссылке.
-                                                    Проверьте правильность URL.
+                                                    {{
+                                                        $t('profile.purchases.disputes.link_error')
+                                                    }}
                                                 </p>
                                             </div>
                                         </div>
@@ -1280,7 +1335,7 @@
                                                         d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                                                     ></path>
                                                 </svg>
-                                                Отправка...
+                                                {{ $t('profile.purchases.disputes.submitting') }}
                                             </span>
                                         </button>
                                         <button
@@ -1311,8 +1366,10 @@ import { useI18n } from 'vue-i18n';
 import { useRouter, useRoute } from 'vue-router';
 import { useLoadingStore } from '@/stores/loading';
 import axios from '@/bootstrap'; // Используем настроенный axios из bootstrap
+import { useProductTitle } from '@/composables/useProductTitle';
 
 const toast = useToast();
+const { getProductTitle } = useProductTitle();
 const authStore = useAuthStore();
 const router = useRouter();
 const route = useRoute();
@@ -1387,8 +1444,8 @@ const formatPaymentMethod = (method: string) => {
         crypto: t('profile.purchases.methods.crypto'),
         free: t('profile.purchases.methods.free'),
         admin_bypass: t('profile.purchases.methods.admin'),
-        balance: t('profile.purchases.methods.balance') || 'Баланс',
-        balance_deduction: t('profile.purchases.methods.balance') || 'Баланс'
+        balance: t('profile.purchases.methods.balance'),
+        balance_deduction: t('profile.purchases.methods.balance')
     };
     return methods[method] || method;
 };
@@ -1507,10 +1564,10 @@ const formatAccountData = (accountItem: any): string => {
 const copyToClipboard = async (text: string) => {
     try {
         await navigator.clipboard.writeText(text);
-        toast.success(t('profile.purchases.copy_success') || 'Скопировано в буфер обмена!');
+        toast.success(t('profile.purchases.copy_success'));
     } catch (error) {
         console.error('Failed to copy:', error);
-        toast.error(t('profile.purchases.copy_error') || 'Ошибка при копировании');
+        toast.error(t('profile.purchases.copy_error'));
     }
 };
 
@@ -1524,16 +1581,19 @@ const downloadAsText = (content: string, filename: string) => {
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
-    toast.success(t('profile.purchases.download_success') || 'Файл скачан!');
+    toast.success(t('profile.purchases.download_success'));
 };
 
 const downloadSingleAccount = (purchase: any, accountItem: any, index: number) => {
     const orderNumber = purchase.order_number || `ID${purchase.id}`;
+    const productTitle = purchase.service_name
+        ? getProductTitle(purchase.service_name)
+        : t('profile.purchases.unknown');
     const header = `======================================
-ЗАКАЗ: ${orderNumber}
-ТОВАР: ${purchase.service_name || 'Unknown'}
-ДАТА: ${formatDate(purchase.created_at)}
-АККАУНТ: ${index + 1}
+${t('profile.purchases.download_labels.order')}: ${orderNumber}
+${t('profile.purchases.download_labels.product')}: ${productTitle}
+${t('profile.purchases.download_labels.date')}: ${formatDate(purchase.created_at)}
+${t('profile.purchases.download_labels.account')}: ${index + 1}
 ======================================\n\n`;
 
     const content = formatAccountData(accountItem);
@@ -1543,23 +1603,26 @@ const downloadSingleAccount = (purchase: any, accountItem: any, index: number) =
 
 const downloadAllAccounts = (purchase: any) => {
     const orderNumber = purchase.order_number || `ID${purchase.id}`;
+    const productTitle = purchase.service_name
+        ? getProductTitle(purchase.service_name)
+        : t('profile.purchases.unknown');
 
     // Заголовок с информацией о заказе
     const header = `======================================
-ЗАКАЗ: ${orderNumber}
-ТОВАР: ${purchase.service_name || 'Unknown'}
-ДАТА: ${formatDate(purchase.created_at)}
-КОЛИЧЕСТВО: ${purchase.account_data.length} шт.
+${t('profile.purchases.download_labels.order')}: ${orderNumber}
+${t('profile.purchases.download_labels.product')}: ${productTitle}
+${t('profile.purchases.download_labels.date')}: ${formatDate(purchase.created_at)}
+${t('profile.purchases.download_labels.quantity')}: ${purchase.account_data.length} ${t('profile.purchases.quantity_unit')}
 ======================================\n\n`;
 
     const allData = purchase.account_data
         .map(
             (item: any, index: number) =>
-                `=== ${t('profile.purchases.account') || 'Аккаунт'} ${index + 1} ===\n${formatAccountData(item)}`
+                `=== ${t('profile.purchases.account')} ${index + 1} ===\n${formatAccountData(item)}`
         )
         .join('\n\n');
 
-    const filename = `ORDER_${orderNumber}_${purchase.service_name || 'purchase'}.txt`;
+    const filename = `ORDER_${orderNumber}_${productTitle || t('profile.purchases.purchase')}.txt`;
     downloadAsText(header + allData, filename);
 };
 
@@ -1659,10 +1722,10 @@ const openDisputeModal = (purchase: any) => {
 
 const getDisputeStatusText = (status: string): string => {
     const statuses: Record<string, string> = {
-        new: t('profile.purchases.disputes.status.new') || 'Новая',
-        in_review: t('profile.purchases.disputes.status.in_review') || 'На рассмотрении',
-        resolved: t('profile.purchases.disputes.status.resolved') || 'Решена',
-        rejected: t('profile.purchases.disputes.status.rejected') || 'Отклонена'
+        new: t('profile.purchases.disputes.status.new'),
+        in_review: t('profile.purchases.disputes.status.in_review'),
+        resolved: t('profile.purchases.disputes.status.resolved'),
+        rejected: t('profile.purchases.disputes.status.rejected')
     };
     return statuses[status] || status;
 };
@@ -1698,14 +1761,14 @@ const handleFileUpload = (event: Event) => {
     if (file) {
         // Проверка размера (5MB)
         if (file.size > 5 * 1024 * 1024) {
-            toast.error('Файл слишком большой. Максимум 5MB');
+            toast.error(t('profile.purchases.disputes.file_too_large'));
             return;
         }
 
         // Проверка типа
         const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
         if (!allowedTypes.includes(file.type)) {
-            toast.error('Неподдерживаемый формат. Используйте JPG, PNG или WEBP');
+            toast.error(t('profile.purchases.disputes.unsupported_format'));
             return;
         }
 
@@ -1725,18 +1788,18 @@ const submitDispute = async () => {
 
     // Проверка наличия transaction_id
     if (!selectedPurchase.value.transaction_id) {
-        toast.error('Не удалось найти связанную транзакцию. Обратитесь в поддержку.');
+        toast.error(t('profile.purchases.disputes.transaction_not_found'));
         return;
     }
 
     // Проверка наличия скриншота
     if (screenshotMethod.value === 'file' && !screenshotFile.value) {
-        toast.error('Пожалуйста, прикрепите скриншот');
+        toast.error(t('profile.purchases.disputes.please_attach_screenshot'));
         return;
     }
 
     if (screenshotMethod.value === 'link' && !disputeForm.value.screenshot_link) {
-        toast.error('Пожалуйста, укажите ссылку на скриншот');
+        toast.error(t('profile.purchases.disputes.please_provide_link'));
         return;
     }
 
@@ -1763,17 +1826,14 @@ const submitDispute = async () => {
         });
 
         if (response.data.success) {
-            toast.success(t('profile.purchases.disputes.success') || 'Претензия успешно создана!');
+            toast.success(t('profile.purchases.disputes.success'));
             closeDisputeModal();
             // Обновляем список покупок и претензий
             await fetchPurchases();
             await fetchDisputes();
         }
     } catch (error: any) {
-        const message =
-            error.response?.data?.message ||
-            t('profile.purchases.disputes.error') ||
-            'Ошибка при создании претензии';
+        const message = error.response?.data?.message || t('profile.purchases.disputes.error');
         toast.error(message);
     } finally {
         isSubmittingDispute.value = false;
