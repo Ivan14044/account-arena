@@ -55,6 +55,9 @@ composer install --no-dev --optimize-autoloader --no-interaction > /dev/null 2>&
 print_info "Выполнение миграций..."
 php artisan migrate --force > /dev/null 2>&1
 
+print_info "Обновление системных шаблонов уведомлений..."
+php artisan db:seed --class=NotificationTemplateSeeder --force > /dev/null 2>&1 || true
+
 print_info "Очистка кэша..."
 php artisan cache:clear > /dev/null 2>&1
 php artisan config:clear > /dev/null 2>&1

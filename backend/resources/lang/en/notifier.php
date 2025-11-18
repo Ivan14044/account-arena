@@ -8,4 +8,7 @@ return array(
 
     'new_user_title' => 'New user',
     'new_user_message' => 'New user registered, email: :email, name: :name',
+
+    'new_product_purchase_title' => 'New purchase (:method)',
+    'new_product_purchase_message' => 'New purchase (:method), email: :email, name: :name, products: :products, amount: :amount',
 );

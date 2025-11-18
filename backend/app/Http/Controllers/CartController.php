@@ -140,15 +140,16 @@ class CartController extends Controller
             }
 
             // Уведомление админу о новом заказе
-            NotifierService::send(
+            NotifierService::sendFromTemplate(
                 'product_purchase',
-                __('notifier.new_product_purchase_title', ['method' => 'Balance']),
-                __('notifier.new_product_purchase_message', [
+                'admin_product_purchase',
+                [
+                    'method' => 'Balance',
                     'email' => $user->email,
                     'name' => $user->name,
                     'products' => count($productsData),
                     'amount' => number_format($totalAmount, 2),
-                ])
+                ]
             );
 
             return \App\Http\Responses\ApiResponse::success(['message' => 'Payment completed successfully']);

@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Subscription;
 use App\Models\Transaction;
 use App\Models\Option;
 use App\Models\User;
@@ -446,15 +445,16 @@ class MonoController extends Controller
             }
 
             // Уведомление админу о новой покупке
-            NotifierService::send(
+            NotifierService::sendFromTemplate(
                 'product_purchase',
-                __('notifier.new_product_purchase_title', ['method' => 'Monobank']),
-                __('notifier.new_product_purchase_message', [
+                'admin_product_purchase',
+                [
+                    'method' => 'Monobank',
                     'email' => $user->email,
                     'name' => $user->name,
                     'products' => count($productsData),
                     'amount' => number_format($totalAmount, 2),
-                ])
+                ]
             );
 
             Log::info('User purchase completed via Monobank', [
@@ -529,18 +529,19 @@ class MonoController extends Controller
             );
 
             // Уведомление админу о новой гостевой покупке
-            NotifierService::send(
+            NotifierService::sendFromTemplate(
                 'guest_product_purchase',
-                __('notifier.new_product_purchase_title', ['method' => 'Monobank']),
-                __('notifier.new_product_purchase_message', [
+                'admin_product_purchase',
+                [
+                    'method' => 'Monobank',
                     'email' => $guestEmail,
                     'name' => 'Гость',
                     'products' => count($productsData),
                     'amount' => number_format($totalAmount, 2),
-                ])
+                ]
             );
 
-            LoggingService::info('Guest purchase completed', [
+            Log::info('Guest purchase completed', [
                 'guest_email' => $guestEmail,
                 'invoice_id' => $request->invoiceId,
                 'products_count' => count($productsData),

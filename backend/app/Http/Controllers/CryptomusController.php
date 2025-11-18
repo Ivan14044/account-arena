@@ -587,15 +587,16 @@ class CryptomusController extends Controller
             }
 
             // Уведомление админу о новой покупке
-            NotifierService::send(
+            NotifierService::sendFromTemplate(
                 'product_purchase',
-                __('notifier.new_product_purchase_title', ['method' => 'Cryptomus']),
-                __('notifier.new_product_purchase_message', [
+                'admin_product_purchase',
+                [
+                    'method' => 'Cryptomus',
                     'email' => $user->email,
                     'name' => $user->name,
                     'products' => count($productsData),
                     'amount' => number_format($totalAmount, 2),
-                ])
+                ]
             );
 
             LoggingService::info('User purchase completed via Cryptomus', [
@@ -672,15 +673,16 @@ class CryptomusController extends Controller
             );
 
             // Уведомление админу о новой гостевой покупке
-            NotifierService::send(
+            NotifierService::sendFromTemplate(
                 'guest_product_purchase',
-                __('notifier.new_product_purchase_title', ['method' => 'Cryptomus']),
-                __('notifier.new_product_purchase_message', [
+                'admin_product_purchase',
+                [
+                    'method' => 'Cryptomus',
                     'email' => $guestEmail,
                     'name' => 'Гость',
                     'products' => count($productsData),
                     'amount' => number_format($totalAmount, 2),
-                ])
+                ]
             );
 
             LoggingService::info('Guest purchase completed via Cryptomus', [

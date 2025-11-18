@@ -17,6 +17,12 @@ class NotificationTemplateSeeder extends Seeder
                 'is_mass' => 0,
             ]
         );
+        
+        // Обновляем name и is_mass на случай, если шаблон уже существовал
+        $registrationTemplate->update([
+            'name' => 'Уведомление о регистрации',
+            'is_mass' => 0,
+        ]);
 
         $this->saveTranslations($registrationTemplate, [
             'title' => [
@@ -39,6 +45,12 @@ class NotificationTemplateSeeder extends Seeder
                 'is_mass' => 0,
             ]
         );
+        
+        // Обновляем name и is_mass на случай, если шаблон уже существовал
+        $purchaseTemplate->update([
+            'name' => 'Уведомление о покупке',
+            'is_mass' => 0,
+        ]);
 
         $this->saveTranslations($purchaseTemplate, [
             'title' => [
@@ -61,6 +73,12 @@ class NotificationTemplateSeeder extends Seeder
                 'is_mass' => 0,
             ]
         );
+        
+        // Обновляем name и is_mass на случай, если шаблон уже существовал
+        $disputeTemplate->update([
+            'name' => 'Уведомление о решении претензии',
+            'is_mass' => 0,
+        ]);
 
         $this->saveTranslations($disputeTemplate, [
             'title' => [
@@ -72,6 +90,34 @@ class NotificationTemplateSeeder extends Seeder
                 'ru' => 'Ваша претензия #:dispute_id рассмотрена администратором. Решение: :decision. :comment Подробности доступны в разделе "Мои покупки" → "Претензии".',
                 'en' => 'Your dispute #:dispute_id has been reviewed by the administrator. Decision: :decision. :comment Details are available in the "My Purchases" → "Disputes" section.',
                 'uk' => 'Вашу претензію #:dispute_id розглянуто адміністратором. Рішення: :decision. :comment Деталі доступні в розділі "Мої покупки" → "Претензії".',
+            ],
+        ]);
+
+        // Шаблон 4: Админ-уведомление о новой покупке
+        $adminPurchaseTemplate = NotificationTemplate::firstOrCreate(
+            ['code' => 'admin_product_purchase'],
+            [
+                'name' => 'Админ: Уведомление о новой покупке',
+                'is_mass' => 0,
+            ]
+        );
+        
+        // Обновляем name и is_mass на случай, если шаблон уже существовал
+        $adminPurchaseTemplate->update([
+            'name' => 'Админ: Уведомление о новой покупке',
+            'is_mass' => 0,
+        ]);
+
+        $this->saveTranslations($adminPurchaseTemplate, [
+            'title' => [
+                'ru' => 'Новая покупка (:method)',
+                'en' => 'New purchase (:method)',
+                'uk' => 'Нова покупка (:method)',
+            ],
+            'message' => [
+                'ru' => 'Новая покупка (:method), email: :email, имя: :name, товаров: :products, сумма: :amount',
+                'en' => 'New purchase (:method), email: :email, name: :name, products: :products, amount: :amount',
+                'uk' => 'Нова покупка (:method), email: :email, ім\'я: :name, товарів: :products, сума: :amount',
             ],
         ]);
     }
