@@ -748,12 +748,15 @@ onMounted(async () => {
     margin: 0;
     line-height: 1.3;
     display: -webkit-box;
-    -webkit-line-clamp: 1;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
+    text-overflow: ellipsis;
     word-break: break-word;
     overflow-wrap: break-word;
     font-family: 'SFT Schrifted Sans', sans-serif;
+    max-height: calc(1.3em * 2);
 }
 
 .dark .product-title {
