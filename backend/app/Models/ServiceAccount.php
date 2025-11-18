@@ -64,6 +64,10 @@ class ServiceAccount extends Model
         'meta_description_uk',
         'show_only_telegram',
         'accounts_data',
+        'account_suffix_enabled',
+        'account_suffix_text_ru',
+        'account_suffix_text_en',
+        'account_suffix_text_uk',
         'sku', // Артикул товара
     ];
 

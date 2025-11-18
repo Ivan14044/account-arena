@@ -147,10 +147,84 @@
     initSupportChatBadge();
 })();
 
+// Счетчик новых претензий на товары
+(function(){
+    // Переменная для хранения предыдущего значения счетчика
+    let previousNewDisputesCount = -1;
+    
+    // Функция для обновления счетчика новых претензий
+    function updateDisputesBadge() {
+        if (typeof jQuery === 'undefined') {
+            return;
+        }
+
+        let $badgeElement = document.querySelector('#disputes-unread-count .badge')
+        if (!$badgeElement) {
+            return;
+        }
+
+        $.ajax({
+            url: '/admin/disputes/new-count',
+            method: 'GET',
+            dataType: 'json',
+            success: function(data) {
+                const count = data.count || 0;
+                
+                // Воспроизводим звук при появлении новой претензии
+                if (count > previousNewDisputesCount && previousNewDisputesCount >= 0) {
+                    try {
+                        const audio = new Audio('/assets/admin/sounds/notification.mp3');
+                        audio.volume = 0.3; // 30% громкости
+                        audio.play().catch(function(error) {
+                            // Игнорируем ошибки воспроизведения
+                            console.debug('Could not play notification sound:', error);
+                        });
+                    } catch (error) {
+                        console.debug('Failed to create audio element:', error);
+                    }
+                }
+                
+                previousNewDisputesCount = count;
+                
+                
+                if (count > 0) {
+                    $badgeElement.innerText = count;
+                    $badgeElement.classList.remove('badge-secondary');
+                    $badgeElement.classList.add('badge-warning');
+                } else {
+                    $badgeElement.innerText = '';
+                    $badgeElement.classList.remove('badge-warning');
+                }
+            },
+            error: function(xhr, status, error) {
+                // Игнорируем ошибки
+            }
+        });
+    }
+
+    window.updateDisputesBadge = updateDisputesBadge;
+
+    function initDisputesBadge() {
+        if (typeof jQuery !== 'undefined') {
+            $(document).ready(function() {
+                setTimeout(function() {
+                    updateDisputesBadge();
+                    setInterval(updateDisputesBadge, 3000);
+                }, 1000);
+            });
+        } else {
+            setTimeout(initDisputesBadge, 100);
+        }
+    }
+
+    initDisputesBadge();
+})();
+
 // Звуковое оповещение для уведомлений администратора
 (function() {
-    let lastNotificationCount = 0;
+    let lastNotificationCount = -1; // -1 означает, что еще не инициализировано
     let notificationSound = null;
+    let isInitialized = false;
     
     // Инициализация звука
     function initSound() {
@@ -167,75 +241,65 @@
         if (notificationSound) {
             notificationSound.play().catch(function(error) {
                 // Игнорируем ошибки автовоспроизведения (браузеры блокируют автовоспроизведение)
-                console.log('Автовоспроизведение звука заблокировано браузером');
+                console.debug('Автовоспроизведение звука заблокировано браузером');
             });
         }
     }
     
-    // Проверка новых уведомлений и воспроизведение звука
-    function checkNotifications() {
-        const notificationWidget = document.getElementById('my-notification');
-        if (!notificationWidget) {
+    // Обработка обновления уведомлений из API
+    function handleNotificationUpdate(data) {
+        if (!data || typeof data.label === 'undefined') {
             return;
         }
         
-        // Получаем текущее количество непрочитанных уведомлений из бейджа
-        const badge = notificationWidget.querySelector('.badge');
-        if (!badge) {
+        const currentCount = parseInt(data.label) || 0;
+        
+        // Если это первая инициализация, просто сохраняем счетчик
+        if (lastNotificationCount === -1) {
+            lastNotificationCount = currentCount;
+            isInitialized = true;
             return;
         }
         
-        const currentCount = parseInt(badge.textContent) || 0;
-        
-        // Если количество увеличилось и звук включен, воспроизводим звук
-        if (currentCount > lastNotificationCount && lastNotificationCount > 0) {
-            // Проверяем настройки звука через AJAX
-            if (typeof jQuery !== 'undefined') {
-                $.ajax({
-                    url: '/admin/admin_notifications/get',
-                    method: 'GET',
-                    dataType: 'json',
-                    success: function(data) {
-                        if (data.sound_enabled && data.has_new) {
-                            playNotificationSound();
-                        }
-                    },
-                    error: function() {
-                        // Игнорируем ошибки
-                    }
-                });
+        // Если счетчик увеличился и звук включен, воспроизводим звук
+        if (currentCount > lastNotificationCount && isInitialized) {
+            if (data.sound_enabled && data.has_new) {
+                playNotificationSound();
             }
-        } else if (currentCount > 0 && lastNotificationCount === 0) {
-            // Первая загрузка страницы с уведомлениями - не воспроизводим звук
-            // Звук будет воспроизведен только при появлении новых уведомлений
         }
         
         lastNotificationCount = currentCount;
     }
     
+    // Проверка новых уведомлений через API
+    function checkNotificationsViaAPI() {
+        if (typeof jQuery === 'undefined') {
+            return;
+        }
+        
+        $.ajax({
+            url: '/admin/admin_notifications/get',
+            method: 'GET',
+            dataType: 'json',
+            success: function(data) {
+                handleNotificationUpdate(data);
+            },
+            error: function() {
+                // Игнорируем ошибки
+            }
+        });
+    }
+    
     // Инициализация при загрузке страницы
     if (typeof jQuery !== 'undefined') {
         $(document).ready(function() {
-            const notificationWidget = document.getElementById('my-notification');
             initSound();
-            // Получаем начальное количество уведомлений
-            if (notificationWidget) {
-                const badge = notificationWidget.querySelector('.badge');
-                if (badge) {
-                    lastNotificationCount = parseInt(badge.textContent) || 0;
-                }
-            }
             
-            // Проверяем уведомления каждые 5 секунд
-            setInterval(checkNotifications, 5000);
+            // Получаем начальное количество уведомлений через API
+            checkNotificationsViaAPI();
             
-            // Также проверяем при клике на виджет уведомлений
-            
-            if (notificationWidget) {
-                notificationWidget.addEventListener('click', function() {
-                    setTimeout(checkNotifications, 1000);
-                });
-            }
+            // Проверяем уведомления каждые 5 секунд (чаще, чем AdminLTE обновляет)
+            setInterval(checkNotificationsViaAPI, 5000);
         });
     }
     
@@ -247,10 +311,7 @@
                 if (settings.url && settings.url.includes('admin_notifications/get')) {
                     try {
                         const data = typeof xhr.responseJSON !== 'undefined' ? xhr.responseJSON : JSON.parse(xhr.responseText);
-                        if (data.sound_enabled && data.has_new && data.label > lastNotificationCount) {
-                            playNotificationSound();
-                            lastNotificationCount = data.label;
-                        }
+                        handleNotificationUpdate(data);
                     } catch (e) {
                         // Игнорируем ошибки парсинга
                     }

@@ -94,9 +94,30 @@ class ProductPurchaseService
         
         // Выбираем нужное количество неиспользованных аккаунтов
         $assignedAccounts = [];
+        
+        // Определяем локаль для суффикса
+        $locale = app()->getLocale();
+        if (!in_array($locale, ['ru', 'en', 'uk'])) {
+            $locale = 'en';
+        }
+        
+        // Получаем суффикс для текущей локали
+        $suffixText = null;
+        if ($product->account_suffix_enabled) {
+            $suffixField = 'account_suffix_text_' . $locale;
+            $suffixText = $product->$suffixField ?? null;
+        }
+        
         for ($i = 0; $i < $quantity; $i++) {
             if (isset($accountsData[$usedCount + $i])) {
-                $assignedAccounts[] = $accountsData[$usedCount + $i];
+                $account = $accountsData[$usedCount + $i];
+                
+                // Если включен суффикс и есть текст, добавляем его к аккаунту
+                if ($suffixText) {
+                    $account = $account . "\n" . $suffixText;
+                }
+                
+                $assignedAccounts[] = $account;
             }
         }
         

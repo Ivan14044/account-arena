@@ -119,6 +119,7 @@ Route::prefix('/admin')
 
             // Product disputes management
             Route::get('disputes', [ProductDisputeController::class, 'index'])->name('disputes.index');
+            Route::get('disputes/new-count', [ProductDisputeController::class, 'getNewCount'])->name('disputes.new-count');
             Route::get('disputes/{dispute}', [ProductDisputeController::class, 'show'])->name('disputes.show');
             Route::patch('disputes/{dispute}/mark-in-review', [ProductDisputeController::class, 'markInReview'])->name('disputes.mark-in-review');
             Route::post('disputes/{dispute}/resolve-refund', [ProductDisputeController::class, 'resolveRefund'])->name('disputes.resolve-refund');

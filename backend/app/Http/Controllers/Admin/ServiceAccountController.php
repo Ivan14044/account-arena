@@ -160,6 +160,10 @@ class ServiceAccountController extends Controller
                 'used' => 0,
                 'is_active' => $isActive,
                 'service_id' => null,
+                'account_suffix_enabled' => $request->has('account_suffix_enabled') ? (bool) $request->input('account_suffix_enabled') : false,
+                'account_suffix_text_ru' => $request->input('account_suffix_text_ru'),
+                'account_suffix_text_en' => $request->input('account_suffix_text_en'),
+                'account_suffix_text_uk' => $request->input('account_suffix_text_uk'),
             ]);
 
             $message = "Товар успешно создан! Аккаунтов в наличии: " . count($accountsList);
@@ -237,6 +241,12 @@ class ServiceAccountController extends Controller
         $finalAccountsList = array_merge($soldAccounts, $newAccountsList);
 
         $validated['accounts_data'] = $finalAccountsList;
+
+        // Handle account suffix fields
+        $validated['account_suffix_enabled'] = $request->has('account_suffix_enabled') ? (bool) $request->input('account_suffix_enabled') : false;
+        $validated['account_suffix_text_ru'] = $request->input('account_suffix_text_ru');
+        $validated['account_suffix_text_en'] = $request->input('account_suffix_text_en');
+        $validated['account_suffix_text_uk'] = $request->input('account_suffix_text_uk');
 
         // Логируем для отладки
         \Log::info('Service Account updated', [

@@ -2584,8 +2584,8 @@ watch(adminIsTyping, newVal => {
     .support-chat-button {
         width: 56px;
         height: 56px;
-        bottom: 16px;
-        right: 16px;
+        bottom: 60px;
+        right: 0;
     }
 
     .support-chat-input {

@@ -204,4 +204,14 @@ class ProductDisputeController extends Controller
 
         return response()->json(['products' => $products]);
     }
+
+    /**
+     * Получить количество новых претензий для админа
+     */
+    public function getNewCount()
+    {
+        $newCount = ProductDispute::where('status', ProductDispute::STATUS_NEW)->count();
+        
+        return response()->json(['count' => $newCount]);
+    }
 }

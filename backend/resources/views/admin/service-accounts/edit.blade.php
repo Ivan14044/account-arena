@@ -313,6 +313,77 @@
                                 </small>
                             </div>
 
+                            <!-- Account Suffix Section -->
+                            <div class="form-group mb-3">
+                                <div class="form-check mb-2">
+                                    <input type="checkbox" 
+                                           class="form-check-input" 
+                                           id="account_suffix_enabled" 
+                                           name="account_suffix_enabled" 
+                                           value="1"
+                                           {{ old('account_suffix_enabled', $serviceAccount->account_suffix_enabled) ? 'checked' : '' }}
+                                           onchange="toggleAccountSuffixInput()">
+                                    <label class="form-check-label" for="account_suffix_enabled">
+                                        <i class="fas fa-plus-circle"></i> Добавить дополнительный текст к аккаунтам
+                                    </label>
+                                </div>
+                                <div id="account_suffix_input_wrapper" style="display: {{ old('account_suffix_enabled', $serviceAccount->account_suffix_enabled) ? 'block' : 'none' }};">
+                                    <!-- Language Tabs for Suffix -->
+                                    <ul class="nav nav-tabs mb-2" role="tablist">
+                                        <li class="nav-item">
+                                            <a class="nav-link active" id="suffix-ru-tab" data-toggle="tab" href="#suffix-ru" role="tab">🇷🇺 Русский</a>
+                                        </li>
+                                        <li class="nav-item">
+                                            <a class="nav-link" id="suffix-en-tab" data-toggle="tab" href="#suffix-en" role="tab">🇬🇧 English</a>
+                                        </li>
+                                        <li class="nav-item">
+                                            <a class="nav-link" id="suffix-uk-tab" data-toggle="tab" href="#suffix-uk" role="tab">🇺🇦 Українська</a>
+                                        </li>
+                                    </ul>
+
+                                    <div class="tab-content">
+                                        <!-- Russian Tab -->
+                                        <div class="tab-pane fade show active" id="suffix-ru" role="tabpanel">
+                                            <label for="account_suffix_text_ru">Дополнительный текст (RU)</label>
+                                            <textarea name="account_suffix_text_ru" 
+                                                      id="account_suffix_text_ru" 
+                                                      rows="3"
+                                                      class="form-control @error('account_suffix_text_ru') is-invalid @enderror">{{ old('account_suffix_text_ru', $serviceAccount->account_suffix_text_ru) }}</textarea>
+                                            @error('account_suffix_text_ru')
+                                            <div class="invalid-feedback d-block">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+
+                                        <!-- English Tab -->
+                                        <div class="tab-pane fade" id="suffix-en" role="tabpanel">
+                                            <label for="account_suffix_text_en">Дополнительный текст (EN)</label>
+                                            <textarea name="account_suffix_text_en" 
+                                                      id="account_suffix_text_en" 
+                                                      rows="3"
+                                                      class="form-control @error('account_suffix_text_en') is-invalid @enderror">{{ old('account_suffix_text_en', $serviceAccount->account_suffix_text_en) }}</textarea>
+                                            @error('account_suffix_text_en')
+                                            <div class="invalid-feedback d-block">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+
+                                        <!-- Ukrainian Tab -->
+                                        <div class="tab-pane fade" id="suffix-uk" role="tabpanel">
+                                            <label for="account_suffix_text_uk">Дополнительный текст (UK)</label>
+                                            <textarea name="account_suffix_text_uk" 
+                                                      id="account_suffix_text_uk" 
+                                                      rows="3"
+                                                      class="form-control @error('account_suffix_text_uk') is-invalid @enderror">{{ old('account_suffix_text_uk', $serviceAccount->account_suffix_text_uk) }}</textarea>
+                                            @error('account_suffix_text_uk')
+                                            <div class="invalid-feedback d-block">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+                                    </div>
+                                    <small class="form-text text-muted mt-2">
+                                        <i class="fas fa-info-circle"></i> Этот текст будет добавлен к каждому аккаунту после покупки в формате: account:pass\n{ваш текст}
+                                    </small>
+                                </div>
+                            </div>
+
                             <div class="d-flex justify-content-between mb-2">
                                 <button type="button" class="btn btn-success" onclick="exportAccounts()">
                                     <i class="fas fa-download"></i> 
@@ -686,5 +757,15 @@
                 });
             }
         });
+
+        // Toggle account suffix input visibility
+        function toggleAccountSuffixInput() {
+            const checkbox = document.getElementById('account_suffix_enabled');
+            const wrapper = document.getElementById('account_suffix_input_wrapper');
+            
+            if (checkbox && wrapper) {
+                wrapper.style.display = checkbox.checked ? 'block' : 'none';
+            }
+        }
     </script>
 @endsection
