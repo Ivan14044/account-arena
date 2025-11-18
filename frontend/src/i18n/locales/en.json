@@ -383,7 +383,9 @@
     "notifications": {
         "dropdown_title": "Notifications",
         "empty": "You have no notifications",
-        "dropdown_button": "Load more"
+        "dropdown_button": "Load more",
+        "mark_as_read": "Mark as read",
+        "mark_all_as_read": "Mark all as read"
     },
     "cookie": {
         "title": "Cookie Policy",

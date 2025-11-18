@@ -1,9 +1,9 @@
 @extends('adminlte::page')
 
-@section('title', 'Mass notification')
+@section('title', 'Массовое уведомление')
 
 @section('content_header')
-    <h1>Mass notification</h1>
+    <h1>Массовое уведомление</h1>
 @stop
 
 @section('content')
@@ -11,16 +11,16 @@
         <div class="col-12">
             <div class="card">
                 <div class="card-header">
-                    <h3 class="card-title">Notification data</h3>
+                    <h3 class="card-title">Данные уведомления</h3>
                 </div>
                 <div class="card-body">
                     <form method="POST" action="{{ route('admin.notifications.store') }}" enctype="multipart/form-data">
                         @csrf
 
                         <div class="form-group">
-                            <label for="target">Target Users</label>
+                            <label for="target">Целевые пользователи</label>
                             <select name="target" id="target" class="form-control @error('target') is-invalid @enderror">
-                                <option value="all" {{ old('target') == 'all' ? 'selected' : '' }}>All users</option>
+                                <option value="all" {{ old('target') == 'all' ? 'selected' : '' }}>Все пользователи</option>
                             </select>
                             @error('target')
                                 <div class="invalid-feedback d-block">{{ $message }}</div>
@@ -46,7 +46,7 @@
                                     @foreach(config('langs') as $code => $flag)
                                         <div class="tab-pane fade show {{ $code == 'ru' ? 'active' : null }}" id="tab_message_{{ $code }}" role="tabpanel">
                                             <div class="form-group">
-                                                <label for="title_{{ $code }}">Title</label>
+                                                <label for="title_{{ $code }}">Заголовок</label>
                                                 <input type="text" name="title[{{ $code }}]" id="title_{{ $code }}"
                                                        class="form-control @error('title.' . $code) is-invalid @enderror"
                                                        value="{{ old('title.' . $code) }}">
@@ -55,7 +55,7 @@
                                                 @enderror
                                             </div>
                                             <div class="form-group">
-                                                <label for="message_{{ $code }}">Message</label>
+                                                <label for="message_{{ $code }}">Сообщение</label>
                                                 <textarea style="height: 210px"
                                                           name="message[{{ $code }}]"
                                                           class="ckeditor form-control @error('message.' . $code) is-invalid @enderror"
@@ -70,8 +70,8 @@
                             </div>
                         </div>
 
-                        <button type="submit" class="btn btn-primary">Send notifications</button>
-                        <a href="{{ route('admin.notifications.index') }}" class="btn btn-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary">Отправить уведомления</button>
+                        <a href="{{ route('admin.notifications.index') }}" class="btn btn-secondary">Отмена</a>
                     </form>
                 </div>
             </div>

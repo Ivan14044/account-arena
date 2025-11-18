@@ -55,10 +55,19 @@ class AdminNotificationController extends Controller
             }
         }
 
+        // Проверяем настройки звука для текущего админа
+        $settings = \App\Models\AdminNotificationSetting::getOrCreateForUser(auth()->id());
+        $unreadCount = $notifications->where('read', false)->count();
+        
+        // Проверяем, есть ли новые непрочитанные уведомления
+        $hasNewNotifications = $unreadCount > 0;
+        
         return response()->json([
-            'label' => $notifications->where('read', false)->count(),
+            'label' => $unreadCount,
             'label_color' => 'primary',
             'dropdown' => $dropdownHtml,
+            'sound_enabled' => $settings->sound_enabled,
+            'has_new' => $hasNewNotifications,
         ]);
     }
 

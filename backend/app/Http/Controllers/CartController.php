@@ -7,6 +7,7 @@ use App\Services\PromocodeValidationService;
 use App\Services\EmailService;
 use App\Services\NotifierService;
 use App\Services\ProductPurchaseService;
+use App\Services\NotificationTemplateService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 
@@ -74,10 +75,11 @@ class CartController extends Controller
             $user->save();
 
             // Создаем покупки товаров и транзакции
-            DB::transaction(function () use ($productsData, $user, $totalAmount, $purchaseService) {
+            $purchases = [];
+            DB::transaction(function () use ($productsData, $user, $totalAmount, $purchaseService, &$purchases) {
                 // Обработка товаров используя сервис
                 if (!empty($productsData)) {
-                    $purchaseService->createMultiplePurchases($productsData, $user->id, null, 'balance');
+                    $purchases = $purchaseService->createMultiplePurchases($productsData, $user->id, null, 'balance');
                 }
 
                 // Создаем транзакцию списания с баланса
@@ -128,6 +130,14 @@ class CartController extends Controller
             EmailService::send('payment_confirmation', $user->id, [
                 'amount' => number_format($totalAmount, 2, '.', '') . ' ' . strtoupper(Option::get('currency'))
             ]);
+
+            // Отправляем уведомление пользователю о покупке
+            if (!empty($purchases) && isset($purchases[0]) && $purchases[0]->order_number) {
+                $notificationService = app(NotificationTemplateService::class);
+                $notificationService->sendToUser($user, 'purchase', [
+                    'order_number' => $purchases[0]->order_number,
+                ]);
+            }
 
             // Уведомление админу о новом заказе
             NotifierService::send(

@@ -1,9 +1,9 @@
 @extends('adminlte::page')
 
-@section('title', 'Notifications')
+@section('title', 'Уведомления')
 
 @section('content_header')
-    <h1>Notifications</h1>
+    <h1>Уведомления</h1>
 @stop
 
 @section('content')
@@ -15,19 +15,19 @@
 
         <div class="card">
             <div class="card-header">
-                <h3 class="card-title">Notifications list</h3>
-                <a href="{{ route('admin.notifications.create') }}" class="btn btn-warning float-right">Mass notification</a>
+                <h3 class="card-title">Список уведомлений</h3>
+                <a href="{{ route('admin.notifications.create') }}" class="btn btn-warning float-right">Массовое уведомление</a>
             </div>
             <div class="card-body">
                 <table id="notification-templates-table" class="table table-bordered table-striped">
                     <thead>
                     <tr>
                         <th style="width: 40px">ID</th>
-                        <th>User</th>
-                        <th>Notification</th>
-                        <th>Is read</th>
-                        <th>Created at</th>
-                        <th style="width: 60px">Action</th>
+                        <th>Пользователь</th>
+                        <th>Уведомление</th>
+                        <th>Прочитано</th>
+                        <th>Создано</th>
+                        <th style="width: 60px">Действия</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -47,7 +47,7 @@
                                 @endif
                             </td>
                             <td>
-                                {{ $notification->read_at ? 'Yes' : 'No' }}
+                                {{ $notification->read_at ? 'Да' : 'Нет' }}
                             </td>
                             <td data-order="{{ strtotime($notification->created_at) }}">
                                 {{ \Carbon\Carbon::parse($notification->created_at)->format('Y-m-d H:i') }}
@@ -61,21 +61,21 @@
                                     <div class="modal-dialog" role="document">
                                         <div class="modal-content">
                                             <div class="modal-header">
-                                                <h5 class="modal-title" id="deleteModalLabel">Confirm Deletion</h5>
+                                                <h5 class="modal-title" id="deleteModalLabel">Подтверждение удаления</h5>
                                                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                                                     <span aria-hidden="true">&times;</span>
                                                 </button>
                                             </div>
                                             <div class="modal-body">
-                                                Are you sure you want to delete this notification?
+                                                Вы уверены, что хотите удалить это уведомление?
                                             </div>
                                             <div class="modal-footer">
                                                 <form action="{{ route('admin.notifications.destroy', $notification) }}" method="POST" class="d-inline">
                                                     @csrf
                                                     @method('DELETE')
-                                                    <button type="submit" class="btn btn-danger">Yes, Delete</button>
+                                                    <button type="submit" class="btn btn-danger">Да, удалить</button>
                                                 </form>
-                                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Отмена</button>
                                             </div>
                                         </div>
                                     </div>

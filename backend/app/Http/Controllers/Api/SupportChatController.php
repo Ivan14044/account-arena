@@ -266,6 +266,23 @@ class SupportChatController extends Controller
             'last_message_at' => now(),
         ]);
         
+        // Отправляем уведомление администраторам о новом сообщении (только если сообщение от пользователя/гостя, не от админа)
+        if ($senderType !== SupportMessage::SENDER_ADMIN) {
+            $userEmail = $user ? $user->email : ($chat->guest_email ?? 'Гость');
+            $userName = $user ? $user->name : ($chat->guest_name ?? 'Гость');
+            $messagePreview = mb_substr($message->message, 0, 100);
+            if (mb_strlen($message->message) > 100) {
+                $messagePreview .= '...';
+            }
+            
+            \App\Services\NotifierService::send(
+                'support_chat',
+                'Новое сообщение в чате поддержки',
+                "Пользователь {$userEmail} ({$userName}) написал в чате #{$chat->id}: {$messagePreview}",
+                'info'
+            );
+        }
+        
         // Очищаем кеш счетчика непрочитанных сообщений для админ-панели
         \Illuminate\Support\Facades\Cache::forget('support_chats_unread_count');
         

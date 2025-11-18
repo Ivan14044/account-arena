@@ -61,8 +61,17 @@
                             class="text-xs text-gray-600 dark:text-gray-300 mt-1"
                             v-html="getTranslation(item, 'message')"
                         ></div>
-                        <div class="text-xs text-gray-500 mt-2">
-                            {{ formatDate(item.created_at) }}
+                        <div class="flex justify-between items-center mt-2">
+                            <div class="text-xs text-gray-500">
+                                {{ formatDate(item.created_at) }}
+                            </div>
+                            <button
+                                v-if="!item.read_at"
+                                @click.stop="markAsRead(item.id)"
+                                class="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors"
+                            >
+                                {{ $t('notifications.mark_as_read') }}
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -200,6 +209,15 @@ function getTranslation(item, key) {
 
 function formatDate(dateStr) {
     return new Date(dateStr).toLocaleString();
+}
+
+async function markAsRead(notificationId) {
+    try {
+        await store.markNotificationsAsRead([notificationId]);
+        recentlyRead.value.add(notificationId);
+    } catch (error) {
+        console.error('Failed to mark notification as read:', error);
+    }
 }
 
 onUnmounted(() => {

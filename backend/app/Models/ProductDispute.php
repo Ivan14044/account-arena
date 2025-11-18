@@ -255,15 +255,19 @@ class ProductDispute extends Model
      */
     protected function notifyCustomer()
     {
-        Notification::create([
-            'user_id' => $this->user_id,
-            'type' => 'dispute_resolved',
-            'title' => 'Претензия рассмотрена',
-            'message' => "Ваша претензия #{$this->id} рассмотрена. Решение: " . $this->getDecisionText(),
-            'data' => [
-                'dispute_id' => $this->id,
-                'decision' => $this->admin_decision,
-            ],
+        $user = $this->user;
+        if (!$user) {
+            return;
+        }
+
+        $decisionText = $this->getDecisionText($user->lang ?? 'ru');
+        $comment = $this->admin_comment ?? '';
+
+        $notificationService = app(\App\Services\NotificationTemplateService::class);
+        $notificationService->sendToUser($user, 'dispute_resolved', [
+            'dispute_id' => (string)$this->id,
+            'decision' => $decisionText,
+            'comment' => $comment,
         ]);
     }
 

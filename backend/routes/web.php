@@ -55,7 +55,7 @@ Route::prefix('/admin')
             Route::get('promocode-usages', [PromocodeUsageController::class, 'index'])->name('promocode-usages.index');
             Route::delete('promocodes-bulk', [PromocodeController::class, 'bulkDestroy'])->name('promocodes.bulk-destroy');
             Route::resource('pages', PageController::class)->except(['show']);
-            Route::resource('notification-templates', NotificationTemplateController::class)->only(['index', 'edit', 'update', 'destroy']);
+            Route::resource('notification-templates', NotificationTemplateController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
             Route::resource('notifications', NotificationController::class)->only(['index', 'create', 'store', 'destroy']);
             Route::resource('contents', ContentController::class)->except(['show']);
             Route::resource('articles', ArticleController::class)->except(['show']);
@@ -95,6 +95,7 @@ Route::prefix('/admin')
             Route::resource('admin_notifications', AdminNotificationController::class)
                 ->only(['index', 'destroy'])
                 ->parameters(['admin_notifications' => 'id']);
+            
 
             Route::middleware(['admin.main'])->group(function () {
                 Route::resource('admins', AdminController::class)->except(['show']);

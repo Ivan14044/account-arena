@@ -146,3 +146,117 @@
 
     initSupportChatBadge();
 })();
+
+// Звуковое оповещение для уведомлений администратора
+(function() {
+    let lastNotificationCount = 0;
+    let notificationSound = null;
+    
+    // Инициализация звука
+    function initSound() {
+        try {
+            notificationSound = new Audio('/assets/admin/sounds/notification.mp3');
+            notificationSound.volume = 0.5; // Устанавливаем громкость 50%
+        } catch (e) {
+            console.warn('Не удалось загрузить звук уведомления:', e);
+        }
+    }
+    
+    // Воспроизведение звука
+    function playNotificationSound() {
+        if (notificationSound) {
+            notificationSound.play().catch(function(error) {
+                // Игнорируем ошибки автовоспроизведения (браузеры блокируют автовоспроизведение)
+                console.log('Автовоспроизведение звука заблокировано браузером');
+            });
+        }
+    }
+    
+    // Проверка новых уведомлений и воспроизведение звука
+    function checkNotifications() {
+        const notificationWidget = document.getElementById('my-notification');
+        if (!notificationWidget) {
+            return;
+        }
+        
+        // Получаем текущее количество непрочитанных уведомлений из бейджа
+        const badge = notificationWidget.querySelector('.badge');
+        if (!badge) {
+            return;
+        }
+        
+        const currentCount = parseInt(badge.textContent) || 0;
+        
+        // Если количество увеличилось и звук включен, воспроизводим звук
+        if (currentCount > lastNotificationCount && lastNotificationCount > 0) {
+            // Проверяем настройки звука через AJAX
+            if (typeof jQuery !== 'undefined') {
+                $.ajax({
+                    url: '/admin/admin_notifications/get',
+                    method: 'GET',
+                    dataType: 'json',
+                    success: function(data) {
+                        if (data.sound_enabled && data.has_new) {
+                            playNotificationSound();
+                        }
+                    },
+                    error: function() {
+                        // Игнорируем ошибки
+                    }
+                });
+            }
+        } else if (currentCount > 0 && lastNotificationCount === 0) {
+            // Первая загрузка страницы с уведомлениями - не воспроизводим звук
+            // Звук будет воспроизведен только при появлении новых уведомлений
+        }
+        
+        lastNotificationCount = currentCount;
+    }
+    
+    // Инициализация при загрузке страницы
+    if (typeof jQuery !== 'undefined') {
+        $(document).ready(function() {
+            initSound();
+            
+            // Получаем начальное количество уведомлений
+            const notificationWidget = document.getElementById('my-notification');
+            if (notificationWidget) {
+                const badge = notificationWidget.querySelector('.badge');
+                if (badge) {
+                    lastNotificationCount = parseInt(badge.textContent) || 0;
+                }
+            }
+            
+            // Проверяем уведомления каждые 5 секунд
+            setInterval(checkNotifications, 5000);
+            
+            // Также проверяем при клике на виджет уведомлений
+            const notificationWidget = document.getElementById('my-notification');
+            if (notificationWidget) {
+                notificationWidget.addEventListener('click', function() {
+                    setTimeout(checkNotifications, 1000);
+                });
+            }
+        });
+    }
+    
+    // Перехватываем обновления виджета уведомлений AdminLTE через jQuery
+    if (typeof jQuery !== 'undefined') {
+        $(document).ready(function() {
+            // Перехватываем AJAX запросы к уведомлениям
+            $(document).ajaxSuccess(function(event, xhr, settings) {
+                if (settings.url && settings.url.includes('admin_notifications/get')) {
+                    try {
+                        const data = typeof xhr.responseJSON !== 'undefined' ? xhr.responseJSON : JSON.parse(xhr.responseText);
+                        if (data.sound_enabled && data.has_new && data.label > lastNotificationCount) {
+                            playNotificationSound();
+                            lastNotificationCount = data.label;
+                        }
+                    } catch (e) {
+                        // Игнорируем ошибки парсинга
+                    }
+                }
+            });
+        });
+    }
+})();

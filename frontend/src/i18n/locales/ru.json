@@ -383,7 +383,9 @@
     "notifications": {
         "dropdown_title": "Уведомления",
         "empty": "У вас нет уведомлений",
-        "dropdown_button": "Загрузить ещё"
+        "dropdown_button": "Загрузить ещё",
+        "mark_as_read": "Пометить как прочитанное",
+        "mark_all_as_read": "Пометить все как прочитанные"
     },
     "cookie": {
         "title": "Политика использования cookies",

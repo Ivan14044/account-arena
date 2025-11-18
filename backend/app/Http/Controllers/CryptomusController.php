@@ -13,6 +13,7 @@ use App\Http\Controllers\GuestCartController;
 use App\Services\NotifierService;
 use App\Services\BalanceService;
 use App\Services\ProductPurchaseService;
+use App\Services\NotificationTemplateService;
 use Cryptomus\Api\RequestBuilderException;
 use FunnyDev\Cryptomus\CryptomusSdk;
 use Illuminate\Http\Request;
@@ -576,6 +577,14 @@ class CryptomusController extends Controller
             EmailService::send('payment_confirmation', $user->id, [
                 'amount' => number_format($totalAmount, 2, '.', '') . ' ' . strtoupper(Option::get('currency'))
             ]);
+
+            // Отправляем уведомление пользователю о покупке
+            if (!empty($purchases) && isset($purchases[0]) && $purchases[0]->order_number) {
+                $notificationService = app(NotificationTemplateService::class);
+                $notificationService->sendToUser($user, 'purchase', [
+                    'order_number' => $purchases[0]->order_number,
+                ]);
+            }
 
             // Уведомление админу о новой покупке
             NotifierService::send(

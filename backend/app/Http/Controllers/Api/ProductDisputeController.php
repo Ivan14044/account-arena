@@ -183,8 +183,14 @@ class ProductDisputeController extends Controller
             'refund_amount' => $transaction->amount, // Сумма возврата = сумма транзакции
         ]);
 
-        // Отправляем уведомление администратору
-        // Можно добавить отправку email или системное уведомление
+        // Отправляем уведомление администратору о новой претензии
+        $reasonText = $dispute->getReasonText();
+        \App\Services\NotifierService::send(
+            'dispute_created',
+            'Новая претензия на товар',
+            "Пользователь {$request->user()->email} создал претензию #{$dispute->id} на товар. Причина: {$reasonText}",
+            'warning'
+        );
 
         return \App\Http\Responses\ApiResponse::success([
             'message' => 'Претензия успешно создана. Ожидайте решения администратора.',

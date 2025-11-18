@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Option;
+use App\Models\AdminNotificationSetting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 
@@ -12,8 +13,9 @@ class SettingController extends Controller
     public function index()
     {
         $currency = Option::get('currency');
+        $notificationSettings = AdminNotificationSetting::getOrCreateForUser(auth()->id());
 
-        return view('admin.settings.index', compact('currency'));
+        return view('admin.settings.index', compact('currency', 'notificationSettings'));
     }
 
     public function store(Request $request)
@@ -49,9 +51,23 @@ class SettingController extends Controller
             }
         }
 
+        // Обработка настроек уведомлений
+        if ($request->form === 'notification_settings') {
+            $notificationSettings = AdminNotificationSetting::getOrCreateForUser(auth()->id());
+            $notificationSettings->update([
+                'registration_enabled' => $request->has('registration_enabled'),
+                'product_purchase_enabled' => $request->has('product_purchase_enabled'),
+                'dispute_created_enabled' => $request->has('dispute_created_enabled'),
+                'payment_enabled' => $request->has('payment_enabled'),
+                'topup_enabled' => $request->has('topup_enabled'),
+                'support_chat_enabled' => $request->has('support_chat_enabled'),
+                'sound_enabled' => $request->has('sound_enabled'),
+            ]);
+        }
+
         return redirect()->route('admin.settings.index')
             ->with('active_tab', $request->form)
-            ->with('success', 'Settings saved successfully.');
+            ->with('success', 'Настройки успешно сохранены.');
     }
 
     private function getRules($form)
@@ -156,6 +172,15 @@ class SettingController extends Controller
                 'support_chat_enabled' => ['nullable', 'boolean'],
                 'support_chat_telegram_link' => ['nullable', 'url', 'max:255'],
                 'support_chat_greeting_enabled' => ['nullable', 'boolean'],
+            ],
+            'notification_settings' => [
+                'registration_enabled' => ['nullable', 'boolean'],
+                'product_purchase_enabled' => ['nullable', 'boolean'],
+                'dispute_created_enabled' => ['nullable', 'boolean'],
+                'payment_enabled' => ['nullable', 'boolean'],
+                'topup_enabled' => ['nullable', 'boolean'],
+                'support_chat_enabled' => ['nullable', 'boolean'],
+                'sound_enabled' => ['nullable', 'boolean'],
             ],
             default => [],
         };
