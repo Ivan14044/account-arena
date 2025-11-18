@@ -1,9 +1,9 @@
 @extends('adminlte::page')
 
-@section('title', 'Редактировать шаблон уведомления #' . $notificationTemplate->id)
+@section('title', 'Создать шаблон уведомления')
 
 @section('content_header')
-    <h1>Редактировать шаблон уведомления #{{ $notificationTemplate->id }}</h1>
+    <h1>Создать шаблон уведомления</h1>
 @stop
 
 @section('content')
@@ -18,20 +18,32 @@
                     <h3 class="card-title">Данные шаблона</h3>
                 </div>
                 <div class="card-body">
-                    <form method="POST" action="{{ route('admin.notification-templates.update', $notificationTemplate) }}" enctype="multipart/form-data">
+                    <form method="POST" action="{{ route('admin.notification-templates.store') }}" enctype="multipart/form-data">
                         @csrf
-                        @method('PUT')
                         <div class="form-group">
-                            <label for="name">Название</label>
-                            <input type="text" name="name" id="name" class="form-control @error('name') is-invalid @enderror" value="{{ old('name', $notificationTemplate->name) }}">
+                            <label for="code">Код <span class="text-danger">*</span></label>
+                            <input type="text" name="code" id="code" class="form-control @error('code') is-invalid @enderror" value="{{ old('code') }}" placeholder="например, custom_notification">
+                            <small class="form-text text-muted">Уникальный код шаблона (строчные буквы, допускаются подчеркивания)</small>
+                            @error('code')
+                                <div class="invalid-feedback d-block">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <div class="form-group">
+                            <label for="name">Название <span class="text-danger">*</span></label>
+                            <input type="text" name="name" id="name" class="form-control @error('name') is-invalid @enderror" value="{{ old('name') }}">
                             @error('name')
                                 <div class="invalid-feedback d-block">{{ $message }}</div>
                             @enderror
                         </div>
 
                         <div class="form-group">
-                            <label for="slug">Код</label>
-                            <input type="text" id="code" readonly class="form-control" value="{{ $notificationTemplate->code }}">
+                            <div class="form-check">
+                                <input type="checkbox" name="is_mass" id="is_mass" value="1" class="form-check-input" {{ old('is_mass') ? 'checked' : '' }}>
+                                <label class="form-check-label" for="is_mass">
+                                    Шаблон для массовых уведомлений
+                                </label>
+                            </div>
                         </div>
 
                         <div class="card">
@@ -56,22 +68,20 @@
                                                 <label for="title_{{ $code }}">Заголовок</label>
                                                 <input type="text" name="title[{{ $code }}]" id="title_{{ $code }}"
                                                        class="form-control @error('title.' . $code) is-invalid @enderror"
-                                                       value="{{ old('title.' . $code, $notificationTemplateData[$code]['title'] ?? null) }}">
+                                                       value="{{ old('title.' . $code) }}">
                                                 @error('title.' . $code)
                                                     <div class="invalid-feedback d-block">{{ $message }}</div>
                                                 @enderror
                                             </div>
                                             <div class="form-group">
                                                 <label for="message_{{ $code }}">Сообщение</label>
-                                                @if ($notificationTemplate->code === 'purchase')
-                                                    <div class="alert alert-dark">
-                                                        Вы можете использовать следующие переменные: <code>:order_number</code>, <code>:date</code>
-                                                    </div>
-                                                @endif
+                                                <div class="alert alert-info">
+                                                    Вы можете использовать переменные в формате <code>:variable_name</code> (например, <code>:order_number</code>, <code>:product_name</code>)
+                                                </div>
                                                 <textarea style="height: 210px"
                                                           name="message[{{ $code }}]"
                                                           class="ckeditor form-control @error('message.' . $code) is-invalid @enderror"
-                                                          id="message_{{ $code }}">{!! old('message.' . $code, $notificationTemplateData[$code]['message'] ?? null) !!}</textarea>
+                                                          id="message_{{ $code }}">{{ old('message.' . $code) }}</textarea>
                                                 @error('message.' . $code)
                                                     <div class="invalid-feedback d-block">{{ $message }}</div>
                                                 @enderror
@@ -82,9 +92,9 @@
                             </div>
                         </div>
 
-                        <button type="submit" class="btn btn-primary">Сохранить</button>
-                        <button type="submit" name="save" class="btn btn-primary">Сохранить и продолжить</button>
-                        <a href="{{ route('admin.notification-templates.index') }}" class="btn btn-secondary">Отмена</a>
+                        <button type="submit" class="btn btn-primary">Создать</button>
+                        <button type="submit" name="save" class="btn btn-primary">Создать и продолжить</button>
+                        <a href="{{ route('admin.notification-templates.index', ['type' => 'custom']) }}" class="btn btn-secondary">Отмена</a>
                     </form>
                 </div>
             </div>

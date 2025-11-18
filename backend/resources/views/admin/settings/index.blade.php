@@ -56,6 +56,11 @@
                         <i class="fas fa-comments mr-2"></i>Чат поддержки
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="tab_notification_settings" data-toggle="pill" href="#content_notification_settings" role="tab">
+                        <i class="fas fa-bell mr-2"></i>Уведомления
+                    </a>
+                </li>
             </ul>
         </div>
         <div class="card-body">
@@ -872,6 +877,132 @@
                                 <button type="submit" class="btn btn-primary mt-3">Сохранить настройки</button>
                             </form>
                         </div>
+
+                        <!-- Вкладка настроек уведомлений -->
+                        <div class="tab-pane" id="content_notification_settings" role="tabpanel">
+                            <form method="POST" action="{{ route('admin.settings.store') }}">
+                                <input type="hidden" name="form" value="notification_settings">
+                                @csrf
+
+                                <div class="form-group">
+                                    <h5 class="mb-3">
+                                        <i class="fas fa-bell mr-2"></i>Типы уведомлений
+                                    </h5>
+                                    
+                                    <div class="form-check mb-3">
+                                        <input type="checkbox" 
+                                               class="form-check-input" 
+                                               id="registration_enabled" 
+                                               name="registration_enabled" 
+                                               value="1"
+                                               {{ $notificationSettings->registration_enabled ? 'checked' : '' }}>
+                                        <label class="form-check-label" for="registration_enabled">
+                                            <strong>Новые регистрации</strong>
+                                            <br>
+                                            <small class="text-muted">Уведомления о регистрации новых пользователей</small>
+                                        </label>
+                                    </div>
+
+                                    <div class="form-check mb-3">
+                                        <input type="checkbox" 
+                                               class="form-check-input" 
+                                               id="product_purchase_enabled" 
+                                               name="product_purchase_enabled" 
+                                               value="1"
+                                               {{ $notificationSettings->product_purchase_enabled ? 'checked' : '' }}>
+                                        <label class="form-check-label" for="product_purchase_enabled">
+                                            <strong>Покупки товаров</strong>
+                                            <br>
+                                            <small class="text-muted">Уведомления о новых покупках товаров</small>
+                                        </label>
+                                    </div>
+
+                                    <div class="form-check mb-3">
+                                        <input type="checkbox" 
+                                               class="form-check-input" 
+                                               id="dispute_created_enabled" 
+                                               name="dispute_created_enabled" 
+                                               value="1"
+                                               {{ $notificationSettings->dispute_created_enabled ? 'checked' : '' }}>
+                                        <label class="form-check-label" for="dispute_created_enabled">
+                                            <strong>Новые претензии</strong>
+                                            <br>
+                                            <small class="text-muted">Уведомления о создании новых претензий на товары</small>
+                                        </label>
+                                    </div>
+
+                                    <div class="form-check mb-3">
+                                        <input type="checkbox" 
+                                               class="form-check-input" 
+                                               id="payment_enabled" 
+                                               name="payment_enabled" 
+                                               value="1"
+                                               {{ $notificationSettings->payment_enabled ? 'checked' : '' }}>
+                                        <label class="form-check-label" for="payment_enabled">
+                                            <strong>Платежи</strong>
+                                            <br>
+                                            <small class="text-muted">Уведомления о платежах и транзакциях</small>
+                                        </label>
+                                    </div>
+
+                                    <div class="form-check mb-3">
+                                        <input type="checkbox" 
+                                               class="form-check-input" 
+                                               id="topup_enabled" 
+                                               name="topup_enabled" 
+                                               value="1"
+                                               {{ $notificationSettings->topup_enabled ? 'checked' : '' }}>
+                                        <label class="form-check-label" for="topup_enabled">
+                                            <strong>Пополнения баланса</strong>
+                                            <br>
+                                            <small class="text-muted">Уведомления о пополнениях баланса пользователей</small>
+                                        </label>
+                                    </div>
+
+                                    <div class="form-check mb-3">
+                                        <input type="checkbox" 
+                                               class="form-check-input" 
+                                               id="support_chat_enabled" 
+                                               name="support_chat_enabled" 
+                                               value="1"
+                                               {{ $notificationSettings->support_chat_enabled ? 'checked' : '' }}>
+                                        <label class="form-check-label" for="support_chat_enabled">
+                                            <strong>Сообщения в чате поддержки</strong>
+                                            <br>
+                                            <small class="text-muted">Уведомления о новых сообщениях от пользователей в чате поддержки</small>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <hr>
+
+                                <div class="form-group">
+                                    <h5 class="mb-3">
+                                        <i class="fas fa-volume-up mr-2"></i>Звуковое оповещение
+                                    </h5>
+                                    
+                                    <div class="form-check">
+                                        <input type="checkbox" 
+                                               class="form-check-input" 
+                                               id="sound_enabled" 
+                                               name="sound_enabled" 
+                                               value="1"
+                                               {{ $notificationSettings->sound_enabled ? 'checked' : '' }}>
+                                        <label class="form-check-label" for="sound_enabled">
+                                            <strong>Включить звуковое оповещение</strong>
+                                            <br>
+                                            <small class="text-muted">Воспроизводить звук при получении новых уведомлений</small>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="form-group mt-4">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save mr-2"></i>Сохранить настройки
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
                         
                     </div>
                 </div>
@@ -983,8 +1114,16 @@
 
             const activeTab = @json(old('form', session('active_tab')));
             if (activeTab) {
-                const tabId = '#tab_' + activeTab;
-                const paneId = '#content_' + activeTab;
+                let tabId, paneId;
+                
+                // Маппинг для правильных ID вкладок
+                if (activeTab === 'notification_settings') {
+                    tabId = '#tab_notification_settings';
+                    paneId = '#content_notification_settings';
+                } else {
+                    tabId = '#tab_' + activeTab;
+                    paneId = '#content_' + activeTab;
+                }
 
                 $('a.nav-link').removeClass('active');
                 $('.tab-pane').removeClass('show active');

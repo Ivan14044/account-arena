@@ -13,5 +13,6 @@ class DatabaseSeeder extends Seeder
     {
         $this->call(AdminSeeder::class);
         $this->call(OptionSeeder::class);
+        $this->call(NotificationTemplateSeeder::class);
     }
 }

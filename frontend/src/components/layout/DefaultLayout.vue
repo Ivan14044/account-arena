@@ -3,7 +3,7 @@
         <AnimatedBackdrop :is-dark="isDark" />
         <Header v-if="!route.meta.requiresGuest" />
         <main class="flex-1">
-            <router-view v-if="!isLoading" />
+            <router-view />
         </main>
         <Footer v-if="!route.meta.requiresGuest" />
         <ScrollToTop />

@@ -560,10 +560,23 @@ return [
 
         [
             'text' => 'Уведомления',
-            'route' => 'admin.notifications.index',
             'icon' => 'fas fa-fw mr-1 fa-bell',
             'active' => ['admin/notifications*', 'admin/notification-templates*'],
             'can' => 'admin-only',
+            'submenu' => [
+                [
+                    'text' => 'Список уведомлений',
+                    'route' => 'admin.notifications.index',
+                    'icon' => 'fas fa-fw mr-1 fa-list',
+                    'active' => ['admin/notifications*'],
+                ],
+                [
+                    'text' => 'Шаблоны уведомлений',
+                    'route' => 'admin.notification-templates.index',
+                    'icon' => 'fas fa-fw mr-1 fa-file-alt',
+                    'active' => ['admin/notification-templates*'],
+                ],
+            ],
         ],
 
         // ACCOUNT DROPDOWN - ADMIN ONLY
