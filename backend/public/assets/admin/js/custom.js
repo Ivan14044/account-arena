@@ -216,10 +216,9 @@
     // Инициализация при загрузке страницы
     if (typeof jQuery !== 'undefined') {
         $(document).ready(function() {
-            initSound();
-            
-            // Получаем начальное количество уведомлений
             const notificationWidget = document.getElementById('my-notification');
+            initSound();
+            // Получаем начальное количество уведомлений
             if (notificationWidget) {
                 const badge = notificationWidget.querySelector('.badge');
                 if (badge) {
@@ -231,7 +230,7 @@
             setInterval(checkNotifications, 5000);
             
             // Также проверяем при клике на виджет уведомлений
-            const notificationWidget = document.getElementById('my-notification');
+            
             if (notificationWidget) {
                 notificationWidget.addEventListener('click', function() {
                     setTimeout(checkNotifications, 1000);

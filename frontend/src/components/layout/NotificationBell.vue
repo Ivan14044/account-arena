@@ -5,280 +5,429 @@
             @click.stop="toggleDropdown"
         >
             <!-- Bell icon -->
-            <button class="relative" :class="{ 'bounce-once': animate }">
+            <button class="relative" :class="{ 'bounce-once': shouldAnimate }" aria-label="Notifications">
                 <Bell class="bell" />
 
                 <span
-                    v-if="unread > 0"
+                    v-if="unreadCount > 0"
                     class="counter flex items-center justify-center leading-none -top-1 -right-1 text-white"
+                    :aria-label="`${unreadCount} unread notifications`"
                 >
-                    {{ unread > 9 ? '9+' : unread }}
+                    {{ unreadCount > 9 ? '9+' : unreadCount }}
                 </span>
             </button>
         </div>
 
         <!-- Dropdown -->
         <Transition
-            enter-active-class="transition duration-200 ease-out"
-            enter-from-class="opacity-0 -translate-y-2"
-            enter-to-class="opacity-100 translate-y-0"
-            leave-active-class="transition duration-150 ease-in"
-            leave-from-class="opacity-100 translate-y-0"
-            leave-to-class="opacity-0 -translate-y-2"
-        >
-            <div
-                v-if="dropdownOpen"
-                ref="dropdownRef"
-                class="absolute right-0 top-[45px] w-80 !bg-indigo-soft-200 !border-indigo-soft-400 dark:!border-gray-700 text-gray-900 dark:text-white dark:!bg-gray-800 border rounded shadow-lg z-50 notification-dropdown"
+                enter-active-class="transition duration-200 ease-out"
+                enter-from-class="opacity-0 -translate-y-2"
+                enter-to-class="opacity-100 translate-y-0"
+                leave-active-class="transition duration-150 ease-in"
+                leave-from-class="opacity-100 translate-y-0"
+                leave-to-class="opacity-0 -translate-y-2"
             >
-                <BoxLoader v-if="loading" />
-                <div class="px-2 px-lg-3 py-2 border-b font-semibold text-gray-900 dark:text-white">
-                    {{ $t('notifications.dropdown_title') }}
-                    <button
-                        class="text-gray-900 dark:text-white text-2xl leading-none float-right close-dropdown"
-                        @click="toggleDropdown"
-                    >
-                        ×
-                    </button>
-                </div>
-
-                <div v-if="items.length > 0" class="max-h-96 overflow-y-auto">
-                    <div
-                        v-for="(item, index) in items"
-                        :ref="el => setItemRef(el, item.id)"
-                        :key="index"
-                        class="p-3 border-b transition relative"
-                    >
-                        <div class="text-sm font-medium flex justify-between items-start">
-                            <span>{{ getTranslation(item, 'title') }}</span>
-                            <span
-                                v-if="recentlyRead.has(item.id)"
-                                class="inline-block w-2 h-2 rounded-full bg-blue-500 mt-1 ml-2 shrink-0"
-                                title="New"
-                            ></span>
-                        </div>
-                        <div
-                            class="text-xs text-gray-600 dark:text-gray-300 mt-1"
-                            v-html="getTranslation(item, 'message')"
-                        ></div>
-                        <div class="flex justify-between items-center mt-2">
-                            <div class="text-xs text-gray-500">
-                                {{ formatDate(item.created_at) }}
-                            </div>
-                            <button
-                                v-if="!item.read_at"
-                                @click.stop="markAsRead(item.id)"
-                                class="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors"
-                            >
-                                {{ $t('notifications.mark_as_read') }}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <div v-else class="p-4 text-sm text-gray-900 dark:text-gray-500 text-center">
-                    {{ $t('notifications.empty') }}
-                </div>
-
                 <div
-                    v-if="store.total > 3 && store.total > items.length"
-                    class="text-gray-600 dark:text-white text-sm"
-                    @click="loadMore"
+                    v-if="isDropdownOpen"
+                    ref="dropdownRef"
+                    class="absolute right-0 top-[45px] w-80 !bg-indigo-soft-200 !border-indigo-soft-400 dark:!border-gray-700 text-gray-900 dark:text-white dark:!bg-gray-800 border rounded shadow-lg z-50 notification-dropdown"
+                    role="dialog"
+                    aria-label="Notifications dropdown"
                 >
+                    <BoxLoader v-if="isLoading" />
+                    <div class="px-2 px-lg-3 py-2 border-b font-semibold text-gray-900 dark:text-white flex justify-between items-center">
+                        <span>{{ $t('notifications.dropdown_title') }}</span>
+                        <button
+                            class="text-gray-900 dark:text-white text-2xl leading-none close-dropdown hover:opacity-70 transition-opacity"
+                            :aria-label="$t('notifications.close')"
+                            @click="closeDropdown"
+                        >
+                            ×
+                        </button>
+                    </div>
+
+                    <div v-if="displayedItems.length > 0" class="max-h-96 overflow-y-auto">
+                        <div
+                            v-for="item in displayedItems"
+                            :key="item.id"
+                            :ref="el => setItemRef(el, item.id)"
+                            class="p-3 border-b transition relative hover:bg-indigo-50 dark:hover:bg-gray-700/50"
+                        >
+                            <div class="text-sm font-medium flex justify-between items-start gap-2">
+                                <span class="flex-1">{{ getTranslation(item, 'title') }}</span>
+                                <span
+                                    v-if="!item.read_at"
+                                    class="inline-block w-2 h-2 rounded-full bg-blue-500 mt-1 shrink-0"
+                                    :title="$t('notifications.new')"
+                                    aria-label="New notification"
+                                ></span>
+                            </div>
+                            <div
+                                class="text-xs text-gray-600 dark:text-gray-300 mt-1"
+                                v-html="getTranslation(item, 'message')"
+                            ></div>
+                            <div class="flex justify-between items-center mt-2">
+                                <time class="text-xs text-gray-500" :datetime="item.created_at">
+                                    {{ formatDate(item.created_at) }}
+                                </time>
+                                <button
+                                    v-if="!item.read_at"
+                                    @click.stop="handleMarkAsRead(item)"
+                                    class="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-1"
+                                    :aria-label="$t('notifications.mark_as_read')"
+                                >
+                                    {{ $t('notifications.mark_as_read') }}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div v-else class="p-4 text-sm text-gray-900 dark:text-gray-500 text-center">
+                        {{ $t('notifications.empty') }}
+                    </div>
+
                     <div
-                        class="p-2 text-center cursor-pointer leading-none hover:bg-indigo-200 dark:hover:bg-gray-700 transition"
+                        v-if="hasMoreItems"
+                        class="text-gray-600 dark:text-white text-sm"
                     >
-                        {{ $t('notifications.dropdown_button') }} ({{ store.total - items.length }})
+                        <button
+                            class="w-full p-2 text-center cursor-pointer leading-none hover:bg-indigo-200 dark:hover:bg-gray-700 transition focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded"
+                            :disabled="isLoading"
+                            @click="handleLoadMore"
+                        >
+                            {{ $t('notifications.dropdown_button') }} ({{ remainingCount }})
+                        </button>
                     </div>
                 </div>
-            </div>
-        </Transition>
+            </Transition>
     </div>
 </template>
 
 <script setup>
-import { ref, onUnmounted, watch, computed, nextTick } from 'vue';
+import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from 'vue';
 import { useNotificationStore } from '@/stores/notifications';
 import { useAuthStore } from '@/stores/auth';
 import BoxLoader from '@/components/BoxLoader.vue';
 import { useI18n } from 'vue-i18n';
 import { Bell } from 'lucide-vue-next';
 
-const { locale } = useI18n();
-const dropdownOpen = ref(false);
-const intervalId = ref(null);
-const animate = ref(false);
-const previousUnread = ref(0);
-const sound = new Audio('/sounds/notification.mp3');
-sound.volume = 0.5;
-const isFirstLoad = ref(true);
-const dropdownRef = ref(null);
-
-const store = useNotificationStore();
+const { locale, t } = useI18n();
+const notificationStore = useNotificationStore();
 const authStore = useAuthStore();
-const isAuthenticated = computed(() => !!authStore.user);
 
-const { fetchData } = store;
-const recentlyRead = ref(new Set());
-
-const unread = computed(() => store.unread);
-const items = computed(() => store.items);
-const loading = ref(false);
-
-const limit = 3;
-const page = ref(2);
+// Refs
+const isDropdownOpen = ref(false);
+const dropdownRef = ref(null);
+const isLoading = ref(false);
+const shouldAnimate = ref(false);
+const recentlyReadIds = ref(new Set());
+const itemRefs = ref(new Map());
+const animationTimeoutId = ref(null);
+const pollingIntervalId = ref(null);
+const previousUnreadCount = ref(0);
+const isFirstLoad = ref(true);
+const currentPage = ref(2);
+const loadedItems = ref([]);
 const firstNewItemId = ref(null);
 
-const loadMore = async () => {
-    if (loading.value) return;
-    loading.value = true;
+// Constants
+const INITIAL_LIMIT = 3;
+const POLLING_INTERVAL = 10000;
+const ANIMATION_DURATION = 2000;
 
-    try {
-        const offset = (page.value - 1) * limit;
-        const response = await store.fetchChunk(limit, offset, false);
+// Computed
+const isAuthenticated = computed(() => !!authStore.user);
+const unreadCount = computed(() => notificationStore.unread);
+const storeItems = computed(() => notificationStore.items);
+const displayedItems = computed(() => {
+    return loadedItems.value.length > 0 ? loadedItems.value : storeItems.value;
+});
+const hasMoreItems = computed(() => {
+    return notificationStore.total > INITIAL_LIMIT && 
+           notificationStore.total > displayedItems.value.length;
+});
+const remainingCount = computed(() => {
+    return notificationStore.total - displayedItems.value.length;
+});
 
-        firstNewItemId.value = response[0]?.id ?? null;
+// Initialize loaded items from store
+watch(storeItems, (newItems) => {
+    if (loadedItems.value.length === 0 && newItems.length > 0) {
+        loadedItems.value = [...newItems];
+    }
+}, { immediate: true });
 
-        items.value.push(...response);
-        page.value++;
+// Sound initialization (lazy)
+let notificationSound = null;
+const getNotificationSound = () => {
+    if (!notificationSound) {
+        notificationSound = new Audio('/sounds/notification.mp3');
+        notificationSound.volume = 0.5;
+    }
+    return notificationSound;
+};
 
-        await nextTick();
-
-        const el = itemRefs.value[firstNewItemId.value];
-        if (el) {
-            el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            firstNewItemId.value = null;
-        }
-
-        const unreadIds = response.filter(i => !i.read_at).map(i => i.id);
-        if (unreadIds.length > 0) {
-            unreadIds.forEach(id => recentlyRead.value.add(id));
-            await store.markNotificationsAsRead(unreadIds);
-        }
-    } catch (e) {
-        console.error('Failed to load notifications:', e);
-    } finally {
-        loading.value = false;
+// Methods
+const setItemRef = (el, id) => {
+    if (el) {
+        itemRefs.value.set(id, el);
+    } else {
+        itemRefs.value.delete(id);
     }
 };
 
-const itemRefs = ref({});
+const closeDropdown = () => {
+    isDropdownOpen.value = false;
+    recentlyReadIds.value.clear();
+};
 
-function setItemRef(el, id) {
-    if (el) itemRefs.value[id] = el;
-    else delete itemRefs.value[id];
-}
+const toggleDropdown = async () => {
+    const wasOpen = isDropdownOpen.value;
+    isDropdownOpen.value = !isDropdownOpen.value;
 
-function handleClickOutside(event) {
-    if (dropdownRef.value && !dropdownRef.value.contains(event.target)) {
-        dropdownOpen.value = false;
-        recentlyRead.value.clear();
-    }
-}
-
-function toggleDropdown() {
-    dropdownOpen.value = !dropdownOpen.value;
-
-    if (dropdownOpen.value) {
-        const unreadItems = store.items.filter(n => !n.read_at);
+    if (isDropdownOpen.value && !wasOpen) {
+        // Reset loaded items when opening
+        loadedItems.value = [...storeItems.value];
+        currentPage.value = 2;
+        
+        // Mark visible unread items as read
+        const unreadItems = storeItems.value.filter(n => !n.read_at);
         const unreadIds = unreadItems.map(n => n.id);
 
         if (unreadIds.length > 0) {
-            unreadIds.forEach(id => recentlyRead.value.add(id));
-            store.markNotificationsAsRead(unreadIds);
+            unreadIds.forEach(id => recentlyReadIds.value.add(id));
+            try {
+                await notificationStore.markNotificationsAsRead(unreadIds);
+            } catch (error) {
+                console.error('Failed to mark notifications as read:', error);
+            }
         }
-    } else {
-        recentlyRead.value.clear();
+    } else if (!isDropdownOpen.value) {
+        recentlyReadIds.value.clear();
     }
-}
+};
 
-function getTranslation(item, key) {
+const handleMarkAsRead = async (item) => {
+    if (item.read_at) return;
+
+    try {
+        recentlyReadIds.value.delete(item.id);
+        item.read_at = new Date().toISOString();
+        await notificationStore.markNotificationsAsRead([item.id]);
+    } catch (error) {
+        console.error('Failed to mark notification as read:', error);
+    }
+};
+
+const handleLoadMore = async () => {
+    if (isLoading.value) return;
+
+    isLoading.value = true;
+
+    try {
+        const offset = (currentPage.value - 1) * INITIAL_LIMIT;
+        const newItems = await notificationStore.fetchChunk(INITIAL_LIMIT, offset, false);
+
+        if (newItems.length === 0) {
+            return;
+        }
+
+        firstNewItemId.value = newItems[0]?.id ?? null;
+        loadedItems.value = [...loadedItems.value, ...newItems];
+        currentPage.value++;
+
+        await nextTick();
+
+        // Scroll to first new item
+        if (firstNewItemId.value) {
+            const element = itemRefs.value.get(firstNewItemId.value);
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                firstNewItemId.value = null;
+            }
+        }
+
+        // Mark new unread items as read
+        const unreadIds = newItems.filter(i => !i.read_at).map(i => i.id);
+        if (unreadIds.length > 0) {
+            unreadIds.forEach(id => recentlyReadIds.value.add(id));
+            try {
+                await notificationStore.markNotificationsAsRead(unreadIds);
+            } catch (error) {
+                console.error('Failed to mark new notifications as read:', error);
+            }
+        }
+    } catch (error) {
+        console.error('Failed to load more notifications:', error);
+    } finally {
+        isLoading.value = false;
+    }
+};
+
+const getTranslation = (item, key) => {
     const translations = item.template?.translations || {};
     let text = translations[locale.value]?.[key] || translations['en']?.[key] || '';
 
     const variables = item.template?.variables;
-    if (!variables || typeof variables !== 'object') return text;
+    if (!variables || typeof variables !== 'object') {
+        return text;
+    }
 
+    // Replace variables in text
     for (const [k, v] of Object.entries(variables)) {
-        // Services are no longer available, use the code directly
-        text = text.replace(new RegExp(`:${k}\\b`, 'g'), v);
+        text = text.replace(new RegExp(`:${k}\\b`, 'g'), String(v));
     }
 
     return text;
-}
+};
 
-function formatDate(dateStr) {
-    return new Date(dateStr).toLocaleString();
-}
-
-async function markAsRead(notificationId) {
+const formatDate = (dateStr) => {
     try {
-        await store.markNotificationsAsRead([notificationId]);
-        recentlyRead.value.add(notificationId);
-    } catch (error) {
-        console.error('Failed to mark notification as read:', error);
+        return new Date(dateStr).toLocaleString(locale.value);
+    } catch {
+        return dateStr;
     }
-}
+};
 
-onUnmounted(() => {
-    clearInterval(intervalId.value);
-    document.removeEventListener('click', handleClickOutside);
-});
+const startPolling = () => {
+    if (pollingIntervalId.value) {
+        clearInterval(pollingIntervalId.value);
+    }
 
-watch(unread, newVal => {
-    // если первая загрузка — не реагируем
+    pollingIntervalId.value = setInterval(async () => {
+        try {
+            notificationStore.isLoaded = false;
+            await notificationStore.fetchData(INITIAL_LIMIT);
+        } catch (error) {
+            console.error('Failed to poll notifications:', error);
+        }
+    }, POLLING_INTERVAL);
+};
+
+const stopPolling = () => {
+    if (pollingIntervalId.value) {
+        clearInterval(pollingIntervalId.value);
+        pollingIntervalId.value = null;
+    }
+};
+
+const playNotificationSound = () => {
+    try {
+        const sound = getNotificationSound();
+        sound.play().catch(() => {
+            // Ignore play errors (e.g., user hasn't interacted with page)
+        });
+    } catch (error) {
+        console.error('Failed to play notification sound:', error);
+    }
+};
+
+const triggerAnimation = () => {
+    shouldAnimate.value = true;
+    
+    if (animationTimeoutId.value) {
+        clearTimeout(animationTimeoutId.value);
+    }
+
+    animationTimeoutId.value = setTimeout(() => {
+        shouldAnimate.value = false;
+        animationTimeoutId.value = null;
+    }, ANIMATION_DURATION);
+};
+
+// Watchers
+watch(unreadCount, (newCount) => {
     if (isFirstLoad.value) {
-        previousUnread.value = newVal;
+        previousUnreadCount.value = newCount;
+        isFirstLoad.value = false;
         return;
     }
 
-    // если кол-во увеличилось — проигрываем звук и анимацию
-    if (newVal > previousUnread.value) {
-        animate.value = true;
-        sound.play().catch(() => {});
-        setTimeout(() => {
-            animate.value = false;
-        }, 2000);
+    if (newCount > previousUnreadCount.value) {
+        triggerAnimation();
+        playNotificationSound();
     }
 
-    previousUnread.value = newVal;
+    previousUnreadCount.value = newCount;
 });
 
-watch(items, (newItems, oldItems) => {
-    if (!dropdownOpen.value) return;
+watch(storeItems, (newItems, oldItems) => {
+    if (!isDropdownOpen.value) return;
 
-    const oldIds = new Set(oldItems?.map(i => i.id) ?? []);
-    const newlyAdded = newItems.filter(item => !oldIds.has(item.id) && !item.read_at);
+    const oldIds = new Set((oldItems || []).map(i => i.id));
+    const newlyAdded = newItems.filter(
+        item => !oldIds.has(item.id) && !item.read_at
+    );
 
     if (newlyAdded.length > 0) {
         const ids = newlyAdded.map(n => n.id);
-        ids.forEach(id => recentlyRead.value.add(id));
-        store.markNotificationsAsRead(ids);
+        ids.forEach(id => recentlyReadIds.value.add(id));
+        
+        notificationStore.markNotificationsAsRead(ids).catch(error => {
+            console.error('Failed to mark newly added notifications as read:', error);
+        });
     }
 });
 
-watch(
-    () => isAuthenticated.value,
-    async newVal => {
-        if (newVal) {
-            document.addEventListener('click', handleClickOutside);
-
-            await fetchData();
-            previousUnread.value = unread.value;
+watch(isAuthenticated, async (isAuth) => {
+    if (isAuth) {
+        try {
+            await notificationStore.fetchData(INITIAL_LIMIT);
+            previousUnreadCount.value = unreadCount.value;
             isFirstLoad.value = false;
-
-            intervalId.value = setInterval(() => {
-                store.isLoaded = false;
-                fetchData();
-            }, 10000);
-        } else {
-            clearInterval(intervalId.value);
-            intervalId.value = null;
-            document.removeEventListener('click', handleClickOutside);
+            startPolling();
+        } catch (error) {
+            console.error('Failed to fetch notifications:', error);
         }
-    },
-    { immediate: true }
-);
+    } else {
+        stopPolling();
+        loadedItems.value = [];
+        currentPage.value = 2;
+        recentlyReadIds.value.clear();
+    }
+});
+
+// Click outside handler
+const handleClickOutside = (event) => {
+    if (dropdownRef.value && !dropdownRef.value.contains(event.target)) {
+        if (isDropdownOpen.value) {
+            closeDropdown();
+        }
+    }
+};
+
+// Lifecycle
+onMounted(async () => {
+    document.addEventListener('click', handleClickOutside);
+    
+    if (isAuthenticated.value) {
+        try {
+            await notificationStore.fetchData(INITIAL_LIMIT);
+            previousUnreadCount.value = unreadCount.value;
+            isFirstLoad.value = false;
+            startPolling();
+        } catch (error) {
+            console.error('Failed to fetch notifications on mount:', error);
+        }
+    }
+});
+
+onBeforeUnmount(() => {
+    document.removeEventListener('click', handleClickOutside);
+    stopPolling();
+    
+    if (animationTimeoutId.value) {
+        clearTimeout(animationTimeoutId.value);
+    }
+
+    if (notificationSound) {
+        notificationSound.pause();
+        notificationSound = null;
+    }
+
+    recentlyReadIds.value.clear();
+    itemRefs.value.clear();
+});
 </script>
 
 <style scoped>
