@@ -70,6 +70,8 @@ Route::prefix('/admin')
             Route::get('service-accounts/{serviceAccount}/export', [ServiceAccountController::class, 'export'])->name('service-accounts.export');
             Route::post('service-accounts/{serviceAccount}/import', [ServiceAccountController::class, 'import'])->name('service-accounts.import');
             Route::post('service-accounts/upload-image', [ServiceAccountController::class, 'uploadImage'])->name('service-accounts.upload-image');
+            Route::post('service-accounts/update-sort-order', [ServiceAccountController::class, 'updateSortOrder'])->name('service-accounts.update-sort-order');
+            Route::post('service-accounts/apply-sort-order', [ServiceAccountController::class, 'applySortOrder'])->name('service-accounts.apply-sort-order');
             Route::resource('vouchers', VoucherController::class);
 
             // Purchases (покупки товаров)

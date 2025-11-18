@@ -9,14 +9,51 @@ use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 
 class ServiceAccountController extends Controller
 {
     public function index()
     {
-        $serviceAccounts = ServiceAccount::orderBy('id', 'desc')->get();
+        // Сортировка по sort_order (для ручной сортировки), затем по id
+        $serviceAccounts = ServiceAccount::with('category')->orderBy('sort_order', 'asc')
+            ->orderBy('id', 'desc')
+            ->get();
 
-        return view('admin.service-accounts.index', compact('serviceAccounts'));
+        // Получаем все категории товаров (родительские и подкатегории)
+        $categories = \App\Models\Category::productCategories()
+            ->with(['translations', 'children.translations'])
+            ->orderBy('parent_id', 'asc')
+            ->orderBy('id', 'asc')
+            ->get();
+
+        // Группируем категории: родительские и их подкатегории
+        $parentCategories = $categories->whereNull('parent_id');
+        $subcategories = $categories->whereNotNull('parent_id');
+
+        // Подсчитываем количество товаров для каждой родительской категории
+        $parentCategories = $parentCategories->map(function($category) use ($serviceAccounts, $subcategories) {
+            // Товары напрямую в этой категории
+            $directCount = $serviceAccounts->where('category_id', $category->id)->count();
+            
+            // Товары в подкатегориях этой категории
+            $subcategoryIds = $subcategories->where('parent_id', $category->id)->pluck('id');
+            $subcategoryCount = $serviceAccounts->whereIn('category_id', $subcategoryIds)->count();
+            
+            $category->products_count = $directCount + $subcategoryCount;
+            return $category;
+        });
+
+        // Подсчитываем количество товаров для каждой подкатегории
+        $subcategories = $subcategories->map(function($subcategory) use ($serviceAccounts) {
+            $subcategory->products_count = $serviceAccounts->where('category_id', $subcategory->id)->count();
+            return $subcategory;
+        });
+
+        // Подсчитываем товары без категории
+        $noCategoryCount = $serviceAccounts->whereNull('category_id')->count();
+
+        return view('admin.service-accounts.index', compact('serviceAccounts', 'parentCategories', 'subcategories', 'noCategoryCount'));
     }
 
     public function create()
@@ -373,6 +410,70 @@ class ServiceAccountController extends Controller
             'error' => [
                 'message' => 'Не удалось загрузить изображение'
             ]
+        ]);
+    }
+
+    /**
+     * Обновить порядок сортировки товаров
+     */
+    public function updateSortOrder(Request $request)
+    {
+        $request->validate([
+            'items' => 'required|array',
+            'items.*.id' => 'required|exists:service_accounts,id',
+            'items.*.sort_order' => 'required|integer',
+        ]);
+
+        foreach ($request->items as $item) {
+            ServiceAccount::where('id', $item['id'])
+                ->update(['sort_order' => $item['sort_order']]);
+        }
+
+        // Очистить кеш товаров для клиентов
+        Cache::forget('active_accounts_list');
+
+        return response()->json(['success' => true, 'message' => 'Порядок сортировки обновлен']);
+    }
+
+    /**
+     * Применить сортировку ко всем товарам (обновить sort_order)
+     */
+    public function applySortOrder(Request $request)
+    {
+        $request->validate([
+            'sort_by' => 'required|string|in:id,price,created_at',
+            'direction' => 'required|string|in:asc,desc',
+        ]);
+
+        $sortBy = $request->sort_by;
+        $direction = $request->direction;
+
+        // Получаем все товары, отсортированные по выбранному полю
+        $serviceAccounts = ServiceAccount::orderBy($sortBy, $direction)->get();
+
+        // Оптимизированное массовое обновление sort_order
+        $updates = [];
+        foreach ($serviceAccounts as $index => $account) {
+            $updates[] = [
+                'id' => $account->id,
+                'sort_order' => $index + 1,
+            ];
+        }
+
+        // Массовое обновление через транзакцию
+        DB::transaction(function () use ($updates) {
+            foreach ($updates as $update) {
+                ServiceAccount::where('id', $update['id'])
+                    ->update(['sort_order' => $update['sort_order']]);
+            }
+        });
+
+        // Очистить кеш товаров для клиентов
+        Cache::forget('active_accounts_list');
+
+        return response()->json([
+            'success' => true, 
+            'message' => 'Сортировка применена и сохранена'
         ]);
     }
 }

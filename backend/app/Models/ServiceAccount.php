@@ -22,10 +22,17 @@ class ServiceAccount extends Model
             if (empty($account->sku)) {
                 $account->sku = self::generateSku();
             }
+            
+            // Устанавливаем sort_order для новых товаров (в конец списка)
+            if (empty($account->sort_order)) {
+                $maxSortOrder = self::max('sort_order') ?? 0;
+                $account->sort_order = $maxSortOrder + 1;
+            }
         });
     }
 
     protected $fillable = [
+        'sort_order', // Порядок сортировки товаров
         'service_id',
         'category_id',
         'supplier_id',

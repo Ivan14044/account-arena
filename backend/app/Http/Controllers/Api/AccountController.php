@@ -19,7 +19,8 @@ class AccountController extends Controller
                 ->where('is_active', true)
                 ->whereNotNull('title')
                 ->whereNotNull('price')
-                ->orderBy('created_at', 'desc')
+                ->orderBy('sort_order', 'asc') // Использовать sort_order для ручной сортировки
+                ->orderBy('id', 'desc') // Дополнительная сортировка по id
                 ->get();
         });
 
