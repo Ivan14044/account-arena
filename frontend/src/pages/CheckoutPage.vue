@@ -556,7 +556,8 @@ const isZeroTotalWithServices = computed(
 );
 
 const formatCurrency = (value: number) => {
-    return `${value.toFixed(2)} ${optionStore.options.currency.toUpperCase()}`;
+    const currency = optionStore.getOption('currency', 'USD');
+    return `${value.toFixed(2)} ${currency?.toUpperCase()}`;
 };
 
 // Загрузка правил покупки

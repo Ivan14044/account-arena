@@ -88,7 +88,7 @@ class VerifyWebhookSignature
         $data = $request->getContent();
         
         // Monobank использует RSA подпись
-        $publicKeyResource = openssl_pkey_get_public($publicKey);
+        $publicKeyResource = openssl_pkey_get_public(base64_decode($publicKey));
         if (!$publicKeyResource) {
             Log::error('Invalid Monobank public key format');
             return false;

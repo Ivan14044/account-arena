@@ -258,7 +258,7 @@
         "promocode_empty_hint": "Or enter a promocode below",
         "guest_payment_methods": "Guests can only pay by card or cryptocurrency",
         "guest_email_label": "Your e-mail *",
-        "guest_email_placeholder": "your-email@example.com",
+        "guest_email_placeholder": "email\uff20domain.com",
         "guest_email_hint": "Purchase information and access will be sent to this email",
         "guest_email_required": "Please provide your email to receive order information",
         "guest_email_required_short": "Please provide your email",

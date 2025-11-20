@@ -496,8 +496,8 @@ return [
             'icon' => 'fas fa-fw mr-1 fa-exclamation-triangle',
             'active' => ['admin/disputes*'],
             'can' => 'admin-only',
-            'label' => '0',
-            'label_color' => 'danger',
+            'label' => '',
+            'label_color' => 'gray',
             'id' => 'disputes-unread-count',
         ],
 

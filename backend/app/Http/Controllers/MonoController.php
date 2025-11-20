@@ -24,39 +24,146 @@ use Illuminate\Support\Facades\Log;
 
 class MonoController extends Controller
 {
-    // Services are no longer supported - only products are available
-    // This method has been removed
-
+    /**
+     * Webhook handler for MonoBank payment notifications
+     * According to documentation: https://monobank.ua/api-docs/acquiring/methods/ia/post--api--merchant--invoice--create
+     * 
+     * The webhook body contains invoice status data identical to "Invoice Status" response:
+     * - invoiceId: Invoice identifier
+     * - status: Payment status (created, processing, success, failure, expired)
+     * - amount: Payment amount in minimal units
+     * - ccy: Currency code
+     * - reference: Order reference (contains encoded payment metadata)
+     * - modifiedDate: Last modification timestamp (use to handle out-of-order webhooks)
+     * 
+     * Note: Webhooks can arrive out of order. Use modifiedDate to determine the most current status.
+     * Only process webhooks with status='success' for completed payments.
+     */
     public function webhook(Request $request, PromocodeValidationService $promoService): JsonResponse
     {
-        Log::info('Mono Webhook received', $request->all());
+        Log::info('MonoBank Webhook received', [
+            'body' => $request->all(),
+            'headers' => $request->headers->all(),
+        ]);
 
-        if ($request->status !== 'success') {
+        // Extract invoice data from webhook body (according to MonoBank documentation)
+        $invoiceId = $request->input('invoiceId');
+        $status = $request->input('status');
+        $reference = $request->input('reference');
+        $amount = $request->input('amount'); // Amount in minimal units (kopecks)
+        $modifiedDate = $request->input('modifiedDate');
+
+        // Validate required fields
+        if (!$invoiceId) {
+            Log::error('MonoBank Webhook: Missing invoiceId', ['request' => $request->all()]);
+            return \App\Http\Responses\ApiResponse::success(); // Return 200 to avoid retries
+        }
+
+        // Only process successful payments
+        if ($status !== 'success') {
+            Log::info('MonoBank Webhook: Payment not successful', [
+                'invoiceId' => $invoiceId,
+                'status' => $status,
+            ]);
             return \App\Http\Responses\ApiResponse::success();
         }
 
-        // Проверяем, это пополнение баланса?
-        if ($request->has('is_topup') && $request->is_topup == '1') {
-            return $this->handleTopUpWebhook($request);
-        }
-
-        // Проверяем, это гостевой платеж?
-        if ($request->has('is_guest') && $request->is_guest == '1') {
-            return $this->handleGuestWebhook($request);
-        }
-
-        // Проверяем, это покупка товаров для авторизованного пользователя?
-        if ($request->has('user_id') && $request->has('products_data')) {
-            return $this->handleUserPurchaseWebhook($request);
-        }
-
-        // Services are no longer supported - only products are available
-        // If this webhook is for services, return success (legacy support)
-        if ($request->has('service_ids')) {
-            Log::warning('Mono webhook received for services, but services are no longer supported', $request->all());
+        // Extract payment metadata from reference
+        // Reference format: "type:encoded_data" (e.g., "topup:base64", "user:base64", "guest:base64")
+        $paymentMetadata = $this->parsePaymentReference($reference);
+        
+        if (!$paymentMetadata) {
+            Log::error('MonoBank Webhook: Invalid or missing reference', [
+                'invoiceId' => $invoiceId,
+                'reference' => $reference,
+            ]);
             return \App\Http\Responses\ApiResponse::success();
         }
 
+        // Route to appropriate handler based on payment type
+        return match ($paymentMetadata['type']) {
+            'topup' => $this->handleTopUpWebhook($request, $invoiceId, $amount, $modifiedDate, $paymentMetadata),
+            'guest' => $this->handleGuestWebhook($request, $invoiceId, $amount, $modifiedDate, $paymentMetadata),
+            'user' => $this->handleUserPurchaseWebhook($request, $invoiceId, $amount, $modifiedDate, $paymentMetadata),
+            default => $this->handleUnknownPaymentType($invoiceId, $reference),
+        };
+    }
+
+    /**
+     * Parse payment reference to extract payment type and metadata
+     * Reference format: "type:base64_encoded_data"
+     * 
+     * @param string|null $reference Order reference from invoice
+     * @return array|null Payment metadata or null if invalid
+     */
+    private function parsePaymentReference(?string $reference): ?array
+    {
+        if (!$reference) {
+            return null;
+        }
+
+        // Try query parameters first (legacy support for existing invoices)
+        if (request()->has('is_topup') || request()->has('is_guest') || request()->has('user_id')) {
+            if (request()->has('is_topup') && request()->is_topup == '1') {
+                return [
+                    'type' => 'topup',
+                    'user_id' => request()->user_id,
+                    'amount' => request()->amount,
+                ];
+            }
+            
+            if (request()->has('is_guest') && request()->is_guest == '1') {
+                return [
+                    'type' => 'guest',
+                    'guest_email' => request()->guest_email,
+                    'products_data' => request()->products_data,
+                    'promocode' => request()->promocode,
+                ];
+            }
+            
+            if (request()->has('user_id') && request()->has('products_data')) {
+                return [
+                    'type' => 'user',
+                    'user_id' => request()->user_id,
+                    'products_data' => request()->products_data,
+                    'promocode' => request()->promocode,
+                ];
+            }
+        }
+
+        // Parse new reference format: "type:base64_data"
+        if (!str_contains($reference, ':')) {
+            return null;
+        }
+
+        [$type, $encodedData] = explode(':', $reference, 2);
+        
+        if (!in_array($type, ['topup', 'guest', 'user'])) {
+            return null;
+        }
+
+        $decoded = base64_decode($encodedData, true);
+        if ($decoded === false) {
+            return null;
+        }
+
+        $data = json_decode($decoded, true);
+        if (!is_array($data)) {
+            return null;
+        }
+
+        return array_merge(['type' => $type], $data);
+    }
+
+    /**
+     * Handle unknown payment type
+     */
+    private function handleUnknownPaymentType(string $invoiceId, ?string $reference): JsonResponse
+    {
+        Log::warning('MonoBank Webhook: Unknown payment type', [
+            'invoiceId' => $invoiceId,
+            'reference' => $reference,
+        ]);
         return \App\Http\Responses\ApiResponse::success();
     }
 
@@ -127,17 +234,23 @@ class MonoController extends Controller
 
         $totalAmount = max($totalAmount, 0.01); // Минимальная сумма
 
+        // Prepare payment metadata for reference field
+        $paymentMetadata = [
+            'guest_email' => $guestEmail,
+            'products_data' => $productsData,
+            'promocode' => $promocodeParam,
+        ];
+        $reference = 'guest:' . base64_encode(json_encode($paymentMetadata));
+
         // Создаем invoice через Mono
         $invoice = MonoPaymentService::createInvoice(
             amount: $totalAmount,
-            redirectUrl: config('app.url') . '/checkout?success=true',
-            webhookUrl: config('app.url') . '/api/mono/webhook?' . http_build_query([
-                'is_guest' => '1',
-                'guest_email' => $guestEmail,
-                'products_data' => base64_encode(json_encode($productsData)),
-                'promocode' => $promocodeParam,
-            ]),
-            walletId: 'wallet_guest_' . md5($guestEmail),
+            webhookUrl: config('app.url') . '/api/mono/webhook',
+            options: [
+                'successUrl' => config('app.url') . '/checkout?success=true',
+                'failUrl' => config('app.url') . '/checkout?error=payment_failed',
+                'reference' => $reference, // Store metadata in reference for webhook processing
+            ]
         );
 
         if (isset($invoice['pageUrl'])) {
@@ -216,16 +329,23 @@ class MonoController extends Controller
             ];
         })->toArray();
 
+        // Prepare payment metadata for reference field
+        $paymentMetadata = [
+            'user_id' => $user->id,
+            'products_data' => $productsDataForWebhook,
+            'promocode' => $promocodeParam,
+        ];
+        $reference = 'user:' . base64_encode(json_encode($paymentMetadata));
+
         // Создаем invoice через Mono
         $invoice = MonoPaymentService::createInvoice(
             amount: $totalAmount,
-            redirectUrl: config('app.url') . '/checkout?success=true',
-            webhookUrl: config('app.url') . '/api/mono/webhook?' . http_build_query([
-                'user_id' => $user->id,
-                'products_data' => base64_encode(json_encode($productsDataForWebhook)),
-                'promocode' => $promocodeParam,
-            ]),
-            walletId: 'wallet_user_' . $user->id . '_' . time(),
+            webhookUrl: config('app.url') . '/api/mono/webhook',
+            options: [
+                'successUrl' => config('app.url') . '/checkout?success=true',
+                'failUrl' => config('app.url') . '/checkout?error=payment_failed',
+                'reference' => $reference, // Store metadata in reference for webhook processing
+            ]
         );
 
         if (isset($invoice['pageUrl'])) {
@@ -236,166 +356,164 @@ class MonoController extends Controller
     }
 
     /**
-     * Обработка webhook для пополнения баланса через банковскую карту
+     * Handle webhook for balance top-up via bank card
+     * According to MonoBank API documentation, webhook contains invoice status data
      *
-     * Этот метод вызывается платежной системой Monobank после успешной оплаты.
-     * Используется BalanceService для безопасного зачисления средств на баланс.
-     *
-     * @param Request $request
+     * @param Request $request Webhook request
+     * @param string $invoiceId Invoice identifier from webhook
+     * @param int $amount Amount in minimal units (kopecks) from webhook
+     * @param int|null $modifiedDate Last modification timestamp from webhook
+     * @param array $metadata Payment metadata parsed from reference
      * @return JsonResponse
      */
-    private function handleTopUpWebhook(Request $request): JsonResponse
+    private function handleTopUpWebhook(Request $request, string $invoiceId, int $amount, ?int $modifiedDate, array $metadata): JsonResponse
     {
-        // Получаем ID invoice из webhook
-        $invoiceId = $request->invoiceId ?? null;
-        if (!$invoiceId) {
-            Log::error('Webhook пополнения баланса: отсутствует invoice_id', [
-                'request' => $request->all(),
-            ]);
-            return response()->json([
-                'success' => false,
-                'message' => 'Missing invoice_id'
-            ], 400);
-        }
-
-        // Получаем пользователя
-        $userId = $request->user_id;
+        // Get user ID from metadata
+        $userId = $metadata['user_id'] ?? null;
         if (!$userId) {
-            Log::error('Webhook пополнения баланса: отсутствует user_id', [
-                'invoice_id' => $invoiceId,
+            Log::error('MonoBank Webhook (TopUp): Missing user_id in metadata', [
+                'invoiceId' => $invoiceId,
+                'metadata' => $metadata,
             ]);
-            return response()->json([
-                'success' => false,
-                'message' => 'Missing user_id'
-            ], 400);
+            return \App\Http\Responses\ApiResponse::success();
         }
 
         $user = User::find($userId);
         if (!$user) {
-            Log::error('Webhook пополнения баланса: пользователь не найден', [
+            Log::error('MonoBank Webhook (TopUp): User not found', [
+                'invoiceId' => $invoiceId,
                 'user_id' => $userId,
-                'invoice_id' => $invoiceId,
             ]);
-            return response()->json([
-                'success' => false,
-                'message' => 'User not found'
-            ], 404);
+            return \App\Http\Responses\ApiResponse::success();
         }
 
-        // Получаем и валидируем сумму
-        $amount = round((float)$request->amount, 2);
-        if ($amount <= 0) {
-            Log::error('Webhook пополнения баланса: недопустимая сумма', [
-                'amount' => $request->amount,
-                'invoice_id' => $invoiceId,
+        // Convert amount from minimal units (kopecks) to decimal
+        $amountDecimal = round((float)($amount / 100), 2);
+        
+        if ($amountDecimal <= 0) {
+            Log::error('MonoBank Webhook (TopUp): Invalid amount', [
+                'invoiceId' => $invoiceId,
+                'amount' => $amount,
+                'amountDecimal' => $amountDecimal,
                 'user_id' => $userId,
             ]);
-            return response()->json([
-                'success' => false,
-                'message' => 'Invalid amount'
-            ], 400);
+            return \App\Http\Responses\ApiResponse::success();
         }
 
         try {
-            // Используем BalanceService для безопасного пополнения баланса
-            // BalanceService автоматически проверит дубликаты по invoice_id
+            // Use BalanceService for safe balance top-up
+            // BalanceService automatically checks for duplicates by invoice_id
             $balanceService = app(BalanceService::class);
 
             $balanceTransaction = $balanceService->topUp(
                 user: $user,
-                amount: $amount,
+                amount: $amountDecimal,
                 type: BalanceService::TYPE_TOPUP_CARD,
                 metadata: [
                     'invoice_id' => $invoiceId,
                     'payment_method' => 'monobank',
                     'payment_system' => 'monobank',
                     'webhook_received_at' => now()->toDateTimeString(),
+                    'modified_date' => $modifiedDate,
                 ]
             );
 
-            // Проверяем, была ли операция выполнена или это дубликат
+            // Check if operation was executed or if it's a duplicate
             if ($balanceTransaction) {
-                Log::info('Баланс успешно пополнен через Monobank', [
+                Log::info('MonoBank Webhook (TopUp): Balance successfully topped up', [
                     'user_id' => $user->id,
                     'user_email' => $user->email,
-                    'amount' => $amount,
-                    'invoice_id' => $invoiceId,
+                    'amount' => $amountDecimal,
+                    'invoiceId' => $invoiceId,
                     'balance_transaction_id' => $balanceTransaction->id,
                     'balance_after' => $balanceTransaction->balance_after,
+                    'modified_date' => $modifiedDate,
                 ]);
 
-                // Отправляем уведомление администратору
+                // Send notification to administrator
                 NotifierService::send(
                     'balance_topup',
                     'Баланс пополнен',
-                    "Пользователь {$user->name} ({$user->email}) пополнил баланс на {$amount} " . Option::get('currency', 'USD') . " через Monobank"
+                    "Пользователь {$user->name} ({$user->email}) пополнил баланс на {$amountDecimal} " . Option::get('currency', 'USD') . " через Monobank"
                 );
 
                 return \App\Http\Responses\ApiResponse::success();
             }
 
-            // Если вернулся null, значит операция уже была обработана ранее
-            Log::info('Webhook пополнения баланса: дубликат операции', [
+            // If null returned, operation was already processed earlier
+            Log::info('MonoBank Webhook (TopUp): Duplicate operation', [
                 'user_id' => $user->id,
-                'invoice_id' => $invoiceId,
-                'amount' => $amount,
+                'invoiceId' => $invoiceId,
+                'amount' => $amountDecimal,
+                'modified_date' => $modifiedDate,
             ]);
 
             return \App\Http\Responses\ApiResponse::success(['message' => 'Already processed']);
 
         } catch (\InvalidArgumentException $e) {
-            Log::error('Webhook пополнения баланса: ошибка валидации', [
+            Log::error('MonoBank Webhook (TopUp): Validation error', [
                 'error' => $e->getMessage(),
                 'user_id' => $user->id,
-                'invoice_id' => $invoiceId,
-                'amount' => $amount,
+                'invoiceId' => $invoiceId,
+                'amount' => $amountDecimal,
             ]);
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage()
-            ], 400);
+            return \App\Http\Responses\ApiResponse::success(); // Return 200 to avoid retries
 
         } catch (\Exception $e) {
-            Log::error('Webhook пополнения баланса: критическая ошибка', [
+            Log::error('MonoBank Webhook (TopUp): Critical error', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
                 'user_id' => $user->id,
-                'invoice_id' => $invoiceId,
-                'amount' => $amount,
+                'invoiceId' => $invoiceId,
+                'amount' => $amountDecimal,
             ]);
-            return response()->json([
-                'success' => false,
-                'message' => 'Processing failed'
-            ], 500);
+            return \App\Http\Responses\ApiResponse::success(); // Return 200 to avoid retries
         }
     }
 
     /**
-     * Обработка webhook для покупки товаров авторизованным пользователем
+     * Handle webhook for authorized user product purchase
+     * According to MonoBank API documentation, webhook contains invoice status data
+     *
+     * @param Request $request Webhook request
+     * @param string $invoiceId Invoice identifier from webhook
+     * @param int $amount Amount in minimal units (kopecks) from webhook
+     * @param int|null $modifiedDate Last modification timestamp from webhook
+     * @param array $metadata Payment metadata parsed from reference
+     * @return JsonResponse
      */
-    private function handleUserPurchaseWebhook(Request $request): JsonResponse
+    private function handleUserPurchaseWebhook(Request $request, string $invoiceId, int $amount, ?int $modifiedDate, array $metadata): JsonResponse
     {
-        $userId = $request->user_id;
+        // Get user ID from metadata
+        $userId = $metadata['user_id'] ?? null;
         if (!$userId) {
-            Log::error('Invalid user_id in user purchase webhook');
-            return response()->json(['success' => false, 'message' => 'Invalid user_id'], 400);
+            Log::error('MonoBank Webhook (User Purchase): Missing user_id in metadata', [
+                'invoiceId' => $invoiceId,
+                'metadata' => $metadata,
+            ]);
+            return \App\Http\Responses\ApiResponse::success();
         }
 
         $user = User::find($userId);
         if (!$user) {
-            Log::error('User not found in webhook', ['user_id' => $userId]);
-            return response()->json(['success' => false, 'message' => 'User not found'], 404);
+            Log::error('MonoBank Webhook (User Purchase): User not found', [
+                'invoiceId' => $invoiceId,
+                'user_id' => $userId,
+            ]);
+            return \App\Http\Responses\ApiResponse::success();
         }
 
-        $productsDataEncoded = $request->products_data ?? '';
-        $productsData = json_decode(base64_decode($productsDataEncoded), true);
-        
+        // Get products data from metadata
+        $productsData = $metadata['products_data'] ?? [];
         if (!is_array($productsData) || empty($productsData)) {
-            Log::error('Invalid products data in user purchase webhook');
-            return response()->json(['success' => false, 'message' => 'Invalid products data'], 400);
+            Log::error('MonoBank Webhook (User Purchase): Invalid products data', [
+                'invoiceId' => $invoiceId,
+                'user_id' => $userId,
+            ]);
+            return \App\Http\Responses\ApiResponse::success();
         }
 
-        $promocode = trim((string)($request->promocode ?? ''));
+        $promocode = trim((string)($metadata['promocode'] ?? ''));
 
         try {
             $purchaseService = app(\App\Services\ProductPurchaseService::class);
@@ -457,22 +575,23 @@ class MonoController extends Controller
                 ]
             );
 
-            Log::info('User purchase completed via Monobank', [
+            Log::info('MonoBank Webhook (User Purchase): Purchase completed', [
                 'user_id' => $user->id,
                 'user_email' => $user->email,
-                'invoice_id' => $request->invoiceId ?? 'unknown',
+                'invoiceId' => $invoiceId,
                 'products_count' => count($productsData),
+                'modified_date' => $modifiedDate,
             ]);
 
-            // Записываем использование промокода если есть
+            // Record promocode usage if exists
             if ($promocode !== '') {
-                DB::transaction(function () use ($promocode, $user, $request) {
+                DB::transaction(function () use ($promocode, $user, $invoiceId) {
                     $promo = Promocode::where('code', $promocode)->lockForUpdate()->first();
                     if ($promo) {
                         PromocodeUsage::create([
                             'promocode_id' => $promo->id,
                             'user_id' => $user->id,
-                            'order_id' => (string)($request->invoiceId ?? ''),
+                            'order_id' => (string)$invoiceId,
                         ]);
                         if ((int)$promo->usage_limit > 0 && (int)$promo->usage_count < (int)$promo->usage_limit) {
                             $promo->usage_count = (int)$promo->usage_count + 1;
@@ -484,33 +603,50 @@ class MonoController extends Controller
 
             return \App\Http\Responses\ApiResponse::success();
         } catch (\Exception $e) {
-            Log::error('User purchase webhook processing failed', [
+            Log::error('MonoBank Webhook (User Purchase): Processing failed', [
                 'error' => $e->getMessage(),
                 'user_id' => $userId,
+                'invoiceId' => $invoiceId,
                 'trace' => $e->getTraceAsString(),
             ]);
-            return response()->json(['success' => false, 'message' => 'Processing failed'], 500);
+            return \App\Http\Responses\ApiResponse::success(); // Return 200 to avoid retries
         }
     }
 
     /**
-     * Обработка webhook для гостевого платежа
+     * Handle webhook for guest payment
+     * According to MonoBank API documentation, webhook contains invoice status data
+     *
+     * @param Request $request Webhook request
+     * @param string $invoiceId Invoice identifier from webhook
+     * @param int $amount Amount in minimal units (kopecks) from webhook
+     * @param int|null $modifiedDate Last modification timestamp from webhook
+     * @param array $metadata Payment metadata parsed from reference
+     * @return JsonResponse
      */
-    private function handleGuestWebhook(Request $request): JsonResponse
+    private function handleGuestWebhook(Request $request, string $invoiceId, int $amount, ?int $modifiedDate, array $metadata): JsonResponse
     {
-        $guestEmail = trim((string)$request->guest_email);
+        // Get guest email from metadata
+        $guestEmail = trim((string)($metadata['guest_email'] ?? ''));
         if (!$guestEmail || !filter_var($guestEmail, FILTER_VALIDATE_EMAIL)) {
-            return response()->json(['success' => false, 'message' => 'Invalid guest email'], 400);
+            Log::error('MonoBank Webhook (Guest): Invalid guest email', [
+                'invoiceId' => $invoiceId,
+                'metadata' => $metadata,
+            ]);
+            return \App\Http\Responses\ApiResponse::success();
         }
 
-        $productsDataEncoded = $request->products_data ?? '';
-        $productsData = json_decode(base64_decode($productsDataEncoded), true);
-
+        // Get products data from metadata
+        $productsData = $metadata['products_data'] ?? [];
         if (!is_array($productsData) || empty($productsData)) {
-            return response()->json(['success' => false, 'message' => 'Invalid products data'], 400);
+            Log::error('MonoBank Webhook (Guest): Invalid products data', [
+                'invoiceId' => $invoiceId,
+                'guest_email' => $guestEmail,
+            ]);
+            return \App\Http\Responses\ApiResponse::success();
         }
 
-        $promocode = trim((string)($request->promocode ?? ''));
+        $promocode = trim((string)($metadata['promocode'] ?? ''));
 
         try {
             // Создаем покупки для гостя
@@ -541,21 +677,22 @@ class MonoController extends Controller
                 ]
             );
 
-            Log::info('Guest purchase completed', [
+            Log::info('MonoBank Webhook (Guest): Guest purchase completed', [
                 'guest_email' => $guestEmail,
-                'invoice_id' => $request->invoiceId,
+                'invoiceId' => $invoiceId,
                 'products_count' => count($productsData),
+                'modified_date' => $modifiedDate,
             ]);
 
-            // Записываем использование промокода если есть
+            // Record promocode usage if exists
             if ($promocode !== '') {
-                DB::transaction(function () use ($promocode, $guestEmail, $request) {
+                DB::transaction(function () use ($promocode, $guestEmail, $invoiceId) {
                     $promo = Promocode::where('code', $promocode)->lockForUpdate()->first();
                     if ($promo) {
                         PromocodeUsage::create([
                             'promocode_id' => $promo->id,
-                            'user_id' => null, // Гостевая покупка
-                            'order_id' => (string)$request->invoiceId,
+                            'user_id' => null, // Guest purchase
+                            'order_id' => (string)$invoiceId,
                         ]);
                         if ((int)$promo->usage_limit > 0 && (int)$promo->usage_count < (int)$promo->usage_limit) {
                             $promo->usage_count = (int)$promo->usage_count + 1;
@@ -567,11 +704,13 @@ class MonoController extends Controller
 
             return \App\Http\Responses\ApiResponse::success();
         } catch (\Exception $e) {
-            Log::error('Guest webhook processing failed', [
+            Log::error('MonoBank Webhook (Guest): Processing failed', [
                 'error' => $e->getMessage(),
                 'guest_email' => $guestEmail,
+                'invoiceId' => $invoiceId,
+                'trace' => $e->getTraceAsString(),
             ]);
-            return response()->json(['success' => false, 'message' => 'Processing failed'], 500);
+            return \App\Http\Responses\ApiResponse::success(); // Return 200 to avoid retries
         }
     }
 
@@ -615,16 +754,22 @@ class MonoController extends Controller
         }
 
         try {
+            // Prepare payment metadata for reference field
+            $paymentMetadata = [
+                'user_id' => $user->id,
+                'amount' => $amount,
+            ];
+            $reference = 'topup:' . base64_encode(json_encode($paymentMetadata));
+
             // Создаем invoice в платежной системе Monobank
             $invoice = MonoPaymentService::createInvoice(
                 amount: $amount,
-                redirectUrl: config('app.url') . '/profile?topup=success',
-                webhookUrl: config('app.url') . '/api/mono/webhook?' . http_build_query([
-                    'is_topup' => '1',
-                    'user_id' => $user->id,
-                    'amount' => $amount,
-                ]),
-                walletId: 'wallet_topup_' . $user->id . '_' . time(),
+                webhookUrl: config('app.url') . '/api/mono/webhook',
+                options: [
+                    'successUrl' => config('app.url') . '/profile?topup=success',
+                    'failUrl' => config('app.url') . '/profile?topup=failed',
+                    'reference' => $reference, // Store metadata in reference for webhook processing
+                ]
             );
 
             // Проверяем, что invoice создан успешно
@@ -671,6 +816,4 @@ class MonoController extends Controller
             ], 500);
         }
     }
-
-    // Services are no longer supported - this method has been removed
 }

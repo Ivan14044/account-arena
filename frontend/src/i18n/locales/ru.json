@@ -258,7 +258,7 @@
         "promocode_empty_hint": "Или введите промокод ниже",
         "guest_payment_methods": "Для гостей доступны только оплата картой и криптовалютой",
         "guest_email_label": "Ваш e-mail *",
-        "guest_email_placeholder": "your-email@example.com",
+        "guest_email_placeholder": "email\uff20domain.com",
         "guest_email_hint": "Информация о покупке и доступы будут отправлены на этот email",
         "guest_email_required": "Пожалуйста, укажите ваш email для получения информации о заказе",
         "guest_email_required_short": "Пожалуйста, укажите ваш email",
