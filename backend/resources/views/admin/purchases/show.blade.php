@@ -26,11 +26,19 @@
                         <tr>
                             <th>Пользователь</th>
                             <td>
-                                <a href="{{ route('admin.users.edit', $purchase->user) }}">
-                                    <i class="fas fa-user"></i> {{ $purchase->user->email }}
-                                </a>
-                                <br>
-                                <small class="text-muted">{{ $purchase->user->name }}</small>
+                                @if($purchase->user)
+                                    <a href="{{ route('admin.users.edit', $purchase->user) }}">
+                                        <i class="fas fa-user"></i> {{ $purchase->user->email }}
+                                    </a>
+                                    <br>
+                                    <small class="text-muted">{{ $purchase->user->name }}</small>
+                                @elseif($purchase->guest_email)
+                                    <i class="fas fa-user"></i> {{ $purchase->guest_email }}
+                                    <br>
+                                    <small class="text-muted">Гостевой заказ</small>
+                                @else
+                                    <span class="text-muted">Не указан</span>
+                                @endif
                             </td>
                         </tr>
                         <tr>
