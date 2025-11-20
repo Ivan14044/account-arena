@@ -563,7 +563,7 @@
         "guestName": "Your name",
         "guestNamePlaceholder": "Enter your name",
         "guestEmail": "Email",
-        "guestEmailPlaceholder": "your@email.com",
+        "guestEmailPlaceholder": "your{'@'}email.com",
         "startChat": "Start chat",
         "loading": "Loading...",
         "noMessages": "No messages yet. Start the conversation!",

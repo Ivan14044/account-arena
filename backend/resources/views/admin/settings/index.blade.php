@@ -61,6 +61,11 @@
                         <i class="fas fa-bell mr-2"></i>Уведомления
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link {{ session('active_tab') === 'telegram' ? 'active' : '' }}" id="tab_telegram" data-toggle="pill" href="#content_telegram" role="tab">
+                        <i class="fab fa-telegram mr-2"></i>Telegram
+                    </a>
+                </li>
             </ul>
         </div>
         <div class="card-body">
@@ -1004,6 +1009,155 @@
                             </form>
                         </div>
                         
+                        <!-- Telegram Settings -->
+                        <div class="tab-pane fade {{ session('active_tab') === 'telegram' ? 'show active' : '' }}" id="content_telegram" role="tabpanel">
+                            <form method="POST" action="{{ route('admin.settings.store') }}">
+                                <input type="hidden" name="form" value="telegram">
+                                @csrf
+
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle"></i>
+                                    <strong>Информация:</strong> Настройте интеграцию с Telegram для получения сообщений от клиентов через обычный аккаунт (не бот). 
+                                    Получите API ID и API Hash на <a href="https://my.telegram.org/apps" target="_blank">https://my.telegram.org/apps</a>
+                    </div>
+
+                                <div class="form-group">
+                                    <div class="form-check mb-3">
+                                        <input type="checkbox" 
+                                               class="form-check-input" 
+                                               id="telegram_client_enabled" 
+                                               name="telegram_client_enabled" 
+                                               value="1"
+                                               {{ old('telegram_client_enabled', $telegramSettings['enabled']) ? 'checked' : '' }}>
+                                        <label class="form-check-label" for="telegram_client_enabled">
+                                            <strong>Включить Telegram поддержку</strong>
+                                            <br>
+                                            <small class="text-muted">Включить получение сообщений из Telegram через MadelineProto</small>
+                                        </label>
+                </div>
+            </div>
+
+                                <div class="form-group">
+                                    <label for="telegram_api_id">API ID</label>
+                                    <input type="text" 
+                                           class="form-control @error('telegram_api_id') is-invalid @enderror" 
+                                           id="telegram_api_id" 
+                                           name="telegram_api_id" 
+                                           value="{{ old('telegram_api_id', $telegramSettings['api_id']) }}"
+                                           placeholder="12345678">
+                                    @error('telegram_api_id')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                    <small class="form-text text-muted">Получите на <a href="https://my.telegram.org/apps" target="_blank">my.telegram.org/apps</a></small>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="telegram_api_hash">API Hash</label>
+                                    <input type="text" 
+                                           class="form-control @error('telegram_api_hash') is-invalid @enderror" 
+                                           id="telegram_api_hash" 
+                                           name="telegram_api_hash" 
+                                           value="{{ old('telegram_api_hash', $telegramSettings['api_hash']) }}"
+                                           placeholder="abcdef1234567890abcdef1234567890">
+                                    @error('telegram_api_hash')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                    <small class="form-text text-muted">Получите на <a href="https://my.telegram.org/apps" target="_blank">my.telegram.org/apps</a></small>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="telegram_phone_number">Номер телефона</label>
+                                    <input type="text" 
+                                           class="form-control @error('telegram_phone_number') is-invalid @enderror" 
+                                           id="telegram_phone_number" 
+                                           name="telegram_phone_number" 
+                                           value="{{ old('telegram_phone_number', $telegramSettings['phone_number']) }}"
+                                           placeholder="+1234567890">
+                                    @error('telegram_phone_number')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                    <small class="form-text text-muted">Номер телефона Telegram аккаунта для поддержки (с кодом страны, например: +1234567890)</small>
+                                </div>
+
+                                <div class="form-group">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save mr-2"></i>Сохранить настройки
+                                    </button>
+                                </div>
+
+                                @if($telegramSettings['enabled'] && $telegramSettings['api_id'] && $telegramSettings['api_hash'] && $telegramSettings['phone_number'])
+                                    <hr>
+                                    <div class="form-group">
+                                        <h5>Авторизация Telegram</h5>
+                                        <p class="text-muted">Перед использованием необходимо авторизовать Telegram аккаунт</p>
+                                        
+                                        <div id="telegram-auth-status" class="alert alert-info">
+                                            <i class="fas fa-spinner fa-spin mr-2"></i>Проверка статуса авторизации...
+                                        </div>
+                                        
+                                        <div id="telegram-auth-section" style="display: none;">
+                                            <div class="form-group">
+                                                <label>Статус авторизации</label>
+                                                <div id="auth-status-info" class="alert"></div>
+                                            </div>
+                                            
+                                            <div id="auth-not-authorized" style="display: none;">
+                                                <button type="button" id="btn-start-auth" class="btn btn-primary">
+                                                    <i class="fas fa-key mr-2"></i>Начать авторизацию
+                                                </button>
+                                                <button type="button" id="btn-reset-session" class="btn btn-warning ml-2">
+                                                    <i class="fas fa-sync-alt mr-2"></i>Сбросить сессию
+                                                </button>
+                                                <button type="button" id="btn-show-code-input" class="btn btn-info ml-2" style="display: none;">
+                                                    <i class="fas fa-keyboard mr-2"></i>Код уже получен? Ввести код
+                                                </button>
+                                                <small class="form-text text-muted d-block mt-2">
+                                                    Нажмите кнопку, чтобы отправить код авторизации в Telegram. Используйте "Сбросить сессию" для переключения на другой аккаунт.
+                                                    <br>Если код уже пришел в Telegram, но поле ввода не появилось, нажмите "Код уже получен? Ввести код".
+                                                </small>
+                                            </div>
+                                            
+                                            <div id="auth-code-input" style="display: none;">
+                                                <div class="form-group">
+                                                    <label for="auth-code">Код авторизации</label>
+                                                    <input type="text" 
+                                                           class="form-control" 
+                                                           id="auth-code" 
+                                                           placeholder="Введите код из Telegram"
+                                                           maxlength="10">
+                                                    <small class="form-text text-muted">Введите код, который пришел в Telegram</small>
+                                                </div>
+                                                <button type="button" id="btn-complete-auth" class="btn btn-success">
+                                                    <i class="fas fa-check mr-2"></i>Завершить авторизацию
+                                                </button>
+                                                <button type="button" id="btn-cancel-auth" class="btn btn-secondary ml-2">
+                                                    Отмена
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <hr>
+                                    <div class="form-group">
+                                        <h5>Получение сообщений</h5>
+                                        <p class="text-muted">Проверьте получение сообщений из Telegram вручную</p>
+                                        
+                                        <form method="POST" action="{{ route('admin.telegram.poll-messages') }}" class="d-inline">
+                                            @csrf
+                                            <button type="submit" class="btn btn-info" id="btn-poll-messages">
+                                                <i class="fab fa-telegram mr-2"></i>Получить сообщения из Telegram
+                                            </button>
+                                        </form>
+                                        
+                                        <small class="form-text text-muted d-block mt-2">
+                                            Эта кнопка запускает проверку новых сообщений. Для автоматической проверки настройте cron:
+                                            <code>*/2 * * * * cd /path/to/project/backend && php artisan telegram:poll-messages</code>
+                                        </small>
+                                    </div>
+                                @endif
+                            </form>
+                        </div>
+                        
                     </div>
                 </div>
             </div>
@@ -1120,6 +1274,9 @@
                 if (activeTab === 'notification_settings') {
                     tabId = '#tab_notification_settings';
                     paneId = '#content_notification_settings';
+                } else if (activeTab === 'telegram') {
+                    tabId = '#tab_telegram';
+                    paneId = '#content_telegram';
                 } else {
                     tabId = '#tab_' + activeTab;
                     paneId = '#content_' + activeTab;
@@ -1131,6 +1288,331 @@
                 $(tabId).addClass('active');
                 $(paneId).addClass('show active');
             }
+
+            // Telegram авторизация
+            @if($telegramSettings['enabled'] && $telegramSettings['api_id'] && $telegramSettings['api_hash'] && $telegramSettings['phone_number'])
+            (function() {
+                const checkAuthStatus = function() {
+                    $.ajax({
+                        url: '{{ route("admin.telegram.auth-status") }}',
+                        method: 'GET',
+                        success: function(response) {
+                            console.log('Telegram auth status response:', response);
+                            
+                            $('#telegram-auth-status').hide();
+                            $('#telegram-auth-section').show();
+                            
+                            if (response && response.authorized === true) {
+                                let userInfo = 'Авторизован как: ';
+                                if (response.first_name || response.last_name) {
+                                    userInfo += (response.first_name || '') + ' ' + (response.last_name || '');
+                                } else if (response.username) {
+                                    userInfo += '@' + response.username;
+                                } else if (response.phone) {
+                                    userInfo += response.phone;
+                                } else {
+                                    userInfo += 'ID: ' + response.user_id;
+                                }
+                                
+                                let statusHtml = '<i class="fas fa-check-circle mr-2"></i>' + userInfo;
+                                statusHtml += '<button type="button" id="btn-reset-session-authorized" class="btn btn-sm btn-warning ml-3">';
+                                statusHtml += '<i class="fas fa-sync-alt mr-1"></i>Сбросить сессию';
+                                statusHtml += '</button>';
+                                
+                                $('#auth-status-info')
+                                    .removeClass('alert-danger alert-warning')
+                                    .addClass('alert-success')
+                                    .html(statusHtml);
+                                
+                                $('#auth-not-authorized').hide();
+                                $('#auth-code-input').hide();
+                                
+                                // Обработчик для кнопки сброса сессии (для авторизованных)
+                                $('#btn-reset-session-authorized').off('click').on('click', resetSession);
+                            } else {
+                                const message = response.message || 'Не авторизован. Нажмите "Начать авторизацию" для входа.';
+                                $('#auth-status-info')
+                                    .removeClass('alert-success alert-danger')
+                                    .addClass('alert-warning')
+                                    .html('<i class="fas fa-exclamation-triangle mr-2"></i>' + message);
+                                
+                                $('#auth-not-authorized').show();
+                                $('#auth-code-input').hide();
+                            }
+                        },
+                        error: function(xhr) {
+                            $('#telegram-auth-status').hide();
+                            $('#telegram-auth-section').show();
+                            
+                            let errorMsg = 'Ошибка проверки статуса';
+                            if (xhr.responseJSON && xhr.responseJSON.message) {
+                                errorMsg = xhr.responseJSON.message;
+                            } else if (xhr.status === 0) {
+                                errorMsg = 'Нет соединения с сервером';
+                            } else if (xhr.status >= 500) {
+                                errorMsg = 'Ошибка сервера. Проверьте логи.';
+                            }
+                            
+                            $('#auth-status-info')
+                                .removeClass('alert-success alert-warning')
+                                .addClass('alert-danger')
+                                .html('<i class="fas fa-times-circle mr-2"></i>' + errorMsg);
+                            
+                            $('#auth-not-authorized').show();
+                            $('#auth-code-input').hide();
+                        }
+                    });
+                };
+
+                // Функция сброса сессии (используется обеими кнопками)
+                const resetSession = function() {
+                    if (!confirm('Вы уверены, что хотите сбросить сессию? Это потребует повторной авторизации.')) {
+                        return;
+                    }
+                    
+                    const $btn = $('#btn-reset-session, #btn-reset-session-authorized');
+                    $btn.prop('disabled', true);
+                    const originalHtml = $btn.html();
+                    $btn.html('<i class="fas fa-spinner fa-spin mr-2"></i>Сброс...');
+                    
+                    $.ajax({
+                        url: '{{ route("admin.telegram.reset-session") }}',
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                $('#auth-status-info')
+                                    .removeClass('alert-success alert-danger')
+                                    .addClass('alert-info')
+                                    .html('<i class="fas fa-info-circle mr-2"></i>' + response.message);
+                                
+                                // Обновить статус через 1 секунду
+                                setTimeout(checkAuthStatus, 1000);
+                            } else {
+                                $('#auth-status-info')
+                                    .removeClass('alert-success alert-info')
+                                    .addClass('alert-danger')
+                                    .html('<i class="fas fa-times-circle mr-2"></i>' + response.message);
+                                
+                                $btn.prop('disabled', false).html(originalHtml);
+                            }
+                        },
+                        error: function(xhr) {
+                            const errorMsg = xhr.responseJSON?.message || 'Ошибка сброса сессии';
+                            $('#auth-status-info')
+                                .removeClass('alert-success alert-info')
+                                .addClass('alert-danger')
+                                .html('<i class="fas fa-times-circle mr-2"></i>' + errorMsg);
+                            
+                            $btn.prop('disabled', false).html(originalHtml);
+                        }
+                    });
+                };
+
+                // Сброс сессии (кнопка для неавторизованных)
+                $('#btn-reset-session').on('click', resetSession);
+                
+                // Показать поле ввода кода вручную
+                $('#btn-show-code-input').on('click', function() {
+                    $('#auth-status-info')
+                        .removeClass('alert-danger alert-warning')
+                        .addClass('alert-info')
+                        .html('<i class="fas fa-info-circle mr-2"></i>Введите код, который пришел в Telegram');
+                    
+                    $('#auth-not-authorized').hide();
+                    $('#auth-code-input').show();
+                    $('#auth-code').focus();
+                    $('#btn-show-code-input').hide();
+                });
+
+                // Проверка статуса при загрузке страницы (если открыта вкладка Telegram)
+                if ($('#content_telegram').hasClass('show active')) {
+                    checkAuthStatus();
+                }
+
+                // Проверка статуса при переключении на вкладку Telegram
+                $('#tab_telegram').on('shown.bs.tab', function() {
+                    checkAuthStatus();
+                });
+
+                // Начать авторизацию
+                $('#btn-start-auth').on('click', function() {
+                    const $btn = $(this);
+                    $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-2"></i>Отправка кода...');
+                    
+                    $.ajax({
+                        url: '{{ route("admin.telegram.auth.start") }}',
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+                            'Accept': 'application/json'
+                        },
+                        dataType: 'json',
+                        success: function(response) {
+                            if (response && response.success) {
+                                $('#auth-status-info')
+                                    .removeClass('alert-danger')
+                                    .addClass('alert-info')
+                                    .html('<i class="fas fa-info-circle mr-2"></i>' + (response.message || 'Код отправлен в Telegram. Проверьте приложение Telegram и введите полученный код.'));
+                                
+                                $('#auth-not-authorized').hide();
+                                $('#auth-code-input').show();
+                                $('#auth-code').focus();
+                            } else {
+                                $('#auth-status-info')
+                                    .removeClass('alert-success alert-info')
+                                    .addClass('alert-danger')
+                                    .html('<i class="fas fa-times-circle mr-2"></i>' + (response?.message || 'Ошибка отправки кода'));
+                                
+                                $btn.prop('disabled', false).html('<i class="fas fa-key mr-2"></i>Начать авторизацию');
+                            }
+                        },
+                        error: function(xhr) {
+                            console.log('Error response:', xhr);
+                            
+                            let errorMsg = 'Ошибка отправки кода';
+                            let showCodeInput = false;
+                            
+                            // Пытаемся получить сообщение об ошибке
+                            if (xhr.responseJSON && xhr.responseJSON.message) {
+                                errorMsg = xhr.responseJSON.message;
+                                
+                                // Если ошибка "Уже авторизован" - это не ошибка, а информация
+                                if (errorMsg.includes('Уже авторизован')) {
+                                    $('#auth-status-info')
+                                        .removeClass('alert-danger alert-warning')
+                                        .addClass('alert-info')
+                                        .html('<i class="fas fa-info-circle mr-2"></i>' + errorMsg);
+                                    
+                                    $btn.prop('disabled', false).html('<i class="fas fa-key mr-2"></i>Начать авторизацию');
+                                    return; // Выходим, не показываем поле ввода кода
+                                }
+                            } else if (xhr.responseText) {
+                                try {
+                                    const parsed = JSON.parse(xhr.responseText);
+                                    if (parsed.message) {
+                                        errorMsg = parsed.message;
+                                    }
+                                } catch (e) {
+                                    // Не JSON ответ - возможно HTML
+                                    const responseText = xhr.responseText || '';
+                                    
+                                    // Если статус 200, но ответ не JSON - возможно код был отправлен
+                                    if (xhr.status === 200 || xhr.status === 0) {
+                                        if (responseText.includes('код') || responseText.includes('code') || responseText.includes('отправлен')) {
+                                            showCodeInput = true;
+                                            errorMsg = 'Код отправлен в Telegram. Проверьте приложение Telegram и введите полученный код.';
+                                        }
+                                    } else if (xhr.status === 500) {
+                                        errorMsg = 'Ошибка сервера. Проверьте логи. Если код пришел в Telegram, введите его ниже.';
+                                        showCodeInput = true; // Показываем поле на всякий случай
+                                    } else if (xhr.status === 400) {
+                                        errorMsg = 'Ошибка запроса. Проверьте настройки Telegram.';
+                                    }
+                                }
+                            }
+                            
+                            if (showCodeInput) {
+                                $('#auth-status-info')
+                                    .removeClass('alert-danger')
+                                    .addClass('alert-info')
+                                    .html('<i class="fas fa-info-circle mr-2"></i>' + errorMsg);
+                                
+                                $('#auth-not-authorized').hide();
+                                $('#auth-code-input').show();
+                                $('#auth-code').focus();
+                                $('#btn-show-code-input').hide();
+                            } else {
+                                // Если код мог быть отправлен, но мы не уверены - показываем кнопку
+                                if (xhr.status === 200 || xhr.status === 500) {
+                                    $('#btn-show-code-input').show();
+                                }
+                                
+                                $('#auth-status-info')
+                                    .removeClass('alert-success alert-info')
+                                    .addClass('alert-danger')
+                                    .html('<i class="fas fa-times-circle mr-2"></i>' + errorMsg + 
+                                          (xhr.status === 200 || xhr.status === 500 ? 
+                                           '<br><small>Если код пришел в Telegram, нажмите "Код уже получен? Ввести код"</small>' : ''));
+                                
+                                $btn.prop('disabled', false).html('<i class="fas fa-key mr-2"></i>Начать авторизацию');
+                            }
+                        }
+                    });
+                });
+
+                // Завершить авторизацию
+                $('#btn-complete-auth').on('click', function() {
+                    const code = $('#auth-code').val().trim();
+                    
+                    if (!code) {
+                        alert('Введите код авторизации');
+                        return;
+                    }
+                    
+                    const $btn = $(this);
+                    $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-2"></i>Проверка кода...');
+                    
+                    $.ajax({
+                        url: '{{ route("admin.telegram.auth.complete") }}',
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        },
+                        data: {
+                            code: code
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                $('#auth-status-info')
+                                    .removeClass('alert-danger alert-warning')
+                                    .addClass('alert-success')
+                                    .html('<i class="fas fa-check-circle mr-2"></i>' + response.message);
+                                
+                                $('#auth-code-input').hide();
+                                $('#auth-code').val('');
+                                
+                                // Обновить статус через 1 секунду
+                                setTimeout(checkAuthStatus, 1000);
+                            } else {
+                                $('#auth-status-info')
+                                    .removeClass('alert-success alert-info')
+                                    .addClass('alert-danger')
+                                    .html('<i class="fas fa-times-circle mr-2"></i>' + response.message);
+                                
+                                $btn.prop('disabled', false).html('<i class="fas fa-check mr-2"></i>Завершить авторизацию');
+                            }
+                        },
+                        error: function(xhr) {
+                            const errorMsg = xhr.responseJSON?.message || 'Ошибка проверки кода';
+                            $('#auth-status-info')
+                                .removeClass('alert-success alert-info')
+                                .addClass('alert-danger')
+                                .html('<i class="fas fa-times-circle mr-2"></i>' + errorMsg);
+                            
+                            $btn.prop('disabled', false).html('<i class="fas fa-check mr-2"></i>Завершить авторизацию');
+                        }
+                    });
+                });
+
+                // Отмена авторизации
+                $('#btn-cancel-auth').on('click', function() {
+                    $('#auth-code-input').hide();
+                    $('#auth-code').val('');
+                    $('#auth-not-authorized').show();
+                    checkAuthStatus();
+                });
+
+                // Enter в поле кода
+                $('#auth-code').on('keypress', function(e) {
+                    if (e.which === 13) {
+                        $('#btn-complete-auth').click();
+                    }
+                });
+            })();
+            @endif
         });
     </script>
 @endsection

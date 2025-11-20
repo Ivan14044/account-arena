@@ -140,6 +140,11 @@ Route::prefix('/admin')
             Route::get('support-chats/{id}/typing/user-status', [\App\Http\Controllers\Admin\SupportChatController::class, 'getUserTypingStatus'])->name('support-chats.user-typing-status');
             Route::post('support-chats/{id}/notes', [\App\Http\Controllers\Admin\SupportChatController::class, 'addNote'])->name('support-chats.add-note');
             Route::delete('support-chats/{id}/notes/{noteId}', [\App\Http\Controllers\Admin\SupportChatController::class, 'deleteNote'])->name('support-chats.delete-note');
+            Route::get('telegram/auth-status', [\App\Http\Controllers\Admin\TelegramController::class, 'checkAuthStatus'])->name('telegram.auth-status');
+            Route::post('telegram/auth/start', [\App\Http\Controllers\Admin\TelegramController::class, 'startAuth'])->name('telegram.auth.start');
+            Route::post('telegram/auth/complete', [\App\Http\Controllers\Admin\TelegramController::class, 'completeAuth'])->name('telegram.auth.complete');
+            Route::post('telegram/reset-session', [\App\Http\Controllers\Admin\TelegramController::class, 'resetSession'])->name('telegram.reset-session');
+            Route::post('telegram/poll-messages', [\App\Http\Controllers\Admin\TelegramController::class, 'pollMessages'])->name('telegram.poll-messages');
 
 
             Route::resource('profile', ProfileController::class)->only(['index', 'store']);

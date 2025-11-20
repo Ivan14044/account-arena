@@ -61,33 +61,60 @@ class OptionController extends Controller
      */
     public function getSupportChatSettings()
     {
-        // Получаем язык из запроса или используем текущую локаль
-        $locale = request()->header('X-Locale') ?? request()->query('locale') ?? app()->getLocale();
-        if (!in_array($locale, array_keys(config('langs')))) {
-            $locale = app()->getLocale();
-        }
+        // Перехватываем вывод, чтобы MadelineProto не испортил JSON
+        ob_start();
         
-        $cacheKey = 'support_chat_settings_' . $locale;
-        $settings = Cache::remember($cacheKey, 3600, function () use ($locale) {
-            $enabled = Option::get('support_chat_enabled', false);
-            $enabled = filter_var($enabled, FILTER_VALIDATE_BOOLEAN);
-            $telegramLink = Option::get('support_chat_telegram_link', 'https://t.me/support');
-            $greetingEnabled = filter_var(Option::get('support_chat_greeting_enabled', false), FILTER_VALIDATE_BOOLEAN);
-            
-            // Получаем сообщения для нужного языка
-            $greetingMessage = Option::get('support_chat_greeting_message_' . $locale, '');
-            if (empty($greetingMessage)) {
-                $greetingMessage = Option::get('support_chat_greeting_message_ru', ''); // Fallback
+        try {
+            // Получаем язык из запроса или используем текущую локаль
+            $locale = request()->header('X-Locale') ?? request()->query('locale') ?? app()->getLocale();
+            if (!in_array($locale, array_keys(config('langs')))) {
+                $locale = app()->getLocale();
             }
             
-            return [
-                'enabled' => $enabled,
-                'telegram_link' => $telegramLink,
-                'greeting_enabled' => $greetingEnabled,
-                'greeting_message' => $greetingMessage,
-            ];
-        });
-        
-        return response()->json($settings);
+            $cacheKey = 'support_chat_settings_' . $locale;
+            $settings = Cache::remember($cacheKey, 3600, function () use ($locale) {
+                $enabled = Option::get('support_chat_enabled', false);
+                $enabled = filter_var($enabled, FILTER_VALIDATE_BOOLEAN);
+                $telegramLink = Option::get('support_chat_telegram_link', 'https://t.me/support');
+                $greetingEnabled = filter_var(Option::get('support_chat_greeting_enabled', false), FILTER_VALIDATE_BOOLEAN);
+                
+                // Получаем сообщения для нужного языка
+                $greetingMessage = Option::get('support_chat_greeting_message_' . $locale, '');
+                if (empty($greetingMessage)) {
+                    $greetingMessage = Option::get('support_chat_greeting_message_ru', ''); // Fallback
+                }
+                
+                return [
+                    'enabled' => $enabled,
+                    'telegram_link' => $telegramLink,
+                    'greeting_enabled' => $greetingEnabled,
+                    'greeting_message' => $greetingMessage,
+                ];
+            });
+            
+            // Очищаем весь перехваченный вывод (включая WARNING от MadelineProto)
+            if (ob_get_level() > 0) {
+                ob_end_clean();
+            }
+            
+            return response()->json($settings);
+        } catch (\Exception $e) {
+            // Очищаем вывод даже при ошибке
+            if (ob_get_level() > 0) {
+                ob_end_clean();
+            }
+            
+            \Illuminate\Support\Facades\Log::error('Ошибка получения настроек чата', [
+                'error' => $e->getMessage()
+            ]);
+            
+            // Возвращаем настройки по умолчанию
+            return response()->json([
+                'enabled' => false,
+                'telegram_link' => 'https://t.me/support',
+                'greeting_enabled' => false,
+                'greeting_message' => '',
+            ]);
+        }
     }
 }

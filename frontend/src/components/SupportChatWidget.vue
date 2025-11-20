@@ -667,13 +667,34 @@ const showBrowserNotification = (title: string, body: string, icon?: string) => 
 
 // Загрузка настроек
 const loadSettings = async () => {
+    console.log('[SupportChat] Загрузка настроек чата...');
     try {
         const response = await axios.get('/support-chat-settings', { timeout: 5000 });
+        console.log('[SupportChat] Ответ от API (сырой):', response.data);
+        
+        // Если ответ содержит WARNING от MadelineProto, парсим JSON вручную
+        let settings = response.data;
+        if (typeof response.data === 'string') {
+            // Удаляем все WARNING и другой текст перед JSON
+            const jsonMatch = response.data.match(/\{.*\}/s);
+            if (jsonMatch) {
+                settings = JSON.parse(jsonMatch[0]);
+                console.log('[SupportChat] JSON очищен от WARNING:', settings);
+            } else {
+                throw new Error('Не удалось найти JSON в ответе');
+            }
+        }
+        
         enabled.value =
-            typeof response.data.enabled === 'string'
-                ? response.data.enabled === 'true'
-                : Boolean(response.data.enabled);
-        telegramLink.value = response.data.telegram_link || 'https://t.me/support';
+            typeof settings.enabled === 'string'
+                ? settings.enabled === 'true'
+                : Boolean(settings.enabled);
+        telegramLink.value = settings.telegram_link || 'https://t.me/support';
+
+        console.log('[SupportChat] Настройки загружены:', {
+            enabled: enabled.value,
+            telegramLink: telegramLink.value
+        });
 
         // Запрашиваем разрешение на уведомления при первой загрузке
         if (enabled.value && 'Notification' in window) {
@@ -681,6 +702,7 @@ const loadSettings = async () => {
         }
     } catch (error) {
         console.error('[SupportChat] Failed to load settings:', error);
+        console.error('[SupportChat] Детали ошибки:', error.response?.data || error.message);
         enabled.value = false;
         telegramLink.value = 'https://t.me/support';
     }
@@ -1410,6 +1432,7 @@ const newLine = () => {
 };
 
 onMounted(() => {
+    console.log('[SupportChat] Компонент SupportChatWidget монтируется...');
     loadSettings();
 });
 

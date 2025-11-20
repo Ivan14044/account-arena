@@ -9,66 +9,78 @@ class AdminNotificationController extends Controller
 {
     public function get()
     {
-        $notifications = AdminNotification::latest()->take(5)->get();
+        // Перехватываем весь вывод, чтобы MadelineProto не испортил JSON-ответ
+        ob_start();
+        
+        try {
+            $notifications = AdminNotification::latest()->take(5)->get();
 
-        $dropdownArray = $notifications->map(function ($n) {
-            $diffInSeconds = now()->diffInSeconds($n->created_at);
+            $dropdownArray = $notifications->map(function ($n) {
+                $diffInSeconds = now()->diffInSeconds($n->created_at);
 
-            if ($diffInSeconds < 60) {
-                $time = $diffInSeconds . 's';
-            } elseif ($diffInSeconds < 3600) {
-                $time = floor($diffInSeconds / 60) . 'm';
-            } elseif ($diffInSeconds < 86400) {
-                $time = floor($diffInSeconds / 3600) . 'h';
-            } else {
-                $time = floor($diffInSeconds / 86400) . 'd';
+                if ($diffInSeconds < 60) {
+                    $time = $diffInSeconds . 's';
+                } elseif ($diffInSeconds < 3600) {
+                    $time = floor($diffInSeconds / 60) . 'm';
+                } elseif ($diffInSeconds < 86400) {
+                    $time = floor($diffInSeconds / 3600) . 'h';
+                } else {
+                    $time = floor($diffInSeconds / 86400) . 'd';
+                }
+
+                return [
+                    'id' => $n->id,
+                    'icon' => 'fas fa-info-circle',
+                    'text' => $n->title,
+                    'time' => $time,
+                    'url' => route('admin.admin_notifications.read', $n->id),
+                    'read' => (bool)$n->read,
+                ];
+            });
+
+            $dropdownHtml = '';
+
+            foreach ($dropdownArray as $key => $notification) {
+                $itemClass = $notification['read']
+                    ? 'dropdown-item'
+                    : 'dropdown-item bg-light-primary fw-bold';
+
+                $dropdownHtml .= "
+                    <a href='{$notification['url']}' class='{$itemClass}'>
+                        <div class='d-flex justify-content-between align-items-center w-100'>
+                            <div><i class='{$notification['icon']} mr-2'></i> {$notification['text']}</div>
+                            <span class='text-muted text-xs'>{$notification['time']}</span>
+                        </div>
+                    </a>
+                ";
+
+                if ($key < count($notifications) - 1) {
+                    $dropdownHtml .= "<div class='dropdown-divider'></div>";
+                }
             }
 
-            return [
-                'id' => $n->id,
-                'icon' => 'fas fa-info-circle',
-                'text' => $n->title,
-                'time' => $time,
-                'url' => route('admin.admin_notifications.read', $n->id),
-                'read' => (bool)$n->read,
-            ];
-        });
-
-        $dropdownHtml = '';
-
-        foreach ($dropdownArray as $key => $notification) {
-            $itemClass = $notification['read']
-                ? 'dropdown-item'
-                : 'dropdown-item bg-light-primary fw-bold';
-
-            $dropdownHtml .= "
-                <a href='{$notification['url']}' class='{$itemClass}'>
-                    <div class='d-flex justify-content-between align-items-center w-100'>
-                        <div><i class='{$notification['icon']} mr-2'></i> {$notification['text']}</div>
-                        <span class='text-muted text-xs'>{$notification['time']}</span>
-                    </div>
-                </a>
-            ";
-
-            if ($key < count($notifications) - 1) {
-                $dropdownHtml .= "<div class='dropdown-divider'></div>";
-            }
+            // Проверяем настройки звука для текущего админа
+            $settings = \App\Models\AdminNotificationSetting::getOrCreateForUser(auth()->id());
+            $unreadCount = $notifications->where('read', false)->count();
+            
+            // Проверяем, есть ли новые непрочитанные уведомления
+            $hasNewNotifications = $unreadCount > 0;
+            
+            // Очищаем весь перехваченный вывод перед отправкой JSON
+            ob_end_clean();
+            
+            return response()->json([
+                'label' => $unreadCount,
+                'label_color' => 'primary',
+                'dropdown' => $dropdownHtml,
+                'sound_enabled' => $settings->sound_enabled,
+                'has_new' => $hasNewNotifications,
+            ]);
+        } catch (\Exception $e) {
+            // Очищаем вывод даже при ошибке
+            ob_end_clean();
+            throw $e;
         }
-
-        // Проверяем настройки звука для текущего админа
-        $settings = \App\Models\AdminNotificationSetting::getOrCreateForUser(auth()->id());
-        $unreadCount = $notifications->where('read', false)->count();
-        
-        // Проверяем, есть ли новые непрочитанные уведомления
-        $hasNewNotifications = $unreadCount > 0;
-        
-        return response()->json([
-            'label' => $unreadCount,
-            'label_color' => 'primary',
-            'dropdown' => $dropdownHtml,
-            'sound_enabled' => $settings->sound_enabled,
-            'has_new' => $hasNewNotifications,
-        ]);
     }
 
     public function index()

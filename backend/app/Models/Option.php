@@ -23,6 +23,8 @@ class Option extends Model
 
     public static function get(string $name, $defaultValue = null)
     {
-        return self::where('name', $name)->first()->value ?? $defaultValue;
+        $value = self::where('name', $name)->value('value');
+
+        return $value !== null ? $value : $defaultValue;
     }
 }

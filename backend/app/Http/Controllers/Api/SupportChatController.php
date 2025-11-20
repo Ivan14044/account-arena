@@ -204,6 +204,32 @@ class SupportChatController extends Controller
             ], 422);
         }
         
+        // Дополнительная валидация: проверка общего размера всех файлов (максимум 50MB)
+        if ($request->hasFile('attachments')) {
+            $totalSize = 0;
+            $maxTotalSize = 50 * 1024 * 1024; // 50MB общий лимит
+            
+            foreach ($request->file('attachments') as $file) {
+                $totalSize += $file->getSize();
+            }
+            
+            if ($totalSize > $maxTotalSize) {
+                return response()->json([
+                    'success' => false,
+                    'errors' => ['attachments' => ['Общий размер всех файлов не должен превышать 50MB']],
+                ], 422);
+            }
+            
+            // Проверка доступного места на диске (минимум 100MB должно остаться)
+            $freeSpace = disk_free_space(storage_path('app'));
+            if ($freeSpace !== false && $freeSpace < (100 * 1024 * 1024)) {
+                return response()->json([
+                    'success' => false,
+                    'errors' => ['attachments' => ['Недостаточно места на диске для сохранения файлов']],
+                ], 422);
+            }
+        }
+        
         $user = $request->user('sanctum');
         $chat = SupportChat::findOrFail($chatId);
         

@@ -563,7 +563,7 @@
         "guestName": "Ваше имя",
         "guestNamePlaceholder": "Введите ваше имя",
         "guestEmail": "Email",
-        "guestEmailPlaceholder": "your@email.com",
+        "guestEmailPlaceholder": "your{'@'}email.com",
         "startChat": "Начать чат",
         "loading": "Загрузка...",
         "noMessages": "Пока нет сообщений. Начните общение!",
