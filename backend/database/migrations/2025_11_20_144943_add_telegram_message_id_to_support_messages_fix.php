@@ -19,13 +19,11 @@ return new class extends Migration
         }
         
         // Добавляем индекс
-        Schema::table('support_messages', function (Blueprint $table) {
-            try {
+        if (!Schema::hasIndex('support_messages', 'support_messages_telegram_message_id_index')) {
+            Schema::table('support_messages', function (Blueprint $table) {
                 $table->index('telegram_message_id');
-            } catch (\Exception $e) {
-                // Индекс уже существует, игнорируем
-            }
-        });
+            });
+        }
     }
 
     /**

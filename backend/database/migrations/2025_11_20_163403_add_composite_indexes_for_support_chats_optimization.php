@@ -81,9 +81,15 @@ return new class extends Migration
         $connection = Schema::getConnection();
         $databaseName = $connection->getDatabaseName();
         
-        $doctrineSchemaManager = $connection->getDoctrineSchemaManager();
-        $doctrineTable = $doctrineSchemaManager->listTableDetails($table);
+        $result = $connection->select(
+            "SELECT COUNT(*) as count 
+             FROM information_schema.statistics 
+             WHERE table_schema = ? 
+             AND table_name = ? 
+             AND index_name = ?",
+            [$databaseName, $table, $index]
+        );
         
-        return $doctrineTable->hasIndex($index);
+        return isset($result[0]) && $result[0]->count > 0;
     }
 };

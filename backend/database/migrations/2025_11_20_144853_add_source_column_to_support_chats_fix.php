@@ -27,17 +27,13 @@ return new class extends Migration
         
         // Добавляем индексы
         Schema::table('support_chats', function (Blueprint $table) {
-            // Проверяем наличие индексов для SQLite
-            try {
+            // Проверяем наличие индексов перед созданием
+            if (!Schema::hasIndex('support_chats', 'support_chats_source_index')) {
                 $table->index('source');
-            } catch (\Exception $e) {
-                // Индекс уже существует, игнорируем
             }
             
-            try {
+            if (!Schema::hasIndex('support_chats', 'support_chats_telegram_chat_id_index')) {
                 $table->index('telegram_chat_id');
-            } catch (\Exception $e) {
-                // Индекс уже существует, игнорируем
             }
         });
     }

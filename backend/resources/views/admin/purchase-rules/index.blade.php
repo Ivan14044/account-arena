@@ -64,19 +64,19 @@
                 <ul class="nav nav-tabs-modern" id="rules-tabs" role="tablist">
                     <li class="nav-item">
                         <a class="nav-link active" id="tab-ru" data-toggle="pill" href="#content-ru" role="tab">
-                            <img src="/img/lang/ru.png" alt="RU" class="mr-2" style="width: 20px; height: 15px;">
+                            <img src="/img/lang/ru.svg" alt="RU" class="mr-2" style="width: 20px; height: 15px;">
                             Русский
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" id="tab-en" data-toggle="pill" href="#content-en" role="tab">
-                            <img src="/img/lang/en.png" alt="EN" class="mr-2" style="width: 20px; height: 15px;">
+                            <img src="/img/lang/en.svg" alt="EN" class="mr-2" style="width: 20px; height: 15px;">
                             English
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" id="tab-uk" data-toggle="pill" href="#content-uk" role="tab">
-                            <img src="/img/lang/uk.png" alt="UK" class="mr-2" style="width: 20px; height: 15px;">
+                            <img src="/img/lang/uk.svg" alt="UK" class="mr-2" style="width: 20px; height: 15px;">
                             Українська
                         </a>
                     </li>
@@ -155,19 +155,6 @@
                                 Використовуйте Markdown або HTML для форматування тексту
                             </small>
                         </div>
-                    </div>
-                </div>
-
-                <!-- Превью -->
-                <div class="alert alert-info mt-4">
-                    <h5 class="alert-heading">
-                        <i class="fas fa-eye mr-2"></i>Как это будет выглядеть на странице оформления заказа:
-                    </h5>
-                    <div class="mt-3 p-3 bg-white rounded border">
-                        <label class="d-flex align-items-center" style="cursor: pointer;">
-                            <input type="checkbox" class="mr-2" disabled>
-                            <span>Я согласен с <a href="#" class="text-primary">правилами покупки</a></span>
-                        </label>
                     </div>
                 </div>
             </div>
