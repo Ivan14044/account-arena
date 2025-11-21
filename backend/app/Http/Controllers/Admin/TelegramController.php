@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Services\TelegramClientService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class TelegramController extends Controller
 {
@@ -26,7 +27,7 @@ class TelegramController extends Controller
                 if (ob_get_level() > 0) {
                     ob_end_clean();
                 }
-                \Illuminate\Support\Facades\Log::warning('Telegram Client не инициализирован в checkAuthStatus');
+                Log::warning('Telegram Client не инициализирован в checkAuthStatus');
                 return response()->json([
                     'authorized' => false,
                     'message' => 'Telegram Client не инициализирован. Проверьте настройки API ID и API Hash.'
@@ -74,7 +75,7 @@ class TelegramController extends Controller
                 // Это нормально, если пользователь не авторизован
                 // Но логируем для отладки, чтобы понять, какая именно ошибка
                 $errorMessage = $e->getMessage();
-                \Illuminate\Support\Facades\Log::debug('Telegram авторизация не выполнена в checkAuthStatus', [
+                Log::debug('Telegram авторизация не выполнена в checkAuthStatus', [
                     'error' => $errorMessage,
                     'error_class' => get_class($e)
                 ]);
@@ -111,7 +112,7 @@ class TelegramController extends Controller
             $errorMessage = $e->getMessage();
             $errorClass = get_class($e);
             
-            \Illuminate\Support\Facades\Log::error('Ошибка проверки статуса Telegram авторизации', [
+            Log::error('Ошибка проверки статуса Telegram авторизации', [
                 'error' => $errorMessage,
                 'error_class' => $errorClass,
                 'trace' => $e->getTraceAsString()
@@ -153,7 +154,7 @@ class TelegramController extends Controller
                 
                 // Если был вывод HTML, логируем это
                 if (!empty($output) && (strpos($output, '<html') !== false || strpos($output, '<form') !== false)) {
-                    \Illuminate\Support\Facades\Log::warning('MadelineProto вывел HTML при начале авторизации', [
+                    Log::warning('MadelineProto вывел HTML при начале авторизации', [
                         'output_length' => strlen($output),
                         'output_preview' => substr($output, 0, 200)
                     ]);
@@ -170,7 +171,7 @@ class TelegramController extends Controller
                 ob_end_clean();
             }
             
-            \Illuminate\Support\Facades\Log::error('Ошибка начала авторизации Telegram', [
+            Log::error('Ошибка начала авторизации Telegram', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
@@ -196,47 +197,64 @@ class TelegramController extends Controller
 
     /**
      * Завершить авторизацию с кодом
+     * Согласно документации: https://docs.madelineproto.xyz/docs/LOGIN.html#manual-user
      */
     public function completeAuth(Request $request, TelegramClientService $telegramService)
     {
         $request->validate([
             'code' => 'required|string|max:10',
+            'password_2fa' => 'nullable|string',
         ]);
 
-        // Перехватываем вывод
+        // Запоминаем начальный уровень буфера
+        $initialObLevel = ob_get_level();
         ob_start();
         
         try {
-            $result = $telegramService->completeAuth($request->code);
+            $result = $telegramService->completeAuth(
+                $request->code,
+                $request->input('password_2fa')
+            );
             
             // Очищаем вывод
-            if (ob_get_level() > 0) {
-                $output = ob_get_clean();
-                
-                // Если был вывод HTML, логируем это
-                if (!empty($output) && (strpos($output, '<html') !== false || strpos($output, '<form') !== false)) {
-                    \Illuminate\Support\Facades\Log::warning('MadelineProto вывел HTML при завершении авторизации');
-                }
+            while (ob_get_level() > $initialObLevel) {
+                ob_end_clean();
             }
             
-            if ($result) {
+            // Результат теперь массив
+            if (isset($result['success']) && $result['success']) {
                 return response()->json([
                     'success' => true,
-                    'message' => 'Авторизация успешно завершена! Теперь вы можете получать сообщения из Telegram.'
+                    'message' => 'Авторизация успешно завершена! Теперь вы можете получать сообщения из Telegram.',
+                    'user' => [
+                        'user_id' => $result['user_id'] ?? null,
+                        'first_name' => $result['first_name'] ?? null,
+                        'last_name' => $result['last_name'] ?? null,
+                        'username' => $result['username'] ?? null,
+                        'phone' => $result['phone'] ?? null,
+                    ]
                 ]);
+            } elseif (isset($result['needs_2fa']) && $result['needs_2fa']) {
+                // Требуется 2FA пароль - возвращаем 200, чтобы обработалось в success
+                return response()->json([
+                    'success' => false,
+                    'needs_2fa' => true,
+                    'hint' => $result['hint'] ?? null,
+                    'message' => $result['message'] ?? 'Требуется пароль двухфакторной аутентификации'
+                ], 200);
             } else {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Не удалось завершить авторизацию. Проверьте код и попробуйте снова.'
+                    'message' => $result['message'] ?? 'Не удалось завершить авторизацию. Проверьте код и попробуйте снова.'
                 ], 400);
             }
         } catch (\Exception $e) {
             // Очищаем все буферы вывода
-            while (ob_get_level() > 0) {
+            while (ob_get_level() > $initialObLevel) {
                 ob_end_clean();
             }
             
-            \Illuminate\Support\Facades\Log::error('Ошибка завершения авторизации Telegram', [
+            Log::error('Ошибка завершения авторизации Telegram', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
@@ -273,7 +291,7 @@ class TelegramController extends Controller
             
             // Если был вывод HTML, логируем это
             if (!empty($output) && (strpos($output, '<html') !== false || strpos($output, '<form') !== false)) {
-                \Illuminate\Support\Facades\Log::warning('MadelineProto вывел HTML при сбросе сессии', [
+                Log::warning('MadelineProto вывел HTML при сбросе сессии', [
                     'output_length' => strlen($output)
                 ]);
             }
@@ -284,7 +302,7 @@ class TelegramController extends Controller
             ]);
         } catch (\Exception $e) {
             ob_end_clean();
-            \Illuminate\Support\Facades\Log::error('Ошибка сброса сессии Telegram', [
+            Log::error('Ошибка сброса сессии Telegram', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
@@ -310,7 +328,7 @@ class TelegramController extends Controller
             
             // Если был вывод HTML, логируем это
             if (!empty($output) && (strpos($output, '<html') !== false || strpos($output, '<form') !== false)) {
-                \Illuminate\Support\Facades\Log::warning('MadelineProto вывел HTML при получении сообщений');
+                Log::warning('MadelineProto вывел HTML при получении сообщений');
             }
             
             $processedCount = 0;
@@ -325,7 +343,7 @@ class TelegramController extends Controller
                     }
                 } catch (\Exception $e) {
                     $errors[] = $e->getMessage();
-                    \Illuminate\Support\Facades\Log::error('Ошибка обработки Telegram сообщения', [
+                    Log::error('Ошибка обработки Telegram сообщения', [
                         'error' => $e->getMessage(),
                     ]);
                 }
@@ -342,7 +360,7 @@ class TelegramController extends Controller
             
             return redirect()->back()->with('success', $message);
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('Ошибка получения Telegram сообщений', [
+            Log::error('Ошибка получения Telegram сообщений', [
                 'error' => $e->getMessage(),
             ]);
             

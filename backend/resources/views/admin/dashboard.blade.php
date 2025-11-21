@@ -307,11 +307,6 @@
     @endif
 @stop
 
-@section('plugins')
-<!-- Chart.js -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-@stop
-
 @section('css')
 <style>
     .card {
@@ -326,76 +321,106 @@
 
 @section('js')
 <script>
-    // График продаж
-    const salesCtx = document.getElementById('salesChart').getContext('2d');
-    const salesChart = new Chart(salesCtx, {
-        type: 'line',
-        data: {
-            labels: {!! json_encode($salesChartData['labels']) !!},
-            datasets: [{
-                label: 'Продажи',
-                data: {!! json_encode($salesChartData['data']) !!},
-                borderColor: 'rgb(0, 123, 255)',
-                backgroundColor: 'rgba(0, 123, 255, 0.1)',
-                tension: 0.4,
-                fill: true
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: true,
-            plugins: {
-                legend: {
-                    display: false
-                },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            return '$' + context.parsed.y.toFixed(2);
-                        }
-                    }
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: {
-                        callback: function(value) {
-                            return '$' + value.toFixed(2);
-                        }
-                    }
-                }
-            }
+    // Wait for Chart.js to load and DOM to be ready
+    function initCharts() {
+        // Check if Chart is available
+        if (typeof Chart === 'undefined') {
+            // Retry after a short delay if Chart.js is still loading
+            setTimeout(initCharts, 100);
+            return;
         }
-    });
 
-    // График по категориям
-    const categoryCtx = document.getElementById('categoryChart').getContext('2d');
-    const categoryChart = new Chart(categoryCtx, {
-        type: 'doughnut',
-        data: {
-            labels: {!! json_encode($categoryChartData['labels']) !!},
-            datasets: [{
-                data: {!! json_encode($categoryChartData['data']) !!},
-                backgroundColor: {!! json_encode($categoryChartData['colors']) !!}
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: true,
-            plugins: {
-                legend: {
-                    position: 'bottom'
+        // Check if chart elements exist
+        const salesChartElement = document.getElementById('salesChart');
+        const categoryChartElement = document.getElementById('categoryChart');
+        
+        if (!salesChartElement && !categoryChartElement) {
+            return; // No charts to initialize
+        }
+
+        // График продаж
+        if (salesChartElement) {
+            const salesCtx = salesChartElement.getContext('2d');
+            const salesChart = new Chart(salesCtx, {
+                type: 'line',
+                data: {
+                    labels: {!! json_encode($salesChartData['labels']) !!},
+                    datasets: [{
+                        label: 'Продажи',
+                        data: {!! json_encode($salesChartData['data']) !!},
+                        borderColor: 'rgb(0, 123, 255)',
+                        backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
                 },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            return context.label + ': ' + context.parsed + ' шт.';
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return '$' + context.parsed.y.toFixed(2);
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return '$' + value.toFixed(2);
+                                }
+                            }
                         }
                     }
                 }
-            }
+            });
         }
-    });
+
+        // График по категориям
+        if (categoryChartElement) {
+            const categoryCtx = categoryChartElement.getContext('2d');
+            const categoryChart = new Chart(categoryCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: {!! json_encode($categoryChartData['labels']) !!},
+                    datasets: [{
+                        data: {!! json_encode($categoryChartData['data']) !!},
+                        backgroundColor: {!! json_encode($categoryChartData['colors']) !!}
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.label + ': ' + context.parsed + ' шт.';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    // Initialize charts when DOM is ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initCharts);
+    } else {
+        // DOM is already ready
+        initCharts();
+    }
 </script>
 @stop

@@ -1018,7 +1018,7 @@
                                 <div class="alert alert-info">
                                     <i class="fas fa-info-circle"></i>
                                     <strong>Информация:</strong> Настройте интеграцию с Telegram для получения сообщений от клиентов через обычный аккаунт (не бот). 
-                                    Получите API ID и API Hash на <a href="https://my.telegram.org/apps" target="_blank">https://my.telegram.org/apps</a>
+                                    Получите API ID и API Hash на <a href="https://my.telegram.org/apps" target="_blank" class="alert-link">https://my.telegram.org/apps</a>
                     </div>
 
                                 <div class="form-group">
@@ -1127,6 +1127,18 @@
                                                            maxlength="10">
                                                     <small class="form-text text-muted">Введите код, который пришел в Telegram</small>
                                                 </div>
+                                                
+                                                <div id="auth-2fa-input" style="display: none;">
+                                                    <div class="form-group">
+                                                        <label for="auth-password-2fa">Пароль двухфакторной аутентификации</label>
+                                                        <input type="password" 
+                                                               class="form-control" 
+                                                               id="auth-password-2fa" 
+                                                               placeholder="Введите пароль 2FA">
+                                                        <small class="form-text text-muted" id="auth-2fa-hint"></small>
+                                                    </div>
+                                                </div>
+                                                
                                                 <button type="button" id="btn-complete-auth" class="btn btn-success">
                                                     <i class="fas fa-check mr-2"></i>Завершить авторизацию
                                                 </button>
@@ -1382,6 +1394,9 @@
                             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                         },
                         success: function(response) {
+                            // Восстанавливаем кнопку в любом случае
+                            $btn.prop('disabled', false).html(originalHtml);
+                            
                             if (response.success) {
                                 $('#auth-status-info')
                                     .removeClass('alert-success alert-danger')
@@ -1394,19 +1409,18 @@
                                 $('#auth-status-info')
                                     .removeClass('alert-success alert-info')
                                     .addClass('alert-danger')
-                                    .html('<i class="fas fa-times-circle mr-2"></i>' + response.message);
-                                
-                                $btn.prop('disabled', false).html(originalHtml);
+                                    .html('<i class="fas fa-times-circle mr-2"></i>' + (response.message || 'Ошибка сброса сессии'));
                             }
                         },
                         error: function(xhr) {
+                            // Восстанавливаем кнопку при ошибке
+                            $btn.prop('disabled', false).html(originalHtml);
+                            
                             const errorMsg = xhr.responseJSON?.message || 'Ошибка сброса сессии';
                             $('#auth-status-info')
                                 .removeClass('alert-success alert-info')
                                 .addClass('alert-danger')
                                 .html('<i class="fas fa-times-circle mr-2"></i>' + errorMsg);
-                            
-                            $btn.prop('disabled', false).html(originalHtml);
                         }
                     });
                 };
@@ -1546,6 +1560,7 @@
                 // Завершить авторизацию
                 $('#btn-complete-auth').on('click', function() {
                     const code = $('#auth-code').val().trim();
+                    const password2FA = $('#auth-password-2fa').val().trim();
                     
                     if (!code) {
                         alert('Введите код авторизации');
@@ -1553,7 +1568,12 @@
                     }
                     
                     const $btn = $(this);
-                    $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-2"></i>Проверка кода...');
+                    $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-2"></i>Проверка...');
+                    
+                    const requestData = { code: code };
+                    if (password2FA) {
+                        requestData.password_2fa = password2FA;
+                    }
                     
                     $.ajax({
                         url: '{{ route("admin.telegram.auth.complete") }}',
@@ -1561,9 +1581,7 @@
                         headers: {
                             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                         },
-                        data: {
-                            code: code
-                        },
+                        data: requestData,
                         success: function(response) {
                             if (response.success) {
                                 $('#auth-status-info')
@@ -1573,20 +1591,60 @@
                                 
                                 $('#auth-code-input').hide();
                                 $('#auth-code').val('');
+                                $('#auth-password-2fa').val('');
+                                $('#auth-2fa-input').hide();
                                 
                                 // Обновить статус через 1 секунду
                                 setTimeout(checkAuthStatus, 1000);
+                            } else if (response.needs_2fa) {
+                                // Требуется 2FA пароль
+                                // Убеждаемся, что auth-code-input видим
+                                $('#auth-code-input').show();
+                                $('#auth-2fa-input').show();
+                                $('#auth-password-2fa').focus();
+                                if (response.hint) {
+                                    $('#auth-2fa-hint').text('Подсказка: ' + response.hint);
+                                } else {
+                                    $('#auth-2fa-hint').text('');
+                                }
+                                $('#auth-status-info')
+                                    .removeClass('alert-danger alert-success')
+                                    .addClass('alert-warning')
+                                    .html('<i class="fas fa-lock mr-2"></i>' + (response.message || 'Требуется пароль двухфакторной аутентификации'));
+                                
+                                $btn.prop('disabled', false).html('<i class="fas fa-check mr-2"></i>Завершить авторизацию');
                             } else {
                                 $('#auth-status-info')
                                     .removeClass('alert-success alert-info')
                                     .addClass('alert-danger')
-                                    .html('<i class="fas fa-times-circle mr-2"></i>' + response.message);
+                                    .html('<i class="fas fa-times-circle mr-2"></i>' + (response.message || 'Ошибка авторизации'));
                                 
                                 $btn.prop('disabled', false).html('<i class="fas fa-check mr-2"></i>Завершить авторизацию');
                             }
                         },
                         error: function(xhr) {
-                            const errorMsg = xhr.responseJSON?.message || 'Ошибка проверки кода';
+                            // Проверяем, может быть это needs_2fa в ответе с ошибкой
+                            const response = xhr.responseJSON;
+                            if (response && response.needs_2fa) {
+                                // Обрабатываем needs_2fa даже в error блоке
+                                $('#auth-code-input').show();
+                                $('#auth-2fa-input').show();
+                                $('#auth-password-2fa').focus();
+                                if (response.hint) {
+                                    $('#auth-2fa-hint').text('Подсказка: ' + response.hint);
+                                } else {
+                                    $('#auth-2fa-hint').text('');
+                                }
+                                $('#auth-status-info')
+                                    .removeClass('alert-danger alert-success')
+                                    .addClass('alert-warning')
+                                    .html('<i class="fas fa-lock mr-2"></i>' + (response.message || 'Требуется пароль двухфакторной аутентификации'));
+                                
+                                $btn.prop('disabled', false).html('<i class="fas fa-check mr-2"></i>Завершить авторизацию');
+                                return;
+                            }
+                            
+                            const errorMsg = response?.message || 'Ошибка проверки кода';
                             $('#auth-status-info')
                                 .removeClass('alert-success alert-info')
                                 .addClass('alert-danger')
@@ -1601,6 +1659,8 @@
                 $('#btn-cancel-auth').on('click', function() {
                     $('#auth-code-input').hide();
                     $('#auth-code').val('');
+                    $('#auth-password-2fa').val('');
+                    $('#auth-2fa-input').hide();
                     $('#auth-not-authorized').show();
                     checkAuthStatus();
                 });

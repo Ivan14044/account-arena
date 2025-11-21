@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::table('admin_notification_settings', function (Blueprint $table) {
             if (Schema::hasColumn('admin_notification_settings', 'dispute_resolved_enabled')) {
-                $table->dropColumn('dispute_resolved_enabled');
+            $table->dropColumn('dispute_resolved_enabled');
             }
         });
     }
@@ -25,7 +25,7 @@ return new class extends Migration
     {
         Schema::table('admin_notification_settings', function (Blueprint $table) {
             if (!Schema::hasColumn('admin_notification_settings', 'dispute_resolved_enabled')) {
-                $table->boolean('dispute_resolved_enabled')->default(true)->after('dispute_created_enabled');
+            $table->boolean('dispute_resolved_enabled')->default(true)->after('dispute_created_enabled');
             }
         });
     }

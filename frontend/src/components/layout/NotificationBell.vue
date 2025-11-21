@@ -3,8 +3,8 @@
         <button
             class="relative px-2 px-lg-3 h-[32px] flex items-center justify-center rounded-lg transition-all duration-300 hover:bg-indigo-200 dark:hover:bg-gray-700"
             :class="{ 'bounce-once': shouldAnimate }"
-            @click.stop="toggleDropdown"
             aria-label="Notifications"
+            @click.stop="toggleDropdown"
         >
             <Bell class="bell" />
             <span
@@ -148,34 +148,40 @@ let notificationSound = null;
 const isAuthenticated = computed(() => !!authStore.user);
 const unreadCount = computed(() => notificationStore.unread);
 const storeItems = computed(() => notificationStore.items);
-const displayedItems = computed(() => loadedItems.value.length > 0 ? loadedItems.value : storeItems.value);
+const displayedItems = computed(() =>
+    loadedItems.value.length > 0 ? loadedItems.value : storeItems.value
+);
 const hasMoreItems = computed(() => notificationStore.total > displayedItems.value.length);
 const remainingCount = computed(() => notificationStore.total - displayedItems.value.length);
 
 // Initialize loaded items from store and sync when dropdown is open
-watch(storeItems, (newItems) => {
-    if (loadedItems.value.length === 0 && newItems.length > 0) {
-        // Инициализация при первой загрузке
-        loadedItems.value = [...newItems];
-    } else if (isDropdownOpen.value && newItems.length > 0) {
-        // Если дропдаун открыт, синхронизируем loadedItems с новыми сообщениями
-        const existingIds = new Set(loadedItems.value.map(i => i.id));
-        
-        // Добавляем новые сообщения в начало (если их нет в loadedItems)
-        const newItemsToAdd = newItems.filter(item => !existingIds.has(item.id));
-        if (newItemsToAdd.length > 0) {
-            loadedItems.value = [...newItemsToAdd, ...loadedItems.value];
-        }
-        
-        // Обновляем существующие сообщения (на случай изменений)
-        newItems.forEach(newItem => {
-            const index = loadedItems.value.findIndex(i => i.id === newItem.id);
-            if (index >= 0) {
-                loadedItems.value[index] = { ...newItem };
+watch(
+    storeItems,
+    newItems => {
+        if (loadedItems.value.length === 0 && newItems.length > 0) {
+            // Инициализация при первой загрузке
+            loadedItems.value = [...newItems];
+        } else if (isDropdownOpen.value && newItems.length > 0) {
+            // Если дропдаун открыт, синхронизируем loadedItems с новыми сообщениями
+            const existingIds = new Set(loadedItems.value.map(i => i.id));
+
+            // Добавляем новые сообщения в начало (если их нет в loadedItems)
+            const newItemsToAdd = newItems.filter(item => !existingIds.has(item.id));
+            if (newItemsToAdd.length > 0) {
+                loadedItems.value = [...newItemsToAdd, ...loadedItems.value];
             }
-        });
-    }
-}, { immediate: true });
+
+            // Обновляем существующие сообщения (на случай изменений)
+            newItems.forEach(newItem => {
+                const index = loadedItems.value.findIndex(i => i.id === newItem.id);
+                if (index >= 0) {
+                    loadedItems.value[index] = { ...newItem };
+                }
+            });
+        }
+    },
+    { immediate: true }
+);
 
 // Methods
 const getNotificationSound = () => {
@@ -204,7 +210,7 @@ const toggleDropdown = async () => {
     }
 };
 
-const markNotificationsAsRead = async (ids) => {
+const markNotificationsAsRead = async ids => {
     try {
         await notificationStore.markNotificationsAsRead(ids);
         ids.forEach(id => recentlyReadIds.value.add(id));
@@ -213,30 +219,30 @@ const markNotificationsAsRead = async (ids) => {
     }
 };
 
-const handleMarkAsRead = async (item) => {
+const handleMarkAsRead = async item => {
     if (item.read_at) return;
 
     const now = new Date().toISOString();
-    
+
     // Мгновенное локальное обновление (оптимистичное обновление)
     item.read_at = now;
     recentlyReadIds.value.add(item.id);
-    
+
     // Обновляем в loadedItems для реактивности
     const index = loadedItems.value.findIndex(i => i.id === item.id);
     if (index >= 0) {
         loadedItems.value[index] = { ...item, read_at: now };
     }
-    
+
     // Обновляем в store для реактивности
     const storeIndex = notificationStore.items.findIndex(i => i.id === item.id);
     if (storeIndex >= 0) {
         notificationStore.items[storeIndex] = { ...item, read_at: now };
     }
-    
+
     // Обновляем счетчик непрочитанных
     notificationStore.unread = Math.max(0, notificationStore.unread - 1);
-    
+
     // Выполняем запрос в фоне (не блокируем UI)
     markNotificationsAsRead([item.id]).catch(error => {
         console.error('Failed to mark notification as read:', error);
@@ -248,15 +254,15 @@ const handleMarkAllAsRead = async () => {
     if (isMarkingAll.value || unreadCount.value === 0) return;
 
     isMarkingAll.value = true;
-    
+
     // Мгновенное локальное обновление (оптимистичное обновление)
     const now = new Date().toISOString();
     const unreadItems = displayedItems.value.filter(item => !item.read_at);
-    
+
     unreadItems.forEach(item => {
         item.read_at = now;
         recentlyReadIds.value.add(item.id);
-        
+
         // Обновляем в loadedItems
         if (loadedItems.value.length > 0) {
             const loadedIndex = loadedItems.value.findIndex(i => i.id === item.id);
@@ -264,17 +270,17 @@ const handleMarkAllAsRead = async () => {
                 loadedItems.value[loadedIndex] = { ...item, read_at: now };
             }
         }
-        
+
         // Обновляем в store
         const storeIndex = notificationStore.items.findIndex(i => i.id === item.id);
         if (storeIndex >= 0) {
             notificationStore.items[storeIndex] = { ...item, read_at: now };
         }
     });
-    
+
     // Обновляем счетчик непрочитанных
     notificationStore.unread = Math.max(0, notificationStore.unread - unreadItems.length);
-    
+
     // Выполняем запрос в фоне (не блокируем UI)
     try {
         await notificationStore.markAllAsRead();
@@ -297,7 +303,6 @@ const handleLoadMore = async () => {
         if (newItems.length > 0) {
             loadedItems.value = [...loadedItems.value, ...newItems];
             currentPage.value++;
-
         }
     } catch (error) {
         console.error('Failed to load more notifications:', error);
@@ -318,7 +323,7 @@ const getTranslation = (item, key) => {
     return text;
 };
 
-const formatDate = (dateStr) => {
+const formatDate = dateStr => {
     try {
         return new Date(dateStr).toLocaleString(locale.value);
     } catch {
@@ -348,7 +353,9 @@ const stopPolling = () => {
 
 const playNotificationSound = () => {
     try {
-        getNotificationSound().play().catch(() => {});
+        getNotificationSound()
+            .play()
+            .catch(() => {});
     } catch (error) {
         console.error('Failed to play notification sound:', error);
     }
@@ -364,7 +371,7 @@ const triggerAnimation = () => {
 };
 
 // Watchers
-watch(unreadCount, (newCount) => {
+watch(unreadCount, newCount => {
     if (isFirstLoad.value) {
         previousUnreadCount.value = newCount;
         isFirstLoad.value = false;
@@ -379,7 +386,7 @@ watch(unreadCount, (newCount) => {
     previousUnreadCount.value = newCount;
 });
 
-watch(isAuthenticated, async (isAuth) => {
+watch(isAuthenticated, async isAuth => {
     if (isAuth) {
         try {
             await notificationStore.fetchData(INITIAL_LIMIT);
@@ -398,7 +405,7 @@ watch(isAuthenticated, async (isAuth) => {
 });
 
 // Click outside handler
-const handleClickOutside = (event) => {
+const handleClickOutside = event => {
     if (dropdownRef.value && !dropdownRef.value.contains(event.target)) {
         if (isDropdownOpen.value) {
             closeDropdown();
@@ -441,10 +448,19 @@ onBeforeUnmount(() => {
 
 <style scoped>
 @keyframes bounceOnce {
-    0%, 100% { transform: translateY(0); }
-    25% { transform: translateY(-4px); }
-    50% { transform: translateY(0); }
-    75% { transform: translateY(-2px); }
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+    25% {
+        transform: translateY(-4px);
+    }
+    50% {
+        transform: translateY(0);
+    }
+    75% {
+        transform: translateY(-2px);
+    }
 }
 
 .bounce-once {

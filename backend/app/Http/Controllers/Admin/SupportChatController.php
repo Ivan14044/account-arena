@@ -97,11 +97,14 @@ class SupportChatController extends Controller
         }]);
         
         // Оптимизация: загружаем только последние сообщения для первоначальной загрузки
-        // Вместо всех сообщений загружаем последние 200 (для больших чатов)
-        $chat->load(['messages' => function($q) {
+        // Используем параметр limit из запроса или значение по умолчанию (50 сообщений)
+        $limit = (int) request()->input('limit', 50);
+        $limit = max(10, min(200, $limit)); // Ограничиваем от 10 до 200 сообщений
+        
+        $chat->load(['messages' => function($q) use ($limit) {
             $q->with(['user:id,name,email', 'attachments'])
               ->orderBy('created_at', 'desc')
-              ->limit(200); // Последние 200 сообщений для начальной загрузки
+              ->limit($limit);
         }]);
         
         // Переворачиваем коллекцию, чтобы старые сообщения были сначала (для отображения в чате)

@@ -33,7 +33,7 @@ export const useNotificationStore = defineStore('notifications', {
                     // Merge: update existing items, add new ones at the beginning
                     const existingIds = new Set(this.items.map(i => i.id));
                     const newItemsToAdd = [];
-                    
+
                     items.forEach(newItem => {
                         if (existingIds.has(newItem.id)) {
                             // Update existing item
@@ -46,7 +46,7 @@ export const useNotificationStore = defineStore('notifications', {
                             newItemsToAdd.push(newItem);
                         }
                     });
-                    
+
                     // Add new items at the beginning (newest first)
                     if (newItemsToAdd.length > 0) {
                         this.items = [...newItemsToAdd, ...this.items];

@@ -17,7 +17,7 @@ class NotificationTemplateSeeder extends Seeder
                 'is_mass' => 0,
             ]
         );
-        
+
         // Обновляем name и is_mass на случай, если шаблон уже существовал
         $registrationTemplate->update([
             'name' => 'Уведомление о регистрации',

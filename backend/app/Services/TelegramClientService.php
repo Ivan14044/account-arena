@@ -12,7 +12,6 @@ use danog\MadelineProto\Settings;
 use danog\MadelineProto\Settings\AppInfo;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class TelegramClientService
@@ -20,6 +19,7 @@ class TelegramClientService
     private ?API $madeline = null;
     private string $sessionPath;
     private bool $enabled;
+    private ?bool $isAuthorizedCache = null; // Cache authorization status
 
     public function __construct()
     {
@@ -31,6 +31,35 @@ class TelegramClientService
         $sessionDir = dirname($this->sessionPath);
         if (!is_dir($sessionDir)) {
             mkdir($sessionDir, 0755, true);
+        }
+    }
+
+    /**
+     * Destructor to clean up resources
+     */
+    public function __destruct()
+    {
+        $this->disconnect();
+    }
+
+    /**
+     * Explicitly disconnect and clean up resources
+     */
+    public function disconnect(): void
+    {
+        if ($this->madeline !== null) {
+            try {
+                // MadelineProto has internal cleanup mechanism
+                // Just clear the reference to allow garbage collection
+                $this->madeline = null;
+                $this->isAuthorizedCache = null; // Clear authorization cache
+                Log::debug('TelegramClientService: Connection closed and resources cleaned up');
+            } catch (\Exception $e) {
+                Log::warning('Error cleaning up TelegramClientService: ' . $e->getMessage());
+                // Force cleanup even if there's an error
+                $this->madeline = null;
+                $this->isAuthorizedCache = null;
+            }
         }
     }
 
@@ -75,17 +104,9 @@ class TelegramClientService
                 // Создание объекта API может вывести предупреждения (например, о Windows)
                 $this->madeline = new API($this->sessionPath, $settings);
                 
-                // Инициализируем API (start() необходим для работы MadelineProto)
-                // В веб-контексте start() может вывести HTML, поэтому перехватываем вывод
-                try {
-                    $this->madeline->start();
-                    Log::debug('MadelineProto API успешно инициализирован (start() вызван)');
-                } catch (\Exception $e) {
-                    // Если start() уже был вызван, это нормально
-                    if (strpos($e->getMessage(), 'already') === false && strpos($e->getMessage(), 'уже') === false) {
-                        Log::warning('Ошибка при вызове start() для MadelineProto: ' . $e->getMessage());
-                    }
-                }
+                // НЕ вызываем start() - он выводит HTML в веб-контексте
+                // Используем manual login через phoneLogin() и completePhoneLogin()
+                // start() нужен только для автоматического интерактивного режима
                 
                 // Проверяем, есть ли уже авторизованная сессия
                 // Если сессия существует и валидна, getSelf() вернет данные пользователя
@@ -93,16 +114,21 @@ class TelegramClientService
                 
                 // Проверяем авторизацию (не логируем ошибки, так как это нормально при отсутствии авторизации)
                 // Вывод уже перехвачен выше
+                // Кешируем результат авторизации для оптимизации
                 try {
                     $self = $this->madeline->getSelf();
                     
                     if ($self) {
                         $userId = is_array($self) ? ($self['id'] ?? null) : (isset($self->id) ? $self->id : null);
+                        $this->isAuthorizedCache = true;
                         Log::info('Telegram Client успешно инициализирован и авторизован', ['user_id' => $userId ?? 'unknown']);
+                    } else {
+                        $this->isAuthorizedCache = false;
                     }
                 } catch (\Exception $e) {
                     // Если не авторизован, это нормально - нужно выполнить авторизацию
                     // Не логируем как ошибку, так как это ожидаемое поведение
+                    $this->isAuthorizedCache = false;
                     Log::debug('Telegram Client не авторизован (ожидаемое поведение): ' . $e->getMessage());
                 }
                 
@@ -140,35 +166,45 @@ class TelegramClientService
                 throw new \Exception('Не удалось инициализировать Telegram клиент. Проверьте API ID и API Hash.');
             }
 
-            // Проверяем, авторизован ли уже
-            // getClient() уже перехватывает вывод, но getSelf() может что-то вывести
-            // Перехватываем вывод на случай, если getSelf() что-то выведет
-            ob_start();
-            try {
-                $self = $client->getSelf();
-                
-                // getClient() уже очистил свой буфер, но мы продолжаем перехватывать
-                // Просто очищаем буфер, не получая его содержимое
-                if (ob_get_level() > 0) {
-                    ob_end_clean();
+            // Проверяем, авторизован ли уже (используем кеш, если доступен)
+            if ($this->isAuthorizedCache === true) {
+                throw new \Exception('Уже авторизован. Если нужно переключиться на другой аккаунт, используйте "Сбросить сессию".');
+            }
+            
+            // Если кеш не установлен или показывает неавторизован, проверяем
+            if ($this->isAuthorizedCache !== true) {
+                // getClient() уже перехватывает вывод, но getSelf() может что-то вывести
+                // Перехватываем вывод на случай, если getSelf() что-то выведет
+                ob_start();
+                try {
+                    $self = $client->getSelf();
+                    
+                    // getClient() уже очистил свой буфер, но мы продолжаем перехватывать
+                    // Просто очищаем буфер, не получая его содержимое
+                    if (ob_get_level() > 0) {
+                        ob_end_clean();
+                    }
+                    
+                    if ($self) {
+                        $this->isAuthorizedCache = true;
+                        $userId = is_array($self) ? ($self['id'] ?? null) : (isset($self->id) ? $self->id : null);
+                        Log::info('Уже авторизован в Telegram', ['user_id' => $userId ?? 'unknown']);
+                        throw new \Exception('Уже авторизован. Если нужно переключиться на другой аккаунт, используйте "Сбросить сессию".');
+                    } else {
+                        $this->isAuthorizedCache = false;
+                    }
+                } catch (\Exception $e) {
+                    // Очищаем вывод даже при ошибке
+                    if (ob_get_level() > 0) {
+                        ob_end_clean();
+                    }
+                    // Если это наше исключение о том, что уже авторизован - пробрасываем дальше
+                    if (strpos($e->getMessage(), 'Уже авторизован') !== false) {
+                        throw $e;
+                    }
+                    // Иначе - не авторизован, продолжаем
+                    Log::info('Требуется авторизация: ' . $e->getMessage());
                 }
-                
-                if ($self) {
-                    $userId = is_array($self) ? ($self['id'] ?? null) : (isset($self->id) ? $self->id : null);
-                    Log::info('Уже авторизован в Telegram', ['user_id' => $userId ?? 'unknown']);
-                    throw new \Exception('Уже авторизован. Если нужно переключиться на другой аккаунт, используйте "Сбросить сессию".');
-                }
-            } catch (\Exception $e) {
-                // Очищаем вывод даже при ошибке
-                if (ob_get_level() > 0) {
-                    ob_end_clean();
-                }
-                // Если это наше исключение о том, что уже авторизован - пробрасываем дальше
-                if (strpos($e->getMessage(), 'Уже авторизован') !== false) {
-                    throw $e;
-                }
-                // Иначе - не авторизован, продолжаем
-                Log::info('Требуется авторизация: ' . $e->getMessage());
             }
 
             // Запрашиваем код через phoneLogin
@@ -220,17 +256,19 @@ class TelegramClientService
 
     /**
      * Завершить авторизацию с кодом
+     * Согласно документации: https://docs.madelineproto.xyz/docs/LOGIN.html#manual-user
      */
-    public function completeAuth(string $code): bool
+    public function completeAuth(string $code, ?string $password2FA = null, ?string $firstName = null, ?string $lastName = null): array
     {
         // Перехватываем вывод
+        $initialObLevel = ob_get_level();
         ob_start();
         
         try {
             $client = $this->getClient();
             
             if (!$client) {
-                if (ob_get_level() > 0) {
+                while (ob_get_level() > $initialObLevel) {
                     ob_end_clean();
                 }
                 throw new \Exception('Telegram клиент не инициализирован');
@@ -238,39 +276,84 @@ class TelegramClientService
 
             Log::info('Попытка завершения авторизации с кодом');
             
-            $result = $client->completePhoneLogin($code);
+            $authorization = $client->completePhoneLogin($code);
             
             // Очищаем буфер вывода
-            if (ob_get_level() > 0) {
+            while (ob_get_level() > $initialObLevel) {
                 ob_end_clean();
             }
             
-            // Проверяем, требуется ли пароль 2FA
-            if (isset($result['_']) && $result['_'] === 'account.password') {
-                Log::warning('Требуется пароль 2FA, но функция не поддерживается');
-                throw new \Exception('Требуется пароль двухфакторной аутентификации. Эта функция пока не поддерживается через веб-интерфейс. Отключите 2FA для этого аккаунта или используйте другой аккаунт.');
+            // Проверяем результат согласно документации
+            if (isset($authorization['_'])) {
+                $authType = $authorization['_'];
+                
+                // Требуется пароль 2FA
+                if ($authType === 'account.password') {
+                    if ($password2FA) {
+                        // Завершаем 2FA авторизацию
+                        ob_start();
+                        try {
+                            $authorization = $client->complete2falogin($password2FA);
+                            while (ob_get_level() > $initialObLevel) {
+                                ob_end_clean();
+                            }
+                            Log::info('2FA авторизация завершена');
+                        } catch (\Exception $e) {
+                            while (ob_get_level() > $initialObLevel) {
+                                ob_end_clean();
+                            }
+                            Log::error('Ошибка 2FA авторизации: ' . $e->getMessage());
+                            return ['success' => false, 'message' => 'Ошибка 2FA авторизации: ' . $e->getMessage()];
+                        }
+                    } else {
+                        // Возвращаем информацию о необходимости 2FA
+                        return [
+                            'success' => false,
+                            'needs_2fa' => true,
+                            'hint' => $authorization['hint'] ?? null,
+                            'message' => 'Требуется пароль двухфакторной аутентификации'
+                        ];
+                    }
+                }
+                
+                // Требуется регистрация (signup) - не поддерживается, показываем ошибку
+                if ($authType === 'account.needSignup') {
+                    return [
+                        'success' => false,
+                        'message' => 'Аккаунт не существует. Используйте существующий аккаунт Telegram.'
+                    ];
+                }
             }
             
             // Проверяем успешность авторизации
             try {
                 $self = $client->getSelf();
                 if ($self) {
+                    $this->isAuthorizedCache = true; // Обновляем кеш
                     $userId = is_array($self) ? ($self['id'] ?? null) : (isset($self->id) ? $self->id : null);
                     Log::info('Авторизация в Telegram завершена успешно', ['user_id' => $userId ?? 'unknown']);
+                    
+                    return [
+                        'success' => true,
+                        'user_id' => $userId,
+                        'first_name' => is_array($self) ? ($self['first_name'] ?? null) : (isset($self->first_name) ? $self->first_name : null),
+                        'last_name' => is_array($self) ? ($self['last_name'] ?? null) : (isset($self->last_name) ? $self->last_name : null),
+                        'username' => is_array($self) ? ($self['username'] ?? null) : (isset($self->username) ? $self->username : null),
+                        'phone' => is_array($self) ? ($self['phone'] ?? null) : (isset($self->phone) ? $self->phone : null),
+                    ];
                 } else {
+                    $this->isAuthorizedCache = false;
                     Log::warning('completePhoneLogin вернул результат, но getSelf() не вернул данные');
+                    return ['success' => false, 'message' => 'Авторизация не завершена'];
                 }
             } catch (\Exception $e) {
+                $this->isAuthorizedCache = false;
                 Log::warning('Не удалось проверить авторизацию после completePhoneLogin: ' . $e->getMessage());
+                return ['success' => false, 'message' => 'Ошибка проверки авторизации: ' . $e->getMessage()];
             }
-            
-            // Сбрасываем кэш клиента, чтобы при следующем вызове getClient() он переинициализировался
-            $this->madeline = null;
-            
-            return true;
         } catch (\Exception $e) {
             // Очищаем все буферы вывода при ошибке
-            while (ob_get_level() > 0) {
+            while (ob_get_level() > $initialObLevel) {
                 ob_end_clean();
             }
             
@@ -283,18 +366,18 @@ class TelegramClientService
             
             // Ошибки кода авторизации
             if (strpos($errorMessage, 'PHONE_CODE_INVALID') !== false) {
-                throw new \Exception('Неверный код авторизации. Проверьте код и попробуйте снова.');
+                return ['success' => false, 'message' => 'Неверный код авторизации. Проверьте код и попробуйте снова.'];
             } elseif (strpos($errorMessage, 'PHONE_CODE_EXPIRED') !== false) {
-                throw new \Exception('Код авторизации истек. Запросите новый код.');
+                return ['success' => false, 'message' => 'Код авторизации истек. Запросите новый код.'];
             } elseif (strpos($errorMessage, 'PHONE_CODE_EMPTY') !== false) {
-                throw new \Exception('Код не был введен. Введите код из Telegram.');
+                return ['success' => false, 'message' => 'Код не был введен. Введите код из Telegram.'];
             } elseif (strpos($errorMessage, 'SESSION_PASSWORD_NEEDED') !== false) {
-                throw new \Exception('Требуется пароль двухфакторной аутентификации. Отключите 2FA для этого аккаунта.');
+                return ['success' => false, 'needs_2fa' => true, 'message' => 'Требуется пароль двухфакторной аутентификации.'];
             } elseif (strpos($errorMessage, 'код') !== false) {
-                throw new \Exception('Ошибка проверки кода: ' . $errorMessage);
+                return ['success' => false, 'message' => 'Ошибка проверки кода: ' . $errorMessage];
             }
             
-            throw $e;
+            return ['success' => false, 'message' => $errorMessage];
         }
     }
 
@@ -317,42 +400,40 @@ class TelegramClientService
                 return false;
             }
 
-            // Убеждаемся, что API инициализирован
-            try {
-                // Проверяем, что start() был вызван
-                if (method_exists($client, 'start')) {
-                    try {
-                        $client->start();
-                    } catch (\Exception $e) {
-                        // Если start() уже был вызван, это нормально
-                        if (strpos($e->getMessage(), 'already') === false && strpos($e->getMessage(), 'уже') === false) {
-                            Log::debug("Ошибка при повторном вызове start(): " . $e->getMessage());
-                        }
-                    }
-                }
-            } catch (\Exception $e) {
-                Log::warning("Не удалось проверить инициализацию API: " . $e->getMessage());
-            }
-
-            // Проверяем авторизацию перед отправкой
-            try {
-                $self = $client->getSelf();
-                if (!$self) {
-                    if (ob_get_level() > 0) {
-                        ob_end_clean();
-                    }
-                    Log::error("Telegram Client не авторизован для отправки сообщения (getSelf() вернул null)");
-                    return false;
-                }
-            } catch (\Exception $e) {
+            // НЕ вызываем start() - используем manual login
+            // Проверяем авторизацию перед отправкой (используем кеш, если доступен)
+            if ($this->isAuthorizedCache === false) {
                 if (ob_get_level() > 0) {
                     ob_end_clean();
                 }
-                Log::error("Telegram Client не авторизован: " . $e->getMessage(), [
-                    'error_type' => get_class($e),
-                    'trace' => substr($e->getTraceAsString(), 0, 500)
-                ]);
+                Log::error("Telegram Client не авторизован для отправки сообщения (кеш показывает неавторизован)");
                 return false;
+            }
+            
+            // Если кеш не установлен, проверяем авторизацию
+            if ($this->isAuthorizedCache === null) {
+                try {
+                    $self = $client->getSelf();
+                    if (!$self) {
+                        $this->isAuthorizedCache = false;
+                        if (ob_get_level() > 0) {
+                            ob_end_clean();
+                        }
+                        Log::error("Telegram Client не авторизован для отправки сообщения (getSelf() вернул null)");
+                        return false;
+                    }
+                    $this->isAuthorizedCache = true;
+                } catch (\Exception $e) {
+                    $this->isAuthorizedCache = false;
+                    if (ob_get_level() > 0) {
+                        ob_end_clean();
+                    }
+                    Log::error("Telegram Client не авторизован: " . $e->getMessage(), [
+                        'error_type' => get_class($e),
+                        'trace' => substr($e->getTraceAsString(), 0, 500)
+                    ]);
+                    return false;
+                }
             }
 
             $sentSomething = false;
@@ -496,22 +577,7 @@ class TelegramClientService
                 return [];
             }
 
-            // Убеждаемся, что API инициализирован
-            try {
-                if (method_exists($client, 'start')) {
-                    try {
-                        $client->start();
-                    } catch (\Exception $e) {
-                        // Если start() уже был вызван, это нормально
-                        if (strpos($e->getMessage(), 'already') === false && strpos($e->getMessage(), 'уже') === false) {
-                            Log::debug("Ошибка при повторном вызове start() в getNewMessages: " . $e->getMessage());
-                        }
-                    }
-                }
-            } catch (\Exception $e) {
-                Log::warning("Не удалось проверить инициализацию API в getNewMessages: " . $e->getMessage());
-            }
-
+            // НЕ вызываем start() - используем manual login
             // Проверяем авторизацию перед получением сообщений
             // Вывод уже перехвачен внешним ob_start()
             try {
@@ -1061,6 +1127,9 @@ class TelegramClientService
                 }
                 $this->madeline = null;
             }
+            
+            // Очищаем кеш авторизации
+            $this->isAuthorizedCache = null;
 
             // Удаляем файл сессии
             if (file_exists($this->sessionPath)) {

@@ -671,7 +671,7 @@ const loadSettings = async () => {
     try {
         const response = await axios.get('/support-chat-settings', { timeout: 5000 });
         console.log('[SupportChat] Ответ от API (сырой):', response.data);
-        
+
         // Если ответ содержит WARNING от MadelineProto, парсим JSON вручную
         let settings = response.data;
         if (typeof response.data === 'string') {
@@ -684,7 +684,7 @@ const loadSettings = async () => {
                 throw new Error('Не удалось найти JSON в ответе');
             }
         }
-        
+
         enabled.value =
             typeof settings.enabled === 'string'
                 ? settings.enabled === 'true'

@@ -638,6 +638,16 @@ return [
     */
 
     'plugins' => [
+        'Chartjs' => [
+            'active' => true,
+            'files' => [
+                [
+                    'type' => 'js',
+                    'asset' => false,
+                    'location' => '//cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js',
+                ],
+            ],
+        ],
         'CustomCss' => [
             'active' => true,
             'files' => [
@@ -725,16 +735,6 @@ return [
                     'type' => 'css',
                     'asset' => false,
                     'location' => '//code.jquery.com/ui/1.13.2/themes/smoothness/jquery-ui.css',
-                ],
-            ],
-        ],
-        'Chartjs' => [
-            'active' => false,
-            'files' => [
-                [
-                    'type' => 'js',
-                    'asset' => false,
-                    'location' => '//cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.0/Chart.bundle.min.js',
                 ],
             ],
         ],
