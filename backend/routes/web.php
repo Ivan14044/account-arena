@@ -20,7 +20,6 @@ use App\Http\Controllers\Admin\ArticleController;
 use App\Http\Controllers\Admin\ProductCategoryController;
 use App\Http\Controllers\Admin\ProductSubcategoryController;
 use App\Http\Controllers\Admin\ArticleCategoryController;
-// use App\Http\Controllers\Admin\BrowserSessionController; // DISABLED
 use App\Http\Controllers\Admin\AdminNotificationController;
 use App\Http\Controllers\Admin\VoucherController;
 use App\Http\Controllers\Admin\PurchaseController;
@@ -80,15 +79,6 @@ Route::prefix('/admin')
             // Purchase Rules (правила покупки)
             Route::get('purchase-rules', [PurchaseRulesController::class, 'index'])->name('purchase-rules.index');
             Route::post('purchase-rules', [PurchaseRulesController::class, 'store'])->name('purchase-rules.store');
-
-            // Browser sessions management - DISABLED
-            // Route::get('browser-sessions', [BrowserSessionController::class, 'index'])->name('browser-sessions.index');
-            // Route::get('browser-sessions/data', [BrowserSessionController::class, 'data'])->name('browser-sessions.data');
-            // Route::post('browser-sessions/start', [BrowserSessionController::class, 'start'])->name('browser-sessions.start');
-            // Route::post('browser-sessions/start-json', [BrowserSessionController::class, 'startJson'])->name('browser-sessions.start-json');
-            // Route::post('browser-sessions/stop-pid', [BrowserSessionController::class, 'stopByPid'])->name('browser-sessions.stop-pid');
-            // Route::post('browser-sessions/stop-port', [BrowserSessionController::class, 'stopByPort'])->name('browser-sessions.stop-port');
-            // Route::post('browser-sessions/stop-all', [BrowserSessionController::class, 'stopAll'])->name('browser-sessions.stop-all');
 
             // Admin notifications
             Route::get('admin_notifications/get', [AdminNotificationController::class, 'get'])->name('admin_notifications.get');

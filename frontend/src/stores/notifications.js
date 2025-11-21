@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import axios from '../bootstrap'; // Используем настроенный axios из bootstrap
+import axios from '../bootstrap';
 import { useLoadingStore } from '@/stores/loading';
 
 export const useNotificationStore = defineStore('notifications', {
@@ -26,8 +26,31 @@ export const useNotificationStore = defineStore('notifications', {
 
                 const { items, total, unread } = response.data;
 
-                if (!this.items.length) {
+                // Always update items when refreshing
+                if (!this.isLoaded || this.items.length === 0) {
                     this.items = items;
+                } else {
+                    // Merge: update existing items, add new ones at the beginning
+                    const existingIds = new Set(this.items.map(i => i.id));
+                    const newItemsToAdd = [];
+                    
+                    items.forEach(newItem => {
+                        if (existingIds.has(newItem.id)) {
+                            // Update existing item
+                            const existingIndex = this.items.findIndex(i => i.id === newItem.id);
+                            if (existingIndex >= 0) {
+                                this.items[existingIndex] = newItem;
+                            }
+                        } else {
+                            // Collect new items to add at the beginning
+                            newItemsToAdd.push(newItem);
+                        }
+                    });
+                    
+                    // Add new items at the beginning (newest first)
+                    if (newItemsToAdd.length > 0) {
+                        this.items = [...newItemsToAdd, ...this.items];
+                    }
                 }
                 this.total = total;
                 this.unread = unread;
@@ -51,10 +74,56 @@ export const useNotificationStore = defineStore('notifications', {
                     }
                 );
 
+                // Update local items immediately
+                const now = new Date().toISOString();
+                ids.forEach(id => {
+                    const item = this.items.find(i => i.id === id);
+                    if (item && !item.read_at) {
+                        item.read_at = now;
+                    }
+                });
+
+                // Update unread count
+                this.unread = Math.max(0, this.unread - ids.length);
+
+                // Refresh data to sync with server
                 this.isLoaded = false;
                 await this.fetchData();
             } catch {
                 // Ошибка отметки уведомлений как прочитанных
+            }
+        },
+
+        async markAllAsRead() {
+            try {
+                const token = localStorage.getItem('token');
+
+                await axios.post(
+                    '/notifications/read-all',
+                    {},
+                    {
+                        headers: {
+                            Authorization: `Bearer ${token}`
+                        }
+                    }
+                );
+
+                // Update all local items immediately
+                const now = new Date().toISOString();
+                this.items.forEach(item => {
+                    if (!item.read_at) {
+                        item.read_at = now;
+                    }
+                });
+
+                // Update unread count to 0
+                this.unread = 0;
+
+                // Refresh data to sync with server
+                this.isLoaded = false;
+                await this.fetchData();
+            } catch {
+                // Ошибка отметки всех уведомлений как прочитанных
             }
         },
 

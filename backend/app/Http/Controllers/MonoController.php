@@ -56,7 +56,7 @@ class MonoController extends Controller
         $modifiedDate = null;
         if ($modifiedDateStr) {
             try {
-                $modifiedDate = \Carbon\Carbon::parse($modifiedDateStr)->timestamp;
+                $modifiedDate = Carbon::parse($modifiedDateStr)->timestamp;
             } catch (\Exception $e) {
                 Log::warning('MonoBank Webhook: Failed to parse modifiedDate', [
                     'modifiedDate' => $modifiedDateStr,
@@ -668,7 +668,7 @@ class MonoController extends Controller
             // Отправляем email уведомление гостю с информацией о покупке
             $totalAmount = array_sum(array_column($productsData, 'total'));
             try {
-                \App\Services\EmailService::sendToGuest(
+                EmailService::sendToGuest(
                     $guestEmail,
                     'guest_purchase_confirmation',
                     [

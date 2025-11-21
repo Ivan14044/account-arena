@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\ProductDispute;
 use App\Models\ServiceAccount;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class ProductDisputeController extends Controller
 {
@@ -106,6 +107,9 @@ class ProductDisputeController extends Controller
         try {
             $dispute->resolveWithRefund(auth()->id(), $request->admin_comment);
             
+            // Очищаем кеш счетчика новых претензий
+            Cache::forget('disputes_new_count');
+            
             return redirect()->route('admin.disputes.index')
                 ->with('success', 'Претензия обработана. Средства возвращены покупателю.');
         } catch (\Exception $e) {
@@ -139,6 +143,9 @@ class ProductDisputeController extends Controller
             $replacementAccount->used_at = now();
             $replacementAccount->save();
 
+            // Очищаем кеш счетчика новых претензий
+            Cache::forget('disputes_new_count');
+
             return redirect()->route('admin.disputes.index')
                 ->with('success', 'Претензия обработана. Товар заменен.');
         } catch (\Exception $e) {
@@ -164,6 +171,9 @@ class ProductDisputeController extends Controller
         try {
             $dispute->reject(auth()->id(), $request->admin_comment);
 
+            // Очищаем кеш счетчика новых претензий
+            Cache::forget('disputes_new_count');
+
             return redirect()->route('admin.disputes.index')
                 ->with('success', 'Претензия отклонена.');
         } catch (\Exception $e) {
@@ -178,6 +188,10 @@ class ProductDisputeController extends Controller
     {
         if ($dispute->status === ProductDispute::STATUS_NEW) {
             $dispute->update(['status' => ProductDispute::STATUS_IN_REVIEW]);
+            
+            // Очищаем кеш счетчика новых претензий
+            Cache::forget('disputes_new_count');
+            
             return back()->with('success', 'Статус изменен на "На рассмотрении"');
         }
 
@@ -210,7 +224,9 @@ class ProductDisputeController extends Controller
      */
     public function getNewCount()
     {
-        $newCount = ProductDispute::where('status', ProductDispute::STATUS_NEW)->count();
+        $newCount = Cache::remember('disputes_new_count', 30, function () {
+            return ProductDispute::where('status', ProductDispute::STATUS_NEW)->count();
+        });
         
         return response()->json(['count' => $newCount]);
     }

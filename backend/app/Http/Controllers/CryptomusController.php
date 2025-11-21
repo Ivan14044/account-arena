@@ -662,7 +662,7 @@ class CryptomusController extends Controller
 
             // Отправляем email уведомление гостю с информацией о покупке
             $totalAmount = array_sum(array_column($productsData, 'total'));
-            \App\Services\EmailService::sendToGuest(
+            EmailService::sendToGuest(
                 $guestEmail,
                 'guest_purchase_confirmation',
                 [

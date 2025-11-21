@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Http\Responses\ApiResponse;
 
 class NotificationController extends Controller
 {
@@ -26,7 +27,7 @@ class NotificationController extends Controller
         $totalCount = $user->notifications()->count();
         $unreadCount = $user->notifications()->whereNull('read_at')->count();
 
-        return \App\Http\Responses\ApiResponse::success([
+        return ApiResponse::success([
             'total' => $totalCount,
             'unread' => $unreadCount,
             'items' => $notifications->map(function ($notification) {
@@ -74,6 +75,20 @@ class NotificationController extends Controller
             ->whereNull('read_at')
             ->update(['read_at' => now()]);
 
-        return \App\Http\Responses\ApiResponse::success();
+        return ApiResponse::success();
+    }
+
+    public function markAllAsRead(Request $request)
+    {
+        $user = $this->getApiUser($request);
+        if (!$user) {
+            return response()->json(['message' => 'Invalid token'], 401);
+        }
+
+        $user->notifications()
+            ->whereNull('read_at')
+            ->update(['read_at' => now()]);
+
+        return ApiResponse::success();
     }
 }

@@ -6,6 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\ProductDispute;
 use App\Models\Transaction;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
+use App\Services\NotifierService;
+use App\Http\Responses\ApiResponse;
 
 class ProductDisputeController extends Controller
 {
@@ -183,16 +186,19 @@ class ProductDisputeController extends Controller
             'refund_amount' => $transaction->amount, // Сумма возврата = сумма транзакции
         ]);
 
+        // Очищаем кеш счетчика новых претензий
+        Cache::forget('disputes_new_count');
+
         // Отправляем уведомление администратору о новой претензии
         $reasonText = $dispute->getReasonText();
-        \App\Services\NotifierService::send(
+        NotifierService::send(
             'dispute_created',
             'Новая претензия на товар',
             "Пользователь {$request->user()->email} создал претензию #{$dispute->id} на товар. Причина: {$reasonText}",
             'warning'
         );
 
-        return \App\Http\Responses\ApiResponse::success([
+        return ApiResponse::success([
             'message' => 'Претензия успешно создана. Ожидайте решения администратора.',
             'dispute' => [
                 'id' => $dispute->id,
