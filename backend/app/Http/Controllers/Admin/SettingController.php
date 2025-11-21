@@ -14,8 +14,16 @@ class SettingController extends Controller
     {
         $currency = Option::get('currency');
         $notificationSettings = AdminNotificationSetting::getOrCreateForUser(auth()->id());
+        
+        // Настройки Telegram
+        $telegramSettings = [
+            'enabled' => Option::get('telegram_client_enabled', false),
+            'api_id' => Option::get('telegram_api_id', ''),
+            'api_hash' => Option::get('telegram_api_hash', ''),
+            'phone_number' => Option::get('telegram_phone_number', ''),
+        ];
 
-        return view('admin.settings.index', compact('currency', 'notificationSettings'));
+        return view('admin.settings.index', compact('currency', 'notificationSettings', 'telegramSettings'));
     }
 
     public function store(Request $request)
@@ -63,6 +71,20 @@ class SettingController extends Controller
                 'support_chat_enabled' => $request->has('support_chat_enabled'),
                 'sound_enabled' => $request->has('sound_enabled'),
             ]);
+        }
+
+        // Обработка настроек Telegram
+        if ($request->form === 'telegram') {
+            Option::set('telegram_client_enabled', $request->has('telegram_client_enabled') ? true : false);
+            if ($request->filled('telegram_api_id')) {
+                Option::set('telegram_api_id', $request->telegram_api_id);
+            }
+            if ($request->filled('telegram_api_hash')) {
+                Option::set('telegram_api_hash', $request->telegram_api_hash);
+            }
+            if ($request->filled('telegram_phone_number')) {
+                Option::set('telegram_phone_number', $request->telegram_phone_number);
+            }
         }
 
         return redirect()->route('admin.settings.index')
@@ -181,6 +203,12 @@ class SettingController extends Controller
                 'topup_enabled' => ['nullable', 'boolean'],
                 'support_chat_enabled' => ['nullable', 'boolean'],
                 'sound_enabled' => ['nullable', 'boolean'],
+            ],
+            'telegram' => [
+                'telegram_client_enabled' => ['nullable', 'boolean'],
+                'telegram_api_id' => ['nullable', 'string', 'max:255'],
+                'telegram_api_hash' => ['nullable', 'string', 'max:255'],
+                'telegram_phone_number' => ['nullable', 'string', 'max:20'],
             ],
             default => [],
         };

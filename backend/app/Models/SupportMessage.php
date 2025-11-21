@@ -16,6 +16,7 @@ class SupportMessage extends Model
         'user_id',
         'sender_type',
         'message',
+        'telegram_message_id',
         'is_read',
         'read_at',
     ];
@@ -23,6 +24,7 @@ class SupportMessage extends Model
     protected $casts = [
         'is_read' => 'boolean',
         'read_at' => 'datetime',
+        'telegram_message_id' => 'integer',
     ];
 
     // Константы типов отправителей

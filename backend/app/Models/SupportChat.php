@@ -21,6 +21,11 @@ class SupportChat extends Model
         'rating',
         'rating_comment',
         'rated_at',
+        'source',
+        'telegram_chat_id',
+        'telegram_first_name',
+        'telegram_last_name',
+        'telegram_photo',
     ];
 
     protected $casts = [
@@ -33,6 +38,10 @@ class SupportChat extends Model
     const STATUS_OPEN = 'open';
     const STATUS_CLOSED = 'closed';
     const STATUS_PENDING = 'pending';
+    
+    // Константы источников
+    const SOURCE_WEBSITE = 'website';
+    const SOURCE_TELEGRAM = 'telegram';
 
     /**
      * Связь с пользователем
@@ -112,5 +121,56 @@ class SupportChat extends Model
     public function scopeNotClosed($query)
     {
         return $query->whereIn('status', [self::STATUS_OPEN, self::STATUS_PENDING]);
+    }
+    
+    /**
+     * Scope для чатов из Telegram
+     */
+    public function scopeFromTelegram($query)
+    {
+        return $query->where('source', self::SOURCE_TELEGRAM);
+    }
+    
+    /**
+     * Scope для чатов с сайта
+     */
+    public function scopeFromWebsite($query)
+    {
+        return $query->where('source', self::SOURCE_WEBSITE);
+    }
+    
+    /**
+     * Проверить, является ли чат из Telegram
+     */
+    public function isFromTelegram(): bool
+    {
+        return $this->source === self::SOURCE_TELEGRAM;
+    }
+    
+    /**
+     * Получить количество непрочитанных сообщений от пользователей/гостей (не от админов)
+     */
+    public function getUnreadMessagesCount(): int
+    {
+        // Кэшируем результат на 60 секунд для уменьшения нагрузки на БД
+        return \Illuminate\Support\Facades\Cache::remember(
+            "chat_unread_count_{$this->id}",
+            60,
+            function() {
+                return $this->messages()
+                    ->where('is_read', false)
+                    ->whereIn('sender_type', [SupportMessage::SENDER_USER, SupportMessage::SENDER_GUEST])
+                    ->count();
+            }
+        );
+    }
+    
+    /**
+     * Очистить кеш количества непрочитанных сообщений для этого чата
+     */
+    public function clearUnreadCountCache(): void
+    {
+        \Illuminate\Support\Facades\Cache::forget("chat_unread_count_{$this->id}");
+        \Illuminate\Support\Facades\Cache::forget('support_chats_unread_count');
     }
 }
