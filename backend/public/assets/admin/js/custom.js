@@ -22,6 +22,14 @@
                 
                 // Воспроизводим звук при появлении нового непрочитанного сообщения
                 if (count > previousUnreadCount && previousUnreadCount >= 0) {
+                    const newMessagesCount = count - previousUnreadCount;
+                    console.log('[Sound] Playing notification sound - Support chat: ' + newMessagesCount + ' new unread message(s)', {
+                        event: 'support_chat_new_message',
+                        previousCount: previousUnreadCount,
+                        currentCount: count,
+                        newMessages: newMessagesCount
+                    });
+                    
                     try {
                         const audio = new Audio('/assets/admin/sounds/notification.mp3');
                         audio.volume = 0.3; // 30% громкости
@@ -94,6 +102,14 @@
                 
                 // Воспроизводим звук при появлении новой претензии
                 if (count > previousNewDisputesCount && previousNewDisputesCount >= 0) {
+                    const newDisputesCount = count - previousNewDisputesCount;
+                    console.log('[Sound] Playing notification sound - Disputes: ' + newDisputesCount + ' new dispute(s)', {
+                        event: 'disputes_new_dispute',
+                        previousCount: previousNewDisputesCount,
+                        currentCount: count,
+                        newDisputes: newDisputesCount
+                    });
+                    
                     try {
                         const audio = new Audio('/assets/admin/sounds/notification.mp3');
                         audio.volume = 0.3; // 30% громкости
@@ -159,8 +175,14 @@
     }
     
     // Воспроизведение звука
-    function playNotificationSound() {
+    function playNotificationSound(reason) {
         if (notificationSound) {
+            console.log('[Sound] Playing notification sound - Admin notifications', {
+                event: 'admin_notification_new',
+                reason: reason || 'new_notification',
+                timestamp: new Date().toISOString()
+            });
+            
             notificationSound.play().catch(function(error) {
                 // Игнорируем ошибки автовоспроизведения (браузеры блокируют автовоспроизведение)
                 console.debug('Автовоспроизведение звука заблокировано браузером');
@@ -185,8 +207,21 @@
         
         // Если счетчик увеличился и звук включен, воспроизводим звук
         if (currentCount > lastNotificationCount && isInitialized) {
+            const newNotificationsCount = currentCount - lastNotificationCount;
             if (data.sound_enabled && data.has_new) {
-                playNotificationSound();
+                playNotificationSound('count_increased: ' + newNotificationsCount + ' new notification(s)');
+            } else if (!data.sound_enabled) {
+                console.log('[Sound] Sound disabled in settings, skipping playback', {
+                    event: 'admin_notification_new',
+                    reason: 'sound_disabled',
+                    newNotifications: newNotificationsCount
+                });
+            } else if (!data.has_new) {
+                console.log('[Sound] No new notifications flag, skipping playback', {
+                    event: 'admin_notification_new',
+                    reason: 'no_new_flag',
+                    newNotifications: newNotificationsCount
+                });
             }
         }
         

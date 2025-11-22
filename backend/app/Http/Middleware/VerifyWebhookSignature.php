@@ -49,22 +49,33 @@ class VerifyWebhookSignature
 
     /**
      * Проверка подписи Cryptomus
+     * According to docs: https://doc.cryptomus.com/merchant-api/payments/webhook
+     * Signature is in the request body (sign field), not in headers
      */
     private function verifyCryptomusSignature(Request $request): bool
     {
-        $signature = $request->header('Sign');
-        if (!$signature) {
+        $rawData = $request->getContent();
+        $data = json_decode($rawData, true);
+
+        if (!is_array($data) || !isset($data['sign'])) {
+            Log::warning('Cryptomus webhook: Invalid JSON or missing sign field', [
+                'has_data' => !empty($rawData),
+                'has_sign' => isset($data['sign']),
+            ]);
             return false;
         }
 
-        $apiKey = config('cryptomus.api_key');
-        if (!$apiKey) {
-            Log::error('Cryptomus API key not configured');
+        $signature = $data['sign'];
+        unset($data['sign']);
+
+        $paymentKey = config('cryptomus.payment_key');
+        if (!$paymentKey) {
+            Log::error('Cryptomus payment key not configured');
             return false;
         }
 
-        $data = $request->getContent();
-        $expectedSignature = md5(base64_encode($data) . $apiKey);
+        // Generate signature: md5(base64_encode(json_encode($data, JSON_UNESCAPED_UNICODE)) . $paymentKey)
+        $expectedSignature = md5(base64_encode(json_encode($data, JSON_UNESCAPED_UNICODE)) . $paymentKey);
 
         return hash_equals($expectedSignature, $signature);
     }

@@ -8,26 +8,26 @@ use App\Models\User;
 use App\Models\Promocode;
 use App\Models\PromocodeUsage;
 use App\Models\ServiceAccount;
-use App\Models\Purchase;
 use App\Http\Controllers\GuestCartController;
 use App\Services\NotifierService;
 use App\Services\BalanceService;
 use App\Services\ProductPurchaseService;
 use App\Services\NotificationTemplateService;
-use Cryptomus\Api\RequestBuilderException;
-use FunnyDev\Cryptomus\CryptomusSdk;
-use Illuminate\Http\Request;
 use App\Services\EmailService;
 use App\Services\PromocodeValidationService;
 use App\Services\LoggingService;
+use FunnyDev\Cryptomus\CryptomusSdk;
+use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class CryptomusController extends Controller
 {
     /**
-     * Создание платежа для авторизованного пользователя (покупка товаров)
+     * Create payment for authenticated user (product purchase)
      */
-    public function createPayment(Request $request, PromocodeValidationService $promoService, ProductPurchaseService $purchaseService)
+    public function createPayment(Request $request, PromocodeValidationService $promoService, ProductPurchaseService $purchaseService): JsonResponse
     {
         $request->validate([
             'products' => 'required|array|min:1',
@@ -41,7 +41,6 @@ class CryptomusController extends Controller
             return response()->json(['message' => 'Invalid token'], 401);
         }
 
-        // Подготавливаем данные о товарах используя сервис
         $prepareResult = $purchaseService->prepareProductsData($request->products);
         if (!$prepareResult['success']) {
             return response()->json([
@@ -53,12 +52,10 @@ class CryptomusController extends Controller
         $productsData = $prepareResult['data'];
         $productsTotal = $prepareResult['total'];
 
-        // Apply promocode if provided
         $promoData = null;
         $promocodeParam = trim((string) $request->promocode);
         if ($promocodeParam !== '') {
             $promoData = $promoService->validate($promocodeParam, $user->id);
-
             if (!($promoData['ok'] ?? false)) {
                 return response()->json([
                     'success' => false,
@@ -69,24 +66,21 @@ class CryptomusController extends Controller
 
         $totalAmount = $productsTotal;
 
-        // Применяем персональную скидку пользователя (если есть и активна)
         $personalDiscountPercent = $user->getActivePersonalDiscount();
         if ($personalDiscountPercent > 0) {
             $totalAmount = $totalAmount - ($totalAmount * $personalDiscountPercent / 100);
         }
 
-        // Применяем скидку по промокоду если есть (применяется после персональной скидки)
         if ($promoData && ($promoData['type'] ?? '') === 'discount') {
             $discountPercent = floatval($promoData['discount_percent'] ?? 0);
             $totalAmount = $totalAmount - ($totalAmount * $discountPercent / 100);
         }
 
-        $totalAmount = max(round($totalAmount, 2), 0.01); // Минимальная сумма
+        $totalAmount = max(round($totalAmount, 2), 0.01);
 
         $orderId = 'order_' . $user->id . '_' . time();
         $sdk = new CryptomusSdk();
 
-        // Подготавливаем данные для webhook
         $productsDataForWebhook = collect($productsData)->map(function($item) {
             return [
                 'product_id' => $item['product']->id,
@@ -96,13 +90,14 @@ class CryptomusController extends Controller
             ];
         })->toArray();
 
-        $webhookParams = [
+        $paymentMetadata = [
+            'payment_type' => 'user',
             'user_id' => $user->id,
-            'products_data' => base64_encode(json_encode($productsDataForWebhook)),
+            'products_data' => $productsDataForWebhook,
         ];
 
         if ($promocodeParam !== '') {
-            $webhookParams['promocode'] = $promocodeParam;
+            $paymentMetadata['promocode'] = $promocodeParam;
         }
 
         try {
@@ -113,11 +108,23 @@ class CryptomusController extends Controller
                 '',
                 '',
                 config('app.url') . '/checkout',
-                config('app.url') . '/api/cryptomus/webhook?' . http_build_query($webhookParams),
+                config('app.url') . '/api/cryptomus/webhook',
                 config('app.url') . '/checkout?success=true',
             );
 
             if ($response) {
+                Transaction::create([
+                    'user_id' => $user->id,
+                    'amount' => $totalAmount,
+                    'currency' => Option::get('currency', 'USD'),
+                    'payment_method' => 'cryptomus',
+                    'status' => 'pending',
+                    'metadata' => [
+                        'order_id' => $orderId,
+                        ...$paymentMetadata,
+                    ],
+                ]);
+
                 return response()->json([
                     'success' => true,
                     'url' => $response,
@@ -129,7 +136,7 @@ class CryptomusController extends Controller
                 'message' => 'Failed to create payment',
             ], 422);
         } catch (\Exception $e) {
-            \Log::error('Cryptomus payment creation failed', [
+            Log::error('Cryptomus payment creation failed', [
                 'error' => $e->getMessage(),
                 'user_id' => $user->id,
             ]);
@@ -138,59 +145,9 @@ class CryptomusController extends Controller
     }
 
     /**
-     * Handle Cryptomus webhook
-     * Signature verification is handled by VerifyWebhookSignature middleware
-     * 
-     * @throws RequestBuilderException
+     * Create payment for guest purchase (without authentication)
      */
-    public function webhook(Request $request)
-    {
-        $rawData = $request->getContent();
-        $data = json_decode($rawData, true);
-
-        if (!is_array($data)) {
-            \Log::error('Cryptomus webhook: Invalid JSON', ['raw' => substr($rawData, 0, 200)]);
-            return response('Invalid JSON', 400);
-        }
-
-        // Verify signature using SDK (middleware already checks header, but SDK checks body signature)
-        $sdk = new CryptomusSdk();
-        $result = $sdk->read_result($data);
-
-        if (!isset($result['status']) || $result['status'] !== 'paid') {
-            \Log::info('Cryptomus webhook: Payment not paid', [
-                'status' => $result['status'] ?? 'unknown',
-                'order_id' => $data['order_id'] ?? null
-            ]);
-            return response('OK', 200);
-        }
-
-        // Route to appropriate handler based on webhook parameters
-        if ($request->has('is_topup') && $request->is_topup == '1') {
-            return $this->handleTopUpWebhook($request, $data);
-        }
-
-        if ($request->has('is_guest') && $request->is_guest == '1') {
-            return $this->handleGuestWebhook($request, $data);
-        }
-
-        if ($request->has('user_id') && $request->has('products_data')) {
-            return $this->handleUserPurchaseWebhook($request, $data);
-        }
-
-        \Log::warning('Cryptomus webhook: Unknown webhook type', [
-            'query_params' => $request->query(),
-            'order_id' => $data['order_id'] ?? null
-        ]);
-
-        return response('OK', 200);
-    }
-
-    /**
-     * Создание платежа для гостевой покупки (без авторизации)
-     * Только для товаров, не для подписок
-     */
-    public function createGuestPayment(Request $request, PromocodeValidationService $promoService)
+    public function createGuestPayment(Request $request, PromocodeValidationService $promoService): JsonResponse
     {
         $request->validate([
             'guest_email' => 'required|email',
@@ -202,7 +159,6 @@ class CryptomusController extends Controller
 
         $guestEmail = strtolower(trim($request->guest_email));
 
-        // Рассчитываем общую стоимость товаров
         $productsData = [];
         $totalAmount = 0;
 
@@ -211,21 +167,21 @@ class CryptomusController extends Controller
             if (!$product) {
                 return response()->json(['success' => false, 'message' => 'Product not found'], 404);
             }
-            
+
             $quantity = $productItem['quantity'];
             $available = $product->getAvailableStock();
-            
+
             if ($available < $quantity) {
                 return response()->json([
-                    'success' => false, 
+                    'success' => false,
                     'message' => "Insufficient stock for {$product->title}"
                 ], 422);
             }
-            
+
             $price = $product->getCurrentPrice();
             $itemTotal = $price * $quantity;
             $totalAmount += $itemTotal;
-            
+
             $productsData[] = [
                 'product_id' => $product->id,
                 'quantity' => $quantity,
@@ -234,16 +190,14 @@ class CryptomusController extends Controller
             ];
         }
 
-        // Apply promocode if provided
         $promoData = null;
         $promocodeParam = trim((string) $request->promocode);
         if ($promocodeParam !== '') {
-            $promoData = $promoService->validate($promocodeParam, null); // null = гость
+            $promoData = $promoService->validate($promocodeParam, null);
             if (!($promoData['ok'] ?? false)) {
                 return response()->json(['success' => false, 'message' => $promoData['message'] ?? 'Invalid promocode'], 422);
             }
 
-            // Применяем скидку по промокоду
             if (($promoData['type'] ?? '') === 'discount') {
                 $discountPercent = (int)($promoData['discount_percent'] ?? 0);
                 $discountAmount = round($totalAmount * $discountPercent / 100, 2);
@@ -251,10 +205,20 @@ class CryptomusController extends Controller
             }
         }
 
-        $totalAmount = max($totalAmount, 0.01); // Минимальная сумма
+        $totalAmount = max($totalAmount, 0.01);
 
         $orderId = 'guest_order_' . time() . '_' . md5($guestEmail);
         $sdk = new CryptomusSdk();
+
+        $paymentMetadata = [
+            'payment_type' => 'guest',
+            'guest_email' => $guestEmail,
+            'products_data' => $productsData,
+        ];
+
+        if ($promocodeParam !== '') {
+            $paymentMetadata['promocode'] = $promocodeParam;
+        }
 
         try {
             $response = $sdk->create_payment(
@@ -264,22 +228,30 @@ class CryptomusController extends Controller
                 '',
                 '',
                 config('app.url') . '/checkout',
-                config('app.url') . '/api/cryptomus/webhook?' . http_build_query([
-                    'is_guest' => '1',
-                    'guest_email' => $guestEmail,
-                    'products_data' => base64_encode(json_encode($productsData)),
-                    'promocode' => $promocodeParam,
-                ]),
+                config('app.url') . '/api/cryptomus/webhook',
                 config('app.url') . '/checkout?success=true',
             );
 
             if ($response) {
+                Transaction::create([
+                    'user_id' => null,
+                    'guest_email' => $guestEmail,
+                    'amount' => $totalAmount,
+                    'currency' => Option::get('currency', 'USD'),
+                    'payment_method' => 'cryptomus',
+                    'status' => 'pending',
+                    'metadata' => [
+                        'order_id' => $orderId,
+                        ...$paymentMetadata,
+                    ],
+                ]);
+
                 return \App\Http\Responses\ApiResponse::success(['url' => $response]);
             }
 
             return response()->json(['success' => false, 'message' => 'Failed to create payment'], 422);
         } catch (\Exception $e) {
-            \Log::error('Guest Cryptomus payment creation failed', [
+            Log::error('Guest Cryptomus payment creation failed', [
                 'error' => $e->getMessage(),
                 'guest_email' => $guestEmail,
             ]);
@@ -288,37 +260,25 @@ class CryptomusController extends Controller
     }
 
     /**
-     * Создание платежа для пополнения баланса через криптовалюту
-     * 
-     * Этот метод создает invoice в Cryptomus для пополнения баланса.
-     * После успешной оплаты средства автоматически зачислятся через webhook.
-     * 
-     * @param Request $request
-     * @return \Illuminate\Http\JsonResponse
+     * Create payment for balance top-up
      */
-    public function createTopUpPayment(Request $request)
+    public function createTopUpPayment(Request $request): JsonResponse
     {
-        // Валидация входных данных
         $validated = $request->validate([
             'amount' => 'required|numeric|min:1|max:100000',
         ]);
 
-        // Получаем авторизованного пользователя
         $user = $this->getApiUser($request);
         if (!$user) {
-            \Log::warning('Попытка пополнения баланса через крипту без авторизации', [
-                'ip' => $request->ip(),
-            ]);
+            Log::warning('Cryptomus top-up: Unauthorized attempt', ['ip' => $request->ip()]);
             return response()->json([
                 'success' => false,
                 'message' => 'Требуется авторизация'
             ], 401);
         }
 
-        // Округляем сумму до 2 знаков после запятой
         $amount = round((float)$validated['amount'], 2);
 
-        // Проверка разумности суммы
         if ($amount < 1) {
             return response()->json([
                 'success' => false,
@@ -326,37 +286,41 @@ class CryptomusController extends Controller
             ], 422);
         }
 
-        // Генерируем уникальный ID заказа
         $orderId = 'topup_crypto_' . $user->id . '_' . time() . '_' . bin2hex(random_bytes(4));
-        
+
         try {
-            // Создаем платеж в Cryptomus
             $sdk = new CryptomusSdk();
-            
+
             $response = $sdk->create_payment(
                 $orderId,
                 $amount,
                 Option::get('currency', 'USD'),
-                '',  // Дополнительная информация
-                '',  // Email (необязательно)
-                config('app.url') . '/profile',  // Fallback URL
-                config('app.url') . '/api/cryptomus/webhook?' . http_build_query([
-                    'is_topup' => '1',
-                    'user_id' => $user->id,
-                    'amount' => $amount,
-                ]),
-                config('app.url') . '/profile?topup=success',  // Success URL
+                '',
+                '',
+                config('app.url') . '/profile',
+                config('app.url') . '/api/cryptomus/webhook',
+                config('app.url') . '/profile?topup=success',
             );
 
-            // Проверяем, что платеж создан успешно
             if ($response) {
-                \Log::info('Создан платеж для пополнения баланса через криптовалюту', [
+                Transaction::create([
                     'user_id' => $user->id,
-                    'user_email' => $user->email,
                     'amount' => $amount,
                     'currency' => Option::get('currency', 'USD'),
+                    'payment_method' => 'cryptomus',
+                    'status' => 'pending',
+                    'metadata' => [
+                        'order_id' => $orderId,
+                        'payment_type' => 'topup',
+                        'user_id' => $user->id,
+                        'amount' => $amount,
+                    ],
+                ]);
+
+                Log::info('Cryptomus top-up payment created', [
+                    'user_id' => $user->id,
+                    'amount' => $amount,
                     'order_id' => $orderId,
-                    'ip' => $request->ip(),
                 ]);
 
                 return response()->json([
@@ -366,11 +330,9 @@ class CryptomusController extends Controller
                 ]);
             }
 
-            // Если платеж не создан, возвращаем ошибку
-            \Log::error('Не удалось создать платеж в Cryptomus для пополнения баланса', [
+            Log::error('Cryptomus top-up: Payment creation failed', [
                 'user_id' => $user->id,
                 'amount' => $amount,
-                'order_id' => $orderId,
             ]);
 
             return response()->json([
@@ -379,12 +341,10 @@ class CryptomusController extends Controller
             ], 422);
 
         } catch (\Exception $e) {
-            \Log::error('Ошибка при создании платежа через Cryptomus', [
+            Log::error('Cryptomus top-up: Exception', [
                 'user_id' => $user->id,
                 'amount' => $amount,
-                'order_id' => $orderId,
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
             ]);
 
             return response()->json([
@@ -395,36 +355,105 @@ class CryptomusController extends Controller
     }
 
     /**
+     * Handle Cryptomus webhook
+     * Signature verification is handled by VerifyWebhookSignature middleware
+     * According to Cryptomus docs: https://doc.cryptomus.com/merchant-api/payments/webhook
+     */
+    public function webhook(Request $request): JsonResponse
+    {
+        Log::info('Cryptomus webhook received', [
+            'body' => $request->all(),
+        ]);
+
+        $rawData = $request->getContent();
+        $data = json_decode($rawData, true);
+
+        if (!is_array($data)) {
+            Log::error('Cryptomus webhook: Invalid JSON', ['raw' => substr($rawData, 0, 200)]);
+            return \App\Http\Responses\ApiResponse::success();
+        }
+
+        $orderId = $data['order_id'] ?? null;
+        if (!$orderId) {
+            Log::error('Cryptomus webhook: Missing order_id', ['data' => $data]);
+            return \App\Http\Responses\ApiResponse::success();
+        }
+
+        $sdk = new CryptomusSdk();
+        $result = $sdk->read_result($data);
+
+        if (!($result['status'] ?? false)) {
+            Log::info('Cryptomus webhook: Payment not completed', [
+                'order_id' => $orderId,
+                'result' => $result,
+            ]);
+            return \App\Http\Responses\ApiResponse::success();
+        }
+
+        $transaction = Transaction::whereRaw("JSON_EXTRACT(metadata, '$.order_id') = ?", [$orderId])->first();
+
+        if (!$transaction || !$transaction->metadata) {
+            Log::error('Cryptomus webhook: Transaction not found', [
+                'order_id' => $orderId,
+            ]);
+            return \App\Http\Responses\ApiResponse::success();
+        }
+
+        $metadata = $transaction->metadata;
+
+        if (!isset($metadata['payment_type'])) {
+            Log::error('Cryptomus webhook: Missing payment_type', [
+                'order_id' => $orderId,
+                'transaction_id' => $transaction->id,
+            ]);
+            return \App\Http\Responses\ApiResponse::success();
+        }
+
+        $transaction->status = 'completed';
+        $transaction->save();
+
+        Log::info('Cryptomus webhook: Processing payment', [
+            'order_id' => $orderId,
+            'transaction_id' => $transaction->id,
+            'payment_type' => $metadata['payment_type'],
+        ]);
+
+        return match ($metadata['payment_type']) {
+            'topup' => $this->handleTopUpWebhook($data, $metadata),
+            'guest' => $this->handleGuestWebhook($data, $metadata),
+            'user' => $this->handleUserPurchaseWebhook($data, $metadata),
+            default => $this->handleUnknownPaymentType($orderId),
+        };
+    }
+
+    /**
      * Handle top-up webhook
      */
-    private function handleTopUpWebhook(Request $request, array $data)
+    private function handleTopUpWebhook(array $data, array $metadata): JsonResponse
     {
         $orderId = $data['order_id'] ?? null;
-        $userId = $request->user_id;
+        $userId = $metadata['user_id'] ?? null;
 
-        if (!$orderId || !$userId) {
-            \Log::error('Top-up webhook: Missing required parameters', [
-                'has_order_id' => !empty($orderId),
-                'has_user_id' => !empty($userId)
-            ]);
-            return response('Missing required parameters', 400);
+        if (!$userId) {
+            Log::error('Cryptomus webhook (TopUp): Missing user_id', ['order_id' => $orderId]);
+            return \App\Http\Responses\ApiResponse::success();
         }
 
         $user = User::find($userId);
         if (!$user) {
-            \Log::error('Top-up webhook: User not found', ['user_id' => $userId]);
-            return response('User not found', 404);
+            Log::error('Cryptomus webhook (TopUp): User not found', ['user_id' => $userId]);
+            return \App\Http\Responses\ApiResponse::success();
         }
 
-        $amount = round((float)$request->amount, 2);
+        $amount = round((float)($metadata['amount'] ?? 0), 2);
         if ($amount <= 0) {
-            \Log::error('Top-up webhook: Invalid amount', ['amount' => $request->amount]);
-            return response('Invalid amount', 400);
+            Log::error('Cryptomus webhook (TopUp): Invalid amount', ['amount' => $amount]);
+            return \App\Http\Responses\ApiResponse::success();
         }
 
         try {
             $balanceService = app(BalanceService::class);
-            
+
             $balanceTransaction = $balanceService->topUp(
                 user: $user,
                 amount: $amount,
@@ -433,14 +462,14 @@ class CryptomusController extends Controller
                     'order_id' => $orderId,
                     'payment_method' => 'cryptomus',
                     'payment_system' => 'cryptomus',
-                    'cryptocurrency' => $data['currency'] ?? 'unknown',
+                    'cryptocurrency' => $data['payer_currency'] ?? 'unknown',
                     'network' => $data['network'] ?? 'unknown',
                     'webhook_received_at' => now()->toDateTimeString(),
                 ]
             );
 
             if ($balanceTransaction) {
-                \Log::info('Balance topped up via Cryptomus', [
+                Log::info('Cryptomus webhook (TopUp): Balance topped up', [
                     'user_id' => $user->id,
                     'amount' => $amount,
                     'order_id' => $orderId,
@@ -453,59 +482,61 @@ class CryptomusController extends Controller
                     "Пользователь {$user->name} ({$user->email}) пополнил баланс на {$amount} " . Option::get('currency', 'USD') . " через криптовалюту"
                 );
 
-                return response('OK', 200);
+                return \App\Http\Responses\ApiResponse::success();
             }
 
-            \Log::info('Top-up webhook: Duplicate transaction', ['order_id' => $orderId]);
-            return response('Already processed', 200);
+            Log::info('Cryptomus webhook (TopUp): Duplicate transaction', ['order_id' => $orderId]);
+            return \App\Http\Responses\ApiResponse::success();
 
         } catch (\InvalidArgumentException $e) {
-            \Log::error('Top-up webhook: Validation error', [
+            Log::error('Cryptomus webhook (TopUp): Validation error', [
                 'error' => $e->getMessage(),
                 'order_id' => $orderId
             ]);
-            return response($e->getMessage(), 400);
+            return \App\Http\Responses\ApiResponse::success();
         } catch (\Exception $e) {
-            \Log::error('Top-up webhook: Processing failed', [
+            Log::error('Cryptomus webhook (TopUp): Processing failed', [
                 'error' => $e->getMessage(),
                 'order_id' => $orderId
             ]);
-            return response('Processing failed', 500);
+            return \App\Http\Responses\ApiResponse::success();
         }
     }
 
     /**
      * Handle user purchase webhook
      */
-    private function handleUserPurchaseWebhook(Request $request, array $data)
+    private function handleUserPurchaseWebhook(array $data, array $metadata): JsonResponse
     {
-        $userId = $request->user_id;
+        $orderId = $data['order_id'] ?? null;
+        $userId = $metadata['user_id'] ?? null;
+
         if (!$userId) {
-            \Log::error('User purchase webhook: Missing user_id');
-            return response('Missing user_id', 400);
+            Log::error('Cryptomus webhook (User Purchase): Missing user_id', ['order_id' => $orderId]);
+            return \App\Http\Responses\ApiResponse::success();
         }
 
         $user = User::find($userId);
         if (!$user) {
-            \Log::error('User purchase webhook: User not found', ['user_id' => $userId]);
-            return response('User not found', 404);
+            Log::error('Cryptomus webhook (User Purchase): User not found', ['user_id' => $userId]);
+            return \App\Http\Responses\ApiResponse::success();
         }
 
-        $productsData = $this->parseProductsData($request->products_data ?? '');
+        $productsData = $metadata['products_data'] ?? [];
         if (empty($productsData)) {
-            \Log::error('User purchase webhook: Invalid products data');
-            return response('Invalid products data', 400);
+            Log::error('Cryptomus webhook (User Purchase): Invalid products data', ['order_id' => $orderId]);
+            return \App\Http\Responses\ApiResponse::success();
         }
 
-        $promocode = trim((string)($request->promocode ?? ''));
+        $promocode = trim((string)($metadata['promocode'] ?? ''));
 
         try {
             $preparedProductsData = $this->prepareProductsForPurchase($productsData);
             if (empty($preparedProductsData)) {
-                \Log::error('User purchase webhook: No valid products');
-                return response('No valid products', 400);
+                Log::error('Cryptomus webhook (User Purchase): No valid products', ['order_id' => $orderId]);
+                return \App\Http\Responses\ApiResponse::success();
             }
-            
+
             $purchaseService = app(ProductPurchaseService::class);
             $purchases = $purchaseService->createMultiplePurchases(
                 $preparedProductsData,
@@ -515,47 +546,56 @@ class CryptomusController extends Controller
             );
 
             $totalAmount = array_sum(array_column($productsData, 'total'));
-            
-            // Send notifications
-            $this->sendPurchaseNotifications($user, $totalAmount, $purchases, false);
 
-            $this->recordPromocodeUsage($promocode, $user->id, $data['order_id'] ?? '');
+            $this->sendPurchaseNotifications($user, $totalAmount, $purchases);
+            $this->recordPromocodeUsage($promocode, $user->id, $orderId);
 
-            return response('OK', 200);
-        } catch (\Exception $e) {
-            \Log::error('User purchase webhook: Processing failed', [
-                'error' => $e->getMessage(),
-                'user_id' => $userId
+            Log::info('Cryptomus webhook (User Purchase): Purchase completed', [
+                'user_id' => $user->id,
+                'order_id' => $orderId,
+                'products_count' => count($purchases),
             ]);
-            return response('Processing failed', 500);
+
+            return \App\Http\Responses\ApiResponse::success();
+        } catch (\Exception $e) {
+            Log::error('Cryptomus webhook (User Purchase): Processing failed', [
+                'error' => $e->getMessage(),
+                'user_id' => $userId,
+                'order_id' => $orderId,
+            ]);
+            return \App\Http\Responses\ApiResponse::success();
         }
     }
 
     /**
      * Handle guest purchase webhook
      */
-    private function handleGuestWebhook(Request $request, array $data)
+    private function handleGuestWebhook(array $data, array $metadata): JsonResponse
     {
-        $guestEmail = trim((string)$request->guest_email);
+        $orderId = $data['order_id'] ?? null;
+        $guestEmail = trim((string)($metadata['guest_email'] ?? ''));
+
         if (!$guestEmail || !filter_var($guestEmail, FILTER_VALIDATE_EMAIL)) {
-            \Log::error('Guest webhook: Invalid email', ['email' => $guestEmail]);
-            return response('Invalid guest email', 400);
+            Log::error('Cryptomus webhook (Guest): Invalid email', [
+                'email' => $guestEmail,
+                'order_id' => $orderId,
+            ]);
+            return \App\Http\Responses\ApiResponse::success();
         }
 
-        $productsData = $this->parseProductsData($request->products_data ?? '');
+        $productsData = $metadata['products_data'] ?? [];
         if (empty($productsData)) {
-            \Log::error('Guest webhook: Invalid products data');
-            return response('Invalid products data', 400);
+            Log::error('Cryptomus webhook (Guest): Invalid products data', ['order_id' => $orderId]);
+            return \App\Http\Responses\ApiResponse::success();
         }
 
-        $promocode = trim((string)($request->promocode ?? ''));
+        $promocode = trim((string)($metadata['promocode'] ?? ''));
 
         try {
             GuestCartController::createGuestPurchases($guestEmail, $productsData, $promocode);
 
             $totalAmount = array_sum(array_column($productsData, 'total'));
-            
-            // Send guest notifications
+
             EmailService::sendToGuest(
                 $guestEmail,
                 'guest_purchase_confirmation',
@@ -578,29 +618,32 @@ class CryptomusController extends Controller
                 ]
             );
 
-            $this->recordPromocodeUsage($promocode, null, $data['order_id'] ?? '');
+            $this->recordPromocodeUsage($promocode, null, $orderId);
 
-            return response('OK', 200);
-        } catch (\Exception $e) {
-            \Log::error('Guest webhook: Processing failed', [
-                'error' => $e->getMessage(),
-                'guest_email' => $guestEmail
+            Log::info('Cryptomus webhook (Guest): Guest purchase completed', [
+                'guest_email' => $guestEmail,
+                'order_id' => $orderId,
+                'products_count' => count($productsData),
             ]);
-            return response('Processing failed', 500);
+
+            return \App\Http\Responses\ApiResponse::success();
+        } catch (\Exception $e) {
+            Log::error('Cryptomus webhook (Guest): Processing failed', [
+                'error' => $e->getMessage(),
+                'guest_email' => $guestEmail,
+                'order_id' => $orderId,
+            ]);
+            return \App\Http\Responses\ApiResponse::success();
         }
     }
 
     /**
-     * Parse products data from base64 encoded string
+     * Handle unknown payment type
      */
-    private function parseProductsData(string $encodedData): array
+    private function handleUnknownPaymentType(string $orderId): JsonResponse
     {
-        if (empty($encodedData)) {
-            return [];
-        }
-
-        $decoded = json_decode(base64_decode($encodedData), true);
-        return is_array($decoded) ? $decoded : [];
+        Log::warning('Cryptomus webhook: Unknown payment type', ['order_id' => $orderId]);
+        return \App\Http\Responses\ApiResponse::success();
     }
 
     /**
@@ -612,12 +655,12 @@ class CryptomusController extends Controller
         foreach ($productsData as $item) {
             $product = ServiceAccount::find($item['product_id'] ?? null);
             if (!$product) {
-                \Log::warning('Product not found in webhook', [
+                Log::warning('Cryptomus: Product not found', [
                     'product_id' => $item['product_id'] ?? null
                 ]);
                 continue;
             }
-            
+
             $prepared[] = [
                 'product' => $product,
                 'quantity' => $item['quantity'] ?? 1,
@@ -625,25 +668,19 @@ class CryptomusController extends Controller
                 'total' => $item['total'] ?? 0,
             ];
         }
-        
+
         return $prepared;
     }
 
     /**
      * Send purchase notifications to user and admin
      */
-    private function sendPurchaseNotifications($user, float $totalAmount, array $purchases, bool $isGuest): void
+    private function sendPurchaseNotifications(User $user, float $totalAmount, array $purchases): void
     {
-        if ($isGuest) {
-            return;
-        }
-
-        // Email to user
         EmailService::send('payment_confirmation', $user->id, [
             'amount' => number_format($totalAmount, 2, '.', '') . ' ' . strtoupper(Option::get('currency'))
         ]);
 
-        // Notification to user
         if (!empty($purchases) && isset($purchases[0]) && $purchases[0]->order_number) {
             $notificationService = app(NotificationTemplateService::class);
             $notificationService->sendToUser($user, 'purchase', [
@@ -651,7 +688,6 @@ class CryptomusController extends Controller
             ]);
         }
 
-        // Notification to admin
         NotifierService::sendFromTemplate(
             'product_purchase',
             'admin_product_purchase',
@@ -698,7 +734,7 @@ class CryptomusController extends Controller
                 }
             });
         } catch (\Exception $e) {
-            \Log::error('Failed to record promocode usage', [
+            Log::error('Failed to record promocode usage', [
                 'promocode' => $promocode,
                 'user_id' => $userId,
                 'order_id' => $orderId,
