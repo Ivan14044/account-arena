@@ -108,22 +108,50 @@ class EmailService
 
     public static function configureMailFromOptions(): void
     {
+        $host = Option::get('smtp_host');
+        $port = Option::get('smtp_port');
+        $encryption = Option::get('smtp_encryption');
+        $username = Option::get('smtp_username');
+        $password = Option::get('smtp_password');
+
+        // Validate required settings
+        if (empty($host) || empty($port) || empty($username) || empty($password)) {
+            throw new \Exception('SMTP settings are incomplete. Please configure host, port, username, and password in admin settings.');
+        }
+
+        // Normalize encryption: empty string or null should be null (no encryption)
+        $encryption = in_array(strtolower(trim($encryption ?? '')), ['tls', 'ssl']) ? strtolower(trim($encryption)) : null;
+
+        // Normalize port to integer
+        $port = (int) $port;
+
+        // Log configuration for debugging (without password)
+        \Log::debug('SMTP Configuration', [
+            'host' => $host,
+            'port' => $port,
+            'encryption' => $encryption ?? 'null (no encryption)',
+            'username' => $username,
+        ]);
+
         Config::set('mail.mailers.dynamic', [
             'transport' => 'smtp',
-            'host' => Option::get('host'),
-            'encryption' => Option::get('encryption'),
-            'port' => Option::get('port'),
-            'username' => Option::get('username'),
-            'password' => Option::get('password'),
-            'timeout' => null,
-            'auth_mode' => null,
+            'host' => $host,
+            'port' => $port,
+            'encryption' => $encryption, // null means no encryption
+            'username' => $username,
+            'password' => $password,
+            'timeout' => 30,
+            'verify_peer' => false, // Some SMTP servers have SSL issues
         ]);
 
         Config::set('mail.default', 'dynamic');
 
+        $fromAddress = Option::get('smtp_from_address');
+        $fromName = Option::get('smtp_from_name');
+
         Config::set('mail.from', [
-            'address' => Option::get('from_address'),
-            'name' => Option::get('from_name'),
+            'address' => $fromAddress ?: 'noreply@example.com',
+            'name' => $fromName ?: 'Account Arena',
         ]);
     }
 

@@ -213,65 +213,73 @@
                                 @csrf
                                 <input type="hidden" name="form" value="smtp">
                                 <div class="form-group">
-                                    <label for="from_address">From address</label>
-                                    <input type="email" name="from_address" id="from_address"
-                                           class="form-control @error('from_address') is-invalid @enderror"
-                                           value="{{ old('from_address', \App\Models\Option::get('from_address')) }}">
-                                    @error('from_address')
+                                    <label for="smtp_from_address">From address</label>
+                                    <input type="email" name="smtp_from_address" id="smtp_from_address"
+                                           class="form-control @error('smtp_from_address') is-invalid @enderror"
+                                           value="{{ old('smtp_from_address', \App\Models\Option::get('smtp_from_address')) }}">
+                                    @error('smtp_from_address')
                                     <div class="invalid-feedback d-block">{{ $message }}</div>
                                     @enderror
                                 </div>
                                 <div class="form-group">
-                                    <label for="from_name">From name</label>
-                                    <input type="text" name="from_name" id="from_name"
-                                           class="form-control @error('from_name') is-invalid @enderror"
-                                           value="{{ old('from_name', \App\Models\Option::get('from_name')) }}">
-                                    @error('from_name')
+                                    <label for="smtp_from_name">From name</label>
+                                    <input type="text" name="smtp_from_name" id="smtp_from_name"
+                                           class="form-control @error('smtp_from_name') is-invalid @enderror"
+                                           value="{{ old('smtp_from_name', \App\Models\Option::get('smtp_from_name')) }}">
+                                    @error('smtp_from_name')
                                     <div class="invalid-feedback d-block">{{ $message }}</div>
                                     @enderror
                                 </div>
                                 <div class="form-group">
-                                    <label for="host">Host</label>
-                                    <input type="text" name="host" id="host"
-                                           class="form-control @error('host') is-invalid @enderror"
-                                           value="{{ old('host', \App\Models\Option::get('host')) }}">
-                                    @error('host')
+                                    <label for="smtp_host">Host</label>
+                                    <input type="text" name="smtp_host" id="smtp_host"
+                                           class="form-control @error('smtp_host') is-invalid @enderror"
+                                           value="{{ old('smtp_host', \App\Models\Option::get('smtp_host')) }}">
+                                    @error('smtp_host')
                                     <div class="invalid-feedback d-block">{{ $message }}</div>
                                     @enderror
                                 </div>
                                 <div class="form-group">
-                                    <label for="port">Port</label>
-                                    <input type="text" name="port" id="port"
-                                           class="form-control @error('port') is-invalid @enderror"
-                                           value="{{ old('port', \App\Models\Option::get('port')) }}">
-                                    @error('port')
+                                    <label for="smtp_port">Port</label>
+                                    <input type="text" name="smtp_port" id="smtp_port"
+                                           class="form-control @error('smtp_port') is-invalid @enderror"
+                                           value="{{ old('smtp_port', \App\Models\Option::get('smtp_port')) }}">
+                                    @error('smtp_port')
                                     <div class="invalid-feedback d-block">{{ $message }}</div>
                                     @enderror
                                 </div>
                                 <div class="form-group">
-                                    <label for="encryption">Encryption</label>
-                                    <input type="text" name="encryption" id="encryption"
-                                           class="form-control @error('encryption') is-invalid @enderror"
-                                           value="{{ old('encryption', \App\Models\Option::get('encryption')) }}">
-                                    @error('encryption')
+                                    <label for="smtp_encryption">Encryption</label>
+                                    <select name="smtp_encryption" id="smtp_encryption"
+                                            class="form-control @error('smtp_encryption') is-invalid @enderror">
+                                        <option value="">None</option>
+                                        <option value="tls" {{ old('smtp_encryption', \App\Models\Option::get('smtp_encryption')) === 'tls' ? 'selected' : '' }}>TLS (usually port 587)</option>
+                                        <option value="ssl" {{ old('smtp_encryption', \App\Models\Option::get('smtp_encryption')) === 'ssl' ? 'selected' : '' }}>SSL (usually port 465)</option>
+                                    </select>
+                                    <small class="form-text text-muted">TLS for port 587, SSL for port 465</small>
+                                    @error('smtp_encryption')
                                     <div class="invalid-feedback d-block">{{ $message }}</div>
                                     @enderror
                                 </div>
                                 <div class="form-group">
-                                    <label for="username">Username</label>
-                                    <input type="text" name="username" id="username"
-                                           class="form-control @error('username') is-invalid @enderror"
-                                           value="{{ old('username', \App\Models\Option::get('username')) }}">
-                                    @error('username')
+                                    <label for="smtp_username">Username</label>
+                                    <input type="text" name="smtp_username" id="smtp_username"
+                                           class="form-control @error('smtp_username') is-invalid @enderror"
+                                           value="{{ old('smtp_username', \App\Models\Option::get('smtp_username')) }}"
+                                           placeholder="info@account-arena.com or just username">
+                                    <small class="form-text text-muted">Usually your full email address, but some servers require just username</small>
+                                    @error('smtp_username')
                                     <div class="invalid-feedback d-block">{{ $message }}</div>
                                     @enderror
                                 </div>
                                 <div class="form-group">
-                                    <label for="password">Password</label>
-                                    <input type="text" name="password" id="password"
-                                           class="form-control @error('password') is-invalid @enderror"
-                                           value="{{ old('password', \App\Models\Option::get('password')) }}">
-                                    @error('password')
+                                    <label for="smtp_password">Password</label>
+                                    <input type="password" name="smtp_password" id="smtp_password"
+                                           class="form-control @error('smtp_password') is-invalid @enderror"
+                                           value="{{ old('smtp_password', \App\Models\Option::get('smtp_password')) }}"
+                                           placeholder="Your email password or app-specific password">
+                                    <small class="form-text text-muted">For Gmail, use App Password (not your regular password)</small>
+                                    @error('smtp_password')
                                     <div class="invalid-feedback d-block">{{ $message }}</div>
                                     @enderror
                                 </div>

@@ -63,7 +63,8 @@ Route::prefix('/admin')
             Route::resource('article-categories', ArticleCategoryController::class)->except(['show']);
             Route::resource('categories', CategoryController::class)->except(['show']); // For backward compatibility
             Route::resource('banners', BannerController::class)->except(['show']);
-            Route::resource('email-templates', EmailTemplateController::class)->except(['create', 'store']);
+            Route::resource('email-templates', EmailTemplateController::class);
+            Route::post('email-templates/{email_template}/send-test', [EmailTemplateController::class, 'sendTest'])->name('email-templates.send-test');
             Route::resource('settings', SettingController::class)->only(['index', 'store']);
             Route::resource('service-accounts', ServiceAccountController::class)->except(['show']);
             Route::get('service-accounts/{serviceAccount}/export', [ServiceAccountController::class, 'export'])->name('service-accounts.export');

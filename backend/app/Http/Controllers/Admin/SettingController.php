@@ -39,6 +39,12 @@ class SettingController extends Controller
             }
         }
 
+        // Special handling for SMTP encryption: empty string should be saved as empty string (not skipped)
+        if ($request->form === 'smtp' && $request->has('smtp_encryption')) {
+            $encryption = $request->input('smtp_encryption');
+            Option::set('smtp_encryption', $encryption ?? '');
+        }
+
 
         // Сохраняем сообщения для разных языков (приветствие)
         if ($request->form === 'support_chat') {
@@ -105,13 +111,13 @@ class SettingController extends Controller
                 'cookie_countries' => ['required', 'array'],
             ],
             'smtp' => [
-                'from_address' => ['required', 'email'],
-                'from_name' => ['required', 'string'],
-                'host' => ['required'],
-                'port' => ['required', 'integer'],
-                'encryption' => ['required', 'string'],
-                'username' => ['required', 'string'],
-                'password' => ['required', 'string'],
+                'smtp_from_address' => ['required', 'email'],
+                'smtp_from_name' => ['required', 'string'],
+                'smtp_host' => ['required', 'string'],
+                'smtp_port' => ['required', 'integer'],
+                'smtp_encryption' => ['nullable', 'string', 'in:tls,ssl'], // Can be empty for no encryption
+                'smtp_username' => ['required', 'string'],
+                'smtp_password' => ['required', 'string'],
             ],
             'site_content' => [
                 'currency' => ['required', 'string'],

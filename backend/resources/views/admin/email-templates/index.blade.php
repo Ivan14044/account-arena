@@ -16,6 +16,11 @@
             <div class="card">
                 <div class="card-header">
                     <h3 class="card-title">Templates list</h3>
+                    <div class="card-tools">
+                        <a href="{{ route('admin.email-templates.create') }}" class="btn btn-primary btn-sm">
+                            <i class="fas fa-plus"></i> Create template
+                        </a>
+                    </div>
                 </div>
                 <div class="card-body">
                     <table id="email-templates-table" class="table table-bordered table-striped">

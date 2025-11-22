@@ -238,7 +238,7 @@
 
                 <!-- Purchase Rules Agreement - Новый дизайн -->
                 <div
-                    v-if="purchaseRulesEnabled && purchaseRulesText"
+                    v-if="purchaseRulesEnabled && currentRulesText"
                     class="glass-card rounded-2xl p-5 purchase-rules-card"
                 >
                     <label class="flex items-start gap-4 cursor-pointer group">
@@ -410,9 +410,9 @@
                         <!-- Контент правил -->
                         <div class="purchase-rules-body">
                             <div
-                                v-if="purchaseRulesText && purchaseRulesText.trim()"
+                                v-if="currentRulesText && currentRulesText.trim()"
                                 class="purchase-rules-content"
-                                v-html="purchaseRulesText"
+                                v-html="currentRulesText"
                             ></div>
                             <!-- ✅ ИСПРАВЛЕНИЕ: Fallback на случай пустого текста -->
                             <div
@@ -492,7 +492,7 @@ const guestEmail = ref(''); // Email для гостевых покупок
 
 // Purchase Rules
 const purchaseRulesEnabled = ref(false);
-const purchaseRulesText = ref('');
+const purchaseRulesText = ref<Record<string, string>>({});
 const agreedToRules = ref(false);
 const showRulesModal = ref(false);
 const isProcessingCheckout = ref(false);
@@ -560,19 +560,36 @@ const formatCurrency = (value: number) => {
     return `${value.toFixed(2)} ${currency?.toUpperCase()}`;
 };
 
+// Computed property to get current locale rules text
+const currentRulesText = computed(() => {
+    const currentLocale = locale.value;
+    const rulesText =
+        purchaseRulesText.value[currentLocale] ||
+        purchaseRulesText.value.ru ||
+        purchaseRulesText.value.en ||
+        '';
+    return rulesText;
+});
+
 // Загрузка правил покупки
 const loadPurchaseRules = async () => {
     try {
         const response = await axios.get('/purchase-rules');
 
-        if (response.data.enabled) {
-            const currentLocale = locale.value;
-            const rulesText = response.data.rules[currentLocale] || response.data.rules.ru || '';
+        if (response.data.enabled && response.data.rules) {
+            // Store all locales as object
+            purchaseRulesText.value = response.data.rules || {};
 
-            // ✅ ИСПРАВЛЕНИЕ: устанавливаем enabled только если есть непустой текст правил
-            if (rulesText && rulesText.trim()) {
+            // Check if there's text for current locale or fallback locales
+            const currentLocale = locale.value;
+            const hasText =
+                purchaseRulesText.value[currentLocale] ||
+                purchaseRulesText.value.ru ||
+                purchaseRulesText.value.en;
+
+            // Enable only if there's non-empty text
+            if (hasText && hasText.trim()) {
                 purchaseRulesEnabled.value = true;
-                purchaseRulesText.value = rulesText;
             }
         }
     } catch (error) {

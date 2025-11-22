@@ -4,7 +4,7 @@
             <li
                 v-for="(item, index) in headerMenu"
                 :key="index"
-                class="cursor-pointer text-base !text-[15px] h-[30px] d-flex align-center lh-[15px] hover:bg-indigo-200 dark:hover:bg-gray-700 transition-all duration-300 px-2 px-lg-3 py-2 rounded-lg"
+                class="cursor-pointer !text-[15px] h-[30px] d-flex align-center leading-none hover:bg-indigo-200 dark:hover:bg-gray-700 transition-all duration-300 px-2 px-lg-3 py-2 rounded-lg"
                 @click="handleClick(item)"
             >
                 {{ item.title }}
@@ -14,7 +14,7 @@
         <!-- Кнопка бургер для мобильной версии -->
         <button
             v-if="headerMenu.length > 0"
-            class="flex lg:hidden text-gray-700 hover:bg-indigo-200 dark:hover:bg-gray-700 transition-colors !text-[15px] h-[30px] align-center lh-[15px] duration-300 px-2 px-lg-3 py-2 rounded-lg"
+            class="flex lg:hidden text-gray-700 hover:bg-indigo-200 dark:hover:bg-gray-700 transition-colors !text-[15px] h-[30px] align-center leading-none duration-300 px-2 px-lg-3 py-2 rounded-lg"
             :class="{ 'mr-[-20px]': isMobileMenuOpen }"
             @click="isMobileMenuOpen = true"
         >

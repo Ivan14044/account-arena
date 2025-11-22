@@ -13,6 +13,10 @@
                 <div class="alert alert-success">{{ session('success') }}</div>
             @endif
 
+            @if(session('error'))
+                <div class="alert alert-danger">{{ session('error') }}</div>
+            @endif
+
             <div class="card">
                 <div class="card-header">
                     <h3 class="card-title">Template data</h3>
@@ -63,9 +67,25 @@
                                             </div>
                                             <div class="form-group">
                                                 <label for="message_{{ $code }}">Message</label>
-                                                @if ($emailTemplate->code === 'purchase')
-                                                    <div class="alert alert-dark">
-                                                        You can use the following tags: <code>:service</code>, <code>:date</code>
+                                                @if ($emailTemplate->code === 'payment_confirmation')
+                                                    <div class="alert alert-info">
+                                                        Available variables: <code>@{{amount}}</code>
+                                                    </div>
+                                                @elseif ($emailTemplate->code === 'product_purchase_confirmation')
+                                                    <div class="alert alert-info">
+                                                        Available variables: <code>@{{products_count}}</code>, <code>@{{total_amount}}</code>
+                                                    </div>
+                                                @elseif ($emailTemplate->code === 'guest_purchase_confirmation')
+                                                    <div class="alert alert-info">
+                                                        Available variables: <code>@{{products_count}}</code>, <code>@{{total_amount}}</code>, <code>@{{guest_email}}</code>
+                                                    </div>
+                                                @elseif ($emailTemplate->code === 'reset_password')
+                                                    <div class="alert alert-info">
+                                                        Available variables: <code>@{{url}}</code>, <code>@{{email}}</code>, <code>@{{button}}</code> (special placeholder for button HTML)
+                                                    </div>
+                                                @else
+                                                    <div class="alert alert-info">
+                                                        You can use variables in format <code>@{{variable_name}}</code>
                                                     </div>
                                                 @endif
                                                 <textarea style="height: 210px"
@@ -85,6 +105,42 @@
                         <button type="submit" class="btn btn-primary">Save</button>
                         <button type="submit" name="save" class="btn btn-primary">Save & Continue</button>
                         <a href="{{ route('admin.email-templates.index') }}" class="btn btn-secondary">Cancel</a>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Test Email Section -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h3 class="card-title">Test Email</h3>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ route('admin.email-templates.send-test', $emailTemplate) }}">
+                        @csrf
+                        <div class="form-group">
+                            <label for="test_email">Test Email Address</label>
+                            <input type="email" name="test_email" id="test_email" 
+                                   class="form-control @error('test_email') is-invalid @enderror" 
+                                   value="{{ old('test_email', auth()->user()->email ?? '') }}" 
+                                   placeholder="test@example.com" required>
+                            @error('test_email')
+                                <div class="invalid-feedback d-block">{{ $message }}</div>
+                            @enderror
+                            <small class="form-text text-muted">Enter email address to send test email</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="test_locale">Language</label>
+                            <select name="locale" id="test_locale" class="form-control">
+                                @foreach(config('langs') as $code => $flag)
+                                    <option value="{{ $code }}" {{ $code === 'en' ? 'selected' : '' }}>
+                                        {{ strtoupper($code) }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-info">
+                            <i class="fas fa-paper-plane mr-2"></i> Send Test Email
+                        </button>
                     </form>
                 </div>
             </div>
