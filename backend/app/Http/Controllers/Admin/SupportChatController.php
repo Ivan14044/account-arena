@@ -72,20 +72,20 @@ class SupportChatController extends Controller
         // Отмечаем сообщения от пользователей/гостей как прочитанные
         // Делаем это в транзакции для атомарности
         \Illuminate\Support\Facades\DB::transaction(function() use ($chat) {
-            $chat->messages()
-                ->fromUserOrGuest()
-                ->where('is_read', false)
-                ->update([
-                    'is_read' => true,
-                    'read_at' => now(),
-                ]);
-            
-            // Если чат в статусе "pending", автоматически переводим в "open"
-            if ($chat->status === SupportChat::STATUS_PENDING) {
-                $chat->update([
-                    'status' => SupportChat::STATUS_OPEN,
-                ]);
-            }
+        $chat->messages()
+            ->fromUserOrGuest()
+            ->where('is_read', false)
+            ->update([
+                'is_read' => true,
+                'read_at' => now(),
+            ]);
+        
+        // Если чат в статусе "pending", автоматически переводим в "open"
+        if ($chat->status === SupportChat::STATUS_PENDING) {
+            $chat->update([
+                'status' => SupportChat::STATUS_OPEN,
+            ]);
+        }
         });
         
         // Очищаем кеш счетчика непрочитанных сообщений для этого чата
@@ -96,21 +96,16 @@ class SupportChatController extends Controller
             $q->with('user:id,name')->latest();
         }]);
         
-        // Оптимизация: загружаем только последние сообщения для первоначальной загрузки
-        // Используем параметр limit из запроса или значение по умолчанию (50 сообщений)
+        // Load messages in chronological order (oldest first)
         $limit = (int) request()->input('limit', 50);
-        $limit = max(10, min(200, $limit)); // Ограничиваем от 10 до 200 сообщений
+        $limit = max(10, min(200, $limit));
         
         $chat->load(['messages' => function($q) use ($limit) {
             $q->with(['user:id,name,email', 'attachments'])
-              ->orderBy('created_at', 'desc')
+              ->orderBy('created_at', 'asc')
+              ->orderBy('id', 'asc')
               ->limit($limit);
         }]);
-        
-        // Переворачиваем коллекцию, чтобы старые сообщения были сначала (для отображения в чате)
-        if ($chat->messages) {
-            $chat->messages = $chat->messages->reverse()->values();
-        }
         
         return view('admin.support-chats.show', compact('chat'));
     }
@@ -158,16 +153,16 @@ class SupportChatController extends Controller
         
         // Создаем сообщение и файлы в транзакции для атомарности
         $message = \Illuminate\Support\Facades\DB::transaction(function() use ($chat, $admin, $messageText, $request) {
-            $message = SupportMessage::create([
-                'support_chat_id' => $chat->id,
-                'user_id' => $admin->id,
-                'sender_type' => SupportMessage::SENDER_ADMIN,
+        $message = SupportMessage::create([
+            'support_chat_id' => $chat->id,
+            'user_id' => $admin->id,
+            'sender_type' => SupportMessage::SENDER_ADMIN,
                 'message' => $messageText,
-                'is_read' => false,
-            ]);
-            
+            'is_read' => false,
+        ]);
+        
             // Обработка вложений в той же транзакции
-            if ($request->hasFile('attachments')) {
+        if ($request->hasFile('attachments')) {
                 // Сохраняем напрямую в public (без символических ссылок для совместимости с Windows)
                 $directory = 'support-chat/attachments/' . date('Y/m');
                 $fullDirectory = public_path($directory);
@@ -194,9 +189,9 @@ class SupportChatController extends Controller
                     $relativePath = $directory . '/' . $fileName;
                     $relativePath = str_replace('\\', '/', $relativePath);
                     $fileUrl = asset($relativePath);
-                    
-                    SupportMessageAttachment::create([
-                        'support_message_id' => $message->id,
+                
+                SupportMessageAttachment::create([
+                    'support_message_id' => $message->id,
                         'file_name' => $originalName,
                         'file_path' => $relativePath,
                         'file_url' => $fileUrl,
@@ -214,118 +209,52 @@ class SupportChatController extends Controller
         $message->refresh();
         $message->load('attachments');
         
-        // Если чат из Telegram, отправляем сообщение в Telegram
-        // Перехватываем вывод, чтобы MadelineProto не вывел HTML
+        // Send message to Telegram if chat is from Telegram
         if ($chat->isFromTelegram() && $chat->telegram_chat_id) {
-            // Используем текст сообщения из базы данных (на случай если он был изменен)
-            // Если сообщение пустое, используем пустую строку (для вложений без текста)
             $textToSend = trim($message->message ?? $messageText ?? '');
-            
-            // Приводим telegram_chat_id к числу (может быть строкой из БД)
             $telegramChatId = (int) $chat->telegram_chat_id;
             
-            \Illuminate\Support\Facades\Log::info('Попытка отправить сообщение в Telegram', [
-                'chat_id' => $chat->id,
-                'telegram_chat_id' => $telegramChatId,
-                'telegram_chat_id_original' => $chat->telegram_chat_id,
-                'telegram_chat_id_type' => gettype($chat->telegram_chat_id),
-                'message_id' => $message->id,
-                'has_text' => !empty($textToSend),
-                'text_length' => strlen($textToSend),
-                'text_preview' => substr($textToSend, 0, 100),
-                'has_attachments' => $message->attachments->isNotEmpty(),
-                'attachments_count' => $message->attachments->count(),
-            ]);
-            
-            ob_start();
             try {
-                // Проверяем, что есть что отправлять
                 if (empty($textToSend) && $message->attachments->isEmpty()) {
-                    ob_end_clean();
-                    \Illuminate\Support\Facades\Log::warning('Нет содержимого для отправки в Telegram', [
+                    \Illuminate\Support\Facades\Log::warning('No content to send to Telegram', [
                         'chat_id' => $chat->id,
-                        'telegram_chat_id' => $telegramChatId,
                         'message_id' => $message->id,
                     ]);
+                } elseif ($telegramChatId <= 0) {
+                    \Illuminate\Support\Facades\Log::error('Invalid telegram_chat_id', [
+                        'chat_id' => $chat->id,
+                        'telegram_chat_id' => $telegramChatId,
+                    ]);
+                    \Illuminate\Support\Facades\Session::flash('telegram_send_error', 'Invalid Telegram chat ID. Message saved to database.');
+                } elseif (!\App\Models\Option::get('telegram_client_enabled', false)) {
+                    \Illuminate\Support\Facades\Log::warning('Telegram Client not enabled', ['chat_id' => $chat->id]);
+                    \Illuminate\Support\Facades\Session::flash('telegram_send_error', 'Telegram Client is not enabled. Enable it in Settings → Telegram.');
                 } else {
-                    // Проверяем, что telegram_chat_id валидный
-                    if ($telegramChatId <= 0) {
-                        ob_end_clean();
-                        \Illuminate\Support\Facades\Log::error('Некорректный telegram_chat_id для отправки сообщения', [
+                    $success = $telegramService->sendMessage($telegramChatId, $textToSend, $message->attachments);
+                    
+                    if ($success) {
+                        \Illuminate\Support\Facades\Log::info('Message sent to Telegram', [
                             'chat_id' => $chat->id,
                             'telegram_chat_id' => $telegramChatId,
-                            'telegram_chat_id_original' => $chat->telegram_chat_id,
+                            'message_id' => $message->id,
                         ]);
-                        \Illuminate\Support\Facades\Session::flash('telegram_send_error', 'Некорректный ID Telegram чата. Сообщение сохранено в базе данных.');
                     } else {
-                        // Проверяем, включен ли Telegram Client
-                        $telegramEnabled = \App\Models\Option::get('telegram_client_enabled', false);
-                        if (!$telegramEnabled) {
-                            ob_end_clean();
-                            \Illuminate\Support\Facades\Log::warning('Telegram Client не включен в настройках', [
-                                'chat_id' => $chat->id,
-                            ]);
-                            \Illuminate\Support\Facades\Session::flash('telegram_send_error', 'Telegram Client не включен в настройках. Включите его в Настройках → Telegram.');
-                        } else {
-                            // Отправляем сообщение в Telegram
-                            $success = $telegramService->sendMessage($telegramChatId, $textToSend, $message->attachments);
-                            
-                            // Получаем вывод после отправки
-                            $output = '';
-                            if (ob_get_level() > 0) {
-                                $output = ob_get_clean();
-                            }
-                            
-                            // Если был вывод HTML, логируем это
-                            if (!empty($output) && (strpos($output, '<html') !== false || strpos($output, '<form') !== false)) {
-                                \Illuminate\Support\Facades\Log::warning('MadelineProto вывел HTML при отправке сообщения из SupportChatController', [
-                                    'output' => substr($output, 0, 500)
-                                ]);
-                            }
-                            
-                            if ($success) {
-                                \Illuminate\Support\Facades\Log::info('Сообщение успешно отправлено в Telegram', [
-                                    'chat_id' => $chat->id,
-                                    'telegram_chat_id' => $telegramChatId,
-                                    'message_id' => $message->id,
-                                ]);
-                            } else {
-                                \Illuminate\Support\Facades\Log::error('Не удалось отправить сообщение в Telegram (sendMessage вернул false)', [
-                                    'chat_id' => $chat->id,
-                                    'telegram_chat_id' => $telegramChatId,
-                                    'message_id' => $message->id,
-                                    'has_text' => !empty($textToSend),
-                                    'has_attachments' => $message->attachments->isNotEmpty(),
-                                ]);
-                                
-                                // Сохраняем флаг ошибки для отображения пользователю
-                                \Illuminate\Support\Facades\Session::flash('telegram_send_error', 'Сообщение сохранено, но не удалось отправить в Telegram. Проверьте логи и настройки Telegram. Убедитесь, что Telegram Client авторизован.');
-                            }
-                        }
+                        \Illuminate\Support\Facades\Log::error('Failed to send message to Telegram', [
+                            'chat_id' => $chat->id,
+                            'telegram_chat_id' => $telegramChatId,
+                            'message_id' => $message->id,
+                        ]);
+                        \Illuminate\Support\Facades\Session::flash('telegram_send_error', 'Message saved but failed to send to Telegram. Check logs and Telegram settings.');
                     }
                 }
             } catch (\Exception $e) {
-                ob_end_clean();
-                \Illuminate\Support\Facades\Log::error('Ошибка отправки сообщения в Telegram: ' . $e->getMessage(), [
+                \Illuminate\Support\Facades\Log::error('Error sending message to Telegram: ' . $e->getMessage(), [
                     'chat_id' => $chat->id,
                     'telegram_chat_id' => $telegramChatId,
-                    'telegram_chat_id_original' => $chat->telegram_chat_id,
                     'message_id' => $message->id,
                     'error_type' => get_class($e),
-                    'trace' => $e->getTraceAsString()
                 ]);
-                // Продолжаем выполнение, даже если отправка в Telegram не удалась
             }
-        } else {
-            // Логируем, почему сообщение не отправляется в Telegram
-            \Illuminate\Support\Facades\Log::warning('Сообщение не отправляется в Telegram - проверка не пройдена', [
-                'chat_id' => $chat->id,
-                'source' => $chat->source,
-                'isFromTelegram' => $chat->isFromTelegram(),
-                'telegram_chat_id' => $chat->telegram_chat_id,
-                'telegram_chat_id_type' => gettype($chat->telegram_chat_id),
-                'telegram_chat_id_empty' => empty($chat->telegram_chat_id),
-            ]);
         }
         
         // Останавливаем индикатор печати
@@ -345,43 +274,28 @@ class SupportChatController extends Controller
     }
     
     /**
-     * Отправить событие "печатает" от администратора
+     * Send typing indicator from admin
      */
     public function sendTyping(Request $request, $id)
     {
-        // Перехватываем вывод, чтобы MadelineProto не испортил JSON-ответ
-        ob_start();
-        
         try {
             $chat = SupportChat::findOrFail($id);
             $admin = $request->user();
             
             $key = 'support_chat_typing_' . $chat->id . '_admin_' . $admin->id;
-            \Illuminate\Support\Facades\Cache::put($key, true, 5); // 5 секунд
-            
-            // Очищаем весь перехваченный вывод перед отправкой JSON
-            while (ob_get_level() > 0) {
-                ob_end_clean();
-            }
+            \Illuminate\Support\Facades\Cache::put($key, true, 5);
             
             return response()->json(['success' => true]);
         } catch (\Exception $e) {
-            // Очищаем вывод даже при ошибке
-            while (ob_get_level() > 0) {
-                ob_end_clean();
-            }
-            throw $e;
+            return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
         }
     }
     
     /**
-     * Остановить событие "печатает" от администратора
+     * Stop typing indicator from admin
      */
     public function stopTyping(Request $request, $id)
     {
-        // Перехватываем вывод, чтобы MadelineProto не испортил JSON-ответ
-        ob_start();
-        
         try {
             $chat = SupportChat::findOrFail($id);
             $admin = $request->user();
@@ -389,49 +303,28 @@ class SupportChatController extends Controller
             $key = 'support_chat_typing_' . $chat->id . '_admin_' . $admin->id;
             \Illuminate\Support\Facades\Cache::forget($key);
             
-            // Очищаем весь перехваченный вывод перед отправкой JSON
-            while (ob_get_level() > 0) {
-                ob_end_clean();
-            }
-            
             return response()->json(['success' => true]);
         } catch (\Exception $e) {
-            // Очищаем вывод даже при ошибке
-            while (ob_get_level() > 0) {
-                ob_end_clean();
-            }
-            throw $e;
+            return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
         }
     }
     
     /**
-     * Получить статус печати пользователя
+     * Get user typing status
      */
     public function getUserTypingStatus($id)
     {
-        // Перехватываем вывод, чтобы MadelineProto не испортил JSON-ответ
-        ob_start();
-        
         try {
             $chat = SupportChat::findOrFail($id);
-            
-            // Проверяем, печатает ли пользователь/гость
             $isTyping = false;
             
             if ($chat->user_id) {
-                // Для авторизованного пользователя
                 $key = 'support_chat_typing_' . $chat->id . '_' . $chat->user_id;
                 $isTyping = \Illuminate\Support\Facades\Cache::has($key);
-            } else if ($chat->guest_email) {
-                // Для гостя - проверяем все возможные ключи (так как email может быть в разных форматах)
+            } elseif ($chat->guest_email) {
                 $emailKey = md5($chat->guest_email);
                 $key = 'support_chat_typing_' . $chat->id . '_' . $emailKey;
                 $isTyping = \Illuminate\Support\Facades\Cache::has($key);
-            }
-            
-            // Очищаем весь перехваченный вывод перед отправкой JSON
-            while (ob_get_level() > 0) {
-                ob_end_clean();
             }
             
             return response()->json([
@@ -439,11 +332,11 @@ class SupportChatController extends Controller
                 'is_typing' => $isTyping,
             ]);
         } catch (\Exception $e) {
-            // Очищаем вывод даже при ошибке
-            while (ob_get_level() > 0) {
-                ob_end_clean();
-            }
-            throw $e;
+            return response()->json([
+                'success' => false,
+                'is_typing' => false,
+                'error' => $e->getMessage()
+            ], 500);
         }
     }
     
@@ -478,24 +371,24 @@ class SupportChatController extends Controller
 
         // Используем транзакцию для атомарности обновления статуса и создания сообщения
         \Illuminate\Support\Facades\DB::transaction(function() use ($chat, $request, $oldStatus) {
-            $chat->update([
-                'status' => $request->status,
+        $chat->update([
+            'status' => $request->status,
+        ]);
+
+        // Если чат переведен в статус "closed", добавляем системное сообщение
+        if ($oldStatus !== SupportChat::STATUS_CLOSED && $chat->status === SupportChat::STATUS_CLOSED) {
+            SupportMessage::create([
+                'support_chat_id' => $chat->id,
+                'user_id' => $request->user()->id ?? null,
+                'sender_type' => SupportMessage::SENDER_ADMIN,
+                'message' => 'Диалог закрыт администратором. Если у вас появятся новые вопросы — создайте новый диалог.',
+                'is_read' => false,
             ]);
 
-            // Если чат переведен в статус "closed", добавляем системное сообщение
-            if ($oldStatus !== SupportChat::STATUS_CLOSED && $chat->status === SupportChat::STATUS_CLOSED) {
-                SupportMessage::create([
-                    'support_chat_id' => $chat->id,
-                    'user_id' => $request->user()->id ?? null,
-                    'sender_type' => SupportMessage::SENDER_ADMIN,
-                    'message' => 'Диалог закрыт администратором. Если у вас появятся новые вопросы — создайте новый диалог.',
-                    'is_read' => false,
-                ]);
-
-                $chat->update([
-                    'last_message_at' => now(),
-                ]);
-            }
+            $chat->update([
+                'last_message_at' => now(),
+            ]);
+        }
         });
         
         // Очищаем кеш счетчика непрочитанных сообщений
@@ -550,13 +443,10 @@ class SupportChatController extends Controller
     }
     
     /**
-     * Получить количество непрочитанных сообщений для админа
+     * Get unread messages count for admin
      */
     public function getUnreadCount()
     {
-        // Перехватываем вывод, чтобы MadelineProto не испортил JSON-ответ
-        ob_start();
-        
         try {
             $unreadCount = SupportMessage::whereHas('chat', function($query) {
                 $query->where('status', '!=', SupportChat::STATUS_CLOSED);
@@ -565,42 +455,29 @@ class SupportChatController extends Controller
             ->where('is_read', false)
             ->count();
             
-            // Очищаем весь перехваченный вывод перед отправкой JSON
-            while (ob_get_level() > 0) {
-                ob_end_clean();
-            }
-            
             return response()->json(['count' => $unreadCount]);
         } catch (\Exception $e) {
-            // Очищаем вывод даже при ошибке
-            while (ob_get_level() > 0) {
-                ob_end_clean();
-            }
-            throw $e;
+            return response()->json(['count' => 0, 'error' => $e->getMessage()], 500);
         }
     }
     
     /**
-     * Получить новые сообщения для админа (для polling)
+     * Get new messages for admin (polling)
      */
     public function getMessages(Request $request, $id)
     {
-        // Перехватываем вывод, чтобы MadelineProto не испортил JSON-ответ
-        ob_start();
-        
         try {
             $chat = SupportChat::findOrFail($id);
             $lastMessageId = (int) $request->input('last_message_id', 0);
             
-            // Получаем сообщения, которые появились после last_message_id
             $messages = $chat->messages()
                 ->with(['user:id,name,email', 'attachments'])
                 ->where('id', '>', $lastMessageId)
                 ->orderBy('created_at', 'asc')
-                ->orderBy('id', 'asc') // Дополнительная сортировка для надежности
+                ->orderBy('id', 'asc')
                 ->get();
             
-            // Отмечаем новые сообщения от пользователей/гостей как прочитанные
+            // Mark new user/guest messages as read
             $newUserMessages = $messages->filter(function($message) {
                 return in_array($message->sender_type, [SupportMessage::SENDER_USER, SupportMessage::SENDER_GUEST]);
             });
@@ -613,13 +490,7 @@ class SupportChatController extends Controller
                         'read_at' => now(),
                     ]);
                 
-                // Очищаем кеш счетчика непрочитанных сообщений
                 $chat->clearUnreadCountCache();
-            }
-            
-            // Очищаем весь перехваченный вывод перед отправкой JSON
-            while (ob_get_level() > 0) {
-                ob_end_clean();
             }
             
             return response()->json([
@@ -652,21 +523,14 @@ class SupportChatController extends Controller
                 ],
             ]);
         } catch (\Exception $e) {
-            // Очищаем вывод даже при ошибке
-            while (ob_get_level() > 0) {
-                ob_end_clean();
-            }
-            
-            // Логируем ошибку, но не пробрасываем её, чтобы не сломать polling
-            \Illuminate\Support\Facades\Log::error('Ошибка получения сообщений для админа', [
+            \Illuminate\Support\Facades\Log::error('Error getting messages for admin', [
                 'chat_id' => $id,
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
             ]);
             
             return response()->json([
                 'success' => false,
-                'error' => 'Ошибка получения сообщений',
+                'error' => 'Error getting messages',
                 'messages' => [],
             ], 500);
         }

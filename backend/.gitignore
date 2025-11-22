@@ -3,6 +3,8 @@
 /public/build
 /public/hot
 /public/storage
+/public/telegram
+/public/support-chat
 /storage/*.key
 /vendor
 .env

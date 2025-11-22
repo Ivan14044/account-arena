@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::table('admin_notification_settings', function (Blueprint $table) {
             if (!Schema::hasColumn('admin_notification_settings', 'support_chat_enabled')) {
-                $table->boolean('support_chat_enabled')->default(true)->after('topup_enabled');
+            $table->boolean('support_chat_enabled')->default(true)->after('topup_enabled');
             }
         });
     }
@@ -25,7 +25,7 @@ return new class extends Migration
     {
         Schema::table('admin_notification_settings', function (Blueprint $table) {
             if (Schema::hasColumn('admin_notification_settings', 'support_chat_enabled')) {
-                $table->dropColumn('support_chat_enabled');
+            $table->dropColumn('support_chat_enabled');
             }
         });
     }

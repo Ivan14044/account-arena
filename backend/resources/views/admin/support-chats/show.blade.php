@@ -25,7 +25,9 @@
         </div>
     @endif
 
-    <div class="telegram-layout">
+    @if($chat->isFromTelegram())
+        {{-- Telegram Layout --}}
+        <div class="telegram-layout">
         <!-- Telegram-style Chat Container -->
         <div class="telegram-chat-container">
             <!-- Chat Header -->
@@ -165,6 +167,7 @@
             <div class="telegram-input-wrapper">
                     <form method="POST" action="{{ route('admin.support-chats.send-message', $chat->id) }}" id="send-message-form" enctype="multipart/form-data">
                         @csrf
+                        <input type="hidden" name="_method" value="POST">
                         
                         <!-- Attachments Preview -->
                         <div id="admin-attachments-preview" class="attachments-preview-area"></div>
@@ -208,67 +211,499 @@
         <!-- End Telegram Chat Container -->
     </div>
     <!-- End Telegram Layout -->
+    @else
+        {{-- Old Layout for non-Telegram chats --}}
+        <div class="row">
+            <div class="col-md-9">
+                <div class="card card-modern">
+                    <div class="card-header-modern">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">Сообщения</h5>
+                            <div class="search-messages-wrapper">
+                                <input type="text" id="search-messages-input" class="form-control form-control-sm" placeholder="Поиск по сообщениям..." style="width: 250px;">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body" id="messages-container" style="max-height: 600px; overflow-y: auto;">
+                        @foreach($chat->messages as $message)
+                            <div class="mb-3 message-item" data-message-id="{{ $message->id }}">
+                                <div class="d-flex {{ $message->sender_type === 'admin' ? 'justify-content-end' : 'justify-content-start' }}">
+                                    <div class="message-bubble {{ $message->sender_type === 'admin' ? 'message-admin' : 'message-user' }}" style="max-width: 70%;">
+                                        <div class="message-header mb-1">
+                                            <strong>
+                                                @if($message->sender_type === 'admin')
+                                                    {{ $message->user->name ?? 'Администратор' }}
+                                                @elseif($message->sender_type === 'guest')
+                                                    {{ $chat->guest_name ?? 'Гость' }}
+                                                @else
+                                                    {{ $message->user->name ?? 'Пользователь' }}
+                                                @endif
+                                            </strong>
+                                            <span class="text-muted ml-2" style="font-size: 0.85em;">
+                                                {{ $message->created_at->format('d.m.Y H:i') }}
+                                            </span>
+                                        </div>
+                                        <div class="message-text">
+                                            {{ $message->message }}
+                                        </div>
+                                        @if($message->attachments->count() > 0)
+                                            <div class="message-attachments mt-2">
+                                                @foreach($message->attachments as $attachment)
+                                                    <div class="attachment-item mb-2">
+                                                        @if($attachment->isImage())
+                                                            <a href="{{ $attachment->full_url }}" target="_blank" class="d-block">
+                                                                <img src="{{ $attachment->full_url }}" alt="{{ $attachment->file_name }}" class="img-thumbnail" style="max-width: 200px; max-height: 200px; cursor: pointer;">
+                                                            </a>
+                                                        @else
+                                                            <a href="{{ $attachment->full_url }}" target="_blank" class="d-flex align-items-center text-decoration-none" download>
+                                                                <i class="fas fa-file mr-2"></i>
+                                                                <span>{{ $attachment->file_name }}</span>
+                                                                <small class="ml-2">({{ $attachment->formatted_size }})</small>
+                                                            </a>
+                                                        @endif
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                        <!-- Индикатор печати пользователя -->
+                        <div id="user-typing-indicator" style="display: none;" class="mb-3 message-item">
+                            <div class="d-flex justify-content-start">
+                                <div class="message-bubble message-user" style="max-width: 70%;">
+                                    <div class="message-header mb-1">
+                                        <strong>
+                                            @if($chat->user)
+                                                {{ $chat->user->name ?? 'Пользователь' }}
+                                            @else
+                                                {{ $chat->guest_name ?? 'Гость' }}
+                                            @endif
+                                        </strong>
+                                    </div>
+                                    <div class="message-text typing-message">
+                                        <span class="typing-indicator">
+                                            <span></span>
+                                            <span></span>
+                                            <span></span>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Форма отправки сообщения -->
+                <div class="card card-modern mt-3">
+                    <div class="card-body">
+                        <form method="POST" action="{{ route('admin.support-chats.send-message', $chat->id) }}" id="send-message-form" enctype="multipart/form-data">
+                            @csrf
+                            <div class="form-group">
+                                <label>Ваше сообщение</label>
+                                <textarea name="message" id="admin-message-input" class="form-control" rows="3" placeholder="Введите сообщение..."></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label>Вложения (до 5 файлов, макс. 10MB каждый)</label>
+                                <input type="file" name="attachments[]" id="admin-attachments-input" class="form-control-file" multiple accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt,.zip,.rar">
+                                <small class="form-text text-muted">Поддерживаемые форматы: изображения, PDF, DOC, DOCX, XLS, XLSX, TXT, ZIP, RAR</small>
+                                <div id="admin-attachments-preview" style="margin-top: 10px;"></div>
+                            </div>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-paper-plane"></i> Отправить
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Sidebar -->
+            <div class="col-md-3">
+                <div class="card card-modern">
+                    <div class="card-header-modern">
+                        <h5 class="mb-0">Информация</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <strong>Статус:</strong><br>
+                            <span class="badge badge-{{ $chat->status === 'open' ? 'success' : ($chat->status === 'closed' ? 'secondary' : 'warning') }}">
+                                {{ $chat->status === 'open' ? 'Открыт' : ($chat->status === 'closed' ? 'Закрыт' : 'В ожидании') }}
+                            </span>
+                        </div>
+
+                        <form method="POST" action="{{ route('admin.support-chats.update-status', $chat->id) }}" class="mb-3">
+                            @csrf
+                            <div class="form-group">
+                                <label>Изменить статус</label>
+                                <select name="status" class="form-control">
+                                    <option value="open" {{ $chat->status === 'open' ? 'selected' : '' }}>Открыт</option>
+                                    <option value="pending" {{ $chat->status === 'pending' ? 'selected' : '' }}>В ожидании</option>
+                                    <option value="closed" {{ $chat->status === 'closed' ? 'selected' : '' }}>Закрыт</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-sm btn-primary">Обновить</button>
+                        </form>
+                        
+                        @if($chat->rating)
+                            <div class="mb-3">
+                                <strong>Рейтинг:</strong><br>
+                                @for($i = 1; $i <= 5; $i++)
+                                    <i class="fas fa-star {{ $i <= $chat->rating ? 'text-warning' : 'text-muted' }}"></i>
+                                @endfor
+                                @if($chat->rating_comment)
+                                    <br><small class="text-muted mt-1 d-block">{{ $chat->rating_comment }}</small>
+                                @endif
+                            </div>
+                        @endif
+
+                        <div class="mb-3">
+                            <strong>Создан:</strong><br>
+                            {{ $chat->created_at->format('d.m.Y H:i') }}
+                        </div>
+
+                        @if($chat->last_message_at)
+                            <div class="mb-3">
+                                <strong>Последнее сообщение:</strong><br>
+                                {{ $chat->last_message_at->format('d.m.Y H:i') }}
+                            </div>
+                        @endif
+                        
+                        <hr>
+                        <h6 class="mb-3">Внутренние заметки</h6>
+                        <div class="mb-3" style="max-height: 200px; overflow-y: auto;">
+                            @forelse($chat->notes as $note)
+                                <div class="alert alert-info alert-sm mb-2 p-2">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div class="flex-grow-1">
+                                            <small class="font-weight-bold">{{ $note->user->name ?? 'Администратор' }}</small>
+                                            <br>
+                                            <small>{{ $note->note }}</small>
+                                        </div>
+                                        <form method="POST" action="{{ route('admin.support-chats.delete-note', [$chat->id, $note->id]) }}" class="d-inline" onsubmit="return confirm('Удалить заметку?');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-sm btn-link text-danger p-0 ml-2" title="Удалить">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                    <small class="text-muted">{{ $note->created_at->format('d.m.Y H:i') }}</small>
+                                </div>
+                            @empty
+                                <small class="text-muted">Заметок пока нет</small>
+                            @endforelse
+                        </div>
+                        <form method="POST" action="{{ route('admin.support-chats.add-note', $chat->id) }}">
+                            @csrf
+                            <div class="form-group mb-0">
+                                <textarea name="note" class="form-control form-control-sm" rows="2" placeholder="Добавить заметку..." required></textarea>
+                                <button type="submit" class="btn btn-sm btn-secondary mt-2">Добавить</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
+    
+    {{-- JavaScript для старого layout (только для не-Telegram чатов) --}}
+    @if(!$chat->isFromTelegram())
+        <script>
+        (function() {
+            const messageInput = document.getElementById('admin-message-input');
+            const typingIndicator = document.getElementById('user-typing-indicator');
+            const messagesContainer = document.getElementById('messages-container');
+            let typingTimeout = null;
+            let typingThrottleTimeout = null;
+            let typingCheckInterval = null;
+            let messagesPollInterval = null;
+            
+            function getLastMessageId() {
+                const messageItems = messagesContainer.querySelectorAll('.message-item[data-message-id]');
+                if (messageItems.length === 0) return 0;
+                const lastItem = messageItems[messageItems.length - 1];
+                return parseInt(lastItem.getAttribute('data-message-id')) || 0;
+            }
+            
+            function formatDateTime(dateString) {
+                const date = new Date(dateString);
+                const day = String(date.getDate()).padStart(2, '0');
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const year = date.getFullYear();
+                const hours = String(date.getHours()).padStart(2, '0');
+                const minutes = String(date.getMinutes()).padStart(2, '0');
+                return `${day}.${month}.${year} ${hours}:${minutes}`;
+            }
+            
+            function formatFileSize(bytes) {
+                if (!bytes) return '0 B';
+                const units = ['B', 'KB', 'MB', 'GB'];
+                let size = bytes;
+                let unit = 0;
+                while (size >= 1024 && unit < units.length - 1) {
+                    size /= 1024;
+                    unit++;
+                }
+                return `${size.toFixed(2)} ${units[unit]}`;
+            }
+            
+            function isImage(mimeType) {
+                return ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'].includes(mimeType);
+            }
+            
+            function addMessageToDOM(message, chat) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'mb-3 message-item';
+                messageDiv.setAttribute('data-message-id', message.id);
+                
+                const isAdmin = message.sender_type === 'admin';
+                let senderName;
+                if (isAdmin) {
+                    senderName = (message.user && message.user.name) ? message.user.name : 'Администратор';
+                } else {
+                    if (chat.user) {
+                        senderName = (message.user && message.user.name) ? message.user.name : 'Пользователь';
+                    } else {
+                        senderName = chat.guest_name || 'Гость';
+                    }
+                }
+                
+                let attachmentsHtml = '';
+                if (message.attachments && message.attachments.length > 0) {
+                    attachmentsHtml = '<div class="message-attachments mt-2">';
+                    message.attachments.forEach(function(attachment) {
+                        if (isImage(attachment.mime_type)) {
+                            attachmentsHtml += `
+                                <div class="attachment-item mb-2">
+                                    <a href="${attachment.file_url}" target="_blank" class="d-block">
+                                        <img src="${attachment.file_url}" alt="${attachment.file_name}" class="img-thumbnail" style="max-width: 200px; max-height: 200px; cursor: pointer;">
+                                    </a>
+                                </div>
+                            `;
+                        } else {
+                            attachmentsHtml += `
+                                <div class="attachment-item mb-2">
+                                    <a href="${attachment.file_url}" target="_blank" class="d-flex align-items-center text-decoration-none" download>
+                                        <i class="fas fa-file mr-2"></i>
+                                        <span>${attachment.file_name}</span>
+                                        <small class="ml-2">(${formatFileSize(attachment.file_size)})</small>
+                                    </a>
+                                </div>
+                            `;
+                        }
+                    });
+                    attachmentsHtml += '</div>';
+                }
+                
+                messageDiv.innerHTML = `
+                    <div class="d-flex ${isAdmin ? 'justify-content-end' : 'justify-content-start'}">
+                        <div class="message-bubble ${isAdmin ? 'message-admin' : 'message-user'}" style="max-width: 70%;">
+                            <div class="message-header mb-1">
+                                <strong>${senderName}</strong>
+                                <span class="text-muted ml-2" style="font-size: 0.85em;">
+                                    ${formatDateTime(message.created_at)}
+                                </span>
+                            </div>
+                            <div class="message-text">
+                                ${message.message}
+                            </div>
+                            ${attachmentsHtml}
+                        </div>
+                    </div>
+                `;
+                
+                const typingIndicator = document.getElementById('user-typing-indicator');
+                if (typingIndicator) {
+                    messagesContainer.insertBefore(messageDiv, typingIndicator);
+                } else {
+                    messagesContainer.appendChild(messageDiv);
+                }
+            }
+            
+            function loadNewMessages() {
+                const lastMessageId = getLastMessageId();
+                
+                $.ajax({
+                    url: '/admin/support-chats/{{ $chat->id }}/messages',
+                    method: 'GET',
+                    data: { last_message_id: lastMessageId },
+                    success: function(data) {
+                        if (data.success && data.messages && data.messages.length > 0) {
+                            const wasAtBottom = messagesContainer.scrollHeight - messagesContainer.scrollTop <= messagesContainer.clientHeight + 50;
+                            const chatData = {
+                                user: @json($chat->user),
+                                guest_name: @json($chat->guest_name)
+                            };
+                            
+                            data.messages.forEach(function(message) {
+                                addMessageToDOM(message, chatData);
+                            });
+                            
+                            if (wasAtBottom) {
+                                setTimeout(function() {
+                                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                                }, 100);
+                            }
+                        }
+                    },
+                    error: function() {}
+                });
+            }
+            
+            messagesPollInterval = setInterval(loadNewMessages, 3000);
+            
+            function sendTyping() {
+                if (!messageInput.value.trim()) {
+                    sendStopTyping();
+                    return;
+                }
+                
+                if (typingThrottleTimeout) {
+                    return;
+                }
+                
+                $.ajax({
+                    url: '/admin/support-chats/{{ $chat->id }}/typing',
+                    method: 'POST',
+                    data: { _token: '{{ csrf_token() }}' },
+                    error: function() {}
+                });
+                
+                typingThrottleTimeout = setTimeout(function() {
+                    typingThrottleTimeout = null;
+                }, 2000);
+                
+                clearTimeout(typingTimeout);
+                typingTimeout = setTimeout(function() {
+                    sendStopTyping();
+                }, 3000);
+            }
+            
+            function sendStopTyping() {
+                if (typingThrottleTimeout) {
+                    clearTimeout(typingThrottleTimeout);
+                    typingThrottleTimeout = null;
+                }
+                
+                $.ajax({
+                    url: '/admin/support-chats/{{ $chat->id }}/typing/stop',
+                    method: 'POST',
+                    data: { _token: '{{ csrf_token() }}' },
+                    error: function() {}
+                });
+            }
+            
+            if (messageInput) {
+                messageInput.addEventListener('input', sendTyping);
+                messageInput.addEventListener('keydown', sendTyping);
+            }
+            
+            function checkUserTyping() {
+                $.ajax({
+                    url: '/admin/support-chats/{{ $chat->id }}/typing/user-status',
+                    method: 'GET',
+                    success: function(data) {
+                        if (data.is_typing) {
+                            typingIndicator.style.display = 'block';
+                            if (messagesContainer) {
+                                setTimeout(function() {
+                                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                                }, 100);
+                            }
+                        } else {
+                            typingIndicator.style.display = 'none';
+                        }
+                    },
+                    error: function() {}
+                });
+            }
+            
+            typingCheckInterval = setInterval(checkUserTyping, 2000);
+            
+            document.getElementById('send-message-form').addEventListener('submit', function() {
+                sendStopTyping();
+            });
+            
+            window.addEventListener('beforeunload', function() {
+                sendStopTyping();
+                if (typingTimeout) clearTimeout(typingTimeout);
+                if (typingThrottleTimeout) clearTimeout(typingThrottleTimeout);
+                if (typingCheckInterval) clearInterval(typingCheckInterval);
+                if (messagesPollInterval) clearInterval(messagesPollInterval);
+            });
+            
+            const attachmentsInput = document.getElementById('admin-attachments-input');
+            const attachmentsPreview = document.getElementById('admin-attachments-preview');
+            
+            if (attachmentsInput) {
+                attachmentsInput.addEventListener('change', function() {
+                    attachmentsPreview.innerHTML = '';
+                    if (this.files.length > 0) {
+                        const fileList = document.createElement('div');
+                        fileList.className = 'list-group';
+                        Array.from(this.files).forEach(function(file) {
+                            const fileItem = document.createElement('div');
+                            fileItem.className = 'list-group-item d-flex justify-content-between align-items-center';
+                            fileItem.innerHTML = '<span><i class="fas fa-file mr-2"></i>' + file.name + '</span><span class="badge badge-secondary">' + (file.size / 1024 / 1024).toFixed(2) + ' MB</span>';
+                            fileList.appendChild(fileItem);
+                        });
+                        attachmentsPreview.appendChild(fileList);
+                    }
+                });
+            }
+            
+            const searchInput = document.getElementById('search-messages-input');
+            const allMessages = Array.from(messagesContainer.querySelectorAll('.message-bubble'));
+            
+            if (searchInput && messagesContainer) {
+                searchInput.addEventListener('input', function() {
+                    const searchTerm = this.value.toLowerCase().trim();
                     
-                    <script>
+                    if (searchTerm === '') {
+                        allMessages.forEach(function(messageEl) {
+                            const messageWrapper = messageEl.closest('.mb-3');
+                            if (messageWrapper) {
+                                messageWrapper.style.display = '';
+                            }
+                        });
+                        return;
+                    }
+                    
+                    let hasResults = false;
+                    allMessages.forEach(function(messageEl) {
+                        const messageWrapper = messageEl.closest('.mb-3');
+                        if (!messageWrapper) return;
+                        
+                        const messageText = messageEl.querySelector('.message-text');
+                        if (!messageText) return;
+                        
+                        const text = messageText.textContent.toLowerCase();
+                        if (text.includes(searchTerm)) {
+                            messageWrapper.style.display = '';
+                            hasResults = true;
+                        } else {
+                            messageWrapper.style.display = 'none';
+                        }
+                    });
+                });
+            }
+        })();
+        </script>
+    @endif
+    
+    {{-- JavaScript для Telegram layout --}}
+    @if($chat->isFromTelegram())
+        <script>
                     (function() {
-                        // ============================================
-                        // ЛОГИРОВАНИЕ В КОНСОЛЬ ДЛЯ ОТЛАДКИ
-                        // ============================================
-                        const DEBUG_MODE = true; // Включить/выключить логирование
+                        const DEBUG_MODE = true; // Enable for debugging (set to true to see logs)
                         
-                        function logDebug(category, message, data = null) {
-                            if (!DEBUG_MODE) return;
-                            
-                            const timestamp = new Date().toLocaleTimeString('ru-RU');
-                            const style = `color: #2196F3; font-weight: bold;`;
-                            const style2 = `color: #4CAF50;`;
-                            
-                            console.log(`%c[${timestamp}] 📋 ${category}: ${message}`, style);
-                            if (data) {
-                                console.log('Данные:', data);
-                            }
+                        function logError(message, error) {
+                            if (DEBUG_MODE) console.error('[Chat]', message, error);
                         }
                         
-                        function logError(category, message, error = null) {
-                            if (!DEBUG_MODE) return;
-                            
-                            const timestamp = new Date().toLocaleTimeString('ru-RU');
-                            const style = `color: #F44336; font-weight: bold;`;
-                            
-                            console.group(`%c[${timestamp}] ❌ ERROR: ${category}`, style);
-                            console.error(message);
-                            if (error) {
-                                console.error('Ошибка:', error);
-                                if (error.stack) {
-                                    console.error('Stack:', error.stack);
-                                }
-                            }
-                            console.trace(); // Показываем стек вызовов только для ошибок
-                            console.groupEnd();
-                        }
-                        
-                        function logSuccess(category, message, data = null) {
-                            if (!DEBUG_MODE) return;
-                            
-                            const timestamp = new Date().toLocaleTimeString('ru-RU');
-                            const style = `color: #4CAF50; font-weight: bold;`;
-                            
-                            console.log(`%c[${timestamp}] ✅ ${category}: ${message}`, style);
-                            if (data) {
-                                console.log('Данные:', data);
-                            }
-                        }
-                        
-                        function logWarning(category, message, data = null) {
-                            if (!DEBUG_MODE) return;
-                            
-                            const timestamp = new Date().toLocaleTimeString('ru-RU');
-                            const style = `color: #FF9800; font-weight: bold;`;
-                            
-                            console.warn(`%c[${timestamp}] ⚠️ ${category}: ${message}`, style);
-                            if (data) {
-                                console.warn('Данные:', data);
-                            }
+                        function logInfo(message, data) {
+                            if (DEBUG_MODE) console.log('[Chat]', message, data || '');
                         }
                         
                         // Перехватываем все AJAX запросы
@@ -283,13 +718,6 @@
                                 const isImportantRequest = url.includes('/support-chats/') || 
                                                           url.includes('/admin/support-chats/');
                                 
-                                if (isImportantRequest) {
-                                    logDebug('AJAX REQUEST', `${method} ${url}`, {
-                                        url: url,
-                                        method: method,
-                                        data: options.data
-                                    });
-                                }
                                 
                                 // Добавляем обработчики успеха и ошибки
                                 const originalSuccess = options.success;
@@ -312,21 +740,11 @@
                                         if (jqXHR.status === 200 && data && typeof data === 'string' && data.trim().startsWith('<')) {
                                             // Логируем только для важных запросов, системные игнорируем
                                             if (isImportantRequest && !isSystemRequest) {
-                                                logError('AJAX RESPONSE', `Получен HTML вместо JSON: ${method} ${url}`, {
-                                                    response_preview: data.substring(0, 200),
-                                                    status: jqXHR.status,
-                                                    note: 'Возможно, MadelineProto вывел HTML в ответ'
-                                                });
                                             }
                                         }
                                     }
                                     
                                     if (isImportantRequest && !isSystemRequest) {
-                                        logSuccess('AJAX SUCCESS', `${method} ${url}`, {
-                                            status: jqXHR.status,
-                                            statusText: jqXHR.statusText,
-                                            response_type: typeof parsedData
-                                        });
                                     }
                                     
                                     if (originalSuccess) {
@@ -379,30 +797,9 @@
                             const isImportantRequest = url.includes('/support-chats/') || 
                                                       url.includes('/admin/support-chats/');
                             
-                            if (isImportantRequest) {
-                                logDebug('FETCH REQUEST', `${method} ${url}`);
-                            }
-                            
-                            return originalFetch.apply(this, args)
-                                .then(response => {
-                                    if (isImportantRequest) {
-                                        logSuccess('FETCH SUCCESS', `${method} ${url}`, {
-                                            status: response.status,
-                                            ok: response.ok
-                                        });
-                                    }
-                                    return response;
-                                })
-                                .catch(error => {
-                                    if (isImportantRequest) {
-                                        logError('FETCH ERROR', `${method} ${url}`, error);
-                                    }
-                                    throw error;
-                                });
+                            return originalFetch.apply(this, args);
                         };
                         
-                        logSuccess('DEBUG', 'Система логирования инициализирована');
-                        console.log('%c📋 Все операции чата будут логироваться в консоль', 'color: #2196F3; font-size: 14px; font-weight: bold;');
                         
                         // ============================================
                         // ОСНОВНОЙ КОД ЧАТА
@@ -531,29 +928,30 @@
                                 </div>
                             `;
                             
-                            // Вставляем перед индикатором печати
+                            // Insert message in correct position (chronological order)
                             const typingIndicator = document.getElementById('user-typing-indicator');
-                            if (typingIndicator) {
-                                messagesContainer.insertBefore(messageDiv, typingIndicator);
+                            const existingMessages = Array.from(messagesContainer.querySelectorAll('.message-item[data-message-id]'));
+                            
+                            // Find correct position to insert (after messages with smaller ID)
+                            let insertBefore = typingIndicator;
+                            for (let i = existingMessages.length - 1; i >= 0; i--) {
+                                const existingId = parseInt(existingMessages[i].getAttribute('data-message-id'));
+                                if (existingId < message.id) {
+                                    insertBefore = existingMessages[i].nextSibling || typingIndicator;
+                                    break;
+                                }
+                            }
+                            
+                            if (insertBefore) {
+                                messagesContainer.insertBefore(messageDiv, insertBefore);
                             } else {
                                 messagesContainer.appendChild(messageDiv);
                             }
                         }
                         
-                        // Загрузка новых сообщений
-                        let pollingSilentCount = 0; // Счетчик тихих проверок
+                        // Load new messages
                         function loadNewMessages() {
                             const lastMessageId = getLastMessageId();
-                            
-                            // Логируем только каждую 10-ю проверку, если нет новых сообщений
-                            const shouldLog = pollingSilentCount === 0 || pollingSilentCount % 10 === 0;
-                            
-                            if (shouldLog) {
-                                logDebug('POLLING', `Проверка новых сообщений (проверка #${pollingSilentCount + 1})`, {
-                                    last_message_id: lastMessageId,
-                                    chat_id: {{ $chat->id }}
-                                });
-                            }
                             
                             $.ajax({
                                 url: '/admin/support-chats/{{ $chat->id }}/messages',
@@ -563,14 +961,6 @@
                                 },
                                 success: function(data) {
                                     if (data.success && data.messages && data.messages.length > 0) {
-                                        pollingSilentCount = 0; // Сбрасываем счетчик при получении сообщений
-                                        logSuccess('POLLING', `✅ Получено ${data.messages.length} новых сообщений`, {
-                                            messages_count: data.messages.length,
-                                            chat_status: data.chat?.status,
-                                            first_message_id: data.messages[0]?.id,
-                                            last_message_id: data.messages[data.messages.length - 1]?.id
-                                        });
-                                        
                                         const wasAtBottom = messagesContainer.scrollHeight - messagesContainer.scrollTop <= messagesContainer.clientHeight + 50;
                                         
                                         const chatData = {
@@ -579,39 +969,29 @@
                                             source: @json($chat->source)
                                         };
                                         
+                                        // Add messages in order (they come sorted from server)
                                         data.messages.forEach(function(message) {
-                                            addMessageToDOM(message, chatData);
+                                            // Check if message already exists
+                                            const existing = messagesContainer.querySelector(`[data-message-id="${message.id}"]`);
+                                            if (!existing) {
+                                                addMessageToDOM(message, chatData);
+                                            }
                                         });
                                         
-                                        // Прокрутка вниз, если пользователь был внизу
                                         if (wasAtBottom) {
                                             setTimeout(function() {
                                                 messagesContainer.scrollTop = messagesContainer.scrollHeight;
                                             }, 100);
                                         }
-                                    } else {
-                                        pollingSilentCount++;
-                                        // Логируем только каждую 10-ю проверку без новых сообщений
-                                        if (shouldLog) {
-                                            logDebug('POLLING', `Новых сообщений нет (проверка #${pollingSilentCount})`);
-                                        }
                                     }
                                 },
                                 error: function(jqXHR, textStatus, errorThrown) {
-                                    pollingSilentCount = 0; // Сбрасываем счетчик при ошибке
-                                    logError('POLLING', '❌ Ошибка при получении сообщений', {
-                                        status: jqXHR.status,
-                                        statusText: textStatus,
-                                        error: errorThrown,
-                                        response_preview: jqXHR.responseText ? jqXHR.responseText.substring(0, 200) : null
-                                    });
+                                    logError('Polling error', { status: jqXHR.status, error: errorThrown });
                                 }
                             });
                         }
                         
-                        // Запуск polling для новых сообщений
                         messagesPollInterval = setInterval(loadNewMessages, 3000);
-                        logSuccess('POLLING', 'Polling запущен (интервал: 3 секунды)');
                         
                         function sendTyping() {
                             if (!messageInput.value.trim()) {
@@ -712,6 +1092,31 @@
                         const attachmentsInput = document.getElementById('admin-attachments-input');
                         const attachmentsPreview = document.getElementById('admin-attachments-preview');
                         const sendForm = document.getElementById('send-message-form');
+                        
+                        logInfo('Form elements initialized', {
+                            form: !!sendForm,
+                            messageInput: !!messageInput,
+                            attachmentsInput: !!attachmentsInput
+                        });
+                        
+                        // Проверяем, что форма существует и кнопка внутри формы
+                        if (sendForm) {
+                            const sendBtn = document.getElementById('send-btn');
+                            if (sendBtn) {
+                                const isButtonInForm = sendForm.contains(sendBtn);
+                                logInfo('Button check', {
+                                    buttonFound: !!sendBtn,
+                                    buttonInForm: isButtonInForm,
+                                    buttonType: sendBtn.type,
+                                    formMethod: sendForm.method,
+                                    formAction: sendForm.action
+                                });
+                                
+                                if (!isButtonInForm) {
+                                    logError('Send button is not inside the form!');
+                                }
+                            }
+                        }
                         
                         // Функция для отображения предпросмотра файлов
                         function displayFilesPreview(files) {
@@ -956,32 +1361,43 @@
                         
                         // Валидация формы - разрешаем отправку без текста, если есть файлы
                         if (sendForm) {
+                            logInfo('Form found, adding submit handler');
+                            
                             sendForm.addEventListener('submit', function(e) {
-                                const messageText = messageInput.value.trim();
+                                logInfo('Form submit event triggered', {
+                                    formMethod: sendForm.method,
+                                    formAction: sendForm.action,
+                                    defaultPrevented: e.defaultPrevented
+                                });
+                                
+                                const messageText = messageInput ? messageInput.value.trim() : '';
                                 const hasFiles = attachmentsInput && attachmentsInput.files && attachmentsInput.files.length > 0;
                                 
-                                logDebug('FORM SUBMIT', 'Попытка отправить сообщение', {
-                                    message_text: messageText,
-                                    message_length: messageText.length,
-                                    has_files: hasFiles,
-                                    files_count: hasFiles ? attachmentsInput.files.length : 0,
-                                    chat_id: {{ $chat->id }},
-                                    chat_source: @json($chat->source),
-                                    is_telegram: @json($chat->isFromTelegram()),
-                                    telegram_chat_id: @json($chat->telegram_chat_id)
+                                logInfo('Validation check', {
+                                    messageText: messageText,
+                                    hasFiles: hasFiles,
+                                    messageLength: messageText.length,
+                                    filesCount: attachmentsInput ? attachmentsInput.files.length : 0
                                 });
                                 
                                 if (!messageText && !hasFiles) {
+                                    logInfo('Validation failed - no message and no files');
                                     e.preventDefault();
-                                    logWarning('FORM VALIDATION', 'Пустое сообщение без файлов');
+                                    e.stopPropagation();
                                     alert('Введите сообщение или прикрепите файлы');
                                     return false;
                                 }
                                 
-                                // Останавливаем индикатор печати
+                                logInfo('Form validation passed, allowing submission');
+                                
+                                // Убеждаемся, что форма имеет правильный method
+                                if (sendForm.method.toLowerCase() !== 'post') {
+                                    logError('Form method is not POST!', { method: sendForm.method });
+                                    sendForm.method = 'POST';
+                                }
+                                
                                 if (typeof sendStopTyping === 'function') {
                                     sendStopTyping();
-                                    logDebug('TYPING', 'Индикатор печати остановлен');
                                 }
                                 
                                 // Получаем элементы для индикатора загрузки
@@ -990,19 +1406,31 @@
                                 const sendSpinner = document.getElementById('send-spinner');
                                 
                                 if (sendBtn && sendIcon && sendSpinner) {
-                                    // Блокируем кнопку и поле ввода
+                                    // ВАЖНО: НЕ отключаем textarea перед отправкой, иначе значение не передастся!
+                                    // Блокируем только кнопку
                                     sendBtn.disabled = true;
                                     sendBtn.style.opacity = '0.6';
                                     sendBtn.style.cursor = 'not-allowed';
                                     sendBtn.title = 'Отправка...';
                                     
+                                    // НЕ отключаем messageInput - это блокирует передачу значения в POST!
+                                    // Вместо этого делаем его readonly визуально
                                     if (messageInput) {
-                                        messageInput.disabled = true;
+                                        messageInput.style.opacity = '0.6';
+                                        messageInput.style.cursor = 'not-allowed';
+                                        messageInput.setAttribute('readonly', 'readonly');
                                     }
                                     
                                     // Показываем спиннер, скрываем иконку
                                     sendIcon.classList.add('d-none');
                                     sendSpinner.classList.remove('d-none');
+                                    
+                                    logInfo('Button state updated - form should submit now', {
+                                        formMethod: sendForm.method,
+                                        formAction: sendForm.action,
+                                        messageValue: messageInput ? messageInput.value : 'no input',
+                                        messageLength: messageInput ? messageInput.value.length : 0
+                                    });
                                     
                                     // Функция восстановления состояния
                                     const restoreState = function() {
@@ -1012,7 +1440,9 @@
                                         sendBtn.title = 'Отправить';
                                         
                                         if (messageInput) {
-                                            messageInput.disabled = false;
+                                            messageInput.removeAttribute('readonly');
+                                            messageInput.style.opacity = '1';
+                                            messageInput.style.cursor = 'text';
                                         }
                                         
                                         sendIcon.classList.remove('d-none');
@@ -1020,7 +1450,6 @@
                                     };
                                     
                                     // Восстанавливаем состояние через 15 секунд на случай, если что-то пойдет не так
-                                    // (например, если форма не отправилась из-за ошибки)
                                     const restoreTimeout = setTimeout(restoreState, 15000);
                                     
                                     // Сохраняем функцию восстановления для возможного вызова извне
@@ -1031,37 +1460,67 @@
                                     
                                     // После успешной отправки страница перезагрузится,
                                     // но если произошла ошибка валидации, восстановим состояние
-                                    // Проверяем через небольшую задержку, не перезагрузилась ли страница
                                     setTimeout(function() {
-                                        // Если функция все еще существует, значит страница не перезагрузилась
                                         if (window._restoreSendButtonState && typeof window._restoreSendButtonState === 'function') {
-                                            logWarning('FORM SUBMIT', 'Страница не перезагрузилась, возможно ошибка валидации');
                                             restoreState();
                                         }
                                     }, 3000);
                                 }
                                 
-                                logSuccess('FORM SUBMIT', 'Форма отправлена', {
-                                    action: sendForm.action,
-                                    method: sendForm.method,
-                                    enctype: sendForm.enctype
+                                // НЕ вызываем e.preventDefault() - форма должна отправиться
+                                // НЕ вызываем e.stopPropagation() - позволяем событию всплыть
+                                // return true позволяет форме отправиться
+                                
+                                // Финальная проверка перед отправкой
+                                const finalMethod = sendForm.method || sendForm.getAttribute('method');
+                                logInfo('Allowing form submission', {
+                                    formMethod: finalMethod,
+                                    formAction: sendForm.action,
+                                    formId: sendForm.id
                                 });
                                 
+                                // Если метод все еще не POST, принудительно устанавливаем
+                                if (finalMethod && finalMethod.toLowerCase() !== 'post') {
+                                    logError('Form method is still not POST! Forcing POST method', { 
+                                        currentMethod: finalMethod 
+                                    });
+                                    sendForm.method = 'POST';
+                                    sendForm.setAttribute('method', 'POST');
+                                }
+                                
+                                // Позволяем форме отправиться естественным образом
+                                // НЕ вызываем e.preventDefault() - это позволит форме отправиться
                                 return true;
+                            }, false); // Используем capture phase для раннего перехвата
+                            
+                            // Также добавляем обработчик клика на кнопку для отладки
+                            const sendBtn = document.getElementById('send-btn');
+                            if (sendBtn) {
+                                sendBtn.addEventListener('click', function(e) {
+                                    logInfo('Send button clicked', {
+                                        buttonType: sendBtn.type,
+                                        formId: sendForm.id,
+                                        formAction: sendForm.action,
+                                        formMethod: sendForm.method
+                                    });
+                                    
+                                    // Убеждаемся, что форма имеет правильный method перед отправкой
+                                    if (sendForm.method.toLowerCase() !== 'post') {
+                                        logError('Form method is not POST, fixing it!', { method: sendForm.method });
+                                        sendForm.method = 'POST';
+                                    }
+                                    
+                                    // Не предотвращаем дефолтное поведение - форма должна отправиться
+                                }, false);
+                            } else {
+                                logError('Send button not found!');
+                            }
+                        } else {
+                            logError('Form not found!', {
+                                formId: 'send-message-form',
+                                documentReady: document.readyState
                             });
                         }
-                        
-                        // Логируем информацию о чате при загрузке страницы
-                        logSuccess('CHAT INIT', 'Чат инициализирован', {
-                            chat_id: {{ $chat->id }},
-                            source: @json($chat->source),
-                            is_telegram: @json($chat->isFromTelegram()),
-                            telegram_chat_id: @json($chat->telegram_chat_id),
-                            user_id: @json($chat->user_id),
-                            guest_name: @json($chat->guest_name),
-                            status: @json($chat->status),
-                            messages_count: {{ $chat->messages->count() }}
-                        });
                         
                         // Обработчик для просмотра изображений
                         document.addEventListener('click', function(e) {
@@ -1179,77 +1638,6 @@
                             setTimeout(scrollToBottom, 100);
                         });
                         
-                        // Логируем сообщения из сессии после загрузки страницы
-                        @if(session('success'))
-                            logSuccess('SERVER RESPONSE', '✅ Сообщение успешно отправлено', {
-                                message: @json(session('success'))
-                            });
-                        @endif
-                        
-                        @if(session('telegram_send_error'))
-                            logError('SERVER RESPONSE', '❌ Ошибка отправки в Telegram', {
-                                error: @json(session('telegram_send_error')),
-                                action: 'Проверьте логи сервера и настройки Telegram Client'
-                            });
-                        @endif
-                        
-                        // Логируем все ошибки валидации с деталями
-                        @if($errors->any())
-                            const validationErrors = @json($errors->all());
-                            const validationErrorsBag = @json($errors->toArray());
-                            
-                            logError('VALIDATION ERRORS', '❌ Ошибки валидации формы', {
-                                errors: validationErrors,
-                                errors_by_field: validationErrorsBag,
-                                action: 'Проверьте заполнение формы'
-                            });
-                            
-                            // Показываем конкретные ошибки для каждого поля
-                            Object.keys(validationErrorsBag).forEach(function(field) {
-                                console.error(`  - ${field}: ${validationErrorsBag[field].join(', ')}`);
-                            });
-                        @endif
-                        
-                        // Перехватываем все ошибки JavaScript (игнорируем несущественные)
-                        window.addEventListener('error', function(event) {
-                            // Игнорируем ошибки загрузки source maps и внешних ресурсов
-                            const ignorePatterns = [
-                                '.map',
-                                'ckeditor',
-                                'sourcemap',
-                                'favicon.ico'
-                            ];
-                            
-                            const shouldIgnore = ignorePatterns.some(pattern => 
-                                event.filename && event.filename.toLowerCase().includes(pattern.toLowerCase())
-                            );
-                            
-                            if (!shouldIgnore) {
-                                logError('JAVASCRIPT ERROR', event.message, {
-                                    filename: event.filename,
-                                    lineno: event.lineno,
-                                    colno: event.colno,
-                                    error: event.error
-                                });
-                            }
-                        });
-                        
-                        // Перехватываем необработанные промисы (только важные)
-                        window.addEventListener('unhandledrejection', function(event) {
-                            const reason = event.reason;
-                            const reasonString = reason ? reason.toString() : '';
-                            
-                            // Игнорируем ошибки, связанные с source maps
-                            if (!reasonString.includes('.map') && !reasonString.includes('sourcemap')) {
-                                logError('UNHANDLED PROMISE REJECTION', 'Необработанная ошибка промиса', {
-                                    reason: reason,
-                                    reason_string: reasonString
-                                });
-                            }
-                        });
-                        
-                        console.log('%c✅ Система логирования полностью настроена. Все операции будут логироваться в консоль.', 
-                            'color: #4CAF50; font-size: 16px; font-weight: bold; padding: 10px; background: #E8F5E9; border-radius: 5px;');
                     })();
                     </script>
                     
@@ -1418,95 +1806,10 @@
         </div>
     </div>
     <!-- End Telegram Layout -->
-    
-    <!-- Sidebar (hidden in telegram mode) -->
-    <div class="sidebar-container" style="display: none;">
-            <div class="card card-modern">
-                <div class="card-header-modern">
-                    <h5 class="mb-0">Информация</h5>
-                </div>
-                <div class="card-body">
-                    <div class="mb-3">
-                        <strong>Статус:</strong><br>
-                        <span class="badge badge-{{ $chat->status === 'open' ? 'success' : ($chat->status === 'closed' ? 'secondary' : 'warning') }}">
-                            {{ $chat->status === 'open' ? 'Открыт' : ($chat->status === 'closed' ? 'Закрыт' : 'В ожидании') }}
-                        </span>
-                    </div>
+    @endif
 
-                    <form method="POST" action="{{ route('admin.support-chats.update-status', $chat->id) }}" class="mb-3" id="update-status-form">
-                        @csrf
-                        <div class="form-group">
-                            <label>Изменить статус</label>
-                            <select name="status" class="form-control">
-                                <option value="open" {{ $chat->status === 'open' ? 'selected' : '' }}>Открыт</option>
-                                <option value="pending" {{ $chat->status === 'pending' ? 'selected' : '' }}>В ожидании</option>
-                                <option value="closed" {{ $chat->status === 'closed' ? 'selected' : '' }}>Закрыт</option>
-                            </select>
-                        </div>
-                        <button type="submit" class="btn btn-sm btn-primary">Обновить</button>
-                    </form>
-                    
-                    @if($chat->rating)
-                        <div class="mb-3">
-                            <strong>Рейтинг:</strong><br>
-                            @for($i = 1; $i <= 5; $i++)
-                                <i class="fas fa-star {{ $i <= $chat->rating ? 'text-warning' : 'text-muted' }}"></i>
-                            @endfor
-                            @if($chat->rating_comment)
-                                <br><small class="text-muted mt-1 d-block">{{ $chat->rating_comment }}</small>
-                            @endif
-                        </div>
-                    @endif
-
-                    <div class="mb-3">
-                        <strong>Создан:</strong><br>
-                        {{ $chat->created_at->format('d.m.Y H:i') }}
-                    </div>
-
-                    @if($chat->last_message_at)
-                        <div class="mb-3">
-                            <strong>Последнее сообщение:</strong><br>
-                            {{ $chat->last_message_at->format('d.m.Y H:i') }}
-                        </div>
-                    @endif
-                    
-                    <hr>
-                    <h6 class="mb-3">Внутренние заметки</h6>
-                    <div class="mb-3" style="max-height: 200px; overflow-y: auto;">
-                        @forelse($chat->notes as $note)
-                            <div class="alert alert-info alert-sm mb-2 p-2">
-                                <div class="d-flex justify-content-between align-items-start">
-                                    <div class="flex-grow-1">
-                                        <small class="font-weight-bold">{{ $note->user->name ?? 'Администратор' }}</small>
-                                        <br>
-                                        <small>{{ $note->note }}</small>
-                                    </div>
-                                    <form method="POST" action="{{ route('admin.support-chats.delete-note', [$chat->id, $note->id]) }}" class="d-inline" onsubmit="return confirm('Удалить заметку?');">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn btn-sm btn-link text-danger p-0 ml-2" title="Удалить">
-                                            <i class="fas fa-times"></i>
-                                        </button>
-                                    </form>
-                                </div>
-                                <small class="text-muted">{{ $note->created_at->format('d.m.Y H:i') }}</small>
-                            </div>
-                        @empty
-                            <small class="text-muted">Заметок пока нет</small>
-                        @endforelse
-                    </div>
-                    <form method="POST" action="{{ route('admin.support-chats.add-note', $chat->id) }}">
-                        @csrf
-                        <div class="form-group mb-0">
-                            <textarea name="note" class="form-control form-control-sm" rows="2" placeholder="Добавить заметку..." required></textarea>
-                            <button type="submit" class="btn btn-sm btn-secondary mt-2">Добавить</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-
+    {{-- Styles для Telegram layout (только для Telegram чатов) --}}
+    @if($chat->isFromTelegram())
     <style>
         /* Telegram Layout - Full Screen Chat */
         .telegram-layout {
@@ -2135,6 +2438,94 @@
             }
         }
     </style>
-    </div>
-    <!-- End Sidebar Container -->
+    @endif
+    
+    {{-- Styles для старого layout (только для не-Telegram чатов) --}}
+    @if(!$chat->isFromTelegram())
+    <style>
+        /* Улучшенные стили для заголовков карточек */
+        .card-header-modern {
+            background: linear-gradient(135deg, #f8f9fc 0%, #ffffff 100%);
+            border-bottom: 2px solid #e3e6f0;
+            padding: 1.25rem 1.5rem;
+        }
+        
+        .card-header-modern h5 {
+            color: #2c3e50;
+            font-weight: 600;
+            font-size: 1.1rem;
+            letter-spacing: -0.3px;
+            margin-bottom: 0;
+            display: flex;
+            align-items: center;
+        }
+        
+        .card-header-modern h5::before {
+            content: '';
+            display: inline-block;
+            width: 4px;
+            height: 20px;
+            background: #4e73df;
+            border-radius: 2px;
+            margin-right: 12px;
+        }
+        
+        /* Улучшенные стили для карточек */
+        .card-modern {
+            border: 1px solid #e3e6f0;
+            border-radius: 0.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            overflow: hidden;
+            transition: box-shadow 0.3s ease;
+        }
+        
+        .card-modern:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        
+        /* Улучшенные стили для формы поиска */
+        .search-messages-wrapper input {
+            border: 1px solid #e3e6f0;
+            border-radius: 0.375rem;
+            transition: all 0.2s ease;
+        }
+        
+        .search-messages-wrapper input:focus {
+            border-color: #4e73df;
+            box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.15);
+        }
+        
+        /* Улучшенные стили для сообщений */
+        .message-bubble {
+            border-radius: 0.5rem;
+            padding: 0.75rem 1rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+        
+        .message-admin {
+            background: #e3f2fd;
+            border-left: 3px solid #2196F3;
+        }
+        
+        .message-user {
+            background: #f5f5f5;
+            border-left: 3px solid #757575;
+        }
+        
+        .message-header {
+            margin-bottom: 0.5rem;
+        }
+        
+        .message-header strong {
+            color: #2c3e50;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        
+        .message-text {
+            color: #2c3e50;
+            line-height: 1.5;
+        }
+    </style>
+    @endif
 @stop

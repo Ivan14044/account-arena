@@ -138,47 +138,50 @@ class CryptomusController extends Controller
     }
 
     /**
+     * Handle Cryptomus webhook
+     * Signature verification is handled by VerifyWebhookSignature middleware
+     * 
      * @throws RequestBuilderException
      */
     public function webhook(Request $request)
     {
-        $data = file_get_contents('php://input');
-        $data = json_decode($data, true);
-
-        \Log::info('Webhook received', $data);
+        $rawData = $request->getContent();
+        $data = json_decode($rawData, true);
 
         if (!is_array($data)) {
-            \Log::error('Invalid JSON');
+            \Log::error('Cryptomus webhook: Invalid JSON', ['raw' => substr($rawData, 0, 200)]);
             return response('Invalid JSON', 400);
         }
 
-        $cryptomus = new CryptomusSdk();
-        $result = $cryptomus->read_result($data);
-        \Log::info('Webhook check - ', $result);
+        // Verify signature using SDK (middleware already checks header, but SDK checks body signature)
+        $sdk = new CryptomusSdk();
+        $result = $sdk->read_result($data);
 
-        /*
-         * You could handle the response of transaction here like:
-         * if ($result['status']) {approve order for use or email them...} else {notice them the $result['message']}
-         * if $result['message'] is "Trying to fake payment result" then you should block your user!
-         * You could get 2 integer variables Session::get('cryptomus_hacked') & Session::get('cryptomus_hacked') to decide what to do with your user.
-         */
-
-        if ($result['status'] == 'paid') {
-            // Проверяем, это пополнение баланса?
-            if ($request->has('is_topup') && $request->is_topup == '1') {
-                return $this->handleTopUpWebhook($request, $data);
-            }
-
-            // Проверяем, это гостевой платеж?
-            if ($request->has('is_guest') && $request->is_guest == '1') {
-                return $this->handleGuestWebhook($request, $data);
-            }
-
-            // Проверяем, это покупка товаров для авторизованного пользователя?
-            if ($request->has('user_id') && $request->has('products_data')) {
-                return $this->handleUserPurchaseWebhook($request, $data);
-            }
+        if (!isset($result['status']) || $result['status'] !== 'paid') {
+            \Log::info('Cryptomus webhook: Payment not paid', [
+                'status' => $result['status'] ?? 'unknown',
+                'order_id' => $data['order_id'] ?? null
+            ]);
+            return response('OK', 200);
         }
+
+        // Route to appropriate handler based on webhook parameters
+        if ($request->has('is_topup') && $request->is_topup == '1') {
+            return $this->handleTopUpWebhook($request, $data);
+        }
+
+        if ($request->has('is_guest') && $request->is_guest == '1') {
+            return $this->handleGuestWebhook($request, $data);
+        }
+
+        if ($request->has('user_id') && $request->has('products_data')) {
+            return $this->handleUserPurchaseWebhook($request, $data);
+        }
+
+        \Log::warning('Cryptomus webhook: Unknown webhook type', [
+            'query_params' => $request->query(),
+            'order_id' => $data['order_id'] ?? null
+        ]);
 
         return response('OK', 200);
     }
@@ -392,58 +395,34 @@ class CryptomusController extends Controller
     }
 
     /**
-     * Обработка webhook для пополнения баланса через криптовалюту
-     * 
-     * Этот метод вызывается платежной системой Cryptomus после успешной оплаты.
-     * Используется BalanceService для безопасного зачисления средств на баланс.
-     * 
-     * @param Request $request
-     * @param array $data
-     * @return \Illuminate\Http\Response
+     * Handle top-up webhook
      */
     private function handleTopUpWebhook(Request $request, array $data)
     {
-        // Получаем ID заказа из webhook
         $orderId = $data['order_id'] ?? null;
-        if (!$orderId) {
-            \Log::error('Webhook пополнения баланса (crypto): отсутствует order_id', [
-                'data' => $data,
-            ]);
-            return response('Missing order_id', 400);
-        }
-
-        // Получаем пользователя
         $userId = $request->user_id;
-        if (!$userId) {
-            \Log::error('Webhook пополнения баланса (crypto): отсутствует user_id', [
-                'order_id' => $orderId,
+
+        if (!$orderId || !$userId) {
+            \Log::error('Top-up webhook: Missing required parameters', [
+                'has_order_id' => !empty($orderId),
+                'has_user_id' => !empty($userId)
             ]);
-            return response('Missing user_id', 400);
+            return response('Missing required parameters', 400);
         }
 
         $user = User::find($userId);
         if (!$user) {
-            \Log::error('Webhook пополнения баланса (crypto): пользователь не найден', [
-                'user_id' => $userId,
-                'order_id' => $orderId,
-            ]);
+            \Log::error('Top-up webhook: User not found', ['user_id' => $userId]);
             return response('User not found', 404);
         }
 
-        // Получаем и валидируем сумму
         $amount = round((float)$request->amount, 2);
         if ($amount <= 0) {
-            \Log::error('Webhook пополнения баланса (crypto): недопустимая сумма', [
-                'amount' => $request->amount,
-                'order_id' => $orderId,
-                'user_id' => $userId,
-            ]);
+            \Log::error('Top-up webhook: Invalid amount', ['amount' => $request->amount]);
             return response('Invalid amount', 400);
         }
 
         try {
-            // Используем BalanceService для безопасного пополнения баланса
-            // BalanceService автоматически проверит дубликаты по order_id
             $balanceService = app(BalanceService::class);
             
             $balanceTransaction = $balanceService->topUp(
@@ -460,19 +439,14 @@ class CryptomusController extends Controller
                 ]
             );
 
-            // Проверяем, была ли операция выполнена или это дубликат
             if ($balanceTransaction) {
-                \Log::info('Баланс успешно пополнен через Cryptomus', [
+                \Log::info('Balance topped up via Cryptomus', [
                     'user_id' => $user->id,
-                    'user_email' => $user->email,
                     'amount' => $amount,
                     'order_id' => $orderId,
-                    'balance_transaction_id' => $balanceTransaction->id,
                     'balance_after' => $balanceTransaction->balance_after,
-                    'cryptocurrency' => $data['currency'] ?? 'unknown',
                 ]);
 
-                // Отправляем уведомление администратору
                 NotifierService::send(
                     'balance_topup',
                     'Баланс пополнен',
@@ -482,186 +456,106 @@ class CryptomusController extends Controller
                 return response('OK', 200);
             }
 
-            // Если вернулся null, значит операция уже была обработана ранее
-            \Log::info('Webhook пополнения баланса (crypto): дубликат операции', [
-                'user_id' => $user->id,
-                'order_id' => $orderId,
-                'amount' => $amount,
-            ]);
-
+            \Log::info('Top-up webhook: Duplicate transaction', ['order_id' => $orderId]);
             return response('Already processed', 200);
 
         } catch (\InvalidArgumentException $e) {
-            \Log::error('Webhook пополнения баланса (crypto): ошибка валидации', [
+            \Log::error('Top-up webhook: Validation error', [
                 'error' => $e->getMessage(),
-                'user_id' => $user->id,
-                'order_id' => $orderId,
-                'amount' => $amount,
+                'order_id' => $orderId
             ]);
             return response($e->getMessage(), 400);
-
         } catch (\Exception $e) {
-            \Log::error('Webhook пополнения баланса (crypto): критическая ошибка', [
+            \Log::error('Top-up webhook: Processing failed', [
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-                'user_id' => $user->id,
-                'order_id' => $orderId,
-                'amount' => $amount,
+                'order_id' => $orderId
             ]);
             return response('Processing failed', 500);
         }
     }
 
     /**
-     * Обработка webhook для покупки товаров авторизованным пользователем
+     * Handle user purchase webhook
      */
     private function handleUserPurchaseWebhook(Request $request, array $data)
     {
         $userId = $request->user_id;
         if (!$userId) {
-            \Log::error('Invalid user_id in user purchase webhook');
-            return response('Invalid user_id', 400);
+            \Log::error('User purchase webhook: Missing user_id');
+            return response('Missing user_id', 400);
         }
 
         $user = User::find($userId);
         if (!$user) {
-            \Log::error('User not found in webhook', ['user_id' => $userId]);
+            \Log::error('User purchase webhook: User not found', ['user_id' => $userId]);
             return response('User not found', 404);
         }
 
-        $productsDataEncoded = $request->products_data ?? '';
-        $productsData = json_decode(base64_decode($productsDataEncoded), true);
-        
-        if (!is_array($productsData) || empty($productsData)) {
-            \Log::error('Invalid products data in user purchase webhook');
+        $productsData = $this->parseProductsData($request->products_data ?? '');
+        if (empty($productsData)) {
+            \Log::error('User purchase webhook: Invalid products data');
             return response('Invalid products data', 400);
         }
 
         $promocode = trim((string)($request->promocode ?? ''));
 
         try {
-            $purchaseService = app(ProductPurchaseService::class);
-            
-            // Подготавливаем данные о товарах для создания покупок
-            $preparedProductsData = [];
-            foreach ($productsData as $item) {
-                $product = ServiceAccount::find($item['product_id']);
-                if (!$product) {
-                    \Log::warning('Product not found in webhook', ['product_id' => $item['product_id']]);
-                    continue;
-                }
-                
-                $preparedProductsData[] = [
-                    'product' => $product,
-                    'quantity' => $item['quantity'],
-                    'price' => $item['price'],
-                    'total' => $item['total'],
-                ];
-            }
-            
+            $preparedProductsData = $this->prepareProductsForPurchase($productsData);
             if (empty($preparedProductsData)) {
-                \Log::error('No valid products found in webhook');
+                \Log::error('User purchase webhook: No valid products');
                 return response('No valid products', 400);
             }
             
-            // Создаем покупки для авторизованного пользователя
+            $purchaseService = app(ProductPurchaseService::class);
             $purchases = $purchaseService->createMultiplePurchases(
                 $preparedProductsData,
                 $user->id,
-                null, // guest_email = null для авторизованных
+                null,
                 'crypto'
             );
 
-            // Отправляем email уведомление пользователю
             $totalAmount = array_sum(array_column($productsData, 'total'));
-            EmailService::send('payment_confirmation', $user->id, [
-                'amount' => number_format($totalAmount, 2, '.', '') . ' ' . strtoupper(Option::get('currency'))
-            ]);
+            
+            // Send notifications
+            $this->sendPurchaseNotifications($user, $totalAmount, $purchases, false);
 
-            // Отправляем уведомление пользователю о покупке
-            if (!empty($purchases) && isset($purchases[0]) && $purchases[0]->order_number) {
-                $notificationService = app(NotificationTemplateService::class);
-                $notificationService->sendToUser($user, 'purchase', [
-                    'order_number' => $purchases[0]->order_number,
-                ]);
-            }
-
-            // Уведомление админу о новой покупке
-            NotifierService::sendFromTemplate(
-                'product_purchase',
-                'admin_product_purchase',
-                [
-                    'method' => 'Cryptomus',
-                    'email' => $user->email,
-                    'name' => $user->name,
-                    'products' => count($productsData),
-                    'amount' => number_format($totalAmount, 2),
-                ]
-            );
-
-            LoggingService::info('User purchase completed via Cryptomus', [
-                'user_id' => $user->id,
-                'user_email' => $user->email,
-                'order_id' => $data['order_id'] ?? 'unknown',
-                'products_count' => count($productsData),
-            ]);
-
-            // Записываем использование промокода если есть
-            if ($promocode !== '') {
-                DB::transaction(function () use ($promocode, $user, $data) {
-                    $promo = Promocode::where('code', $promocode)->lockForUpdate()->first();
-                    if ($promo) {
-                        PromocodeUsage::create([
-                            'promocode_id' => $promo->id,
-                            'user_id' => $user->id,
-                            'order_id' => (string)($data['order_id'] ?? ''),
-                        ]);
-                        if ((int)$promo->usage_limit > 0 && (int)$promo->usage_count < (int)$promo->usage_limit) {
-                            $promo->usage_count = (int)$promo->usage_count + 1;
-                            $promo->save();
-                        }
-                    }
-                });
-            }
+            $this->recordPromocodeUsage($promocode, $user->id, $data['order_id'] ?? '');
 
             return response('OK', 200);
         } catch (\Exception $e) {
-            \Log::error('User purchase webhook processing failed', [
+            \Log::error('User purchase webhook: Processing failed', [
                 'error' => $e->getMessage(),
-                'user_id' => $userId,
-                'trace' => $e->getTraceAsString(),
+                'user_id' => $userId
             ]);
             return response('Processing failed', 500);
         }
     }
 
     /**
-     * Обработка webhook для гостевого платежа
+     * Handle guest purchase webhook
      */
     private function handleGuestWebhook(Request $request, array $data)
     {
         $guestEmail = trim((string)$request->guest_email);
         if (!$guestEmail || !filter_var($guestEmail, FILTER_VALIDATE_EMAIL)) {
-            \Log::error('Invalid guest email in webhook', ['guest_email' => $guestEmail]);
+            \Log::error('Guest webhook: Invalid email', ['email' => $guestEmail]);
             return response('Invalid guest email', 400);
         }
 
-        $productsDataEncoded = $request->products_data ?? '';
-        $productsData = json_decode(base64_decode($productsDataEncoded), true);
-        
-        if (!is_array($productsData) || empty($productsData)) {
-            \Log::error('Invalid products data in webhook');
+        $productsData = $this->parseProductsData($request->products_data ?? '');
+        if (empty($productsData)) {
+            \Log::error('Guest webhook: Invalid products data');
             return response('Invalid products data', 400);
         }
 
         $promocode = trim((string)($request->promocode ?? ''));
 
         try {
-            // Создаем покупки для гостя
             GuestCartController::createGuestPurchases($guestEmail, $productsData, $promocode);
 
-            // Отправляем email уведомление гостю с информацией о покупке
             $totalAmount = array_sum(array_column($productsData, 'total'));
+            
+            // Send guest notifications
             EmailService::sendToGuest(
                 $guestEmail,
                 'guest_purchase_confirmation',
@@ -672,7 +566,6 @@ class CryptomusController extends Controller
                 ]
             );
 
-            // Уведомление админу о новой гостевой покупке
             NotifierService::sendFromTemplate(
                 'guest_product_purchase',
                 'admin_product_purchase',
@@ -685,37 +578,132 @@ class CryptomusController extends Controller
                 ]
             );
 
-            LoggingService::info('Guest purchase completed via Cryptomus', [
-                'guest_email' => $guestEmail,
-                'order_id' => $data['order_id'] ?? 'unknown',
-                'products_count' => count($productsData),
-            ]);
-
-            // Записываем использование промокода если есть
-            if ($promocode !== '') {
-                DB::transaction(function () use ($promocode, $guestEmail, $data) {
-                    $promo = Promocode::where('code', $promocode)->lockForUpdate()->first();
-                    if ($promo) {
-                        PromocodeUsage::create([
-                            'promocode_id' => $promo->id,
-                            'user_id' => null, // Гостевая покупка
-                            'order_id' => (string)($data['order_id'] ?? ''),
-                        ]);
-                        if ((int)$promo->usage_limit > 0 && (int)$promo->usage_count < (int)$promo->usage_limit) {
-                            $promo->usage_count = (int)$promo->usage_count + 1;
-                            $promo->save();
-                        }
-                    }
-                });
-            }
+            $this->recordPromocodeUsage($promocode, null, $data['order_id'] ?? '');
 
             return response('OK', 200);
         } catch (\Exception $e) {
-            \Log::error('Guest webhook processing failed', [
+            \Log::error('Guest webhook: Processing failed', [
                 'error' => $e->getMessage(),
-                'guest_email' => $guestEmail,
+                'guest_email' => $guestEmail
             ]);
             return response('Processing failed', 500);
+        }
+    }
+
+    /**
+     * Parse products data from base64 encoded string
+     */
+    private function parseProductsData(string $encodedData): array
+    {
+        if (empty($encodedData)) {
+            return [];
+        }
+
+        $decoded = json_decode(base64_decode($encodedData), true);
+        return is_array($decoded) ? $decoded : [];
+    }
+
+    /**
+     * Prepare products data for purchase creation
+     */
+    private function prepareProductsForPurchase(array $productsData): array
+    {
+        $prepared = [];
+        foreach ($productsData as $item) {
+            $product = ServiceAccount::find($item['product_id'] ?? null);
+            if (!$product) {
+                \Log::warning('Product not found in webhook', [
+                    'product_id' => $item['product_id'] ?? null
+                ]);
+                continue;
+            }
+            
+            $prepared[] = [
+                'product' => $product,
+                'quantity' => $item['quantity'] ?? 1,
+                'price' => $item['price'] ?? 0,
+                'total' => $item['total'] ?? 0,
+            ];
+        }
+        
+        return $prepared;
+    }
+
+    /**
+     * Send purchase notifications to user and admin
+     */
+    private function sendPurchaseNotifications($user, float $totalAmount, array $purchases, bool $isGuest): void
+    {
+        if ($isGuest) {
+            return;
+        }
+
+        // Email to user
+        EmailService::send('payment_confirmation', $user->id, [
+            'amount' => number_format($totalAmount, 2, '.', '') . ' ' . strtoupper(Option::get('currency'))
+        ]);
+
+        // Notification to user
+        if (!empty($purchases) && isset($purchases[0]) && $purchases[0]->order_number) {
+            $notificationService = app(NotificationTemplateService::class);
+            $notificationService->sendToUser($user, 'purchase', [
+                'order_number' => $purchases[0]->order_number,
+            ]);
+        }
+
+        // Notification to admin
+        NotifierService::sendFromTemplate(
+            'product_purchase',
+            'admin_product_purchase',
+            [
+                'method' => 'Cryptomus',
+                'email' => $user->email,
+                'name' => $user->name,
+                'products' => count($purchases),
+                'amount' => number_format($totalAmount, 2),
+            ]
+        );
+
+        LoggingService::info('Purchase completed via Cryptomus', [
+            'user_id' => $user->id,
+            'user_email' => $user->email,
+            'products_count' => count($purchases),
+        ]);
+    }
+
+    /**
+     * Record promocode usage
+     */
+    private function recordPromocodeUsage(string $promocode, ?int $userId, string $orderId): void
+    {
+        if (empty($promocode)) {
+            return;
+        }
+
+        try {
+            DB::transaction(function () use ($promocode, $userId, $orderId) {
+                $promo = Promocode::where('code', $promocode)->lockForUpdate()->first();
+                if (!$promo) {
+                    return;
+                }
+
+                PromocodeUsage::create([
+                    'promocode_id' => $promo->id,
+                    'user_id' => $userId,
+                    'order_id' => (string)$orderId,
+                ]);
+
+                if ((int)$promo->usage_limit > 0 && (int)$promo->usage_count < (int)$promo->usage_limit) {
+                    $promo->increment('usage_count');
+                }
+            });
+        } catch (\Exception $e) {
+            \Log::error('Failed to record promocode usage', [
+                'promocode' => $promocode,
+                'user_id' => $userId,
+                'order_id' => $orderId,
+                'error' => $e->getMessage()
+            ]);
         }
     }
 }

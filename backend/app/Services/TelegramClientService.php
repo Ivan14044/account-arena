@@ -7,56 +7,47 @@ use App\Models\SupportChat;
 use App\Models\SupportMessage;
 use App\Models\SupportMessageAttachment;
 use App\Models\User;
+use Amp\Ipc\Sync\ChannelException;
 use danog\MadelineProto\API;
 use danog\MadelineProto\Settings;
 use danog\MadelineProto\Settings\AppInfo;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
 
 class TelegramClientService
 {
     private ?API $madeline = null;
     private string $sessionPath;
     private bool $enabled;
-    private ?bool $isAuthorizedCache = null; // Cache authorization status
+    private ?bool $isAuthorizedCache = null;
 
     public function __construct()
     {
-        // Берем настройки из базы данных (Option), если нет - из config
         $this->enabled = Option::get('telegram_client_enabled', config('telegram.client.enabled', false));
         $this->sessionPath = config('telegram.client.session_path', storage_path('app/telegram/session.madeline'));
         
-        // Создаем директорию для сессии, если её нет
         $sessionDir = dirname($this->sessionPath);
         if (!is_dir($sessionDir)) {
             mkdir($sessionDir, 0755, true);
         }
     }
 
-    /**
-     * Destructor to clean up resources
-     */
     public function __destruct()
     {
         $this->disconnect();
     }
 
     /**
-     * Explicitly disconnect and clean up resources
+     * Disconnect and cleanup
      */
     public function disconnect(): void
     {
         if ($this->madeline !== null) {
             try {
-                // MadelineProto has internal cleanup mechanism
-                // Just clear the reference to allow garbage collection
+                // MadelineProto handles cleanup automatically
                 $this->madeline = null;
-                $this->isAuthorizedCache = null; // Clear authorization cache
-                Log::debug('TelegramClientService: Connection closed and resources cleaned up');
+                $this->isAuthorizedCache = null;
             } catch (\Exception $e) {
                 Log::warning('Error cleaning up TelegramClientService: ' . $e->getMessage());
-                // Force cleanup even if there's an error
                 $this->madeline = null;
                 $this->isAuthorizedCache = null;
             }
@@ -64,12 +55,12 @@ class TelegramClientService
     }
 
     /**
-     * Инициализировать и получить экземпляр MadelineProto
+     * Get or initialize MadelineProto client
+     * According to docs: https://docs.madelineproto.xyz/docs/UPDATES.html#ipc
      */
     public function getClient(): ?API
     {
         if (!$this->enabled) {
-            Log::warning('Telegram Client не включен в конфигурации');
             return null;
         }
 
@@ -78,303 +69,219 @@ class TelegramClientService
         }
 
         try {
-            // Перехватываем вывод с самого начала, так как MadelineProto может вывести предупреждения
-            // при создании объекта API (например, предупреждение о Windows)
-            ob_start();
-            
-            try {
-                // Берем настройки из базы данных (Option), если нет - из config
-                $apiId = Option::get('telegram_api_id', config('telegram.client.api_id'));
-                $apiHash = Option::get('telegram_api_hash', config('telegram.client.api_hash'));
+            $apiId = Option::get('telegram_api_id', config('telegram.client.api_id'));
+            $apiHash = Option::get('telegram_api_hash', config('telegram.client.api_hash'));
 
-                if (!$apiId || !$apiHash) {
-                    ob_end_clean();
-                    Log::error('Telegram API ID или API Hash не настроены');
-                    return null;
-                }
-
-                // В MadelineProto 8.x настройки передаются через объект Settings
-                $settings = new Settings();
-                $appInfo = new AppInfo();
-                $appInfo->setApiId((int) $apiId);
-                $appInfo->setApiHash((string) $apiHash);
-                $appInfo->setShowPrompt(false); // Не показывать промпт
-                $settings->setAppInfo($appInfo);
-                
-                // Создание объекта API может вывести предупреждения (например, о Windows)
-                $this->madeline = new API($this->sessionPath, $settings);
-                
-                // НЕ вызываем start() - он выводит HTML в веб-контексте
-                // Используем manual login через phoneLogin() и completePhoneLogin()
-                // start() нужен только для автоматического интерактивного режима
-                
-                // Проверяем, есть ли уже авторизованная сессия
-                // Если сессия существует и валидна, getSelf() вернет данные пользователя
-                // Если нет - это нормально, авторизация будет выполнена через phoneLogin
-                
-                // Проверяем авторизацию (не логируем ошибки, так как это нормально при отсутствии авторизации)
-                // Вывод уже перехвачен выше
-                // Кешируем результат авторизации для оптимизации
-                try {
-                    $self = $this->madeline->getSelf();
-                    
-                    if ($self) {
-                        $userId = is_array($self) ? ($self['id'] ?? null) : (isset($self->id) ? $self->id : null);
-                        $this->isAuthorizedCache = true;
-                        Log::info('Telegram Client успешно инициализирован и авторизован', ['user_id' => $userId ?? 'unknown']);
-                    } else {
-                        $this->isAuthorizedCache = false;
-                    }
-                } catch (\Exception $e) {
-                    // Если не авторизован, это нормально - нужно выполнить авторизацию
-                    // Не логируем как ошибку, так как это ожидаемое поведение
-                    $this->isAuthorizedCache = false;
-                    Log::debug('Telegram Client не авторизован (ожидаемое поведение): ' . $e->getMessage());
-                }
-                
-                // Очищаем весь перехваченный вывод (включая предупреждения MadelineProto)
-                ob_end_clean();
-
-                return $this->madeline;
-            } catch (\Exception $e) {
-                // Очищаем вывод даже при ошибке
-                ob_end_clean();
-                throw $e;
+            if (!$apiId || !$apiHash) {
+                Log::error('Telegram API ID or API Hash not configured');
+                return null;
             }
+
+            // Check if session exists - if not, we know we need to authorize
+            $sessionExists = file_exists($this->sessionPath);
+            
+            $settings = new Settings();
+            $appInfo = new AppInfo();
+            $appInfo->setApiId((int) $apiId);
+            $appInfo->setApiHash((string) $apiHash);
+            $appInfo->setShowPrompt(false);
+            $settings->setAppInfo($appInfo);
+            
+            // Create API instance - session is saved automatically by MadelineProto
+            // If session doesn't exist, MadelineProto will create a new one
+            $this->madeline = new API($this->sessionPath, $settings);
+            
+            // Only check authorization if session exists
+            // If session was deleted, checkAuthorization will return false
+            if ($sessionExists) {
+                $this->checkAuthorization();
+            } else {
+                // No session = not authorized
+                $this->isAuthorizedCache = false;
+                Log::debug('No session file found, authorization required');
+            }
+            
+            return $this->madeline;
         } catch (\Exception $e) {
-            Log::error('Ошибка инициализации Telegram Client: ' . $e->getMessage());
+            Log::error('Error initializing Telegram Client: ' . $e->getMessage());
+            $this->madeline = null;
             return null;
         }
     }
 
     /**
-     * Авторизация в Telegram
+     * Check authorization status with proper IPC channel handling
      */
-    public function authorize(): void
+    private function checkAuthorization(): bool
     {
+        if ($this->madeline === null) {
+            return false;
+        }
+
+        // Use cache if available
+        if ($this->isAuthorizedCache !== null) {
+            return $this->isAuthorizedCache;
+        }
+
         try {
-            // Берем настройки из базы данных (Option), если нет - из config
-            $phoneNumber = Option::get('telegram_phone_number', config('telegram.client.phone_number'));
+            $self = $this->madeline->getSelf();
+            $this->isAuthorizedCache = $self !== null;
             
-            if (!$phoneNumber) {
-                Log::error('Номер телефона для Telegram не настроен');
-                throw new \Exception('Номер телефона не настроен. Укажите номер телефона в настройках.');
-            }
-
-            $client = $this->getClient();
-            if (!$client) {
-                throw new \Exception('Не удалось инициализировать Telegram клиент. Проверьте API ID и API Hash.');
-            }
-
-            // Проверяем, авторизован ли уже (используем кеш, если доступен)
-            if ($this->isAuthorizedCache === true) {
-                throw new \Exception('Уже авторизован. Если нужно переключиться на другой аккаунт, используйте "Сбросить сессию".');
+            if ($this->isAuthorizedCache && $self) {
+                $userId = is_array($self) ? ($self['id'] ?? null) : (is_object($self) ? ($self->id ?? null) : null);
+                Log::info('Telegram Client authorized', ['user_id' => $userId ?? 'unknown']);
             }
             
-            // Если кеш не установлен или показывает неавторизован, проверяем
-            if ($this->isAuthorizedCache !== true) {
-                // getClient() уже перехватывает вывод, но getSelf() может что-то вывести
-                // Перехватываем вывод на случай, если getSelf() что-то выведет
-                ob_start();
-                try {
-                    $self = $client->getSelf();
-                    
-                    // getClient() уже очистил свой буфер, но мы продолжаем перехватывать
-                    // Просто очищаем буфер, не получая его содержимое
-                    if (ob_get_level() > 0) {
-                        ob_end_clean();
-                    }
-                    
-                    if ($self) {
-                        $this->isAuthorizedCache = true;
-                        $userId = is_array($self) ? ($self['id'] ?? null) : (isset($self->id) ? $self->id : null);
-                        Log::info('Уже авторизован в Telegram', ['user_id' => $userId ?? 'unknown']);
-                        throw new \Exception('Уже авторизован. Если нужно переключиться на другой аккаунт, используйте "Сбросить сессию".');
-                    } else {
-                        $this->isAuthorizedCache = false;
-                    }
-                } catch (\Exception $e) {
-                    // Очищаем вывод даже при ошибке
-                    if (ob_get_level() > 0) {
-                        ob_end_clean();
-                    }
-                    // Если это наше исключение о том, что уже авторизован - пробрасываем дальше
-                    if (strpos($e->getMessage(), 'Уже авторизован') !== false) {
-                        throw $e;
-                    }
-                    // Иначе - не авторизован, продолжаем
-                    Log::info('Требуется авторизация: ' . $e->getMessage());
-                }
-            }
-
-            // Запрашиваем код через phoneLogin
-            Log::info('Отправка кода на номер: ' . $phoneNumber);
-            
-            try {
-                // Перехватываем вывод на случай, если phoneLogin попытается вывести HTML
-                ob_start();
-                $sentCode = $client->phoneLogin($phoneNumber);
-                
-                // Очищаем буфер после phoneLogin
-                if (ob_get_level() > 0) {
-                    $output = ob_get_clean();
-                    
-                    // Если был вывод HTML, это проблема
-                    if (!empty($output) && (strpos($output, '<html') !== false || strpos($output, '<form') !== false)) {
-                        Log::warning('phoneLogin вывел HTML вместо отправки кода');
-                        throw new \Exception('Не удалось отправить код. Попробуйте сбросить сессию и начать заново.');
-                    }
-                }
-                
-                Log::info('Код отправлен в Telegram', ['phone' => $phoneNumber]);
-            } catch (\Exception $e) {
-                // Очищаем вывод даже при ошибке
-                while (ob_get_level() > 0) {
-                    ob_end_clean();
-                }
-                
-                Log::error('Ошибка отправки кода: ' . $e->getMessage());
-                
-                // Проверяем, может быть уже есть незавершенная авторизация
-                $errorMessage = $e->getMessage();
-                if (strpos($errorMessage, 'already') !== false || 
-                    strpos($errorMessage, 'уже') !== false ||
-                    strpos($errorMessage, 'PHONE_CODE_HASH_EMPTY') !== false) {
-                    throw new \Exception('Авторизация уже начата. Введите код, который был отправлен ранее, или сбросьте сессию.');
-                }
-                
-                throw new \Exception('Ошибка отправки кода: ' . $errorMessage);
-            }
-            
-        } catch (\Exception $e) {
-            Log::error('Ошибка авторизации в Telegram: ' . $e->getMessage(), [
-                'trace' => $e->getTraceAsString()
+            return $this->isAuthorizedCache;
+        } catch (ChannelException $e) {
+            // IPC channel closed - need to reinitialize
+            Log::warning('Telegram IPC channel closed, reinitializing', [
+                'error' => $e->getMessage()
             ]);
-            throw $e;
+            
+            $this->madeline = null;
+            $this->isAuthorizedCache = null;
+            
+            // Try to get client again (will reinitialize)
+            $client = $this->getClient();
+            if ($client) {
+                return $this->checkAuthorization();
+            }
+            
+            return false;
+        } catch (\Exception $e) {
+            // Not authorized or other error
+            $this->isAuthorizedCache = false;
+            Log::debug('Telegram Client not authorized: ' . $e->getMessage());
+            return false;
         }
     }
 
     /**
-     * Завершить авторизацию с кодом
-     * Согласно документации: https://docs.madelineproto.xyz/docs/LOGIN.html#manual-user
+     * Start phone login
      */
-    public function completeAuth(string $code, ?string $password2FA = null, ?string $firstName = null, ?string $lastName = null): array
+    public function authorize(): void
     {
-        // Перехватываем вывод
-        $initialObLevel = ob_get_level();
-        ob_start();
+        $phoneNumber = Option::get('telegram_phone_number', config('telegram.client.phone_number'));
         
-        try {
-            $client = $this->getClient();
-            
-            if (!$client) {
-                while (ob_get_level() > $initialObLevel) {
-                    ob_end_clean();
-                }
-                throw new \Exception('Telegram клиент не инициализирован');
-            }
+        if (!$phoneNumber) {
+            throw new \Exception('Phone number not configured');
+        }
 
-            Log::info('Попытка завершения авторизации с кодом');
-            
+        // Clear cache and client to force fresh check
+        $this->isAuthorizedCache = null;
+        $this->madeline = null;
+
+        $client = $this->getClient();
+        if (!$client) {
+            throw new \Exception('Failed to initialize Telegram client');
+        }
+
+        // Check if session file exists - if not, we can proceed with authorization
+        $sessionExists = file_exists($this->sessionPath);
+        
+        if ($sessionExists) {
+            // Session exists - check if already authorized
+            if ($this->checkAuthorization()) {
+                // Double check - try to get self to verify
+                try {
+                    $self = $client->getSelf();
+                    if ($self) {
+                        throw new \Exception('Already authorized. Use "Reset Session" to switch accounts.');
+                    }
+                } catch (\Exception $e) {
+                    // If getSelf fails, we're not actually authorized
+                    // This might happen if session is corrupted
+                    $this->isAuthorizedCache = false;
+                    Log::info('Session exists but authorization check failed, proceeding with new authorization', [
+                        'error' => $e->getMessage()
+                    ]);
+                }
+            }
+        } else {
+            // No session file - we can proceed with authorization
+            $this->isAuthorizedCache = false;
+            Log::info('No session file found, proceeding with new authorization');
+        }
+
+        try {
+            $client->phoneLogin($phoneNumber);
+            Log::info('Authorization code sent', ['phone' => $phoneNumber]);
+        } catch (\Exception $e) {
+            $errorMessage = $e->getMessage();
+            if (strpos($errorMessage, 'already') !== false || 
+                strpos($errorMessage, 'PHONE_CODE_HASH_EMPTY') !== false) {
+                throw new \Exception('Authorization already started. Enter the code or reset session.');
+            }
+            throw new \Exception('Error sending code: ' . $errorMessage);
+        }
+    }
+
+    /**
+     * Complete authorization with code
+     */
+    public function completeAuth(string $code, ?string $password2FA = null): array
+    {
+        $client = $this->getClient();
+        if (!$client) {
+            throw new \Exception('Telegram client not initialized');
+        }
+
+        try {
             $authorization = $client->completePhoneLogin($code);
             
-            // Очищаем буфер вывода
-            while (ob_get_level() > $initialObLevel) {
-                ob_end_clean();
-            }
-            
-            // Проверяем результат согласно документации
-            if (isset($authorization['_'])) {
-                $authType = $authorization['_'];
-                
-                // Требуется пароль 2FA
-                if ($authType === 'account.password') {
-                    if ($password2FA) {
-                        // Завершаем 2FA авторизацию
-                        ob_start();
-                        try {
-                            $authorization = $client->complete2falogin($password2FA);
-                            while (ob_get_level() > $initialObLevel) {
-                                ob_end_clean();
-                            }
-                            Log::info('2FA авторизация завершена');
-                        } catch (\Exception $e) {
-                            while (ob_get_level() > $initialObLevel) {
-                                ob_end_clean();
-                            }
-                            Log::error('Ошибка 2FA авторизации: ' . $e->getMessage());
-                            return ['success' => false, 'message' => 'Ошибка 2FA авторизации: ' . $e->getMessage()];
-                        }
-                    } else {
-                        // Возвращаем информацию о необходимости 2FA
-                        return [
-                            'success' => false,
-                            'needs_2fa' => true,
-                            'hint' => $authorization['hint'] ?? null,
-                            'message' => 'Требуется пароль двухфакторной аутентификации'
-                        ];
-                    }
-                }
-                
-                // Требуется регистрация (signup) - не поддерживается, показываем ошибку
-                if ($authType === 'account.needSignup') {
+            // Check if 2FA is required
+            if (isset($authorization['_']) && $authorization['_'] === 'account.password') {
+                if ($password2FA) {
+                    $authorization = $client->complete2falogin($password2FA);
+                } else {
                     return [
                         'success' => false,
-                        'message' => 'Аккаунт не существует. Используйте существующий аккаунт Telegram.'
+                        'needs_2fa' => true,
+                        'hint' => $authorization['hint'] ?? null,
+                        'message' => 'Two-factor authentication password required'
                     ];
                 }
             }
             
-            // Проверяем успешность авторизации
-            try {
-                $self = $client->getSelf();
-                if ($self) {
-                    $this->isAuthorizedCache = true; // Обновляем кеш
-                    $userId = is_array($self) ? ($self['id'] ?? null) : (isset($self->id) ? $self->id : null);
-                    Log::info('Авторизация в Telegram завершена успешно', ['user_id' => $userId ?? 'unknown']);
-                    
-                    return [
-                        'success' => true,
-                        'user_id' => $userId,
-                        'first_name' => is_array($self) ? ($self['first_name'] ?? null) : (isset($self->first_name) ? $self->first_name : null),
-                        'last_name' => is_array($self) ? ($self['last_name'] ?? null) : (isset($self->last_name) ? $self->last_name : null),
-                        'username' => is_array($self) ? ($self['username'] ?? null) : (isset($self->username) ? $self->username : null),
-                        'phone' => is_array($self) ? ($self['phone'] ?? null) : (isset($self->phone) ? $self->phone : null),
-                    ];
-                } else {
-                    $this->isAuthorizedCache = false;
-                    Log::warning('completePhoneLogin вернул результат, но getSelf() не вернул данные');
-                    return ['success' => false, 'message' => 'Авторизация не завершена'];
-                }
-            } catch (\Exception $e) {
-                $this->isAuthorizedCache = false;
-                Log::warning('Не удалось проверить авторизацию после completePhoneLogin: ' . $e->getMessage());
-                return ['success' => false, 'message' => 'Ошибка проверки авторизации: ' . $e->getMessage()];
+            // Verify authorization
+            $self = $client->getSelf();
+            if (!$self) {
+                return ['success' => false, 'message' => 'Authorization not completed'];
             }
+            
+            $this->isAuthorizedCache = true;
+            $userId = is_array($self) ? ($self['id'] ?? null) : (is_object($self) ? ($self->id ?? null) : null);
+            
+            Log::info('Telegram authorization completed', ['user_id' => $userId ?? 'unknown']);
+            
+            $getValue = function($key) use ($self) {
+                if (is_array($self)) {
+                    return $self[$key] ?? null;
+                }
+                if (is_object($self)) {
+                    return $self->$key ?? null;
+                }
+                return null;
+            };
+            
+            return [
+                'success' => true,
+                'user_id' => $userId,
+                'first_name' => $getValue('first_name'),
+                'last_name' => $getValue('last_name'),
+                'username' => $getValue('username'),
+                'phone' => $getValue('phone'),
+            ];
         } catch (\Exception $e) {
-            // Очищаем все буферы вывода при ошибке
-            while (ob_get_level() > $initialObLevel) {
-                ob_end_clean();
-            }
-            
-            Log::error('Ошибка завершения авторизации: ' . $e->getMessage(), [
-                'trace' => $e->getTraceAsString()
-            ]);
-            
-            // Проверяем тип ошибки
             $errorMessage = $e->getMessage();
             
-            // Ошибки кода авторизации
             if (strpos($errorMessage, 'PHONE_CODE_INVALID') !== false) {
-                return ['success' => false, 'message' => 'Неверный код авторизации. Проверьте код и попробуйте снова.'];
+                return ['success' => false, 'message' => 'Invalid authorization code'];
             } elseif (strpos($errorMessage, 'PHONE_CODE_EXPIRED') !== false) {
-                return ['success' => false, 'message' => 'Код авторизации истек. Запросите новый код.'];
-            } elseif (strpos($errorMessage, 'PHONE_CODE_EMPTY') !== false) {
-                return ['success' => false, 'message' => 'Код не был введен. Введите код из Telegram.'];
+                return ['success' => false, 'message' => 'Authorization code expired'];
             } elseif (strpos($errorMessage, 'SESSION_PASSWORD_NEEDED') !== false) {
-                return ['success' => false, 'needs_2fa' => true, 'message' => 'Требуется пароль двухфакторной аутентификации.'];
-            } elseif (strpos($errorMessage, 'код') !== false) {
-                return ['success' => false, 'message' => 'Ошибка проверки кода: ' . $errorMessage];
+                return ['success' => false, 'needs_2fa' => true, 'message' => 'Two-factor authentication required'];
             }
             
             return ['success' => false, 'message' => $errorMessage];
@@ -382,498 +289,326 @@ class TelegramClientService
     }
 
     /**
-     * Отправить сообщение в Telegram
+     * Reset session
+     * MadelineProto 8.x stores session as directory, not file
+     */
+    public function resetSession(): void
+    {
+        // Disconnect and clear client first
+        $this->disconnect();
+        $this->isAuthorizedCache = null;
+        
+        // Delete session (can be file or directory in MadelineProto 8.x)
+        if (file_exists($this->sessionPath)) {
+            if (is_dir($this->sessionPath)) {
+                // Remove directory recursively
+                $this->removeDirectory($this->sessionPath);
+                Log::info('Telegram session directory deleted', ['path' => $this->sessionPath]);
+            } else {
+                // Remove file
+                @unlink($this->sessionPath);
+                Log::info('Telegram session file deleted', ['path' => $this->sessionPath]);
+            }
+        }
+        
+        // Delete session lock file if exists
+        $lockFile = $this->sessionPath . '.lock';
+        if (file_exists($lockFile) && is_file($lockFile)) {
+            @unlink($lockFile);
+        }
+        
+        // Delete all related session files in directory
+        $sessionDir = dirname($this->sessionPath);
+        $sessionBase = basename($this->sessionPath, '.madeline');
+        
+        if (is_dir($sessionDir)) {
+            $files = glob($sessionDir . '/' . $sessionBase . '*');
+            if ($files) {
+                foreach ($files as $file) {
+                    if (is_file($file)) {
+                        @unlink($file);
+                    } elseif (is_dir($file)) {
+                        $this->removeDirectory($file);
+                    }
+                }
+            }
+        }
+        
+        // Force clear client to prevent reloading from deleted session
+        $this->madeline = null;
+        $this->isAuthorizedCache = null;
+        
+        Log::info('Telegram session reset completed');
+    }
+
+    /**
+     * Remove directory recursively
+     */
+    private function removeDirectory(string $dir): void
+    {
+        if (!is_dir($dir)) {
+            return;
+        }
+        
+        $files = array_diff(scandir($dir), ['.', '..']);
+        foreach ($files as $file) {
+            $path = $dir . '/' . $file;
+            if (is_dir($path)) {
+                $this->removeDirectory($path);
+            } else {
+                @unlink($path);
+            }
+        }
+        
+        @rmdir($dir);
+    }
+
+    /**
+     * Send message to Telegram
+     * According to docs: https://docs.madelineproto.xyz/
      */
     public function sendMessage(int $chatId, string $message = '', $attachments = []): bool
     {
-        // Перехватываем вывод, так как методы MadelineProto могут вывести HTML
-        ob_start();
-        
         try {
             $client = $this->getClient();
-            
             if (!$client) {
-                if (ob_get_level() > 0) {
-                    ob_end_clean();
-                }
-                Log::error("Telegram Client не инициализирован для отправки сообщения");
+                Log::error('Telegram Client not initialized for sending message', ['chat_id' => $chatId]);
                 return false;
             }
 
-            // НЕ вызываем start() - используем manual login
-            // Проверяем авторизацию перед отправкой (используем кеш, если доступен)
-            if ($this->isAuthorizedCache === false) {
-                if (ob_get_level() > 0) {
-                    ob_end_clean();
-                }
-                Log::error("Telegram Client не авторизован для отправки сообщения (кеш показывает неавторизован)");
+            if (!$this->checkAuthorization()) {
+                Log::error('Telegram Client not authorized for sending message', ['chat_id' => $chatId]);
                 return false;
-            }
-            
-            // Если кеш не установлен, проверяем авторизацию
-            if ($this->isAuthorizedCache === null) {
-                try {
-                    $self = $client->getSelf();
-                    if (!$self) {
-                        $this->isAuthorizedCache = false;
-                        if (ob_get_level() > 0) {
-                            ob_end_clean();
-                        }
-                        Log::error("Telegram Client не авторизован для отправки сообщения (getSelf() вернул null)");
-                        return false;
-                    }
-                    $this->isAuthorizedCache = true;
-                } catch (\Exception $e) {
-                    $this->isAuthorizedCache = false;
-                    if (ob_get_level() > 0) {
-                        ob_end_clean();
-                    }
-                    Log::error("Telegram Client не авторизован: " . $e->getMessage(), [
-                        'error_type' => get_class($e),
-                        'trace' => substr($e->getTraceAsString(), 0, 500)
-                    ]);
-                    return false;
-                }
             }
 
             $sentSomething = false;
-            $textSent = false;
-            $attachmentsSent = 0;
-            $attachmentsFailed = 0;
 
-            // Отправляем текстовое сообщение, если оно есть
+            // Prepare peer - convert chat ID to proper format
+            $peer = $this->preparePeer($chatId);
+            if (!$peer) {
+                Log::error('Invalid peer format', ['chat_id' => $chatId]);
+                return false;
+            }
+
+            // Send text message if provided
             if ($message !== '') {
                 try {
-                    // Убеждаемся, что peer правильного формата (может быть числом или массивом)
-                    $peer = $chatId;
-                    
-                    // В MadelineProto peer должен быть числом для пользователей
-                    if (!is_numeric($peer)) {
-                        Log::error("Некорректный формат peer для отправки сообщения", [
-                            'chat_id' => $chatId,
-                            'peer_type' => gettype($peer)
-                        ]);
-                        throw new \Exception("Некорректный формат peer: ожидается число, получен " . gettype($peer));
-                    }
+                    Log::info('Sending text message to Telegram', [
+                        'chat_id' => $chatId,
+                        'peer' => $peer,
+                        'text_length' => strlen($message),
+                        'text_preview' => substr($message, 0, 50)
+                    ]);
                     
                     $result = $client->messages->sendMessage(
-                        peer: (int) $peer,
+                        peer: $peer,
                         message: $message
                     );
                     
                     $sentSomething = true;
-                    $textSent = true;
-                    Log::info("Текстовое сообщение отправлено в Telegram чат: {$chatId}", [
-                        'text_length' => strlen($message),
+                    Log::info('Text message sent successfully', [
+                        'chat_id' => $chatId,
                         'result_id' => $result['id'] ?? $result['updates'][0]['id'] ?? null
                     ]);
+                } catch (ChannelException $e) {
+                    Log::warning('IPC channel closed during sendMessage, reinitializing');
+                    $this->handleChannelException();
+                    return $this->sendMessage($chatId, $message, $attachments);
                 } catch (\Exception $e) {
-                    Log::error("Ошибка отправки текстового сообщения в Telegram чат: {$chatId}", [
+                    Log::error('Error sending text message', [
+                        'chat_id' => $chatId,
                         'error' => $e->getMessage(),
                         'error_type' => get_class($e),
-                        'text_length' => strlen($message),
-                        'chat_id' => $chatId,
-                        'chat_id_type' => gettype($chatId),
-                        'trace' => substr($e->getTraceAsString(), 0, 1000)
+                        'trace' => substr($e->getTraceAsString(), 0, 500)
                     ]);
-                    // Если есть вложения, продолжаем их отправку, даже если текст не отправился
-                    // Если вложений нет, пробрасываем ошибку
-                    if (empty($attachments)) {
-                        throw $e;
-                    }
-                    // Иначе продолжаем отправку вложений
+                    // Continue to send attachments even if text failed
                 }
             }
 
-            // Отправляем вложения по очереди
+            // Send attachments
             if (!empty($attachments)) {
                 foreach ($attachments as $attachment) {
                     if ($attachment instanceof SupportMessageAttachment) {
                         try {
-                            $result = $this->sendTelegramAttachment($client, $chatId, $attachment);
-                            if ($result) {
+                            $caption = ($message !== '' && !$sentSomething) ? $message : '';
+                            if ($this->sendTelegramAttachment($client, $peer, $attachment, $caption)) {
                                 $sentSomething = true;
-                                $attachmentsSent++;
-                                Log::info("Вложение отправлено в Telegram чат: {$chatId}", [
-                                    'attachment_id' => $attachment->id,
-                                    'file_name' => $attachment->file_name
-                                ]);
-                            } else {
-                                $attachmentsFailed++;
-                                Log::warning("Не удалось отправить вложение в Telegram чат: {$chatId}", [
-                                    'attachment_id' => $attachment->id,
-                                    'file_name' => $attachment->file_name
-                                ]);
+                            }
+                        } catch (ChannelException $e) {
+                            Log::warning('IPC channel closed during attachment send, reinitializing');
+                            $this->handleChannelException();
+                            $client = $this->getClient();
+                            if ($client && $this->checkAuthorization()) {
+                                $peer = $this->preparePeer($chatId);
+                                if ($peer) {
+                                    try {
+                                        if ($this->sendTelegramAttachment($client, $peer, $attachment, $caption)) {
+                                            $sentSomething = true;
+                                        }
+                                    } catch (\Exception $e2) {
+                                        Log::error('Error sending attachment after reinit', [
+                                            'error' => $e2->getMessage()
+                                        ]);
+                                    }
+                                }
                             }
                         } catch (\Exception $e) {
-                            $attachmentsFailed++;
-                            Log::error("Ошибка отправки вложения в Telegram чат: {$chatId}", [
+                            Log::error('Error sending attachment', [
                                 'attachment_id' => $attachment->id,
                                 'file_name' => $attachment->file_name,
-                                'error' => $e->getMessage()
+                                'error' => $e->getMessage(),
+                                'error_type' => get_class($e)
                             ]);
-                            // Продолжаем отправку остальных вложений, даже если одно не отправилось
                         }
                     }
                 }
             }
-            
-            // Очищаем буфер вывода
-            if (ob_get_level() > 0) {
-                $output = ob_get_clean();
-                
-                // Если был вывод HTML, это проблема
-                if (!empty($output) && (strpos($output, '<html') !== false || strpos($output, '<form') !== false)) {
-                    Log::warning('MadelineProto вывел HTML при отправке сообщения');
-                }
-            }
-            
-            // Логируем итоговый результат отправки
-            if ($sentSomething) {
-                Log::info("Сообщение успешно отправлено в Telegram чат: {$chatId}", [
-                    'text_sent' => $textSent,
-                    'attachments_sent' => $attachmentsSent,
-                    'attachments_failed' => $attachmentsFailed,
-                    'total_attachments' => !empty($attachments) ? count($attachments) : 0
-                ]);
-            } else {
-                Log::warning("Нечего отправлять в Telegram чат: {$chatId}", [
+
+            if (!$sentSomething) {
+                Log::warning('Nothing was sent to Telegram', [
+                    'chat_id' => $chatId,
                     'has_text' => $message !== '',
-                    'has_attachments' => !empty($attachments),
-                    'attachments_count' => !empty($attachments) ? count($attachments) : 0
+                    'has_attachments' => !empty($attachments)
                 ]);
             }
-            
+
             return $sentSomething;
         } catch (\Exception $e) {
-            // Очищаем все буферы вывода при ошибке
-            while (ob_get_level() > 0) {
-                ob_end_clean();
-            }
-            
-            Log::error("Ошибка отправки сообщения в Telegram: " . $e->getMessage(), [
+            Log::error('Error in sendMessage', [
                 'chat_id' => $chatId,
-                'trace' => $e->getTraceAsString()
+                'error' => $e->getMessage(),
+                'error_type' => get_class($e),
+                'trace' => substr($e->getTraceAsString(), 0, 500)
             ]);
             return false;
         }
     }
 
     /**
-     * Получить новые сообщения из Telegram
-     * Возвращает массив новых сообщений (только необработанные)
+     * Handle ChannelException by reinitializing client
+     */
+    private function handleChannelException(): void
+    {
+        Log::warning('IPC channel closed, reinitializing');
+        $this->madeline = null;
+        $this->isAuthorizedCache = null;
+    }
+
+    /**
+     * Get new messages from Telegram
      */
     public function getNewMessages(): array
     {
-        // Перехватываем вывод на весь метод, чтобы MadelineProto не вывел HTML
-        ob_start();
-        
         try {
             $client = $this->getClient();
-            
             if (!$client) {
-                ob_end_clean();
-                Log::warning('Telegram Client не инициализирован');
                 return [];
             }
 
-            // НЕ вызываем start() - используем manual login
-            // Проверяем авторизацию перед получением сообщений
-            // Вывод уже перехвачен внешним ob_start()
+            // Check authorization with proper channel handling
+            if (!$this->checkAuthorization()) {
+                Log::warning('Telegram Client not authorized for getting messages');
+                return [];
+            }
+
             try {
-                $self = $client->getSelf();
+                $dialogsResponse = $client->messages->getDialogs(limit: 10);
+                $messages = [];
                 
-                if (!$self) {
-                    ob_end_clean();
-                    Log::warning('Telegram Client не авторизован. Выполните авторизацию через админ-панель.');
+                if (!isset($dialogsResponse['dialogs']) || !is_array($dialogsResponse['dialogs'])) {
                     return [];
                 }
-                $userId = is_array($self) ? ($self['id'] ?? null) : (isset($self->id) ? $self->id : null);
-                Log::debug('Telegram Client авторизован', ['user_id' => $userId ?? 'unknown']);
-            } catch (\Exception $e) {
-                ob_end_clean();
-                Log::warning('Telegram Client не авторизован: ' . $e->getMessage(), [
-                    'error_type' => get_class($e),
-                    'trace' => substr($e->getTraceAsString(), 0, 500)
-                ]);
-                Log::info('Выполните авторизацию через админ-панель или команду: php artisan telegram:auth');
-                return [];
-            }
 
-            Log::info('Начало получения сообщений из Telegram');
-            
-            // Получаем все диалоги через правильный API метод MadelineProto 8.x
-            try {
-                $dialogsResponse = $client->messages->getDialogs([
-                    'limit' => 100, // Получаем больше диалогов для надежности
-                ]);
-            } catch (\Exception $e) {
-                Log::warning('Ошибка получения диалогов: ' . $e->getMessage());
-                if (ob_get_level() > 0) {
-                    ob_end_clean();
-                }
-                return [];
-            }
-            
-            $dialogs = $dialogsResponse['dialogs'] ?? [];
-            $users = $dialogsResponse['users'] ?? [];
-            $chats = $dialogsResponse['chats'] ?? [];
-            
-            // Если диалоги не получены, пробуем еще раз с другими параметрами
-            if (empty($dialogs)) {
-                Log::warning('Диалоги не получены, повторная попытка...');
-                sleep(1);
-                try {
-                    $dialogsResponse = $client->messages->getDialogs([
-                        'limit' => 50, // Пробуем с меньшим лимитом
-                        'offset_date' => 0,
-                        'offset_id' => 0,
-                        'offset_peer' => ['_' => 'inputPeerEmpty'],
-                    ]);
-                    $dialogs = $dialogsResponse['dialogs'] ?? [];
-                    $users = $dialogsResponse['users'] ?? [];
-                    $chats = $dialogsResponse['chats'] ?? [];
-                } catch (\Exception $e) {
-                    Log::warning('Ошибка повторного получения диалогов: ' . $e->getMessage());
-                    if (ob_get_level() > 0) {
-                        ob_end_clean();
-                    }
-                    return [];
-                }
-            }
-            
-            if (empty($dialogs)) {
-                Log::info('Диалоги не найдены. Это нормально, если еще не было сообщений.');
-                if (ob_get_level() > 0) {
-                    ob_end_clean();
-                }
-                return [];
-            }
-            
-            Log::info('Найдено диалогов: ' . count($dialogs));
-            Log::info('Найдено пользователей: ' . count($users));
-            Log::info('Найдено чатов/групп: ' . count($chats));
-            
-            $newMessages = [];
-            $processedDialogs = 0;
-            $skippedDialogs = 0;
-
-            foreach ($dialogs as $dialog) {
-                try {
+                foreach ($dialogsResponse['dialogs'] as $dialog) {
                     $peer = $dialog['peer'] ?? null;
-                    
-                    // Получаем только личные сообщения (не группы/каналы)
                     if (!$peer) {
-                        Log::debug("Пропущен диалог: peer отсутствует");
                         continue;
                     }
-                    
-                    // Определяем тип peer и получаем ID пользователя
-                    // В MadelineProto 8.x peer может быть числом или массивом
-                    $userId = null;
-                    
-                    // Если peer - просто число (новый формат MadelineProto 8.x)
-                    if (is_numeric($peer)) {
-                        $userId = (int)$peer;
-                        
-                        // Проверяем тип по ID:
-                        // Положительные ID (< 1000000000000) - пользователи
-                        // Отрицательные ID или очень большие - группы/каналы
-                        if ($userId < 0) {
-                            $skippedDialogs++;
-                            Log::debug("Пропущен диалог: группа/канал с отрицательным ID {$userId}");
-                            continue;
-                        } elseif ($userId >= 1000000000000) {
-                            // Очень большой ID - обычно это канал/супергруппа
-                            $skippedDialogs++;
-                            Log::debug("Пропущен диалог: канал/супергруппа с ID {$userId}");
-                            continue;
-                        }
-                        // Иначе это обычный пользователь
-                    }
-                    // Если peer - массив (старый формат или особый случай)
-                    elseif (is_array($peer)) {
-                        $peerType = $peer['_'] ?? null;
-                        
-                        if ($peerType === 'peerUser') {
-                            $userId = $peer['user_id'] ?? null;
-                        } elseif ($peerType === 'peerChat') {
-                            $skippedDialogs++;
-                            $chatId = $peer['chat_id'] ?? 'unknown';
-                            Log::debug("Пропущен диалог типа peerChat (группа, ID: {$chatId})");
-                            continue;
-                        } elseif ($peerType === 'peerChannel') {
-                            $skippedDialogs++;
-                            $channelId = $peer['channel_id'] ?? 'unknown';
-                            Log::debug("Пропущен диалог типа peerChannel (канал, ID: {$channelId})");
-                            continue;
-                        } else {
-                            // Попытка извлечь user_id напрямую
-                            $userId = $peer['user_id'] ?? $peer['id'] ?? null;
-                        }
-                    }
-                    
-                    if (!$userId) {
-                        $skippedDialogs++;
-                        Log::debug("Пропущен диалог: не удалось определить user_id", [
-                            'peer_type' => gettype($peer),
-                            'peer_value' => is_scalar($peer) ? $peer : json_encode($peer)
-                        ]);
+
+                    $chatId = $this->extractChatId($peer);
+                    if (!$chatId) {
                         continue;
                     }
-                    
-                    // Дополнительная валидация user_id
-                    if (!is_numeric($userId) || $userId <= 0) {
-                        $skippedDialogs++;
-                        Log::debug("Пропущен диалог: некорректный user_id: {$userId}");
-                        continue;
-                    }
-                    
-                    $processedDialogs++;
-                    Log::info("Обработка диалога с пользователем ID: {$userId}");
-                    
-                    // Получаем последние сообщения (используем await)
+
+                    // Get messages for this chat
                     try {
-                        $messages = $client->messages->getHistory(
-                            peer: $userId,
-                            limit: 50 // Увеличиваем лимит для надежности
+                        $chatMessages = $client->messages->getHistory(
+                            peer: $chatId,
+                            limit: 10
                         );
-                    } catch (\Exception $e) {
-                        Log::warning("Ошибка получения истории для пользователя {$userId}: " . $e->getMessage());
-                        continue;
-                    }
 
-                    if (!isset($messages['messages']) || !is_array($messages['messages'])) {
-                        continue;
-                    }
+                        if (isset($chatMessages['messages']) && is_array($chatMessages['messages'])) {
+                            foreach ($chatMessages['messages'] as $msg) {
+                                // Only process incoming messages
+                                if (isset($msg['out']) && $msg['out']) {
+                                    continue;
+                                }
 
-                    Log::debug("Получено сообщений для пользователя {$userId}: " . count($messages['messages']));
-                    
-                    // Получаем информацию о пользователе для логирования
-                    $userInfo = null;
-                    foreach ($users as $user) {
-                        if (isset($user['id']) && $user['id'] == $userId) {
-                            $userInfo = $user;
-                            break;
-                        }
-                    }
-                    $userName = $userInfo['first_name'] ?? $userInfo['username'] ?? "User #{$userId}";
-                    Log::debug("Обработка диалога с пользователем: {$userName} (ID: {$userId})");
-
-                    foreach ($messages['messages'] as $msg) {
-                        // Проверяем, что это входящее сообщение (не наше)
-                        // В MadelineProto поле 'out' указывает, что сообщение отправлено нами
-                        // Если 'out' === true, пропускаем
-                        if (isset($msg['out']) && $msg['out'] === true) {
-                            continue;
-                        }
-
-                        $messageId = $msg['id'] ?? null;
-                        if (!$messageId) {
-                            continue;
-                        }
-                        
-                        // Проверяем, не обработали ли мы уже это сообщение
-                        if (SupportMessage::where('telegram_message_id', $messageId)->exists()) {
-                            continue;
-                        }
-
-                        $rawMessage = $msg['message'] ?? '';
-                        $messageText = trim((string) $rawMessage);
-                        $hasText = $messageText !== '';
-                        $hasMedia = $this->messageHasMedia($msg);
-
-                        // Пропускаем пустые сообщения без медиа
-                        if (!$hasText && !$hasMedia) {
-                            continue;
-                        }
-
-                        // Скачиваем вложения, если есть
-                        $attachments = [];
-                        if ($hasMedia) {
-                            try {
-                                $attachments = $this->downloadTelegramAttachments($client, $msg);
-                            } catch (\Exception $e) {
-                                Log::warning("Ошибка скачивания вложений из Telegram сообщения: " . $e->getMessage(), [
-                                    'message_id' => $messageId,
-                                    'chat_id' => $userId
-                                ]);
-                                // Продолжаем обработку, даже если вложения не скачались
+                                $messages[] = [
+                                    'chat_id' => $chatId,
+                                    'message_id' => $msg['id'] ?? null,
+                                    'text' => $msg['message'] ?? '',
+                                    'date' => $msg['date'] ?? time(),
+                                    'from_id' => $msg['from_id'] ?? null,
+                                ];
                             }
                         }
-
-                        $newMessages[] = [
-                            'chat_id' => $userId,
-                            'message_id' => $messageId,
-                            'text' => $messageText,
-                            'date' => $msg['date'] ?? now()->timestamp,
-                            'attachments' => $attachments,
-                        ];
-                        
-                        Log::info("Найдено новое сообщение от пользователя {$userId}", [
-                            'message_id' => $messageId,
-                            'has_text' => $hasText,
-                            'has_media' => $hasMedia,
-                            'text_preview' => substr($messageText ?: '[media]', 0, 50)
+                    } catch (ChannelException $e) {
+                        Log::warning('IPC channel closed during getHistory, reinitializing');
+                        $this->madeline = null;
+                        $this->isAuthorizedCache = null;
+                        // Continue with next dialog
+                        continue;
+                    } catch (\Exception $e) {
+                        Log::warning('Error getting history for chat', [
+                            'chat_id' => $chatId,
+                            'error' => $e->getMessage()
                         ]);
+                        continue;
                     }
-                } catch (\Exception $e) {
-                    Log::warning("Ошибка обработки диалога: " . $e->getMessage());
-                    continue;
                 }
+
+                return $messages;
+            } catch (ChannelException $e) {
+                Log::warning('IPC channel closed during getDialogs, reinitializing');
+                $this->madeline = null;
+                $this->isAuthorizedCache = null;
+                return [];
+            } catch (\Exception $e) {
+                Log::error('Error getting messages', ['error' => $e->getMessage()]);
+                return [];
             }
-
-            Log::info('Получение сообщений завершено', [
-                'new_messages_count' => count($newMessages),
-                'processed_dialogs' => $processedDialogs,
-                'skipped_dialogs' => $skippedDialogs,
-                'total_dialogs' => count($dialogs)
-            ]);
-
-            $output = ob_get_clean();
-            
-            // Если был вывод HTML, логируем это
-            if (!empty($output) && (strpos($output, '<html') !== false || strpos($output, '<form') !== false)) {
-                Log::warning('MadelineProto вывел HTML при получении сообщений');
-            }
-
-            return $newMessages;
         } catch (\Exception $e) {
-            ob_end_clean();
-            Log::error('Ошибка получения сообщений из Telegram: ' . $e->getMessage(), [
-                'trace' => $e->getTraceAsString(),
-            ]);
+            Log::error('Error in getNewMessages', ['error' => $e->getMessage()]);
             return [];
         }
     }
 
     /**
-     * Обработать входящее сообщение из Telegram и создать/обновить чат
+     * Process incoming message and create/update support chat
      */
     public function processIncomingMessage(array $messageData): ?SupportChat
     {
+        $chatId = $messageData['chat_id'] ?? null;
+        if (!$chatId) {
+            return null;
+        }
+
         try {
-            $chatId = $messageData['chat_id'];
             $text = trim((string) ($messageData['text'] ?? ''));
             $messageId = $messageData['message_id'] ?? null;
             $attachments = $messageData['attachments'] ?? [];
 
-            // Если нет текста и вложений — ничего обрабатывать
-            if ($text === '' && empty($attachments)) {
-                Log::debug("Пропущено пустое сообщение из чата {$chatId}");
+            // Skip empty messages
+            if (empty($text) && empty($attachments)) {
                 return null;
             }
 
-            // Дубли сообщений предотвращаем через telegram_message_id
+            // Check if message already exists
             if ($messageId) {
                 $existingMessage = SupportMessage::where('telegram_message_id', $messageId)->first();
                 if ($existingMessage) {
-                    Log::debug("Сообщение с telegram_message_id={$messageId} уже существует (ID: {$existingMessage->id}), пропускаем");
-                    // Возвращаем чат, чтобы обновить last_message_at
-                    $chat = SupportChat::where('telegram_chat_id', $chatId)
-                        ->where('source', SupportChat::SOURCE_TELEGRAM)
-                        ->notClosed()
-                        ->first();
+                    $chat = SupportChat::find($existingMessage->support_chat_id);
                     if ($chat) {
                         $chat->update(['last_message_at' => now()]);
                     }
@@ -881,48 +616,25 @@ class TelegramClientService
                 }
             }
 
-            // Ищем существующий чат по telegram_chat_id (включая закрытые)
+            // Find or create support chat
             $chat = SupportChat::where('telegram_chat_id', $chatId)
                 ->where('source', SupportChat::SOURCE_TELEGRAM)
                 ->orderBy('created_at', 'desc')
                 ->first();
 
-            // Если чат был закрыт, открываем новый
+            // If chat was closed, create new one
             if ($chat && $chat->status === SupportChat::STATUS_CLOSED) {
-                Log::info("Чат #{$chat->id} был закрыт, создаем новый для Telegram ID: {$chatId}");
                 $chat = null;
             }
 
-            // Если чата нет, создаем новый
             if (!$chat) {
-                // Пытаемся найти пользователя по telegram_id
+                // Try to find user by telegram_id
                 $user = User::where('telegram_id', $chatId)->first();
-
-                if ($user) {
-                    Log::info("Создание нового чата для пользователя #{$user->id} (Telegram ID: {$chatId})");
-                } else {
-                    Log::info("Создание нового гостевого чата для Telegram ID: {$chatId}");
-                }
-
-                // Получаем информацию о пользователе из Telegram (имя и фото, БЕЗ никнейма)
+                
+                // Get user info from Telegram
                 $userInfo = $this->getUserInfo($chatId);
-                
-                $telegramFirstName = $userInfo['first_name'] ?? null;
-                $telegramLastName = $userInfo['last_name'] ?? null;
-                $telegramPhoto = $userInfo['photo_path'] ?? null;
-                
-                // Формируем отображаемое имя
-                $displayName = null;
-                if ($telegramFirstName) {
-                    $displayName = $telegramFirstName;
-                    if ($telegramLastName) {
-                        $displayName .= ' ' . $telegramLastName;
-                    }
-                } else {
-                    // Если не удалось получить имя, используем "User N"
-                    $telegramChatsCount = SupportChat::where('source', SupportChat::SOURCE_TELEGRAM)->count();
-                    $displayName = "User " . ($telegramChatsCount + 1);
-                }
+                $displayName = ($userInfo['first_name'] ?? '') . ' ' . ($userInfo['last_name'] ?? '');
+                $displayName = trim($displayName) ?: "User {$chatId}";
 
                 $chat = SupportChat::create([
                     'user_id' => $user?->id,
@@ -931,23 +643,16 @@ class TelegramClientService
                     'status' => SupportChat::STATUS_PENDING,
                     'guest_name' => $user ? null : $displayName,
                     'guest_email' => $user ? null : "tg{$chatId}@telegram.local",
-                    'telegram_first_name' => $telegramFirstName,
-                    'telegram_last_name' => $telegramLastName,
-                    'telegram_photo' => $telegramPhoto,
+                    'telegram_first_name' => $userInfo['first_name'] ?? null,
+                    'telegram_last_name' => $userInfo['last_name'] ?? null,
+                    'telegram_photo' => $userInfo['photo_path'] ?? null,
                     'last_message_at' => now(),
                 ]);
-                
-                Log::info("Создан чат #{$chat->id} для Telegram пользователя: {$displayName}");
             }
 
-            $messageTimestamp = isset($messageData['date'])
-                ? Carbon::createFromTimestamp($messageData['date'])->timezone(config('app.timezone'))
-                : now();
-
-            $content = $text !== '' ? $text : '[Вложение из Telegram]';
-
-            // Создаем сообщение и сохраняем идентификатор Telegram
-            $supportMessage = new SupportMessage([
+            // Create support message
+            $content = $text ?: '[Attachment from Telegram]';
+            $supportMessage = SupportMessage::create([
                 'support_chat_id' => $chat->id,
                 'user_id' => $chat->user_id,
                 'sender_type' => $chat->user_id ? SupportMessage::SENDER_USER : SupportMessage::SENDER_GUEST,
@@ -956,16 +661,7 @@ class TelegramClientService
                 'is_read' => false,
             ]);
 
-            $supportMessage->created_at = $messageTimestamp;
-            $supportMessage->updated_at = $messageTimestamp;
-            $supportMessage->save();
-
-            Log::info("Создано сообщение #{$supportMessage->id} в чате #{$chat->id}", [
-                'telegram_message_id' => $messageId,
-                'has_text' => $text !== '',
-                'attachments_count' => count($attachments)
-            ]);
-
+            // Process attachments
             if (!empty($attachments)) {
                 foreach ($attachments as $attachment) {
                     SupportMessageAttachment::create([
@@ -977,12 +673,9 @@ class TelegramClientService
                         'file_size' => $attachment['file_size'] ?? null,
                     ]);
                 }
-                Log::info("Добавлено вложений: " . count($attachments), [
-                    'message_id' => $supportMessage->id
-                ]);
             }
 
-            // Обновляем время последнего сообщения и открываем чат
+            // Update chat
             $chat->update([
                 'last_message_at' => now(),
                 'status' => SupportChat::STATUS_OPEN,
@@ -990,221 +683,112 @@ class TelegramClientService
 
             return $chat;
         } catch (\Exception $e) {
-            Log::error("Ошибка обработки входящего сообщения из Telegram", [
+            Log::error('Error processing incoming message', [
                 'error' => $e->getMessage(),
-                'chat_id' => $messageData['chat_id'] ?? 'unknown',
-                'trace' => $e->getTraceAsString()
+                'message_data' => $messageData
             ]);
-            throw $e;
+            return null;
         }
     }
 
     /**
-     * Проверить наличие медиа во входящем сообщении
+     * Get user info from Telegram
      */
-    private function messageHasMedia(array $message): bool
-    {
-        if (!isset($message['media']) || !is_array($message['media'])) {
-            return false;
-        }
-
-        return ($message['media']['_'] ?? 'messageMediaEmpty') !== 'messageMediaEmpty';
-    }
-
-    /**
-     * Скачать вложения из Telegram и подготовить данные для сохранения
-     */
-    private function downloadTelegramAttachments(API $client, array $message): array
-    {
-        if (!$this->messageHasMedia($message)) {
-            return [];
-        }
-
-        // Сохраняем напрямую в public (без символических ссылок для совместимости с Windows)
-        $directory = 'support-chat/attachments/' . date('Y/m');
-        $fullDirectory = public_path($directory);
-        
-        if (!file_exists($fullDirectory)) {
-            mkdir($fullDirectory, 0755, true);
-        }
-
-        try {
-            $savedPath = $client->downloadToDir($message, $fullDirectory);
-        } catch (\Throwable $e) {
-            Log::warning('Не удалось скачать вложение из Telegram', [
-                'error' => $e->getMessage(),
-            ]);
-            return [];
-        }
-
-        if (!$savedPath || !file_exists($savedPath)) {
-            Log::warning('Файл не был сохранен или не существует', [
-                'saved_path' => $savedPath
-            ]);
-            return [];
-        }
-
-        $relativePath = Str::after($savedPath, public_path() . DIRECTORY_SEPARATOR);
-        // Нормализуем путь (заменяем обратные слэши на прямые для URL)
-        $relativePath = str_replace('\\', '/', $relativePath);
-        $fileName = basename($savedPath);
-        $mimeType = mime_content_type($savedPath) ?: 'application/octet-stream';
-        $fileSize = filesize($savedPath) ?: null;
-        $fileUrl = asset($relativePath);
-
-        Log::info('Вложение из Telegram скачано', [
-            'file_name' => $fileName,
-            'file_path' => $relativePath,
-            'file_url' => $fileUrl,
-            'mime_type' => $mimeType,
-            'size' => $fileSize
-        ]);
-
-        return [[
-            'file_name' => $fileName,
-            'file_path' => $relativePath,
-            'file_url' => $fileUrl,
-            'mime_type' => $mimeType,
-            'file_size' => $fileSize,
-        ]];
-    }
-
-    /**
-     * Получить информацию о пользователе Telegram (БЕЗ username для защиты конфиденциальности)
-     */
-    public function getUserInfo(int $userId): array
+    private function getUserInfo(int $userId): array
     {
         $client = $this->getClient();
-        
         if (!$client) {
             return [];
         }
 
         try {
-            ob_start();
             $fullInfo = $client->getFullInfo($userId);
-            ob_end_clean();
             
             $firstName = $fullInfo['User']['first_name'] ?? null;
             $lastName = $fullInfo['User']['last_name'] ?? null;
             
-            // Получаем фото профиля (БЕЗ username для безопасности)
+            // Download photo if exists
             $photoPath = null;
             if (isset($fullInfo['User']['photo']) && isset($fullInfo['User']['photo']['_'])) {
                 $photoPath = $this->downloadUserPhoto($client, $userId, $fullInfo['User']);
             }
             
-            // Возвращаем только безопасную информацию (БЕЗ username)
             return [
                 'id' => $userId,
                 'first_name' => $firstName,
                 'last_name' => $lastName,
                 'photo_path' => $photoPath,
-                // Намеренно НЕ возвращаем username для защиты конфиденциальности
             ];
         } catch (\Exception $e) {
-            Log::error("Ошибка получения информации о пользователе: " . $e->getMessage());
+            Log::error('Error getting user info', ['error' => $e->getMessage()]);
             return ['id' => $userId];
         }
     }
 
     /**
-     * Сбросить сессию Telegram (для переключения аккаунтов)
+     * Download user photo
      */
-    public function resetSession(): bool
+    private function downloadUserPhoto(API $client, int $userId, array $user): ?string
     {
         try {
-            // Закрываем текущий клиент, если он открыт
-            if ($this->madeline !== null) {
-                try {
-                    // Проверяем, есть ли метод stop()
-                    if (method_exists($this->madeline, 'stop')) {
-                        $this->madeline->stop();
-                    }
-                } catch (\Exception $e) {
-                    // Игнорируем ошибки при остановке
-                    Log::debug('Ошибка при остановке клиента (можно игнорировать): ' . $e->getMessage());
-                }
-                $this->madeline = null;
-            }
-            
-            // Очищаем кеш авторизации
-            $this->isAuthorizedCache = null;
-
-            // Удаляем файл сессии
-            if (file_exists($this->sessionPath)) {
-                @unlink($this->sessionPath);
-                Log::info('Сессия Telegram удалена: ' . $this->sessionPath);
+            if (!isset($user['photo']) || !isset($user['photo']['_'])) {
+                return null;
             }
 
-            // Удаляем все связанные файлы сессии (MadelineProto может создавать несколько файлов)
-            $sessionDir = dirname($this->sessionPath);
-            $sessionBase = basename($this->sessionPath, '.madeline');
-            
-            if (is_dir($sessionDir)) {
-                $files = glob($sessionDir . '/' . $sessionBase . '*');
-                if ($files) {
-                    foreach ($files as $file) {
-                        if (is_file($file)) {
-                            @unlink($file);
-                            Log::info('Удален файл сессии: ' . $file);
-                        }
-                    }
-                }
+            $avatarsDir = public_path('telegram/avatars');
+            if (!file_exists($avatarsDir)) {
+                mkdir($avatarsDir, 0755, true);
             }
 
-            return true;
+            $fileName = "user_{$userId}_" . time() . ".jpg";
+            $filePath = $avatarsDir . '/' . $fileName;
+
+            $client->downloadToFile($user, $filePath);
+
+            if (file_exists($filePath) && filesize($filePath) > 0) {
+                return 'telegram/avatars/' . $fileName;
+            }
+
+            if (file_exists($filePath)) {
+                @unlink($filePath);
+            }
+            return null;
         } catch (\Exception $e) {
-            Log::error('Ошибка сброса сессии Telegram: ' . $e->getMessage(), [
-                'trace' => $e->getTraceAsString()
-            ]);
-            throw $e; // Пробрасываем исключение, чтобы контроллер мог его обработать
+            Log::warning('Error downloading user photo', ['error' => $e->getMessage()]);
+            return null;
         }
     }
 
     /**
-     * Отправить одиночное вложение в Telegram чат
+     * Send attachment to Telegram
+     * According to docs: https://docs.madelineproto.xyz/
      */
-    private function sendTelegramAttachment(API $client, int $chatId, SupportMessageAttachment $attachment): bool
+    private function sendTelegramAttachment(API $client, array|int $peer, SupportMessageAttachment $attachment, string $caption = ''): bool
     {
-        if (!$attachment->file_path) {
-            return false;
-        }
-
-        // Файлы теперь хранятся напрямую в public/ (без storage/)
-        $absolutePath = public_path($attachment->file_path);
-
-        if (!is_file($absolutePath)) {
-            Log::warning('Вложение не найдено на диске для отправки в Telegram', [
-                'path' => $absolutePath,
-                'file_path' => $attachment->file_path,
-            ]);
+        $filePath = public_path($attachment->file_path);
+        if (!file_exists($filePath)) {
+            Log::error('Attachment file not found', ['path' => $filePath]);
             return false;
         }
 
         try {
-            // Убеждаемся, что peer правильного формата
-            $peer = (int) $chatId;
+            // Upload file first (required by MadelineProto)
+            $uploadedFile = $client->upload($filePath);
             
-            $uploadedFile = $client->upload($absolutePath);
-            $mimeType = $attachment->mime_type ?: mime_content_type($absolutePath) ?: 'application/octet-stream';
-            $fileName = $attachment->file_name ?: basename($absolutePath);
-            $isImage = Str::startsWith($mimeType, 'image/');
-
-            if ($isImage) {
+            if ($attachment->isImage()) {
+                // Send as photo
                 $result = $client->messages->sendMedia(
                     peer: $peer,
                     media: [
                         '_' => 'inputMediaUploadedPhoto',
                         'file' => $uploadedFile,
                     ],
-                    message: ''
+                    message: $caption
                 );
-                Log::debug("Изображение отправлено в Telegram", [
-                    'chat_id' => $chatId,
-                    'result_id' => $result['id'] ?? $result['updates'][0]['id'] ?? null
-                ]);
             } else {
+                // Send as document
+                $mimeType = $attachment->mime_type ?: mime_content_type($filePath) ?: 'application/octet-stream';
+                
                 $result = $client->messages->sendMedia(
                     peer: $peer,
                     media: [
@@ -1214,89 +798,95 @@ class TelegramClientService
                         'attributes' => [
                             [
                                 '_' => 'documentAttributeFilename',
-                                'file_name' => $fileName,
-                            ],
-                        ],
+                                'file_name' => $attachment->file_name,
+                            ]
+                        ]
                     ],
-                    message: $fileName
+                    message: $caption
                 );
-                Log::debug("Документ отправлен в Telegram", [
-                    'chat_id' => $chatId,
-                    'file_name' => $fileName,
-                    'result_id' => $result['id'] ?? $result['updates'][0]['id'] ?? null
-                ]);
             }
-
-            return true;
-        } catch (\Throwable $e) {
-            Log::error('Не удалось отправить вложение в Telegram', [
+            
+            $chatId = is_array($peer) ? ($peer['user_id'] ?? $peer['chat_id'] ?? $peer['channel_id'] ?? 'unknown') : $peer;
+            Log::info('Attachment sent to Telegram', [
                 'chat_id' => $chatId,
+                'peer' => $peer,
+                'attachment_id' => $attachment->id,
+                'file_name' => $attachment->file_name,
+                'result_id' => $result['id'] ?? $result['updates'][0]['id'] ?? null
+            ]);
+            
+            return true;
+        } catch (\Exception $e) {
+            Log::error('Error sending attachment', [
                 'attachment_id' => $attachment->id,
                 'file_name' => $attachment->file_name,
                 'error' => $e->getMessage(),
                 'error_type' => get_class($e),
                 'trace' => substr($e->getTraceAsString(), 0, 500)
             ]);
-
             return false;
         }
     }
 
     /**
-     * Скачать фото профиля пользователя Telegram
+     * Prepare peer for sending messages
+     * Converts chat ID to proper MadelineProto peer format
      */
-    private function downloadUserPhoto($client, int $userId, array $user): ?string
+    private function preparePeer(int $chatId): array|int|null
     {
-        try {
-            // Проверяем наличие фото
-            if (!isset($user['photo']) || !isset($user['photo']['_'])) {
-                Log::debug("У пользователя {$userId} нет фото профиля");
-                return null;
-            }
-
-            // Создаем директорию для аватарок напрямую в public (без символических ссылок)
-            $avatarsDir = public_path('telegram/avatars');
-            if (!file_exists($avatarsDir)) {
-                mkdir($avatarsDir, 0755, true);
-            }
-
-            // Генерируем имя файла
-            $fileName = "user_{$userId}_" . time() . ".jpg";
-            $filePath = $avatarsDir . '/' . $fileName;
-
-            ob_start();
-            try {
-                // Скачиваем фото напрямую через структуру пользователя
-                // MadelineProto сам разберется как скачать фото профиля
-                $client->downloadToFile($user, $filePath);
-                ob_end_clean();
-
-                // Проверяем, что файл существует и имеет размер больше 0
-                if (file_exists($filePath) && filesize($filePath) > 0) {
-                    Log::info("Успешно скачано фото пользователя {$userId}, размер: " . filesize($filePath) . " байт");
-                    // Возвращаем относительный путь для хранения в БД (без storage/)
-                    return 'telegram/avatars/' . $fileName;
-                } else {
-                    // Удаляем пустой файл
-                    if (file_exists($filePath)) {
-                        @unlink($filePath);
-                    }
-                    Log::warning("Фото пользователя {$userId} не скачалось или имеет нулевой размер");
-                    return null;
-                }
-            } catch (\Exception $e) {
-                ob_end_clean();
-                // Удаляем файл при ошибке
-                if (file_exists($filePath)) {
-                    @unlink($filePath);
-                }
-                Log::warning("Не удалось скачать фото пользователя {$userId}: " . $e->getMessage());
-                return null;
-            }
-        } catch (\Exception $e) {
-            Log::error("Критическая ошибка при скачивании фото пользователя {$userId}: " . $e->getMessage());
-            return null;
+        // For positive user IDs, use peerUser format
+        if ($chatId > 0) {
+            return [
+                '_' => 'peerUser',
+                'user_id' => $chatId
+            ];
         }
+        
+        // For negative IDs (groups/channels)
+        if ($chatId < 0) {
+            // Check if it's a channel (starts with -100)
+            if ($chatId < -1000000000000) {
+                // Supergroup/channel
+                $channelId = abs($chatId) - 1000000000000;
+                return [
+                    '_' => 'peerChannel',
+                    'channel_id' => $channelId
+                ];
+            } else {
+                // Regular group
+                $groupId = abs($chatId);
+                return [
+                    '_' => 'peerChat',
+                    'chat_id' => $groupId
+                ];
+            }
+        }
+        
+        return null;
+    }
+
+    /**
+     * Extract chat ID from peer
+     */
+    private function extractChatId($peer): ?int
+    {
+        if (is_numeric($peer)) {
+            return (int) $peer;
+        }
+
+        if (is_array($peer)) {
+            if (isset($peer['user_id'])) {
+                return (int) $peer['user_id'];
+            }
+            if (isset($peer['chat_id'])) {
+                return (int) $peer['chat_id'];
+            }
+            if (isset($peer['channel_id'])) {
+                // For channels, convert back to negative format
+                return -((int) $peer['channel_id'] + 1000000000000);
+            }
+        }
+
+        return null;
     }
 }
-
