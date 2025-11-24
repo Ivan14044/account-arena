@@ -546,6 +546,16 @@ return [
                 ],
             ],
         ],
+        'CustomJs' => [
+            'active' => true,
+            'files' => [
+                [
+                    'type' => 'js',
+                    'asset' => true,
+                    'location' => '/assets/admin/js/custom.js',
+                ],
+            ],
+        ],
         'Sweetalert2' => [
             'active' => false,
             'files' => [
