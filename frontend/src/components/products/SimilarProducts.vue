@@ -6,7 +6,7 @@
                 v-for="product in products"
                 :key="product.id"
                 class="product-card"
-                :class="{ 
+                :class="{
                     'out-of-stock-card': product.quantity <= 0,
                     'with-discount': product.has_discount && product.discount_percent
                 }"
@@ -93,10 +93,7 @@
                 <div class="product-actions">
                     <div class="price-section">
                         <div class="price-wrapper">
-                            <span
-                                v-if="product.has_discount"
-                                class="price-old"
-                            >
+                            <span v-if="product.has_discount" class="price-old">
                                 {{ formatPrice(product.price) }}
                             </span>
                             <div class="price">
@@ -105,16 +102,8 @@
                         </div>
                     </div>
 
-                    <button
-                        class="btn-primary"
-                        @click.stop="goToProduct(product)"
-                    >
-                        <svg
-                            class="w-5 h-5"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                        >
+                    <button class="btn-primary" @click.stop="goToProduct(product)">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path
                                 stroke-linecap="round"
                                 stroke-linejoin="round"
@@ -136,8 +125,6 @@ import { useRouter } from 'vue-router';
 import { useAccountsStore, type AccountItem } from '@/stores/accounts';
 import { useProductTitle } from '@/composables/useProductTitle';
 import { useOptionStore } from '@/stores/options';
-import { useI18n } from 'vue-i18n';
-
 const props = defineProps<{
     productId: string | number;
 }>();
@@ -146,7 +133,6 @@ const router = useRouter();
 const accountsStore = useAccountsStore();
 const optionStore = useOptionStore();
 const { getProductTitle, getProductDescription } = useProductTitle();
-const { t } = useI18n();
 const products = ref<AccountItem[]>([]);
 
 const formatPrice = (price: number) => {
@@ -155,7 +141,7 @@ const formatPrice = (price: number) => {
         style: 'currency',
         currency: currency,
         minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
+        maximumFractionDigits: 2
     }).format(price);
 };
 
@@ -614,4 +600,3 @@ onMounted(async () => {
     }
 }
 </style>
-

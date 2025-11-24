@@ -107,7 +107,7 @@ export const useAccountsStore = defineStore('accounts', {
                 const { data } = await axios.get(`/accounts/${idOrSku}/similar`);
                 const items = Array.isArray(data) ? data : [];
                 const list: AccountItem[] = [];
-                
+
                 for (const raw of items) {
                     const t = this.transform(raw);
                     if (t && Number.isFinite(t.id)) {
@@ -116,7 +116,7 @@ export const useAccountsStore = defineStore('accounts', {
                         this.byId[t.id] = t;
                     }
                 }
-                
+
                 return list;
             } catch (error) {
                 console.error('[AccountsStore] Ошибка загрузки похожих товаров:', error);

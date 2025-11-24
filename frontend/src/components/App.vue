@@ -67,9 +67,7 @@ onMounted(async () => {
     window.addEventListener('app:hide-loader', hideLoader);
 
     try {
-        console.log('[APP] Начало инициализации приложения...');
         await authStore.init();
-        console.log('[APP] Auth store инициализирован');
 
         const pageStore = usePageStore();
         const optionStore = useOptionStore();
@@ -78,25 +76,16 @@ onMounted(async () => {
 
         // ОПТИМИЗАЦИЯ: Загружаем все критичные данные параллельно при старте приложения
         const promises = [
-            pageStore
-                .fetchData()
-                .then(() => console.log('[APP] Pages загружены'))
-                .catch(e => console.error('[APP] Ошибка загрузки pages:', e)),
-            optionStore
-                .fetchData()
-                .then(() => console.log('[APP] Options загружены'))
-                .catch(e => console.error('[APP] Ошибка загрузки options:', e)),
+            pageStore.fetchData().catch(e => console.error('[APP] Ошибка загрузки pages:', e)),
+            optionStore.fetchData().catch(e => console.error('[APP] Ошибка загрузки options:', e)),
             accountsStore
                 .fetchAll()
-                .then(() => console.log('[APP] Accounts загружены'))
                 .catch(e => console.error('[APP] Ошибка загрузки accounts:', e)), // Предзагрузка товаров
             bannersStore
                 .fetchBanners('home_top')
-                .then(() => console.log('[APP] Banners home_top загружены'))
                 .catch(e => console.error('[APP] Ошибка загрузки banners home_top:', e)), // Предзагрузка обычных баннеров с изображениями
             bannersStore
                 .fetchBanners('home_top_wide')
-                .then(() => console.log('[APP] Banners home_top_wide загружены'))
                 .catch(e => console.error('[APP] Ошибка загрузки banners home_top_wide:', e)) // Предзагрузка широкого баннера с изображением
         ];
 
@@ -105,7 +94,6 @@ onMounted(async () => {
             promises.push(
                 notificationStore
                     .fetchData()
-                    .then(() => console.log('[APP] Notifications загружены'))
                     .catch(e => console.error('[APP] Ошибка загрузки notifications:', e))
             );
         }
@@ -120,7 +108,6 @@ onMounted(async () => {
 
         // Ждем загрузки всех данных с таймаутом
         await Promise.race([Promise.allSettled(promises), timeoutPromise]);
-        console.log('[APP] Все данные загружены');
 
         // Предзагружаем критичные изображения
         preloadImages([logo, `/img/lang/${locale.value}.svg`]);

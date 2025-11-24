@@ -42,7 +42,10 @@
                     @click="selectSubcategory(subcategory.id)"
                 >
                     <span class="subcategory-name">{{ getSubcategoryName(subcategory) }}</span>
-                    <span v-if="getSubcategoryProductCount(subcategory.id) > 0" class="subcategory-count">
+                    <span
+                        v-if="getSubcategoryProductCount(subcategory.id) > 0"
+                        class="subcategory-count"
+                    >
                         {{ getSubcategoryProductCount(subcategory.id) }}
                     </span>
                 </button>
@@ -154,7 +157,7 @@ const getCategoryProductCount = (categoryId: number): number => {
 
     // Получаем ID всех подкатегорий
     const subcategoryIds = (category.subcategories || []).map(sub => sub.id);
-    
+
     // Подсчитываем товары в категории и её подкатегориях
     return accountsStore.list.filter(account => {
         // Товар в самой категории
@@ -388,7 +391,11 @@ onMounted(async () => {
     min-width: 26px;
     height: 26px;
     padding: 0 9px;
-    background: linear-gradient(135deg, rgba(108, 92, 231, 0.12) 0%, rgba(162, 155, 254, 0.12) 100%);
+    background: linear-gradient(
+        135deg,
+        rgba(108, 92, 231, 0.12) 0%,
+        rgba(162, 155, 254, 0.12) 100%
+    );
     backdrop-filter: blur(8px);
     color: #6c5ce7;
     border: 1px solid rgba(108, 92, 231, 0.2);
@@ -638,7 +645,11 @@ onMounted(async () => {
     min-width: 22px;
     height: 22px;
     padding: 0 7px;
-    background: linear-gradient(135deg, rgba(108, 92, 231, 0.12) 0%, rgba(162, 155, 254, 0.12) 100%);
+    background: linear-gradient(
+        135deg,
+        rgba(108, 92, 231, 0.12) 0%,
+        rgba(162, 155, 254, 0.12) 100%
+    );
     backdrop-filter: blur(8px);
     color: #6c5ce7;
     border: 1px solid rgba(108, 92, 231, 0.2);

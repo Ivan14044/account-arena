@@ -37,13 +37,16 @@
                 v-for="(account, index) in displayedAccounts"
                 :key="account.id"
                 class="product-card"
-                :class="{ 
+                :class="{
                     'out-of-stock-card': account.quantity <= 0,
                     'with-discount': account.has_discount && account.discount_percent
                 }"
             >
                 <!-- Полоса со скидкой вверху карточки -->
-                <div v-if="account.has_discount && account.discount_percent" class="discount-stripe">
+                <div
+                    v-if="account.has_discount && account.discount_percent"
+                    class="discount-stripe"
+                >
                     Скидка -{{ Math.round(account.discount_percent) }}%
                 </div>
 
@@ -128,11 +131,19 @@
                         <!-- Price Section -->
                         <div class="price-section">
                             <div class="price-wrapper">
-                                <span v-if="account.has_discount && account.price" class="price-old">
+                                <span
+                                    v-if="account.has_discount && account.price"
+                                    class="price-old"
+                                >
                                     {{ formatPrice(account.price) }}
                                 </span>
                                 <div class="price">
-                                    {{ formatTotalPrice(account.current_price || account.price, getQuantity(account.id)) }}
+                                    {{
+                                        formatTotalPrice(
+                                            account.current_price || account.price,
+                                            getQuantity(account.id)
+                                        )
+                                    }}
                                 </div>
                             </div>
                             <div class="price-per-unit">
@@ -447,10 +458,13 @@ const addToCart = (account: any) => {
 
     // Используем цену со скидкой, если она есть
     const priceToUse = account.current_price || account.price;
-    productCartStore.addItem({
-        ...account,
-        price: priceToUse
-    }, quantity);
+    productCartStore.addItem(
+        {
+            ...account,
+            price: priceToUse
+        },
+        quantity
+    );
 
     toast.success(
         t('account.detail.product_added_to_cart', {
@@ -475,10 +489,13 @@ const buyNow = (account: any) => {
     productCartStore.clearCart();
     // Используем цену со скидкой, если она есть
     const priceToUse = account.current_price || account.price;
-    productCartStore.addItem({
-        ...account,
-        price: priceToUse
-    }, quantity);
+    productCartStore.addItem(
+        {
+            ...account,
+            price: priceToUse
+        },
+        quantity
+    );
 
     // Переходим на страницу оформления заказа
     router.push('/checkout');

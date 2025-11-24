@@ -1,7 +1,5 @@
 <template>
-    <div
-        class="login-page-background min-h-screen py-3 w-full flex items-center justify-center"
-    >
+    <div class="login-page-background min-h-screen py-3 w-full flex items-center justify-center">
         <div
             class="login-container max-w-sm w-full lg:w-1/2 flex items-center justify-center p-8 rounded-[12px] relative"
         >
@@ -143,9 +141,6 @@ const handleSocialAuthStatus = (loading: boolean) => {
 // Removed inline register navigation button; registration link remains below the form
 
 const handleSubmit = async () => {
-    console.log('[LOGIN PAGE] Начало обработки формы логина');
-    console.log('[LOGIN PAGE] Email:', email.value);
-
     try {
         const success = await authStore.login({
             email: email.value,
@@ -153,26 +148,16 @@ const handleSubmit = async () => {
             remember: remember.value
         });
 
-        console.log('[LOGIN PAGE] Результат авторизации:', success);
         errors.value = authStore.errors;
 
         if (success) {
-            console.log('[LOGIN PAGE] Авторизация успешна, подготовка к редиректу...');
-
             // Небольшая задержка для гарантии сохранения данных
             await new Promise(resolve => setTimeout(resolve, 50));
 
             const redirectTo = route.query.redirect as string;
-            console.log('[LOGIN PAGE] Редирект на:', redirectTo || '/');
-
             await router.push(redirectTo || '/');
-            console.log('[LOGIN PAGE] Редирект выполнен');
-        } else {
-            console.log('[LOGIN PAGE] Авторизация не удалась');
-            console.log('[LOGIN PAGE] Ошибки:', errors.value);
         }
-    } catch (error) {
-        console.error('[LOGIN PAGE] Критическая ошибка:', error);
+    } catch {
         errors.value = authStore.errors || {};
     }
 };
@@ -192,7 +177,8 @@ const handleSubmit = async () => {
 }
 
 @keyframes gradientShift {
-    0%, 100% {
+    0%,
+    100% {
         background-position: 0% 50%;
     }
     50% {

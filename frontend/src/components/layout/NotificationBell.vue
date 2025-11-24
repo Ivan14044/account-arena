@@ -44,7 +44,11 @@
                 </div>
 
                 <!-- Notifications list -->
-                <div v-if="displayedItems.length > 0" class="max-h-96 overflow-y-auto">
+                <div
+                    v-if="displayedItems.length > 0"
+                    ref="notificationsListRef"
+                    class="max-h-96 overflow-y-auto"
+                >
                     <div
                         v-for="item in displayedItems"
                         :key="item.id"
@@ -101,11 +105,34 @@
                 <!-- Load more button -->
                 <div v-if="hasMoreItems" class="border-t">
                     <button
-                        class="w-full p-2 text-sm text-center hover:bg-indigo-200 dark:hover:bg-gray-700 transition focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50"
+                        class="w-full p-2 text-sm text-center hover:bg-indigo-200 dark:hover:bg-gray-700 transition focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50 flex items-center justify-center gap-2"
                         :disabled="isLoading"
                         @click="handleLoadMore"
                     >
-                        {{ $t('notifications.dropdown_button') }} ({{ remainingCount }})
+                        <svg
+                            v-if="isLoading"
+                            class="w-4 h-4 animate-spin text-indigo-600 dark:text-indigo-400"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                        >
+                            <circle
+                                class="opacity-25"
+                                cx="12"
+                                cy="12"
+                                r="10"
+                                stroke="currentColor"
+                                stroke-width="4"
+                            ></circle>
+                            <path
+                                class="opacity-75"
+                                fill="currentColor"
+                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                            ></path>
+                        </svg>
+                        <span
+                            >{{ $t('notifications.dropdown_button') }} ({{ remainingCount }})</span
+                        >
                     </button>
                 </div>
             </div>
@@ -114,7 +141,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue';
+import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from 'vue';
 import { useNotificationStore } from '@/stores/notifications';
 import { useAuthStore } from '@/stores/auth';
 import { useI18n } from 'vue-i18n';
@@ -132,6 +159,7 @@ const ANIMATION_DURATION = 2000;
 // State
 const isDropdownOpen = ref(false);
 const dropdownRef = ref(null);
+const notificationsListRef = ref(null);
 const isLoading = ref(false);
 const isMarkingAll = ref(false);
 const shouldAnimate = ref(false);
@@ -303,6 +331,15 @@ const handleLoadMore = async () => {
         if (newItems.length > 0) {
             loadedItems.value = [...loadedItems.value, ...newItems];
             currentPage.value++;
+        }
+
+        // Scroll to bottom after loading
+        await nextTick();
+        if (notificationsListRef.value) {
+            notificationsListRef.value.scrollTo({
+                top: notificationsListRef.value.scrollHeight,
+                behavior: 'smooth'
+            });
         }
     } catch (error) {
         console.error('Failed to load more notifications:', error);

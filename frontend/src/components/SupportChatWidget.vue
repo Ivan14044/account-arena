@@ -667,10 +667,8 @@ const showBrowserNotification = (title: string, body: string, icon?: string) => 
 
 // Загрузка настроек
 const loadSettings = async () => {
-    console.log('[SupportChat] Загрузка настроек чата...');
     try {
         const response = await axios.get('/support-chat-settings', { timeout: 5000 });
-        console.log('[SupportChat] Ответ от API (сырой):', response.data);
 
         // Если ответ содержит WARNING от MadelineProto, парсим JSON вручную
         let settings = response.data;
@@ -679,7 +677,6 @@ const loadSettings = async () => {
             const jsonMatch = response.data.match(/\{.*\}/s);
             if (jsonMatch) {
                 settings = JSON.parse(jsonMatch[0]);
-                console.log('[SupportChat] JSON очищен от WARNING:', settings);
             } else {
                 throw new Error('Не удалось найти JSON в ответе');
             }
@@ -691,18 +688,11 @@ const loadSettings = async () => {
                 : Boolean(settings.enabled);
         telegramLink.value = settings.telegram_link || 'https://t.me/support';
 
-        console.log('[SupportChat] Настройки загружены:', {
-            enabled: enabled.value,
-            telegramLink: telegramLink.value
-        });
-
         // Запрашиваем разрешение на уведомления при первой загрузке
         if (enabled.value && 'Notification' in window) {
             await requestNotificationPermission();
         }
-    } catch (error) {
-        console.error('[SupportChat] Failed to load settings:', error);
-        console.error('[SupportChat] Детали ошибки:', error.response?.data || error.message);
+    } catch {
         enabled.value = false;
         telegramLink.value = 'https://t.me/support';
     }
@@ -1432,7 +1422,6 @@ const newLine = () => {
 };
 
 onMounted(() => {
-    console.log('[SupportChat] Компонент SupportChatWidget монтируется...');
     loadSettings();
 });
 

@@ -151,10 +151,12 @@ import { useRouter } from 'vue-router';
 import { LogIn, User, ChevronDown, LogOut, UserPen } from 'lucide-vue-next';
 import { useOptionStore } from '@/stores/options';
 import { useProductCartStore } from '@/stores/productCart';
+import { useNotificationStore } from '@/stores/notifications';
 
 const authStore = useAuthStore();
 const productCartStore = useProductCartStore();
 const optionStore = useOptionStore();
+const notificationStore = useNotificationStore();
 const router = useRouter();
 const isOpen = ref(false);
 const dropdownRef = ref<HTMLElement | null>(null);
@@ -172,6 +174,7 @@ const handleAuthAction = () => {
         authStore.logout();
         isOpen.value = false;
         productCartStore.clearCart();
+        notificationStore.resetStore();
         router.push('/');
     } else {
         router.push('/login');

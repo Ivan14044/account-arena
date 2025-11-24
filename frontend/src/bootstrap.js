@@ -44,7 +44,7 @@ axios.interceptors.response.use(
             try {
                 // Пытаемся распарсить очищенный JSON
                 response.data = JSON.parse(cleanedData);
-            } catch (e) {
+            } catch {
                 // Если не получилось, оставляем как есть
                 console.warn('[Axios] Не удалось распарсить очищенный ответ:', e);
             }
@@ -57,7 +57,7 @@ axios.interceptors.response.use(
                 if (jsonMatch) {
                     try {
                         response.data = JSON.parse(jsonMatch[0]);
-                    } catch (e) {
+                    } catch {
                         // Игнорируем ошибку парсинга
                     }
                 }
@@ -74,7 +74,7 @@ axios.interceptors.response.use(
                 if (jsonMatch) {
                     try {
                         error.response.data = JSON.parse(jsonMatch[0]);
-                    } catch (e) {
+                    } catch {
                         // Игнорируем ошибку парсинга
                     }
                 }
