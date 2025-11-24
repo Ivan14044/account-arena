@@ -37,18 +37,14 @@
                     <i class="fas fa-arrow-left"></i>
                 </a>
                 
-                @if($chat->isFromTelegram() && $chat->telegram_photo)
-                    <img src="{{ asset($chat->telegram_photo) }}" alt="Avatar" class="chat-avatar">
-                @else
-                    <div class="chat-avatar-placeholder">
-                        {{ mb_substr($chat->guest_name ?? $chat->user->name ?? 'U', 0, 1) }}
-                    </div>
-                @endif
+                <div class="chat-avatar-placeholder">
+                    {{ mb_substr($chat->guest_name ?? $chat->user->name ?? 'U', 0, 1) }}
+                </div>
                 
                 <div class="chat-info">
                     <h5 class="chat-name mb-0">
                         @if($chat->isFromTelegram())
-                            {{ $chat->guest_name ?? 'Telegram пользователь' }}
+                            {{ $chat->guest_name ?? 'Telegram User' }}
                         @else
                             {{ $chat->user->name ?? $chat->guest_name ?? 'Гость' }}
                         @endif
@@ -533,7 +529,8 @@
                             const wasAtBottom = messagesContainer.scrollHeight - messagesContainer.scrollTop <= messagesContainer.clientHeight + 50;
                             const chatData = {
                                 user: @json($chat->user),
-                                guest_name: @json($chat->guest_name)
+                                guest_name: @json($chat->guest_name),
+                                source: @json($chat->source)
                             };
                             
                             data.messages.forEach(function(message) {
@@ -856,9 +853,9 @@
                             if (isAdmin) {
                                 senderName = (message.user && message.user.name) ? message.user.name : 'Администратор';
                             } else {
-                                // Для Telegram чатов скрываем username
+                                // Для Telegram чатов используем guest_name
                                 if (chat.source === 'telegram') {
-                                    senderName = '<i class="fab fa-telegram mr-1"></i> Telegram User';
+                                    senderName = `<i class="fab fa-telegram mr-1"></i> ${chat.guest_name || 'Telegram User'}`;
                                 } else if (chat.user) {
                                     senderName = (message.user && message.user.name) ? message.user.name : 'Пользователь';
                                 } else {

@@ -84,23 +84,11 @@
                                 <td>
                                     @if($chat->isFromTelegram())
                                         {{-- Для Telegram чатов показываем имя и аватарку (БЕЗ никнейма) --}}
-                                        <div class="d-flex align-items-center">
-                                            @if($chat->telegram_photo)
-                                                <img src="{{ asset($chat->telegram_photo) }}" 
-                                                     alt="Avatar" 
-                                                     class="rounded-circle mr-2" 
-                                                     style="width: 32px; height: 32px; object-fit: cover;"
-                                                     onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                                                <div class="rounded-circle mr-2 bg-secondary align-items-center justify-content-center" 
-                                                     style="width: 32px; height: 32px; color: white; font-size: 14px; display: none;">
-                                                    {{ mb_substr($chat->guest_name ?? 'U', 0, 1) }}
-                                                </div>
-                                            @else
-                                                <div class="rounded-circle mr-2 bg-secondary d-flex align-items-center justify-content-center" 
-                                                     style="width: 32px; height: 32px; color: white; font-size: 14px;">
-                                                    {{ mb_substr($chat->guest_name ?? 'U', 0, 1) }}
-                                                </div>
-                                            @endif
+                                        <div class="d-flex align-items-center" data-test="{{ $chat }}">
+                                            <div class="rounded-circle mr-2 bg-secondary d-flex align-items-center justify-content-center" 
+                                                 style="width: 32px; height: 32px; color: white; font-size: 14px;">
+                                                {{ mb_substr($chat->guest_name ?? 'U', 0, 1) }}
+                                            </div>
                                             <span class="text-muted">
                                                 <i class="fab fa-telegram mr-1"></i>
                                                 {{ $chat->guest_name ?? 'Telegram User' }}

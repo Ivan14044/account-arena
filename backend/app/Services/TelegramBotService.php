@@ -13,6 +13,10 @@ use Illuminate\Support\Facades\Storage;
 
 class TelegramBotService
 {
+    private const API_BASE_URL = 'https://api.telegram.org/bot';
+    private const TIMEOUT = 10;
+    private const FILE_TIMEOUT = 30;
+
     private ?string $botToken = null;
     private bool $enabled = false;
 
@@ -39,6 +43,75 @@ class TelegramBotService
     }
 
     /**
+     * Make API request to Telegram Bot API
+     */
+    private function makeApiRequest(string $method, array $data = [], int $timeout = self::TIMEOUT, string $httpMethod = 'POST'): ?array
+    {
+        if (!$this->isEnabled()) {
+            return null;
+        }
+
+        try {
+            $url = self::API_BASE_URL . $this->botToken . '/' . $method;
+
+            if ($httpMethod === 'GET') {
+                $response = Http::timeout($timeout)->get($url, $data);
+            } else {
+                $response = Http::timeout($timeout)->post($url, $data);
+            }
+
+            if ($response->successful() && $response->json('ok')) {
+                return $response->json('result');
+            }
+
+            Log::error("TelegramBotService: API request failed", [
+                'method' => $method,
+                'response' => $response->json()
+            ]);
+            return null;
+        } catch (\Exception $e) {
+            Log::error("TelegramBotService: API request error", [
+                'method' => $method,
+                'error' => $e->getMessage()
+            ]);
+            return null;
+        }
+    }
+
+    /**
+     * Make API request with file attachment
+     */
+    private function makeApiRequestWithFile(string $method, string $fileField, $file, string $fileName, array $data = []): ?array
+    {
+        if (!$this->isEnabled()) {
+            return null;
+        }
+
+        try {
+            $url = self::API_BASE_URL . $this->botToken . '/' . $method;
+            $response = Http::timeout(self::FILE_TIMEOUT)
+                ->attach($fileField, $file, $fileName)
+                ->post($url, $data);
+
+            if ($response->successful() && $response->json('ok')) {
+                return $response->json('result');
+            }
+
+            Log::error("TelegramBotService: API request with file failed", [
+                'method' => $method,
+                'response' => $response->json()
+            ]);
+            return null;
+        } catch (\Exception $e) {
+            Log::error("TelegramBotService: API request with file error", [
+                'method' => $method,
+                'error' => $e->getMessage()
+            ]);
+            return null;
+        }
+    }
+
+    /**
      * Send greeting message for /start command
      * 
      * @param int $chatId Telegram chat ID
@@ -54,7 +127,7 @@ class TelegramBotService
         // Check if greeting is enabled
         $greetingEnabled = Option::get('support_chat_greeting_enabled', false);
         $greetingEnabled = filter_var($greetingEnabled, FILTER_VALIDATE_BOOLEAN);
-        
+
         if (!$greetingEnabled) {
             return false;
         }
@@ -66,10 +139,10 @@ class TelegramBotService
             'en' => 'en',
         ];
         $locale = $localeMap[$languageCode] ?? 'en';
-        
+
         // Get greeting message for the locale
         $greetingMessage = Option::get('support_chat_greeting_message_' . $locale, '');
-        
+
         // Fallback to Russian if English is also empty
         if (empty($greetingMessage)) {
             $greetingMessage = Option::get('support_chat_greeting_message_ru', '');
@@ -80,33 +153,21 @@ class TelegramBotService
             return false;
         }
 
-        try {
-            $response = Http::timeout(10)->post("https://api.telegram.org/bot{$this->botToken}/sendMessage", [
-                'chat_id' => $chatId,
-                'text' => $greetingMessage,
-                'parse_mode' => 'HTML'
-            ]);
+        $result = $this->makeApiRequest('sendMessage', [
+            'chat_id' => $chatId,
+            'text' => $greetingMessage,
+            'parse_mode' => 'HTML'
+        ]);
 
-            if ($response->successful() && $response->json('ok')) {
-                Log::info('TelegramBotService: Greeting message sent successfully', [
-                    'chat_id' => $chatId,
-                    'locale' => $locale
-                ]);
-                return true;
-            } else {
-                Log::error('TelegramBotService: Failed to send greeting message', [
-                    'chat_id' => $chatId,
-                    'response' => $response->json()
-                ]);
-                return false;
-            }
-        } catch (\Exception $e) {
-            Log::error('TelegramBotService: Error sending greeting message', [
+        if ($result) {
+            Log::info('TelegramBotService: Greeting message sent successfully', [
                 'chat_id' => $chatId,
-                'error' => $e->getMessage()
+                'locale' => $locale
             ]);
-            return false;
+            return true;
         }
+
+        return false;
     }
 
     /**
@@ -128,29 +189,17 @@ class TelegramBotService
 
         // Send text message if provided
         if (!empty($message)) {
-            try {
-                $response = Http::timeout(10)->post("https://api.telegram.org/bot{$this->botToken}/sendMessage", [
-                    'chat_id' => $chatId,
-                    'text' => $message,
-                    'parse_mode' => 'HTML'
-                ]);
+            $result = $this->makeApiRequest('sendMessage', [
+                'chat_id' => $chatId,
+                'text' => $message,
+                'parse_mode' => 'HTML'
+            ]);
 
-                if ($response->successful() && $response->json('ok')) {
-                    $sentSomething = true;
-                    Log::info('TelegramBotService: Text message sent successfully', [
-                        'chat_id' => $chatId,
-                        'message_id' => $response->json('result.message_id')
-                    ]);
-                } else {
-                    Log::error('TelegramBotService: Failed to send text message', [
-                        'chat_id' => $chatId,
-                        'response' => $response->json()
-                    ]);
-                }
-            } catch (\Exception $e) {
-                Log::error('TelegramBotService: Error sending text message', [
+            if ($result) {
+                $sentSomething = true;
+                Log::info('TelegramBotService: Text message sent successfully', [
                     'chat_id' => $chatId,
-                    'error' => $e->getMessage()
+                    'message_id' => $result['message_id'] ?? null
                 ]);
             }
         }
@@ -159,7 +208,7 @@ class TelegramBotService
         if (!empty($attachments)) {
             // Convert Collection to array if needed
             $attachmentsArray = is_array($attachments) ? $attachments : $attachments->all();
-            
+
             foreach ($attachmentsArray as $attachment) {
                 if ($attachment instanceof SupportMessageAttachment) {
                     try {
@@ -193,48 +242,38 @@ class TelegramBotService
             return false;
         }
 
+        $file = fopen($filePath, 'r');
+        if (!$file) {
+            Log::error('TelegramBotService: Failed to open file', ['path' => $filePath]);
+            return false;
+        }
+
         try {
-            $file = fopen($filePath, 'r');
-            $fileName = $attachment->file_name;
+            $method = $attachment->isImage() ? 'sendPhoto' : 'sendDocument';
+            $fileField = $attachment->isImage() ? 'photo' : 'document';
 
-            if ($attachment->isImage()) {
-                // Send as photo
-                $response = Http::timeout(30)->attach('photo', $file, $fileName)
-                    ->post("https://api.telegram.org/bot{$this->botToken}/sendPhoto", [
-                        'chat_id' => $chatId,
-                        'caption' => $caption
-                    ]);
-            } else {
-                // Send as document
-                $response = Http::timeout(30)->attach('document', $file, $fileName)
-                    ->post("https://api.telegram.org/bot{$this->botToken}/sendDocument", [
-                        'chat_id' => $chatId,
-                        'caption' => $caption
-                    ]);
-            }
+            $result = $this->makeApiRequestWithFile(
+                $method,
+                $fileField,
+                $file,
+                $attachment->file_name,
+                [
+                    'chat_id' => $chatId,
+                    'caption' => $caption
+                ]
+            );
 
-            fclose($file);
-
-            if ($response->successful() && $response->json('ok')) {
+            if ($result) {
                 Log::info('TelegramBotService: Attachment sent successfully', [
                     'chat_id' => $chatId,
                     'attachment_id' => $attachment->id
                 ]);
                 return true;
-            } else {
-                Log::error('TelegramBotService: Failed to send attachment', [
-                    'chat_id' => $chatId,
-                    'response' => $response->json()
-                ]);
-                return false;
             }
-        } catch (\Exception $e) {
-            Log::error('TelegramBotService: Error sending attachment', [
-                'chat_id' => $chatId,
-                'attachment_id' => $attachment->id,
-                'error' => $e->getMessage()
-            ]);
+
             return false;
+        } finally {
+            fclose($file);
         }
     }
 
@@ -250,28 +289,14 @@ class TelegramBotService
             return false;
         }
 
-        try {
-            $response = Http::timeout(10)->post("https://api.telegram.org/bot{$this->botToken}/setWebhook", [
-                'url' => $webhookUrl
-            ]);
+        $result = $this->makeApiRequest('setWebhook', ['url' => $webhookUrl]);
 
-            if ($response->successful() && $response->json('ok')) {
-                Log::info('TelegramBotService: Webhook set successfully', ['url' => $webhookUrl]);
-                return true;
-            } else {
-                Log::error('TelegramBotService: Failed to set webhook', [
-                    'url' => $webhookUrl,
-                    'response' => $response->json()
-                ]);
-                return false;
-            }
-        } catch (\Exception $e) {
-            Log::error('TelegramBotService: Error setting webhook', [
-                'url' => $webhookUrl,
-                'error' => $e->getMessage()
-            ]);
-            return false;
+        if ($result) {
+            Log::info('TelegramBotService: Webhook set successfully', ['url' => $webhookUrl]);
+            return true;
         }
+
+        return false;
     }
 
     /**
@@ -283,24 +308,14 @@ class TelegramBotService
             return false;
         }
 
-        try {
-            $response = Http::timeout(10)->post("https://api.telegram.org/bot{$this->botToken}/deleteWebhook");
+        $result = $this->makeApiRequest('deleteWebhook');
 
-            if ($response->successful() && $response->json('ok')) {
-                Log::info('TelegramBotService: Webhook deleted successfully');
-                return true;
-            } else {
-                Log::error('TelegramBotService: Failed to delete webhook', [
-                    'response' => $response->json()
-                ]);
-                return false;
-            }
-        } catch (\Exception $e) {
-            Log::error('TelegramBotService: Error deleting webhook', [
-                'error' => $e->getMessage()
-            ]);
-            return false;
+        if ($result !== null) {
+            Log::info('TelegramBotService: Webhook deleted successfully');
+            return true;
         }
+
+        return false;
     }
 
     /**
@@ -312,19 +327,7 @@ class TelegramBotService
             return null;
         }
 
-        try {
-            $response = Http::timeout(10)->get("https://api.telegram.org/bot{$this->botToken}/getWebhookInfo");
-
-            if ($response->successful() && $response->json('ok')) {
-                return $response->json('result');
-            }
-        } catch (\Exception $e) {
-            Log::error('TelegramBotService: Error getting webhook info', [
-                'error' => $e->getMessage()
-            ]);
-        }
-
-        return null;
+        return $this->makeApiRequest('getWebhookInfo', [], self::TIMEOUT, 'GET');
     }
 
     /**
@@ -335,34 +338,30 @@ class TelegramBotService
      */
     public function processIncomingMessage(array $update): ?SupportChat
     {
-        if (!isset($update['message'])) {
+        $message = $update['message'] ?? null;
+        if (!$message) {
             return null;
         }
 
-        $message = $update['message'];
         $chat = $message['chat'] ?? null;
         $from = $message['from'] ?? null;
-
-        if (!$chat || !$from) {
-            return null;
-        }
-
         $chatId = $chat['id'] ?? null;
         $messageId = $message['message_id'] ?? null;
-        $text = $message['text'] ?? '';
-        $date = $message['date'] ?? time();
 
-        if (!$chatId || !$messageId) {
+        // Validate required data
+        if (!$chat || !$from || !$chatId || !$messageId) {
             return null;
         }
 
         // Skip empty messages without attachments
-        if (empty($text) && empty($message['photo'] ?? []) && empty($message['document'] ?? [])) {
+        $text = trim($message['text'] ?? '');
+        $hasAttachments = !empty($message['photo'] ?? []) || !empty($message['document'] ?? []);
+        if (empty($text) && !$hasAttachments) {
             return null;
         }
 
         try {
-            // Check if message already exists
+            // Check if message already exists (prevent duplicates)
             $existingMessage = SupportMessage::where('telegram_message_id', $messageId)->first();
             if ($existingMessage) {
                 $supportChat = SupportChat::find($existingMessage->support_chat_id);
@@ -372,43 +371,20 @@ class TelegramBotService
                 return $supportChat;
             }
 
+            // Extract user information
+            $telegramUserId = $from['id'] ?? null;
+            $user = $telegramUserId ? User::where('telegram_id', $telegramUserId)->first() : null;
+            $displayName = $this->formatTelegramDisplayName($from, $chatId);
+
             // Find or create support chat (exclude closed chats)
-            $supportChat = SupportChat::where('telegram_chat_id', $chatId)
-                ->where('source', SupportChat::SOURCE_TELEGRAM)
-                ->where('status', '!=', SupportChat::STATUS_CLOSED)
-                ->orderBy('created_at', 'desc')
-                ->first();
-
-            if (!$supportChat) {
-                // Try to find user by telegram_id
-                $telegramUserId = $from['id'] ?? null;
-                $user = $telegramUserId ? User::where('telegram_id', $telegramUserId)->first() : null;
-
-                $firstName = $from['first_name'] ?? '';
-                $lastName = $from['last_name'] ?? '';
-                $displayName = trim("{$firstName} {$lastName}") ?: "User {$chatId}";
-                $username = $from['username'] ?? null;
-
-                $supportChat = SupportChat::create([
-                    'user_id' => $user?->id,
-                    'source' => SupportChat::SOURCE_TELEGRAM,
-                    'telegram_chat_id' => $chatId,
-                    'status' => SupportChat::STATUS_PENDING,
-                    'guest_name' => $user ? null : $displayName,
-                    'guest_email' => $user ? null : "tg{$chatId}@telegram.local",
-                    'telegram_first_name' => $firstName ?: null,
-                    'telegram_last_name' => $lastName ?: null,
-                    'last_message_at' => now(),
-                ]);
-            }
+            $supportChat = $this->findOrCreateSupportChat($chatId, $user, $displayName);
 
             // Create support message
-            $content = $text ?: '[Attachment from Telegram]';
             $supportMessage = SupportMessage::create([
                 'support_chat_id' => $supportChat->id,
                 'user_id' => $supportChat->user_id,
                 'sender_type' => $supportChat->user_id ? SupportMessage::SENDER_USER : SupportMessage::SENDER_GUEST,
-                'message' => $content,
+                'message' => $text ?: '[Attachment from Telegram]',
                 'telegram_message_id' => $messageId,
                 'is_read' => false,
             ]);
@@ -416,7 +392,7 @@ class TelegramBotService
             // Process attachments (photos, documents)
             $this->processAttachments($supportMessage, $message);
 
-            // Update chat
+            // Update chat status and timestamp
             $supportChat->update([
                 'last_message_at' => now(),
                 'status' => SupportChat::STATUS_OPEN,
@@ -426,10 +402,78 @@ class TelegramBotService
         } catch (\Exception $e) {
             Log::error('TelegramBotService: Error processing incoming message', [
                 'error' => $e->getMessage(),
-                'update' => $update
+                'trace' => $e->getTraceAsString(),
+                'chat_id' => $chatId,
+                'message_id' => $messageId,
             ]);
             return null;
         }
+    }
+
+    /**
+     * Format display name from Telegram user data
+     * Priority: FirstName + LastName > username > User {id}
+     * 
+     * @param array $from Telegram user data
+     * @param int $chatId Telegram chat ID (fallback)
+     * @return string
+     */
+    private function formatTelegramDisplayName(array $from, int $chatId): string
+    {
+        $firstName = trim($from['first_name'] ?? '');
+        $lastName = trim($from['last_name'] ?? '');
+        $username = $from['username'] ?? null;
+
+        // Try FirstName + LastName
+        $fullName = trim("{$firstName} {$lastName}");
+        if (!empty($fullName)) {
+            return $fullName;
+        }
+
+        // Try username
+        if ($username) {
+            return $username;
+        }
+
+        // Fallback to User {id}
+        return "User {$chatId}";
+    }
+
+    /**
+     * Find or create support chat for Telegram
+     * 
+     * @param int $telegramChatId Telegram chat ID
+     * @param User|null $user User if linked
+     * @param string $displayName Display name for guest
+     * @return SupportChat
+     */
+    private function findOrCreateSupportChat(int $telegramChatId, ?User $user, string $displayName): SupportChat
+    {
+        // Find existing active chat (exclude closed)
+        $supportChat = SupportChat::where('telegram_chat_id', $telegramChatId)
+            ->where('source', SupportChat::SOURCE_TELEGRAM)
+            ->where('status', '!=', SupportChat::STATUS_CLOSED)
+            ->orderBy('created_at', 'desc')
+            ->first();
+
+        if ($supportChat) {
+            $supportChat->update(['guest_name' => $displayName]);
+            Log::info('TelegramBotService: Existing chat updated', ['chat_id' => $supportChat->id, 'guest_name' => $displayName]);
+            return $supportChat;
+        }
+
+        Log::info('TelegramBotService: No existing chat found, creating new one', ['telegram_chat_id' => $telegramChatId, 'display_name' => $displayName]);
+
+        // Create new chat
+        return SupportChat::create([
+            'user_id' => $user?->id,
+            'source' => SupportChat::SOURCE_TELEGRAM,
+            'telegram_chat_id' => $telegramChatId,
+            'status' => SupportChat::STATUS_PENDING,
+            'guest_name' => $displayName,
+            'guest_email' => "tg{$telegramChatId}@telegram.local",
+            'last_message_at' => now(),
+        ]);
     }
 
     /**
@@ -469,25 +513,19 @@ class TelegramBotService
         string $fileName,
         string $mimeType = 'application/octet-stream'
     ): void {
+        // Get file path from Telegram
+        $fileInfo = $this->makeApiRequest('getFile', ['file_id' => $fileId]);
+        if (!$fileInfo || !isset($fileInfo['file_path'])) {
+            Log::warning('TelegramBotService: Failed to get file path', ['file_id' => $fileId]);
+            return;
+        }
+
+        $filePath = $fileInfo['file_path'];
+
         try {
-            // Get file path from Telegram
-            $response = Http::timeout(10)->get("https://api.telegram.org/bot{$this->botToken}/getFile", [
-                'file_id' => $fileId
-            ]);
-
-            if (!$response->successful() || !$response->json('ok')) {
-                Log::warning('TelegramBotService: Failed to get file path', ['file_id' => $fileId]);
-                return;
-            }
-
-            $filePath = $response->json('result.file_path');
-            if (!$filePath) {
-                return;
-            }
-
             // Download file
             $fileUrl = "https://api.telegram.org/file/bot{$this->botToken}/{$filePath}";
-            $fileContent = Http::timeout(30)->get($fileUrl)->body();
+            $fileContent = Http::timeout(self::FILE_TIMEOUT)->get($fileUrl)->body();
 
             // Save file
             $storagePath = 'support/attachments/' . date('Y/m') . '/' . uniqid() . '_' . $fileName;

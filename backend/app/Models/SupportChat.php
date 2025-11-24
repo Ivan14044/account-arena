@@ -23,9 +23,6 @@ class SupportChat extends Model
         'rated_at',
         'source',
         'telegram_chat_id',
-        'telegram_first_name',
-        'telegram_last_name',
-        'telegram_photo',
     ];
 
     protected $casts = [
