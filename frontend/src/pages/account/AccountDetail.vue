@@ -466,9 +466,9 @@
                                                 {{ $t('account.detail.description_title') }}
                                             </h3>
                                             <div
-                                                v-if="getProductDescription(account)"
+                                                v-if="description"
                                                 class="text-gray-900 dark:text-gray-300 info-body product-content"
-                                                v-html="getProductDescription(account)"
+                                                v-html="description"
                                             />
                                             <p
                                                 v-else
@@ -523,6 +523,10 @@ const quantity = ref(1);
 const FAVORITES_KEY = 'product_favorites';
 
 const favorites = ref<Set<number>>(new Set());
+
+const description = computed(() => {
+    return account.value ? getProductDescription(account.value, true) : '';
+});
 
 // Загрузка избранных из localStorage
 const loadFavorites = () => {

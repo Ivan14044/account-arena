@@ -50,8 +50,9 @@ export function useProductTitle() {
         description?: string | null;
         description_uk?: string | null;
         description_en?: string | null;
-    }): string => {
-        return getLocalizedField<string>(product, 'description');
+    }, newLine: boolean = false): string => {
+        const description = getLocalizedField<string>(product, 'description')
+        return newLine ? description.replaceAll("\n", "<br />") : description.replace(/\s+|\<br\s*\/?\>/gm, ' ');
     };
 
     return {
