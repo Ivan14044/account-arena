@@ -9,9 +9,6 @@ class AdminNotificationController extends Controller
 {
     public function get()
     {
-        // Перехватываем весь вывод, чтобы MadelineProto не испортил JSON-ответ
-        ob_start();
-        
         try {
             $notifications = AdminNotification::latest()->take(5)->get();
 
@@ -66,9 +63,6 @@ class AdminNotificationController extends Controller
             // Проверяем, есть ли новые непрочитанные уведомления
             $hasNewNotifications = $unreadCount > 0;
             
-            // Очищаем весь перехваченный вывод перед отправкой JSON
-            ob_end_clean();
-            
             return response()->json([
                 'label' => $unreadCount,
                 'label_color' => 'primary',
@@ -77,8 +71,6 @@ class AdminNotificationController extends Controller
                 'has_new' => $hasNewNotifications,
             ]);
         } catch (\Exception $e) {
-            // Очищаем вывод даже при ошибке
-            ob_end_clean();
             throw $e;
         }
     }

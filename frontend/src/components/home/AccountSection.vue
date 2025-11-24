@@ -373,8 +373,6 @@ const filteredAccounts = computed(() => {
             return title.includes(query) || description.includes(query) || sku.includes(query);
         });
     }
-
-    console.log('[AccountSection] Отфильтровано товаров:', result.length);
     return result;
 });
 

@@ -7,9 +7,13 @@ use App\Models\SupportChat;
 use App\Models\SupportMessage;
 use App\Models\SupportMessageAttachment;
 use App\Models\SupportChatNote;
-use App\Services\TelegramClientService;
+use App\Services\TelegramBotService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+
 
 class SupportChatController extends Controller
 {
@@ -71,7 +75,7 @@ class SupportChatController extends Controller
         
         // Отмечаем сообщения от пользователей/гостей как прочитанные
         // Делаем это в транзакции для атомарности
-        \Illuminate\Support\Facades\DB::transaction(function() use ($chat) {
+        DB::transaction(function() use ($chat) {
         $chat->messages()
             ->fromUserOrGuest()
             ->where('is_read', false)
@@ -113,7 +117,7 @@ class SupportChatController extends Controller
     /**
      * Отправить сообщение от администратора
      */
-    public function sendMessage(Request $request, $id, TelegramClientService $telegramService)
+    public function sendMessage(Request $request, $id, TelegramBotService $telegramService)
     {
         $request->validate([
             'message' => 'nullable|string|max:5000',
@@ -152,7 +156,7 @@ class SupportChatController extends Controller
         $messageText = trim($request->input('message', ''));
         
         // Создаем сообщение и файлы в транзакции для атомарности
-        $message = \Illuminate\Support\Facades\DB::transaction(function() use ($chat, $admin, $messageText, $request) {
+        $message = DB::transaction(function() use ($chat, $admin, $messageText, $request) {
         $message = SupportMessage::create([
             'support_chat_id' => $chat->id,
             'user_id' => $admin->id,
@@ -163,37 +167,23 @@ class SupportChatController extends Controller
         
             // Обработка вложений в той же транзакции
         if ($request->hasFile('attachments')) {
-                // Сохраняем напрямую в public (без символических ссылок для совместимости с Windows)
-                $directory = 'support-chat/attachments/' . date('Y/m');
-                $fullDirectory = public_path($directory);
-                
-                if (!file_exists($fullDirectory)) {
-                    mkdir($fullDirectory, 0755, true);
-                }
-                
                 foreach ($request->file('attachments') as $file) {
-                    // Получаем информацию о файле ДО перемещения
+                    // Получаем информацию о файле
                     $originalName = $file->getClientOriginalName();
-                    $extension = $file->getClientOriginalExtension();
                     $mimeType = $file->getMimeType();
                     $fileSize = $file->getSize();
                     
-                    // Генерируем уникальное имя файла
-                    $fileName = pathinfo($originalName, PATHINFO_FILENAME);
-                    $fileName = \Illuminate\Support\Str::slug($fileName) . '_' . time() . '_' . uniqid() . '.' . $extension;
+                    // Сохраняем файл используя Storage (как в других контроллерах)
+                    $directory = 'support-chat/attachments/' . date('Y/m');
+                    $path = $file->store($directory, 'public');
                     
-                    // Перемещаем файл
-                    $file->move($fullDirectory, $fileName);
-                    
-                    // Формируем относительный путь
-                    $relativePath = $directory . '/' . $fileName;
-                    $relativePath = str_replace('\\', '/', $relativePath);
-                    $fileUrl = asset($relativePath);
+                    // Генерируем URL используя Storage::url()
+                    $fileUrl = Storage::url($path);
                 
                 SupportMessageAttachment::create([
                     'support_message_id' => $message->id,
                         'file_name' => $originalName,
-                        'file_path' => $relativePath,
+                        'file_path' => $path,
                         'file_url' => $fileUrl,
                         'mime_type' => $mimeType,
                         'file_size' => $fileSize,
@@ -216,30 +206,30 @@ class SupportChatController extends Controller
             
             try {
                 if (empty($textToSend) && $message->attachments->isEmpty()) {
-                    \Illuminate\Support\Facades\Log::warning('No content to send to Telegram', [
+                    Log::warning('No content to send to Telegram', [
                         'chat_id' => $chat->id,
                         'message_id' => $message->id,
                     ]);
                 } elseif ($telegramChatId <= 0) {
-                    \Illuminate\Support\Facades\Log::error('Invalid telegram_chat_id', [
+                    Log::error('Invalid telegram_chat_id', [
                         'chat_id' => $chat->id,
                         'telegram_chat_id' => $telegramChatId,
                     ]);
                     \Illuminate\Support\Facades\Session::flash('telegram_send_error', 'Invalid Telegram chat ID. Message saved to database.');
                 } elseif (!\App\Models\Option::get('telegram_client_enabled', false)) {
-                    \Illuminate\Support\Facades\Log::warning('Telegram Client not enabled', ['chat_id' => $chat->id]);
+                    Log::warning('Telegram Client not enabled', ['chat_id' => $chat->id]);
                     \Illuminate\Support\Facades\Session::flash('telegram_send_error', 'Telegram Client is not enabled. Enable it in Settings → Telegram.');
                 } else {
                     $success = $telegramService->sendMessage($telegramChatId, $textToSend, $message->attachments);
                     
                     if ($success) {
-                        \Illuminate\Support\Facades\Log::info('Message sent to Telegram', [
+                        Log::info('Message sent to Telegram', [
                             'chat_id' => $chat->id,
                             'telegram_chat_id' => $telegramChatId,
                             'message_id' => $message->id,
                         ]);
                     } else {
-                        \Illuminate\Support\Facades\Log::error('Failed to send message to Telegram', [
+                        Log::error('Failed to send message to Telegram', [
                             'chat_id' => $chat->id,
                             'telegram_chat_id' => $telegramChatId,
                             'message_id' => $message->id,
@@ -248,7 +238,7 @@ class SupportChatController extends Controller
                     }
                 }
             } catch (\Exception $e) {
-                \Illuminate\Support\Facades\Log::error('Error sending message to Telegram: ' . $e->getMessage(), [
+                Log::error('Error sending message to Telegram: ' . $e->getMessage(), [
                     'chat_id' => $chat->id,
                     'telegram_chat_id' => $telegramChatId,
                     'message_id' => $message->id,
@@ -259,7 +249,7 @@ class SupportChatController extends Controller
         
         // Останавливаем индикатор печати
         $key = 'support_chat_typing_' . $chat->id . '_admin_' . $admin->id;
-        \Illuminate\Support\Facades\Cache::forget($key);
+        Cache::forget($key);
         
         // Обновляем время последнего сообщения
         $chat->update([
@@ -283,7 +273,7 @@ class SupportChatController extends Controller
             $admin = $request->user();
             
             $key = 'support_chat_typing_' . $chat->id . '_admin_' . $admin->id;
-            \Illuminate\Support\Facades\Cache::put($key, true, 5);
+            Cache::put($key, true, 5);
             
             return response()->json(['success' => true]);
         } catch (\Exception $e) {
@@ -301,7 +291,7 @@ class SupportChatController extends Controller
             $admin = $request->user();
             
             $key = 'support_chat_typing_' . $chat->id . '_admin_' . $admin->id;
-            \Illuminate\Support\Facades\Cache::forget($key);
+            Cache::forget($key);
             
             return response()->json(['success' => true]);
         } catch (\Exception $e) {
@@ -320,11 +310,11 @@ class SupportChatController extends Controller
             
             if ($chat->user_id) {
                 $key = 'support_chat_typing_' . $chat->id . '_' . $chat->user_id;
-                $isTyping = \Illuminate\Support\Facades\Cache::has($key);
+                $isTyping = Cache::has($key);
             } elseif ($chat->guest_email) {
                 $emailKey = md5($chat->guest_email);
                 $key = 'support_chat_typing_' . $chat->id . '_' . $emailKey;
-                $isTyping = \Illuminate\Support\Facades\Cache::has($key);
+                $isTyping = Cache::has($key);
             }
             
             return response()->json([
@@ -370,7 +360,7 @@ class SupportChatController extends Controller
         $oldStatus = $chat->status;
 
         // Используем транзакцию для атомарности обновления статуса и создания сообщения
-        \Illuminate\Support\Facades\DB::transaction(function() use ($chat, $request, $oldStatus) {
+        DB::transaction(function() use ($chat, $request, $oldStatus) {
         $chat->update([
             'status' => $request->status,
         ]);
@@ -523,7 +513,7 @@ class SupportChatController extends Controller
                 ],
             ]);
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('Error getting messages for admin', [
+            Log::error('Error getting messages for admin', [
                 'chat_id' => $id,
                 'error' => $e->getMessage(),
             ]);

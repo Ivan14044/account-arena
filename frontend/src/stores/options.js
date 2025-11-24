@@ -3,16 +3,18 @@ import axios from '../bootstrap'; // Используем настроенный
 
 export const useOptionStore = defineStore('options', {
     state: () => ({
-        options: [],
+        options: {}, // Changed from [] to {} to match API response format
         isLoaded: false
     }),
     getters: {
         getOption:
             state =>
             (key, defaultValue = null) => {
-                if (!Array.isArray(state.options)) return defaultValue;
-                const option = state.options.find(opt => opt.key === key);
-                return option?.value ?? defaultValue;
+                // API returns object format: {currency: 'USD', header_menu: '...', ...}
+                if (typeof state.options !== 'object' || state.options === null) {
+                    return defaultValue;
+                }
+                return state.options[key] ?? defaultValue;
             }
     },
     actions: {
@@ -21,7 +23,8 @@ export const useOptionStore = defineStore('options', {
 
             try {
                 const response = await axios.get('/options');
-                this.options = response.data;
+                // API returns object format: {currency: 'USD', header_menu: '...', ...}
+                this.options = response.data || {};
                 this.isLoaded = true;
             } catch {
                 // Ошибка загрузки опций

@@ -5,6 +5,9 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Option;
 use App\Models\AdminNotificationSetting;
+use App\Services\TelegramBotService;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 
@@ -18,9 +21,9 @@ class SettingController extends Controller
         // Настройки Telegram
         $telegramSettings = [
             'enabled' => Option::get('telegram_client_enabled', false),
-            'api_id' => Option::get('telegram_api_id', ''),
-            'api_hash' => Option::get('telegram_api_hash', ''),
-            'phone_number' => Option::get('telegram_phone_number', ''),
+            'bot_token' => Option::get('telegram_bot_token', ''),
+            'bot_username' => Option::get('telegram_bot_username', ''),
+            'bot_id' => Option::get('telegram_bot_id', ''),
         ];
 
         return view('admin.settings.index', compact('currency', 'notificationSettings', 'telegramSettings'));
@@ -82,14 +85,52 @@ class SettingController extends Controller
         // Обработка настроек Telegram
         if ($request->form === 'telegram') {
             Option::set('telegram_client_enabled', $request->has('telegram_client_enabled') ? true : false);
-            if ($request->filled('telegram_api_id')) {
-                Option::set('telegram_api_id', $request->telegram_api_id);
-            }
-            if ($request->filled('telegram_api_hash')) {
-                Option::set('telegram_api_hash', $request->telegram_api_hash);
-            }
-            if ($request->filled('telegram_phone_number')) {
-                Option::set('telegram_phone_number', $request->telegram_phone_number);
+            
+            if ($request->filled('telegram_bot_token')) {
+                $botToken = $request->telegram_bot_token;
+                Option::set('telegram_bot_token', $botToken);
+                
+                // Validate bot token by calling /getMe API
+                try {
+                    $response = Http::timeout(10)->get("https://api.telegram.org/bot{$botToken}/getMe");
+                    
+                    if ($response->successful() && $response->json('ok')) {
+                        $botData = $response->json('result');
+                        $botUsername = $botData['username'] ?? null;
+                        $botId = $botData['id'] ?? null;
+                        
+                        if ($botUsername) {
+                            Option::set('telegram_bot_username', $botUsername);
+                            Option::set('telegram_bot_id', $botId);
+                            
+                            // Set support_chat_telegram_link with correct bot link
+                            Option::set('support_chat_telegram_link', "https://t.me/{$botUsername}");
+                            
+                            // Set webhook for receiving messages
+                            $webhookUrl = config('app.url') . '/api/telegram/webhook';
+                            $telegramBotService = new TelegramBotService();
+                            $webhookSet = $telegramBotService->setWebhook($webhookUrl);
+                            
+                            if (!$webhookSet) {
+                                Log::warning('Failed to set Telegram webhook', [
+                                    'webhook_url' => $webhookUrl
+                                ]);
+                            }
+                        }
+                    } else {
+                        return redirect()->route('admin.settings.index')
+                            ->with('active_tab', 'telegram')
+                            ->withErrors(['telegram_bot_token' => 'Неверный токен бота. Проверьте правильность токена.']);
+                    }
+                } catch (\Exception $e) {
+                    Log::error('Telegram bot token validation error', [
+                        'error' => $e->getMessage()
+                    ]);
+                    
+                    return redirect()->route('admin.settings.index')
+                        ->with('active_tab', 'telegram')
+                        ->withErrors(['telegram_bot_token' => 'Ошибка при проверке токена бота: ' . $e->getMessage()]);
+                }
             }
         }
 
@@ -212,9 +253,7 @@ class SettingController extends Controller
             ],
             'telegram' => [
                 'telegram_client_enabled' => ['nullable', 'boolean'],
-                'telegram_api_id' => ['nullable', 'string', 'max:255'],
-                'telegram_api_hash' => ['nullable', 'string', 'max:255'],
-                'telegram_phone_number' => ['nullable', 'string', 'max:20'],
+                'telegram_bot_token' => ['nullable', 'string', 'max:255'],
             ],
             default => [],
         };

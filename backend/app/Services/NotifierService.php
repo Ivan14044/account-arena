@@ -41,14 +41,6 @@ class NotifierService
                 'status' => $status
             ]);
         }
-
-        // Telegram уведомление отправляем всегда (если настроено)
-        if (config('telegram.bot_token') && config('telegram.chat_id')) {
-            Http::post("https://api.telegram.org/bot" . config('telegram.bot_token') . "/sendMessage", [
-                'chat_id' => config('telegram.chat_id'),
-                'text' => "🔔 {$title}: {$message}",
-            ]);
-        }
     }
 
     /**

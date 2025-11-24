@@ -20,8 +20,6 @@ class Kernel extends ConsoleKernel
         // Пересчет рейтингов поставщиков (каждый день в 3:00)
         $schedule->command('suppliers:recalculate-ratings')->dailyAt('03:00');
 
-        // Регулярный опрос Telegram чатов поддержки
-        $schedule->command('telegram:poll-messages')->everyMinute();
     }
 
     /**

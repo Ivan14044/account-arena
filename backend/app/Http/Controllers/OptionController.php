@@ -4,16 +4,46 @@ namespace App\Http\Controllers;
 
 use App\Models\Option;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 
 class OptionController extends Controller
 {
     /**
-     * Получить все опции с кешированием (кеш на 1 час)
+     * Whitelist of public options that can be exposed via API
+     * Private options (tokens, passwords, API keys) are excluded
+     */
+    private function getPublicOptionsWhitelist(): array
+    {
+        return [
+            // General settings
+            'currency',
+            'telegram_bot_id',
+            
+            // Menus
+            'header_menu',
+            'footer_menu',
+        ];
+    }
+
+    /**
+     * Get only public options with caching (cache for 1 hour)
+     * Private options (tokens, passwords, API keys) are excluded
      */
     public function index()
     {
         $options = Cache::remember('site_options', 3600, function () {
-            return Option::pluck('value', 'name')->toArray();
+            $whitelist = $this->getPublicOptionsWhitelist();
+            $allOptions = Option::whereIn('name', $whitelist)
+                ->pluck('value', 'name')
+                ->toArray();
+            
+            // Ensure all whitelisted options are present (with null values if missing)
+            $result = [];
+            foreach ($whitelist as $optionName) {
+                $result[$optionName] = $allOptions[$optionName] ?? null;
+            }
+            
+            return $result;
         });
         
         return response()->json($options);
@@ -61,8 +91,6 @@ class OptionController extends Controller
      */
     public function getSupportChatSettings()
     {
-        // Перехватываем вывод, чтобы MadelineProto не испортил JSON
-        ob_start();
         
         try {
             // Получаем язык из запроса или используем текущую локаль
@@ -92,19 +120,9 @@ class OptionController extends Controller
                 ];
             });
             
-            // Очищаем весь перехваченный вывод (включая WARNING от MadelineProto)
-            if (ob_get_level() > 0) {
-                ob_end_clean();
-            }
-            
             return response()->json($settings);
         } catch (\Exception $e) {
-            // Очищаем вывод даже при ошибке
-            if (ob_get_level() > 0) {
-                ob_end_clean();
-            }
-            
-            \Illuminate\Support\Facades\Log::error('Ошибка получения настроек чата', [
+            Log::error('Ошибка получения настроек чата', [
                 'error' => $e->getMessage()
             ]);
             

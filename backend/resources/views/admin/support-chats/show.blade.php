@@ -736,7 +736,7 @@
                                             parsedData = JSON.parse(data);
                                         }
                                     } catch (e) {
-                                        // Если не JSON, но статус 200 - это может быть HTML (ошибка MadelineProto)
+                                        // Если не JSON, но статус 200 - это может быть HTML 
                                         if (jqXHR.status === 200 && data && typeof data === 'string' && data.trim().startsWith('<')) {
                                             // Логируем только для важных запросов, системные игнорируем
                                             if (isImportantRequest && !isSystemRequest) {
@@ -759,9 +759,8 @@
                                                           url.includes('updateNotification') ||
                                                           url.includes('updateDisputesBadge');
                                     
-                                    // Если это системный запрос и ошибка парсинга JSON (возможно HTML ответ от MadelineProto)
+                                    // Если это системный запрос и ошибка парсинга JSON
                                     if (isSystemRequest && textStatus === 'parsererror' && jqXHR.status === 200) {
-                                        // Тихо игнорируем - это известная проблема с MadelineProto
                                         if (originalError) {
                                             originalError.apply(this, arguments);
                                         }
@@ -807,9 +806,6 @@
                         const messageInput = document.getElementById('admin-message-input');
                         const typingIndicator = document.getElementById('user-typing-indicator');
                         const messagesContainer = document.getElementById('messages-container');
-                        let typingTimeout = null;
-                        let typingThrottleTimeout = null;
-                        let typingCheckInterval = null;
                         let messagesPollInterval = null;
                         
                         // Получаем ID последнего сообщения
@@ -993,96 +989,14 @@
                         
                         messagesPollInterval = setInterval(loadNewMessages, 3000);
                         
-                        function sendTyping() {
-                            if (!messageInput.value.trim()) {
-                                sendStopTyping();
-                                return;
-                            }
-                            
-                            // Throttle: отправляем событие не чаще чем раз в 2 секунды
-                            if (typingThrottleTimeout) {
-                                return;
-                            }
-                            
-                            $.ajax({
-                                url: '/admin/support-chats/{{ $chat->id }}/typing',
-                                method: 'POST',
-                                data: { _token: '{{ csrf_token() }}' },
-                                error: function() {}
-                            });
-                            
-                            // Устанавливаем throttle на 2 секунды
-                            typingThrottleTimeout = setTimeout(function() {
-                                typingThrottleTimeout = null;
-                            }, 2000);
-                            
-                            // Автоматически останавливаем через 3 секунды бездействия
-                            clearTimeout(typingTimeout);
-                            typingTimeout = setTimeout(function() {
-                                sendStopTyping();
-                            }, 3000);
-                        }
-                        
-                        function sendStopTyping() {
-                            // Очищаем throttle timeout
-                            if (typingThrottleTimeout) {
-                                clearTimeout(typingThrottleTimeout);
-                                typingThrottleTimeout = null;
-                            }
-                            
-                            $.ajax({
-                                url: '/admin/support-chats/{{ $chat->id }}/typing/stop',
-                                method: 'POST',
-                                data: { _token: '{{ csrf_token() }}' },
-                                error: function() {}
-                            });
-                        }
-                        
-                        if (messageInput) {
-                            messageInput.addEventListener('input', sendTyping);
-                            messageInput.addEventListener('keydown', sendTyping);
-                        }
-                        
-                        // Проверка статуса печати пользователя
-                        function checkUserTyping() {
-                            $.ajax({
-                                url: '/admin/support-chats/{{ $chat->id }}/typing/user-status',
-                                method: 'GET',
-                                success: function(data) {
-                                    const messagesContainer = document.getElementById('messages-container');
-                                    if (data.is_typing) {
-                                        typingIndicator.style.display = 'block';
-                                        // Прокрутка вниз при появлении индикатора
-                                        if (messagesContainer) {
-                                            setTimeout(function() {
-                                                messagesContainer.scrollTop = messagesContainer.scrollHeight;
-                                            }, 100);
-                                        }
-                                    } else {
-                                        typingIndicator.style.display = 'none';
-                                    }
-                                },
-                                error: function() {}
-                            });
-                        }
-                        
-                        typingCheckInterval = setInterval(checkUserTyping, 2000);
+                        // Typing support disabled for Telegram chats
+                        // Telegram bots don't support typing indicators
                         
                         // Остановка печати при отправке (обрабатывается в основном обработчике формы ниже)
                         
                         // Остановка при уходе со страницы
                         window.addEventListener('beforeunload', function() {
-                            sendStopTyping();
                             // Очищаем все таймауты и интервалы
-                            if (typingTimeout) {
-                                clearTimeout(typingTimeout);
-                            }
-                            if (typingThrottleTimeout) {
-                                clearTimeout(typingThrottleTimeout);
-                            }
-                            if (typingCheckInterval) {
-                                clearInterval(typingCheckInterval);
-                            }
                             if (messagesPollInterval) {
                                 clearInterval(messagesPollInterval);
                             }
@@ -1396,9 +1310,6 @@
                                     sendForm.method = 'POST';
                                 }
                                 
-                                if (typeof sendStopTyping === 'function') {
-                                    sendStopTyping();
-                                }
                                 
                                 // Получаем элементы для индикатора загрузки
                                 const sendBtn = document.getElementById('send-btn');
@@ -2115,7 +2026,7 @@
         
         .input-container {
             display: flex !important;
-            align-items: flex-end;
+            align-items: center;
             gap: 8px;
             background: white;
             border-radius: 24px;

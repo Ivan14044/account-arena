@@ -23,6 +23,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\ExtensionController;
 use App\Http\Controllers\Api\PromocodeController;
 use App\Http\Controllers\Api\SupportChatController;
+use App\Http\Controllers\TelegramWebhookController;
 
 // Auth routes with rate limiting (увеличен лимит для разработки: 60 запросов в минуту)
 Route::middleware('throttle:60,1')->group(function () {
@@ -96,7 +97,7 @@ Route::middleware(['auth:sanctum', 'throttle:120,1'])->group(function () {
     Route::get('/purchases/{id}/download', [PurchaseController::class, 'download']);
     
     // Чат поддержки (для авторизованных пользователей)
-    Route::get('/support-chats', [\App\Http\Controllers\Api\SupportChatController::class, 'getChats']);
+    Route::get('/support-chats', [SupportChatController::class, 'getChats']);
     
     // Balance API (новая система управления балансом)
     Route::prefix('balance')->group(function () {
@@ -158,3 +159,5 @@ Route::middleware('ext.auth')->group(function () {
     Route::post('/extension/settings', [ExtensionController::class, 'saveSettings']);
     Route::get('/extension/auth', [ExtensionController::class, 'authStatus']);
 });
+
+Route::post('/telegram/webhook', [TelegramWebhookController::class, 'handle']);

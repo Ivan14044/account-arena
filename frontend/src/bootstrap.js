@@ -31,58 +31,5 @@ axios.interceptors.request.use(config => {
     return config;
 });
 
-// Interceptor для очистки предупреждений MadelineProto из ответов
-axios.interceptors.response.use(
-    response => {
-        // Обрабатываем как строковые, так и уже распарсенные ответы
-        if (typeof response.data === 'string') {
-            // Удаляем предупреждение MadelineProto из начала строки
-            const cleanedData = response.data.replace(
-                /^WARNING: MadelineProto runs around 10x slower on windows due to OS and PHP limitations\. Make sure to deploy MadelineProto in production only on Linux or Mac OS machines for maximum performance\.\s*\n*/,
-                ''
-            );
-            try {
-                // Пытаемся распарсить очищенный JSON
-                response.data = JSON.parse(cleanedData);
-            } catch {
-                // Если не получилось, оставляем как есть
-                console.warn('[Axios] Не удалось распарсить очищенный ответ:', e);
-            }
-        } else if (response.data && typeof response.data === 'object' && response.data.message) {
-            // Если в ответе есть message с предупреждением, пытаемся его обработать
-            const message = String(response.data.message);
-            if (message.includes('WARNING: MadelineProto')) {
-                // Пытаемся извлечь JSON из сообщения
-                const jsonMatch = message.match(/\{[\s\S]*\}/);
-                if (jsonMatch) {
-                    try {
-                        response.data = JSON.parse(jsonMatch[0]);
-                    } catch {
-                        // Игнорируем ошибку парсинга
-                    }
-                }
-            }
-        }
-        return response;
-    },
-    error => {
-        // Обрабатываем ошибки с предупреждениями MadelineProto
-        if (error.response && error.response.data) {
-            const data = error.response.data;
-            if (typeof data === 'string' && data.includes('WARNING: MadelineProto')) {
-                const jsonMatch = data.match(/\{[\s\S]*\}/);
-                if (jsonMatch) {
-                    try {
-                        error.response.data = JSON.parse(jsonMatch[0]);
-                    } catch {
-                        // Игнорируем ошибку парсинга
-                    }
-                }
-            }
-        }
-        return Promise.reject(error);
-    }
-);
-
 // Экспортируем настроенный экземпляр axios
 export default axios;

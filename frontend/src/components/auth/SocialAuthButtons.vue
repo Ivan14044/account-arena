@@ -37,10 +37,11 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
-import { useAuthStore } from '../../stores/auth';
+import { useAuthStore } from '@/stores/auth';
 import '../../types/telegram.d.ts';
-
+import { useOptionStore } from '@/stores/options';
 const authStore = useAuthStore();
+const optionStore = useOptionStore();
 
 const router = useRouter();
 const route = useRoute();
@@ -164,19 +165,19 @@ const loadTelegramScript = () => {
 
 // Показать всплывающее окно Telegram авторизации
 const showTelegramPopup = () => {
-    // Для этого вам нужно создать Telegram бота и получить его имя
-    const botId = (import.meta as any).env.VITE_APP_TELEGRAM_BOT_ID || '';
-
     if (window.Telegram && window.Telegram.Login) {
-        window.Telegram.Login.auth({ bot_id: botId }, data => {
-            if (data) {
-                handleTelegramAuth(data);
-            } else {
-                // User cancelled or auth failed
-                isSocialAuthLoading.value = false;
-                emitStatus();
+        window.Telegram.Login.auth(
+            { bot_id: optionStore.getOption('telegram_bot_id', '') },
+            data => {
+                if (data) {
+                    handleTelegramAuth(data);
+                } else {
+                    // User cancelled or auth failed
+                    isSocialAuthLoading.value = false;
+                    emitStatus();
+                }
             }
-        });
+        );
     } else {
         // Telegram widget not available
         isSocialAuthLoading.value = false;

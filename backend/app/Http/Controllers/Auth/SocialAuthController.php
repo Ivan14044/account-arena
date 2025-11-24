@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Laravel\Socialite\Facades\Socialite;
+use App\Models\Option;
 
 class SocialAuthController extends Controller
 {
@@ -185,7 +186,10 @@ class SocialAuthController extends Controller
         }
 
         // Get the secret key for verification
-        $botToken = config('telegram.bot_token');
+        $botToken = Option::get('telegram_bot_token', '');
+        if (empty($botToken)) {
+            return false;
+        }
         $secretKey = hash('sha256', $botToken, true);
 
         // Prepare data for hash verification (copy and remove hash)

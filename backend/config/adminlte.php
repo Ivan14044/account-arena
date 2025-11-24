@@ -361,11 +361,17 @@ return [
             'text' => 'Претензии на товары',
             'url' => 'admin/disputes',
             'icon' => 'fas fa-exclamation-triangle',
+            'label' => '',
+            'label_color' => 'secondary',
+            'id' => 'disputes-unread-count',
         ],
         [
             'text' => 'Чат поддержки',
             'url' => 'admin/support-chats',
+            'label' => '',
+            'label_color' => 'secondary',
             'icon' => 'fas fa-comments',
+            'id' => 'support-chats-unread-count',
         ],
         [
             'text' => 'Поставщики',
