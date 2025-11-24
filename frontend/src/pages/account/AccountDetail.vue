@@ -482,6 +482,11 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Похожие товары -->
+                    <div v-if="account" class="max-w-7xl mx-auto mt-8">
+                        <SimilarProducts :product-id="account.id || account.sku" />
+                    </div>
                 </main>
             </div>
         </div>
@@ -499,6 +504,7 @@ import { useToast } from 'vue-toastification';
 import { useI18n } from 'vue-i18n';
 import { useLoadingStore } from '@/stores/loading';
 import { useProductTitle } from '@/composables/useProductTitle';
+import SimilarProducts from '@/components/products/SimilarProducts.vue';
 
 const route = useRoute();
 const router = useRouter();

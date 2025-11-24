@@ -37,8 +37,16 @@
                 v-for="(account, index) in displayedAccounts"
                 :key="account.id"
                 class="product-card"
-                :class="{ 'out-of-stock-card': account.quantity <= 0 }"
+                :class="{ 
+                    'out-of-stock-card': account.quantity <= 0,
+                    'with-discount': account.has_discount && account.discount_percent
+                }"
             >
+                <!-- Полоса со скидкой вверху карточки -->
+                <div v-if="account.has_discount && account.discount_percent" class="discount-stripe">
+                    Скидка -{{ Math.round(account.discount_percent) }}%
+                </div>
+
                 <!-- Left: Product Image -->
                 <div
                     class="product-image-wrapper clickable"
@@ -119,13 +127,18 @@
                     <div class="top-actions-row">
                         <!-- Price Section -->
                         <div class="price-section">
-                            <div class="price">
-                                {{ formatTotalPrice(account.price, getQuantity(account.id)) }}
+                            <div class="price-wrapper">
+                                <span v-if="account.has_discount && account.price" class="price-old">
+                                    {{ formatPrice(account.price) }}
+                                </span>
+                                <div class="price">
+                                    {{ formatTotalPrice(account.current_price || account.price, getQuantity(account.id)) }}
+                                </div>
                             </div>
                             <div class="price-per-unit">
                                 {{
                                     $t('account.detail.price_per_unit', {
-                                        price: formatPrice(account.price),
+                                        price: formatPrice(account.current_price || account.price),
                                         quantity: getQuantity(account.id)
                                     })
                                 }}
@@ -267,7 +280,7 @@
 
         <div v-if="filteredAccounts.length > 6 && !showAll" class="text-center mt-8">
             <button
-                class="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg transition-colors"
+                class="cta-button dark:border-gray-300 dark:text-white dark:hover:border-blue-900 pointer-events-auto cursor-pointer"
                 @click="showAll = true"
             >
                 {{ $t('account.show_all') }}
@@ -350,6 +363,7 @@ const filteredAccounts = computed(() => {
         });
     }
 
+    console.log('[AccountSection] Отфильтровано товаров:', result.length);
     return result;
 });
 
@@ -431,7 +445,12 @@ const addToCart = (account: any) => {
         return;
     }
 
-    productCartStore.addItem(account, quantity);
+    // Используем цену со скидкой, если она есть
+    const priceToUse = account.current_price || account.price;
+    productCartStore.addItem({
+        ...account,
+        price: priceToUse
+    }, quantity);
 
     toast.success(
         t('account.detail.product_added_to_cart', {
@@ -454,7 +473,12 @@ const buyNow = (account: any) => {
 
     // Очищаем корзину товаров и добавляем только этот товар
     productCartStore.clearCart();
-    productCartStore.addItem(account, quantity);
+    // Используем цену со скидкой, если она есть
+    const priceToUse = account.current_price || account.price;
+    productCartStore.addItem({
+        ...account,
+        price: priceToUse
+    }, quantity);
 
     // Переходим на страницу оформления заказа
     router.push('/checkout');
@@ -509,22 +533,23 @@ onMounted(async () => {
 .product-card {
     display: grid;
     grid-template-columns: 90px 1fr auto;
-    gap: 14px;
+    gap: 16px;
     align-items: start;
-    background: white;
-    border: 1px solid #e2e8f0;
-    border-radius: 12px;
-    padding: 12px;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(226, 232, 240, 0.6);
+    border-radius: 16px;
+    padding: 16px;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
     position: relative;
     overflow: hidden;
 }
 
 .dark .product-card {
-    background: #1e293b;
-    border-color: #334155;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    background: rgba(30, 41, 59, 0.85);
+    border-color: rgba(51, 65, 85, 0.6);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 /* Акцентная линия слева */
@@ -534,10 +559,11 @@ onMounted(async () => {
     left: 0;
     top: 0;
     bottom: 0;
-    width: 4px;
+    width: 5px;
     background: linear-gradient(180deg, #6c5ce7 0%, #a29bfe 100%);
     opacity: 0;
-    transition: opacity 0.3s ease;
+    transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 16px 0 0 16px;
 }
 
 .product-card:hover::before {
@@ -545,13 +571,16 @@ onMounted(async () => {
 }
 
 .product-card:hover {
-    transform: translateX(4px);
-    box-shadow: 0 8px 24px rgba(108, 92, 231, 0.12);
-    border-color: rgba(108, 92, 231, 0.3);
+    transform: translateX(6px) translateY(-2px);
+    box-shadow: 0 12px 32px rgba(108, 92, 231, 0.18);
+    border-color: rgba(108, 92, 231, 0.4);
+    background: rgba(255, 255, 255, 0.95);
 }
 
 .dark .product-card:hover {
-    box-shadow: 0 8px 24px rgba(108, 92, 231, 0.2);
+    background: rgba(30, 41, 59, 0.95);
+    box-shadow: 0 12px 32px rgba(108, 92, 231, 0.3);
+    border-color: rgba(108, 92, 231, 0.5);
 }
 
 /* Стили для товаров, которые закончились */
@@ -644,11 +673,14 @@ onMounted(async () => {
     position: relative;
     width: 90px;
     height: 90px;
-    border-radius: 10px;
+    border-radius: 12px;
     overflow: hidden;
-    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    background: linear-gradient(135deg, rgba(248, 249, 250, 0.9) 0%, rgba(233, 236, 239, 0.9) 100%);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(226, 232, 240, 0.5);
     flex-shrink: 0;
-    transition: all 0.3s ease;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .product-image-wrapper.clickable {
@@ -656,31 +688,66 @@ onMounted(async () => {
 }
 
 .product-image-wrapper.clickable:hover {
-    transform: scale(1.05);
-    box-shadow: 0 4px 12px rgba(108, 92, 231, 0.2);
+    transform: scale(1.08) rotate(2deg);
+    box-shadow: 0 8px 20px rgba(108, 92, 231, 0.25);
+    border-color: rgba(108, 92, 231, 0.4);
 }
 
 .dark .product-image-wrapper {
-    background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+    background: linear-gradient(135deg, rgba(30, 41, 59, 0.9) 0%, rgba(51, 65, 85, 0.9) 100%);
+    border-color: rgba(51, 65, 85, 0.5);
 }
 
 .dark .product-image-wrapper.clickable:hover {
-    box-shadow: 0 4px 12px rgba(108, 92, 231, 0.3);
+    box-shadow: 0 8px 20px rgba(108, 92, 231, 0.35);
+    border-color: rgba(108, 92, 231, 0.5);
 }
 
 .product-image {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition: transform 0.4s ease;
+    transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .product-card:hover .product-image {
-    transform: scale(1.08);
+    transform: scale(1.1);
 }
 
 .product-image-wrapper.clickable:hover .product-image {
-    transform: scale(1.15);
+    transform: scale(1.2);
+}
+
+/* Компактный бейдж со скидкой в правом верхнем углу */
+.discount-stripe {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+    padding: 4px 10px;
+    text-align: center;
+    font-size: 10px;
+    font-weight: 700;
+    z-index: 10;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+    line-height: 1.2;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.35);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(8px);
+}
+
+/* Интеграция бейджа с карточкой */
+.product-card.with-discount {
+    padding-top: 16px;
+}
+
+.dark .discount-stripe {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.9) 0%, rgba(199, 29, 29, 0.9) 100%);
+    box-shadow: 0 1px 4px rgba(239, 68, 68, 0.35);
+    border-bottom-color: rgba(255, 255, 255, 0.1);
 }
 
 /* Контейнер для названия с бейджем */
@@ -849,10 +916,32 @@ onMounted(async () => {
 .price-section {
     text-align: center;
     flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+}
+
+.price-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+}
+
+.price-old {
+    font-size: 12px;
+    color: #9ca3af;
+    text-decoration: line-through;
+    white-space: nowrap;
+}
+
+.dark .price-old {
+    color: #6b7280;
 }
 
 .price {
-    font-size: 19px;
+    font-size: 20px;
     font-weight: 800;
     background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%);
     -webkit-background-clip: text;
@@ -862,6 +951,12 @@ onMounted(async () => {
     display: block;
     font-family: 'SFT Schrifted Sans', sans-serif;
     white-space: nowrap;
+    filter: drop-shadow(0 2px 4px rgba(108, 92, 231, 0.2));
+    transition: all 0.3s ease;
+}
+
+.product-card:hover .price {
+    filter: drop-shadow(0 4px 8px rgba(108, 92, 231, 0.3));
 }
 
 .price-per-unit {
@@ -879,17 +974,24 @@ onMounted(async () => {
 .quantity-control {
     display: flex;
     align-items: center;
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
+    background: rgba(248, 250, 252, 0.9);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(226, 232, 240, 0.8);
+    border-radius: 10px;
     overflow: hidden;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
     margin-left: auto;
+    transition: all 0.3s ease;
+}
+
+.quantity-control:hover {
+    box-shadow: 0 4px 12px rgba(108, 92, 231, 0.1);
+    border-color: rgba(108, 92, 231, 0.3);
 }
 
 .dark .quantity-control {
-    background: #1e293b;
-    border-color: #334155;
+    background: rgba(30, 41, 59, 0.9);
+    border-color: rgba(51, 65, 85, 0.8);
 }
 
 .quantity-btn {
@@ -950,19 +1052,21 @@ onMounted(async () => {
 
 /* Вторичные кнопки */
 .btn-secondary {
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    padding: 8px 14px;
-    border-radius: 8px;
+    background: rgba(248, 250, 252, 0.9);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(226, 232, 240, 0.8);
+    padding: 9px 15px;
+    border-radius: 10px;
     cursor: pointer;
     color: #64748b;
-    transition: all 0.2s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     font-weight: 600;
     font-size: 13px;
     display: flex;
     align-items: center;
     gap: 5px;
     font-family: 'SFT Schrifted Sans', sans-serif;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .btn-secondary.btn-icon {
@@ -980,14 +1084,16 @@ onMounted(async () => {
 .btn-secondary:hover {
     border-color: #6c5ce7;
     color: #6c5ce7;
-    background: rgba(108, 92, 231, 0.05);
-    transform: scale(1.05);
+    background: rgba(108, 92, 231, 0.08);
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 4px 12px rgba(108, 92, 231, 0.15);
 }
 
 .dark .btn-secondary:hover {
-    background: rgba(162, 155, 254, 0.1);
+    background: rgba(162, 155, 254, 0.15);
     border-color: #a29bfe;
     color: #a29bfe;
+    box-shadow: 0 4px 12px rgba(162, 155, 254, 0.2);
 }
 
 /* Активная кнопка избранного */
@@ -1005,38 +1111,42 @@ onMounted(async () => {
 
 /* Кнопка корзины */
 .btn-cart {
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    padding: 8px;
-    border-radius: 8px;
+    background: rgba(248, 250, 252, 0.9);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(226, 232, 240, 0.8);
+    padding: 9px;
+    border-radius: 10px;
     cursor: pointer;
     color: #64748b;
-    transition: all 0.2s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     font-weight: 600;
     font-size: 13px;
     display: flex;
     align-items: center;
     justify-content: center;
-    min-width: 36px;
+    min-width: 38px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .dark .btn-cart {
-    background: #334155;
-    border-color: #475569;
+    background: rgba(51, 65, 85, 0.9);
+    border-color: rgba(71, 85, 105, 0.8);
     color: #cbd5e1;
 }
 
 .btn-cart:hover:not(:disabled) {
     border-color: #6c5ce7;
     color: #6c5ce7;
-    background: rgba(108, 92, 231, 0.05);
-    transform: scale(1.05);
+    background: rgba(108, 92, 231, 0.08);
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 4px 12px rgba(108, 92, 231, 0.15);
 }
 
 .dark .btn-cart:hover:not(:disabled) {
-    background: rgba(162, 155, 254, 0.1);
+    background: rgba(162, 155, 254, 0.15);
     border-color: #a29bfe;
     color: #a29bfe;
+    box-shadow: 0 4px 12px rgba(162, 155, 254, 0.2);
 }
 
 .btn-cart:disabled {
@@ -1048,14 +1158,14 @@ onMounted(async () => {
 .btn-primary {
     background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%);
     border: none;
-    padding: 8px 16px;
-    border-radius: 8px;
+    padding: 10px 18px;
+    border-radius: 10px;
     cursor: pointer;
     font-weight: 600;
     font-size: 13px;
     color: white;
-    transition: all 0.2s ease;
-    box-shadow: 0 4px 12px rgba(108, 92, 231, 0.25);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 14px rgba(108, 92, 231, 0.3);
     flex: 1;
     display: flex;
     align-items: center;
@@ -1082,8 +1192,9 @@ onMounted(async () => {
 }
 
 .btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(108, 92, 231, 0.35);
+    transform: translateY(-3px);
+    box-shadow: 0 10px 28px rgba(108, 92, 231, 0.4);
+    background: linear-gradient(135deg, #5b4dd6 0%, #9285f0 100%);
 }
 
 .btn-primary:disabled {

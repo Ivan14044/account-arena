@@ -130,5 +130,53 @@ class AccountController extends Controller
 
         return response()->json($data);
     }
+
+    /**
+     * Получить похожие товары
+     */
+    public function similar($id)
+    {
+        $account = ServiceAccount::where('is_active', true)
+            ->where(function($query) use ($id) {
+                $query->where('id', $id)
+                      ->orWhere('sku', $id);
+            })
+            ->firstOrFail();
+
+        $similar = $account->getSimilarProducts(6);
+
+        $data = $similar->map(function ($item) {
+            $accountsData = $item->accounts_data ?? [];
+            $totalQuantity = is_array($accountsData) ? count($accountsData) : 0;
+            $soldCount = $item->used ?? 0;
+            $availableCount = max(0, $totalQuantity - $soldCount);
+
+            return [
+                'id' => $item->id,
+                'sku' => $item->sku,
+                'title' => $item->title,
+                'title_en' => $item->title_en,
+                'title_uk' => $item->title_uk,
+                'description' => $item->description,
+                'description_en' => $item->description_en,
+                'description_uk' => $item->description_uk,
+                'price' => $item->price,
+                'discount_percent' => $item->discount_percent,
+                'current_price' => $item->getCurrentPrice(),
+                'has_discount' => $item->hasActiveDiscount(),
+                'image_url' => $item->image_url,
+                'category' => $item->category ? [
+                    'id' => $item->category->id,
+                    'name' => $item->category->admin_name ?? null,
+                ] : null,
+                'quantity' => $availableCount,
+                'total_quantity' => $totalQuantity,
+                'sold' => $soldCount,
+                'created_at' => $item->created_at->toISOString(),
+            ];
+        });
+
+        return response()->json($data->values());
+    }
 }
 

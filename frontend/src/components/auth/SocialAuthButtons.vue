@@ -12,7 +12,7 @@
         <div class="flex flex-col gap-3">
             <!-- Google кнопка -->
             <a
-                class="flex items-center dark:text-white dark:hover:bg-gray-300 dark:hover:text-gray-800 justify-center border border-gray-300 rounded-lg px-4 py-3 hover:bg-gray-50 transition-colors cursor-pointer"
+                class="social-auth-button google-button flex items-center justify-center border border-gray-300 rounded-lg px-4 py-3 hover:bg-gray-50 transition-colors cursor-pointer"
                 :class="{ 'opacity-50 cursor-not-allowed': isSocialAuthLoading }"
                 @click="!isSocialAuthLoading && openGoogleAuth()"
             >
@@ -226,5 +226,23 @@ const handleTelegramAuth = async (data: TelegramUser) => {
 <style scoped>
 .separator {
     @apply bg-white dark:bg-gray-800 dark:text-gray-300 px-4 text-gray-500;
+}
+
+/* Стили для кнопки Google */
+.google-button {
+    color: #1f2937;
+}
+
+.dark .google-button {
+    color: #ffffff;
+}
+
+.google-button:hover:not(.opacity-50) {
+    background-color: rgba(249, 250, 251, 0.9);
+}
+
+.dark .google-button:hover:not(.opacity-50) {
+    background-color: rgba(209, 213, 219, 0.2);
+    color: #1f2937;
 }
 </style>

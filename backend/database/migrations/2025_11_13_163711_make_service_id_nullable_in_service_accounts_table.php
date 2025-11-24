@@ -12,32 +12,31 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Get and drop foreign key using raw SQL
+        if (DB::getDriverName() === 'sqlite') {
+            // SQLite не поддерживает MODIFY, пропускаем
+            return;
+        }
+
         $constraintName = $this->getForeignKeyName();
-        
+
         if ($constraintName) {
-            // Drop foreign key using raw SQL
             DB::statement("ALTER TABLE `service_accounts` DROP FOREIGN KEY `{$constraintName}`");
         } else {
-            // Try to drop using Laravel's method (passes column name, not constraint name)
             try {
                 Schema::table('service_accounts', function (Blueprint $table) {
                     $table->dropForeign(['service_id']);
                 });
             } catch (\Exception $e) {
-                // If that fails, try common constraint name
                 try {
                     DB::statement('ALTER TABLE `service_accounts` DROP FOREIGN KEY `service_accounts_service_id_foreign`');
                 } catch (\Exception $e2) {
-                    // Foreign key might not exist, continue
+                    // ignore
                 }
             }
         }
-        
-        // Modify column to be nullable using raw SQL
+
         DB::statement('ALTER TABLE `service_accounts` MODIFY `service_id` BIGINT UNSIGNED NULL');
-        
-        // Re-add foreign key
+
         Schema::table('service_accounts', function (Blueprint $table) {
             $table->foreign('service_id')->references('id')->on('services')->onDelete('cascade');
         });
@@ -70,35 +69,30 @@ return new class extends Migration
      */
     public function down(): void
     {
-        // Get and drop foreign key using raw SQL
+        if (DB::getDriverName() === 'sqlite') {
+            return;
+        }
+
         $constraintName = $this->getForeignKeyName();
-        
+
         if ($constraintName) {
-            // Drop foreign key using raw SQL
             DB::statement("ALTER TABLE `service_accounts` DROP FOREIGN KEY `{$constraintName}`");
         } else {
-            // Try to drop using Laravel's method
             try {
                 Schema::table('service_accounts', function (Blueprint $table) {
                     $table->dropForeign(['service_id']);
                 });
             } catch (\Exception $e) {
-                // If that fails, try common constraint name
                 try {
                     DB::statement('ALTER TABLE `service_accounts` DROP FOREIGN KEY `service_accounts_service_id_foreign`');
                 } catch (\Exception $e2) {
-                    // Foreign key might not exist, continue
+                    // ignore
                 }
             }
         }
-        
-        // Modify column to be NOT NULL using raw SQL
-        // Note: Before making NOT NULL, ensure all NULL values are handled
-        // DB::statement('UPDATE `service_accounts` SET `service_id` = 1 WHERE `service_id` IS NULL');
-        
+
         DB::statement('ALTER TABLE `service_accounts` MODIFY `service_id` BIGINT UNSIGNED NOT NULL');
-        
-        // Re-add foreign key
+
         Schema::table('service_accounts', function (Blueprint $table) {
             $table->foreign('service_id')->references('id')->on('services')->onDelete('cascade');
         });

@@ -11,6 +11,9 @@ export interface AccountItem {
     description_en?: string;
     description_uk?: string;
     price: number; // coerced to number in transform
+    current_price?: number; // Цена с учетом скидки
+    discount_percent?: number; // Процент скидки
+    has_discount?: boolean; // Есть ли активная скидка
     image_url?: string | null;
     quantity?: number;
     total_quantity?: number;
@@ -47,6 +50,9 @@ export const useAccountsStore = defineStore('accounts', {
                 description_en: raw.description_en,
                 description_uk: raw.description_uk,
                 price: Number.isFinite(priceNum) ? priceNum : 0,
+                current_price: raw.current_price ? Number(raw.current_price) : undefined,
+                discount_percent: raw.discount_percent ? Number(raw.discount_percent) : undefined,
+                has_discount: raw.has_discount ?? false,
                 image_url: raw.image_url ?? null,
                 quantity: Number(raw.quantity ?? 0),
                 total_quantity: Number(raw.total_quantity ?? 0),
@@ -94,6 +100,28 @@ export const useAccountsStore = defineStore('accounts', {
             }
 
             return null;
+        },
+
+        async fetchSimilar(idOrSku: string | number): Promise<AccountItem[]> {
+            try {
+                const { data } = await axios.get(`/accounts/${idOrSku}/similar`);
+                const items = Array.isArray(data) ? data : [];
+                const list: AccountItem[] = [];
+                
+                for (const raw of items) {
+                    const t = this.transform(raw);
+                    if (t && Number.isFinite(t.id)) {
+                        list.push(t);
+                        // Кэшируем товары в byId для быстрого доступа
+                        this.byId[t.id] = t;
+                    }
+                }
+                
+                return list;
+            } catch (error) {
+                console.error('[AccountsStore] Ошибка загрузки похожих товаров:', error);
+                return [];
+            }
         }
     }
 });

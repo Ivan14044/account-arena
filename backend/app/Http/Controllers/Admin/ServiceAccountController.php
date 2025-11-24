@@ -164,6 +164,9 @@ class ServiceAccountController extends Controller
                 'account_suffix_text_ru' => $request->input('account_suffix_text_ru'),
                 'account_suffix_text_en' => $request->input('account_suffix_text_en'),
                 'account_suffix_text_uk' => $request->input('account_suffix_text_uk'),
+                'discount_percent' => $request->input('discount_percent') ? (float) $request->input('discount_percent') : null,
+                'discount_start_date' => $request->input('discount_start_date') ? \Carbon\Carbon::parse($request->input('discount_start_date')) : null,
+                'discount_end_date' => $request->input('discount_end_date') ? \Carbon\Carbon::parse($request->input('discount_end_date')) : null,
             ]);
 
             $message = "Товар успешно создан! Аккаунтов в наличии: " . count($accountsList);
@@ -247,6 +250,11 @@ class ServiceAccountController extends Controller
         $validated['account_suffix_text_ru'] = $request->input('account_suffix_text_ru');
         $validated['account_suffix_text_en'] = $request->input('account_suffix_text_en');
         $validated['account_suffix_text_uk'] = $request->input('account_suffix_text_uk');
+
+        // Handle discount fields
+        $validated['discount_percent'] = $request->input('discount_percent') ? (float) $request->input('discount_percent') : null;
+        $validated['discount_start_date'] = $request->input('discount_start_date') ? \Carbon\Carbon::parse($request->input('discount_start_date')) : null;
+        $validated['discount_end_date'] = $request->input('discount_end_date') ? \Carbon\Carbon::parse($request->input('discount_end_date')) : null;
 
         // Логируем для отладки
         \Log::info('Service Account updated', [
@@ -391,6 +399,9 @@ class ServiceAccountController extends Controller
             'meta_description_en' => ['nullable', 'string'],
             'meta_description_uk' => ['nullable', 'string'],
             'accounts_data' => ['nullable', 'string'],
+            'discount_percent' => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'discount_start_date' => ['nullable', 'date'],
+            'discount_end_date' => ['nullable', 'date', 'after_or_equal:discount_start_date'],
         ];
     }
 

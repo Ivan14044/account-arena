@@ -11,14 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (DB::getDriverName() === 'sqlite') {
+            return;
+        }
+
         Schema::table('product_disputes', function (Blueprint $table) {
-            // Drop the existing foreign key constraint
             $table->dropForeign(['supplier_id']);
-            
-            // Make the column nullable
             $table->unsignedBigInteger('supplier_id')->nullable()->change();
-            
-            // Re-add the foreign key constraint with onDelete('set null')
             $table->foreign('supplier_id')
                 ->references('id')
                 ->on('users')
@@ -31,14 +30,13 @@ return new class extends Migration
      */
     public function down(): void
     {
+        if (DB::getDriverName() === 'sqlite') {
+            return;
+        }
+
         Schema::table('product_disputes', function (Blueprint $table) {
-            // Drop the foreign key constraint
             $table->dropForeign(['supplier_id']);
-            
-            // Make the column not nullable again
             $table->unsignedBigInteger('supplier_id')->nullable(false)->change();
-            
-            // Re-add the foreign key constraint with onDelete('cascade')
             $table->foreign('supplier_id')
                 ->references('id')
                 ->on('users')

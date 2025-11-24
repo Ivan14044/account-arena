@@ -29,7 +29,7 @@ class HealthController extends Controller
             'status' => $allHealthy ? 'ok' : 'degraded',
             'timestamp' => now()->toIso8601String(),
             'services' => $checks,
-        ], $allHealthy ? 200 : 503);
+        ], 200);
     }
 
     /**
@@ -68,7 +68,7 @@ class HealthController extends Controller
         try {
             Redis::ping();
             return 'up';
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             \Log::error('Redis health check failed', [
                 'error' => $e->getMessage(),
             ]);

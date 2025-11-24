@@ -253,6 +253,59 @@
                                 @enderror
                             </div>
 
+                            <!-- Секция скидки -->
+                            <div class="card mt-3">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">
+                                        <i class="fas fa-percent"></i> Скидка на товар
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="form-group">
+                                        <label for="discount_percent">Процент скидки (%)</label>
+                                        <input type="number" step="0.01" min="0" max="100" name="discount_percent" id="discount_percent"
+                                               class="form-control @error('discount_percent') is-invalid @enderror"
+                                               value="{{ old('discount_percent', 0) }}" placeholder="0">
+                                        @error('discount_percent')
+                                        <div class="invalid-feedback d-block">{{ $message }}</div>
+                                        @enderror
+                                        <small class="form-text text-muted">Укажите процент скидки от 0 до 100. Если 0, скидка не применяется.</small>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="discount_start_date">Дата начала скидки</label>
+                                                <input type="datetime-local" name="discount_start_date" id="discount_start_date"
+                                                       class="form-control @error('discount_start_date') is-invalid @enderror"
+                                                       value="{{ old('discount_start_date') }}">
+                                                @error('discount_start_date')
+                                                <div class="invalid-feedback d-block">{{ $message }}</div>
+                                                @enderror
+                                                <small class="form-text text-muted">Оставьте пустым, если скидка действует с момента создания</small>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="discount_end_date">Дата окончания скидки</label>
+                                                <input type="datetime-local" name="discount_end_date" id="discount_end_date"
+                                                       class="form-control @error('discount_end_date') is-invalid @enderror"
+                                                       value="{{ old('discount_end_date') }}">
+                                                @error('discount_end_date')
+                                                <div class="invalid-feedback d-block">{{ $message }}</div>
+                                                @enderror
+                                                <small class="form-text text-muted">Оставьте пустым, если скидка бессрочная</small>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="alert alert-info py-2">
+                                        <i class="fas fa-info-circle"></i>
+                                        <strong>Важно:</strong> Скидка будет активна только если указан процент больше 0 и текущая дата находится в диапазоне дат начала и окончания (если они указаны).
+                                    </div>
+                                </div>
+                            </div>
+
                             <div class="form-group">
                                 <label for="bulk_accounts">Содержимое товара на продажу</label>
                                 <textarea name="bulk_accounts" id="bulk_accounts" rows="8"

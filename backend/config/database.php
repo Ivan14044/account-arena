@@ -2,6 +2,16 @@
 
 use Illuminate\Support\Str;
 
+$sqliteDatabase = (function () {
+    $dbPath = env('DB_DATABASE', 'database.sqlite');
+
+    if (strpos($dbPath, ':') !== false || (strlen($dbPath) > 0 && $dbPath[0] === '/')) {
+        return $dbPath;
+    }
+
+    return database_path($dbPath);
+})();
+
 return [
 
     /*
@@ -38,7 +48,7 @@ return [
         'sqlite' => [
             'driver' => 'sqlite',
             'url' => env('DATABASE_URL'),
-            'database' => env('DB_DATABASE', database_path('database.sqlite')),
+            'database' => $sqliteDatabase,
             'prefix' => '',
             'foreign_key_constraints' => env('DB_FOREIGN_KEYS', true),
         ],

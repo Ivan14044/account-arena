@@ -62,9 +62,20 @@ return new class extends Migration
     private function indexExists(string $table, string $index): bool
     {
         $connection = DB::connection();
-        $database = $connection->getDatabaseName();
+        $driver = $connection->getDriverName();
         $prefixedTable = $connection->getTablePrefix() . $table;
 
+        if ($driver === 'sqlite') {
+            $indexes = $connection->select("PRAGMA index_list({$prefixedTable})");
+            foreach ($indexes as $idx) {
+                if ((string)($idx->name ?? '') === $index) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        $database = $connection->getDatabaseName();
         $result = $connection->select(
             'SELECT COUNT(*) AS cnt 
              FROM information_schema.statistics 

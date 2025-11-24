@@ -22,6 +22,9 @@
                         class="category-icon"
                     />
                     <span class="category-name">{{ category.name }}</span>
+                    <span v-if="getCategoryProductCount(category.id) > 0" class="category-count">
+                        {{ getCategoryProductCount(category.id) }}
+                    </span>
                 </button>
             </div>
         </div>
@@ -39,6 +42,9 @@
                     @click="selectSubcategory(subcategory.id)"
                 >
                     <span class="subcategory-name">{{ getSubcategoryName(subcategory) }}</span>
+                    <span v-if="getSubcategoryProductCount(subcategory.id) > 0" class="subcategory-count">
+                        {{ getSubcategoryProductCount(subcategory.id) }}
+                    </span>
                 </button>
             </div>
         </div>
@@ -82,9 +88,11 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue';
 import { useProductCategoriesStore, type ProductCategory } from '@/stores/productCategories';
+import { useAccountsStore } from '@/stores/accounts';
 import { useI18n } from 'vue-i18n';
 
 const categoriesStore = useProductCategoriesStore();
+const accountsStore = useAccountsStore();
 const { locale } = useI18n();
 
 const selectedCategoryId = ref<number | null>(null);
@@ -132,6 +140,36 @@ const getSubcategoryName = (subcategory: any): string => {
         return subcategory.translations[locale.value]['name'];
     }
     return subcategory.name || '';
+};
+
+// Подсчет товаров в категории (включая подкатегории)
+const getCategoryProductCount = (categoryId: number): number => {
+    if (categoryId === 0) {
+        // Для "Все категории" возвращаем общее количество всех товаров
+        return accountsStore.list.length;
+    }
+
+    const category = categoriesStore.list.find(cat => cat.id === categoryId);
+    if (!category) return 0;
+
+    // Получаем ID всех подкатегорий
+    const subcategoryIds = (category.subcategories || []).map(sub => sub.id);
+    
+    // Подсчитываем товары в категории и её подкатегориях
+    return accountsStore.list.filter(account => {
+        // Товар в самой категории
+        if (account.category?.id === categoryId) return true;
+        // Товар в подкатегории
+        if (account.category?.id && subcategoryIds.includes(account.category.id)) return true;
+        return false;
+    }).length;
+};
+
+// Подсчет товаров в подкатегории
+const getSubcategoryProductCount = (subcategoryId: number): number => {
+    return accountsStore.list.filter(account => {
+        return account.category?.id === subcategoryId;
+    }).length;
 };
 
 const selectCategory = (categoryId: number | null) => {
@@ -183,6 +221,10 @@ watch([hideOutOfStock, showFavoritesOnly, searchQuery], () => {
 
 onMounted(async () => {
     await categoriesStore.fetchAll();
+    // Убеждаемся, что товары загружены для подсчета
+    if (!accountsStore.loaded) {
+        await accountsStore.fetchAll();
+    }
 });
 </script>
 
@@ -234,14 +276,12 @@ onMounted(async () => {
 /* Category Buttons */
 .category-buttons-wrapper {
     margin-bottom: 28px;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
 }
 
 .category-buttons {
     display: flex;
     gap: 12px;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
     padding-bottom: 8px;
 }
 
@@ -249,56 +289,136 @@ onMounted(async () => {
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 12px 20px;
-    background: #f9fafb;
-    border: 2px solid transparent;
-    border-radius: 12px;
+    padding: 14px 22px;
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(226, 232, 240, 0.8);
+    border-radius: 14px;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     font-size: 15px;
-    font-weight: 500;
-    color: #374151;
+    font-weight: 600;
+    color: #1f2937;
     white-space: nowrap;
     font-family: 'SFT Schrifted Sans', sans-serif;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    flex-shrink: 0;
+    min-width: fit-content;
+    position: relative;
+    overflow: hidden;
+}
+
+.category-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(108, 92, 231, 0.1), transparent);
+    transition: left 0.5s ease;
+}
+
+.category-btn:hover::before {
+    left: 100%;
 }
 
 .dark .category-btn {
-    background: #374151;
-    color: #e5e7eb;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    background: rgba(55, 65, 81, 0.8);
+    border-color: rgba(75, 85, 99, 0.6);
+    color: #f3f4f6;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 .category-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 6px 20px rgba(108, 92, 231, 0.15);
+    border-color: rgba(108, 92, 231, 0.3);
+    background: rgba(255, 255, 255, 0.95);
 }
 
 .dark .category-btn:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    background: rgba(55, 65, 81, 0.95);
+    box-shadow: 0 6px 20px rgba(108, 92, 231, 0.25);
+    border-color: rgba(108, 92, 231, 0.4);
 }
 
 .category-btn.active {
     background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%);
     color: #ffffff;
     border-color: #6c5ce7;
-    box-shadow: 0 4px 16px rgba(108, 92, 231, 0.3);
+    box-shadow: 0 6px 24px rgba(108, 92, 231, 0.35);
+    transform: translateY(-2px);
+}
+
+.category-btn.active::before {
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
 }
 
 .dark .category-btn.active {
     background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%);
-    box-shadow: 0 4px 16px rgba(108, 92, 231, 0.4);
+    box-shadow: 0 6px 24px rgba(108, 92, 231, 0.45);
 }
 
 .category-icon {
-    width: 24px;
-    height: 24px;
-    border-radius: 6px;
+    width: 26px;
+    height: 26px;
+    border-radius: 8px;
     object-fit: cover;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+}
+
+.category-btn:hover .category-icon {
+    transform: scale(1.1);
+}
+
+.category-btn.active .category-icon {
+    box-shadow: 0 2px 8px rgba(255, 255, 255, 0.3);
 }
 
 .category-name {
     font-weight: 500;
+}
+
+.category-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 26px;
+    height: 26px;
+    padding: 0 9px;
+    background: linear-gradient(135deg, rgba(108, 92, 231, 0.12) 0%, rgba(162, 155, 254, 0.12) 100%);
+    backdrop-filter: blur(8px);
+    color: #6c5ce7;
+    border: 1px solid rgba(108, 92, 231, 0.2);
+    border-radius: 13px;
+    font-size: 11px;
+    font-weight: 700;
+    margin-left: 8px;
+    letter-spacing: 0.3px;
+    box-shadow: 0 2px 6px rgba(108, 92, 231, 0.15);
+    transition: all 0.3s ease;
+}
+
+.dark .category-count {
+    background: linear-gradient(135deg, rgba(162, 155, 254, 0.2) 0%, rgba(139, 92, 231, 0.2) 100%);
+    border-color: rgba(162, 155, 254, 0.3);
+    color: #a29bfe;
+    box-shadow: 0 2px 6px rgba(162, 155, 254, 0.2);
+}
+
+.category-btn:hover .category-count {
+    transform: scale(1.05);
+    box-shadow: 0 3px 8px rgba(108, 92, 231, 0.25);
+}
+
+.category-btn.active .category-count {
+    background: rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(10px);
+    color: #ffffff;
+    border-color: rgba(255, 255, 255, 0.3);
+    box-shadow: 0 2px 8px rgba(255, 255, 255, 0.2);
 }
 
 /* Filters */
@@ -505,6 +625,50 @@ onMounted(async () => {
 .dark .subcategory-btn.active {
     background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%);
     box-shadow: 0 2px 12px rgba(108, 92, 231, 0.4);
+}
+
+.subcategory-name {
+    font-weight: 500;
+}
+
+.subcategory-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 7px;
+    background: linear-gradient(135deg, rgba(108, 92, 231, 0.12) 0%, rgba(162, 155, 254, 0.12) 100%);
+    backdrop-filter: blur(8px);
+    color: #6c5ce7;
+    border: 1px solid rgba(108, 92, 231, 0.2);
+    border-radius: 11px;
+    font-size: 10px;
+    font-weight: 700;
+    margin-left: 7px;
+    letter-spacing: 0.2px;
+    box-shadow: 0 1px 4px rgba(108, 92, 231, 0.15);
+    transition: all 0.3s ease;
+}
+
+.dark .subcategory-count {
+    background: linear-gradient(135deg, rgba(162, 155, 254, 0.2) 0%, rgba(139, 92, 231, 0.2) 100%);
+    border-color: rgba(162, 155, 254, 0.3);
+    color: #a29bfe;
+    box-shadow: 0 1px 4px rgba(162, 155, 254, 0.2);
+}
+
+.subcategory-btn:hover .subcategory-count {
+    transform: scale(1.05);
+    box-shadow: 0 2px 6px rgba(108, 92, 231, 0.25);
+}
+
+.subcategory-btn.active .subcategory-count {
+    background: rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(10px);
+    color: #ffffff;
+    border-color: rgba(255, 255, 255, 0.3);
+    box-shadow: 0 1px 6px rgba(255, 255, 255, 0.2);
 }
 
 .subcategory-name {

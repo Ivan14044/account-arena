@@ -506,7 +506,8 @@
             "go_to_product": "Перейти до {title}",
             "price_per_unit": "{price} × {quantity} шт.",
             "available_only": "Доступно лише {count} шт.",
-            "product_added_to_cart": "{title} ({quantity} шт.) додано в кошик"
+            "product_added_to_cart": "{title} ({quantity} шт.) додано в кошик",
+            "view_details": "Детальніше"
         }
     },
     "catalog": {
@@ -582,5 +583,11 @@
         "cancel": "Скасувати",
         "ratingCommentPlaceholder": "Коментар (необов'язково)",
         "thanksForRating": "Дякуємо за вашу оцінку!"
+    },
+    "products": {
+        "similar": {
+            "title": "Схожі товари"
+        },
+        "out_of_stock": "Немає в наявності"
     }
 }

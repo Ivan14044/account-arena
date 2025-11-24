@@ -32,14 +32,15 @@ Route::middleware('throttle:60,1')->group(function () {
     Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 });
 
-// Public routes with moderate rate limiting (60 requests per minute)
+// Public routes with moderate rate limiting (увеличено для разработки: 300 requests per minute)
 // Health check endpoints (без auth и rate limiting)
 Route::get('/health', [\App\Http\Controllers\HealthController::class, 'check']);
 Route::get('/ping', [\App\Http\Controllers\HealthController::class, 'ping']);
 
-Route::middleware('throttle:60,1')->group(function () {
+Route::middleware('throttle:300,1')->group(function () {
     Route::get('/accounts', [\App\Http\Controllers\Api\AccountController::class, 'index']);
     Route::get('/accounts/{account}', [\App\Http\Controllers\Api\AccountController::class, 'show']);
+    Route::get('/accounts/{account}/similar', [\App\Http\Controllers\Api\AccountController::class, 'similar']);
     Route::get('/articles', [ArticleController::class, 'index']);
     Route::get('/articles/{article}', [ArticleController::class, 'show']);
     Route::get('/categories', [CategoryController::class, 'index']);
