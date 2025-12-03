@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\PromocodeController;
 use App\Http\Controllers\Admin\PromocodeUsageController;
 use App\Http\Controllers\Admin\ServiceAccountController;
 use App\Http\Controllers\Admin\SettingController;
+use App\Http\Controllers\Admin\SiteContentController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Admin\EmailTemplateController;
@@ -57,6 +58,8 @@ Route::prefix('/admin')
             Route::resource('notification-templates', NotificationTemplateController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
             Route::resource('notifications', NotificationController::class)->only(['index', 'create', 'store', 'destroy']);
             Route::resource('contents', ContentController::class)->except(['show']);
+            Route::get('site-content', [SiteContentController::class, 'index'])->name('site-content.index');
+            Route::post('site-content', [SiteContentController::class, 'store'])->name('site-content.store');
             Route::resource('articles', ArticleController::class)->except(['show']);
             Route::resource('product-categories', ProductCategoryController::class)->except(['show']);
             Route::resource('product-subcategories', ProductSubcategoryController::class)->except(['show']);
