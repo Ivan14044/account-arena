@@ -4,7 +4,6 @@ use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\ContentController;
 use App\Http\Controllers\Admin\ProfileController;
-use App\Http\Controllers\Admin\ProxyController;
 use App\Http\Controllers\Admin\PromocodeController;
 use App\Http\Controllers\Admin\PromocodeUsageController;
 use App\Http\Controllers\Admin\ServiceAccountController;
@@ -50,7 +49,6 @@ Route::prefix('/admin')
             Route::post('users/{user}/block', [UserController::class, 'block'])->name('users.block');
             Route::post('users/{user}/update-balance', [UserController::class, 'updateBalance'])->name('users.update-balance');
 
-            Route::resource('proxies', ProxyController::class)->except(['show']);
             Route::resource('promocodes', PromocodeController::class)->except(['show']);
             Route::get('promocode-usages', [PromocodeUsageController::class, 'index'])->name('promocode-usages.index');
             Route::delete('promocodes-bulk', [PromocodeController::class, 'bulkDestroy'])->name('promocodes.bulk-destroy');

@@ -277,3 +277,31 @@
         });
     }
 })();
+
+// Виправлення logout URL для admin та supplier панелей
+(function () {
+    function fixLogoutForm() {
+        const logoutForm = document.getElementById('logout-form');
+        if (!logoutForm)  return;
+        const currentPath = window.location.pathname;
+        let logoutUrl = '';
+
+        if (currentPath.startsWith('/admin')) {
+            logoutUrl = '/admin/logout';
+        } else if (currentPath.startsWith('/supplier')) {
+            logoutUrl = '/supplier/logout';
+        } else {
+            logoutUrl = '/admin/logout';
+        }
+
+        if (logoutForm.getAttribute('action') !== logoutUrl) {
+            logoutForm.setAttribute('action', logoutUrl);
+        }
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', fixLogoutForm);
+    } else {
+        fixLogoutForm();
+    }
+})();

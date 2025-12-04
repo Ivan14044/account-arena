@@ -514,12 +514,6 @@ return [
             'can' => 'main-admin',
         ],
         [
-            'text' => 'Прокси',
-            'url' => 'admin/proxies',
-            'can' => 'admin-only',
-            'icon' => 'fas fa-fw mr-1 fa-network-wired',
-        ],
-        [
             'text' => 'Правила покупки',
             'url' => 'admin/purchase-rules',
             'icon' => 'fas fa-fw mr-1 fa-book',

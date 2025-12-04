@@ -22,6 +22,9 @@ class OptionController extends Controller
             // Menus
             'header_menu',
             'footer_menu',
+
+            // Telegram support chat
+            'support_chat_telegram_link',
         ];
     }
 

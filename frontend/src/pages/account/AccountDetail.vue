@@ -485,7 +485,7 @@
 
                     <!-- Похожие товары -->
                     <div v-if="account" class="max-w-7xl mx-auto mt-8">
-                        <SimilarProducts :product-id="account.id || account.sku" />
+                        <SimilarProducts :product-id="account.id || account.sku || ''" />
                     </div>
                 </main>
             </div>
@@ -494,7 +494,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, computed } from 'vue';
+import { onMounted, ref, computed, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useAccountsStore, type AccountItem } from '@/stores/accounts';
 import { useProductCartStore } from '@/stores/productCart';
@@ -597,7 +597,7 @@ const copySku = async () => {
 // Управление количеством товара
 const increaseQuantity = () => {
     if (!account.value) return;
-    if (quantity.value < account.value.quantity) {
+    if (quantity.value < (account.value.quantity ?? 0)) {
         quantity.value++;
     }
 };
@@ -617,8 +617,8 @@ const validateQuantity = () => {
     }
 
     // Проверяем что не превышает доступное количество
-    if (quantity.value > account.value.quantity) {
-        quantity.value = account.value.quantity;
+    if (quantity.value > (account.value.quantity ?? 0)) {
+        quantity.value = account.value.quantity ?? 0;
     }
 
     // Округляем до целого числа
@@ -664,21 +664,21 @@ const buyNow = () => {
     router.push('/checkout');
 };
 
-onMounted(async () => {
-    // Загружаем избранное
-    loadFavorites();
+// Загрузка товара по ID или артикулу
+const loadProduct = async (idOrSku: string) => {
+    if (!idOrSku) {
+        router.replace('/404');
+        return;
+    }
 
-    // УЛУЧШЕНИЕ: Показываем прелоадер при загрузке товара
+    // Очищаем предыдущие данные перед загрузкой нового товара
+    account.value = null;
+    quantity.value = 1;
+
+    // Показываем прелоадер при загрузке товара
     loadingStore.start();
 
     try {
-        // Загружаем товар (ID или артикул)
-        const idOrSku = route.params.id as string;
-        if (!idOrSku) {
-            router.replace('/404');
-            return;
-        }
-
         // Пытаемся загрузить товар (поддерживает и ID, и артикул)
         account.value = await accountsStore.fetchById(idOrSku).catch(() => null);
         if (!account.value) {
@@ -689,7 +689,36 @@ onMounted(async () => {
         // Останавливаем прелоадер после загрузки
         loadingStore.stop();
     }
+};
+
+onMounted(async () => {
+    // Загружаем избранное
+    loadFavorites();
+
+    // Загружаем товар при первоначальной загрузке страницы
+    const idOrSku = route.params.id as string;
+    await loadProduct(idOrSku);
 });
+
+// Отслеживаем изменения параметра маршрута для перезагрузки товара
+watch(
+    () => route.params.id,
+    async (newId, oldId) => {
+        // Пропускаем если это первая загрузка (oldId будет undefined)
+        if (oldId === undefined) {
+            return;
+        }
+
+        // Пропускаем если ID не изменился
+        if (newId === oldId) {
+            return;
+        }
+
+        // Загружаем новый товар при изменении параметра маршрута
+        const idOrSku = newId as string;
+        await loadProduct(idOrSku);
+    }
+);
 </script>
 
 <style scoped>

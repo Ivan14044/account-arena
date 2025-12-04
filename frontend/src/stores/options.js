@@ -9,7 +9,7 @@ export const useOptionStore = defineStore('options', {
     getters: {
         getOption:
             state =>
-            (key, defaultValue = null) => {
+            (key, /** @type {unknown} */ defaultValue = null) => {
                 // API returns object format: {currency: 'USD', header_menu: '...', ...}
                 if (typeof state.options !== 'object' || state.options === null) {
                     return defaultValue;

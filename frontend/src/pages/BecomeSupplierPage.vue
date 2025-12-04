@@ -16,7 +16,7 @@
             </p>
             <button
                 class="bg-blue-500 dark:bg-blue-600 hover:bg-blue-600 dark:hover:bg-blue-700 text-white font-medium px-8 py-3 rounded-lg text-lg transition-colors"
-                @click="navigateToRegister"
+                @click="becomeSupportRedirect"
             >
                 {{ $t('becomeSupplier.welcomeBanner.ctaButton') }}
             </button>
@@ -321,7 +321,7 @@
             <div class="text-center">
                 <button
                     class="bg-blue-500 dark:bg-blue-600 hover:bg-blue-600 dark:hover:bg-blue-700 text-white font-medium px-8 py-3 rounded-lg text-lg transition-colors"
-                    @click="navigateToRegister"
+                    @click="becomeSupportRedirect"
                 >
                     {{ $t('becomeSupplier.payoutMethods.ctaButton') }}
                 </button>
@@ -376,10 +376,10 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { useRouter } from 'vue-router';
+import { useOptionStore } from '@/stores/options';
 
 const { t } = useI18n();
-const router = useRouter();
+const optionStore = useOptionStore();
 const openFaqIndex = ref<number | null>(null);
 
 // Shared intersection observer configuration
@@ -423,8 +423,12 @@ function toggleFaq(index: number) {
     openFaqIndex.value = openFaqIndex.value === index ? null : index;
 }
 
-function navigateToRegister() {
-    router.push('/register');
+function becomeSupportRedirect() {
+    const telegramSupportLink = optionStore.getOption(
+        'support_chat_telegram_link',
+        'https://t.me/support'
+    );
+    window.location.href = telegramSupportLink;
 }
 </script>
 

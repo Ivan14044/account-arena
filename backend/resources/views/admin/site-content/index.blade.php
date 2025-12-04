@@ -761,15 +761,15 @@
                 
                 if (tabMap[activeTab]) {
                     tabId = '#' + tabMap[activeTab];
-                    paneId = '#content_' + activeTab;
+                paneId = '#content_' + activeTab;
 
                     // Remove active from all tabs
                     $('#site-content-tabs a.nav-link').removeClass('active');
                     $('.tab-content .tab-pane').removeClass('show active');
 
                     // Add active to selected tab
-                    $(tabId).addClass('active');
-                    $(paneId).addClass('show active');
+                $(tabId).addClass('active');
+                $(paneId).addClass('show active');
                 }
             }
         });

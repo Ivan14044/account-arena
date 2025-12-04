@@ -14,8 +14,8 @@ export interface AccountItem {
     current_price?: number; // Цена с учетом скидки
     discount_percent?: number; // Процент скидки
     has_discount?: boolean; // Есть ли активная скидка
-    image_url?: string | null;
-    quantity?: number;
+    image_url?: string;
+    quantity: number;
     total_quantity?: number;
     sold?: number;
     views?: number; // Количество просмотров
