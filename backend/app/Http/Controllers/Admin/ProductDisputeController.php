@@ -15,7 +15,7 @@ class ProductDisputeController extends Controller
      */
     public function index(Request $request)
     {
-        $query = ProductDispute::with(['user', 'supplier', 'serviceAccount', 'transaction']);
+        $query = ProductDispute::with(['user', 'supplier', 'serviceAccount', 'transaction.purchase']);
 
         // Фильтр по статусу
         if ($request->filled('status')) {
@@ -79,7 +79,7 @@ class ProductDisputeController extends Controller
      */
     public function show(ProductDispute $dispute)
     {
-        $dispute->load(['user', 'supplier', 'serviceAccount', 'transaction', 'resolver']);
+        $dispute->load(['user', 'supplier', 'serviceAccount', 'transaction.purchase', 'resolver']);
 
         return view('admin.disputes.show', compact('dispute'));
     }

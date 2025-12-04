@@ -1492,11 +1492,13 @@ watch(adminIsTyping, newVal => {
     transition: all 0.3s ease;
     color: white;
     position: relative;
+    animation: support-chat-pulse 2.5s ease-in-out infinite;
 }
 
 .support-chat-button:hover {
     transform: scale(1.1);
     box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+    animation-play-state: paused;
 }
 
 .support-chat-icon {
@@ -2581,6 +2583,19 @@ watch(adminIsTyping, newVal => {
     30% {
         transform: translateY(-5px);
         opacity: 1;
+    }
+}
+
+/* Keyframe animation for support chat button pulse */
+@keyframes support-chat-pulse {
+    0%,
+    100% {
+        transform: scale(1);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+    50% {
+        transform: scale(1.05);
+        box-shadow: 0 4px 16px rgba(102, 126, 234, 0.6);
     }
 }
 

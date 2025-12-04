@@ -36,4 +36,9 @@ class Transaction extends Model
     {
         return $this->hasOne(ProductDispute::class);
     }
+
+    public function purchase()
+    {
+        return $this->hasOne(Purchase::class);
+    }
 }

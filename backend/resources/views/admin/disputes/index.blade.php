@@ -26,7 +26,7 @@
             <div class="small-box bg-info">
                 <div class="inner">
                     <h3>{{ $stats['in_review'] }}</h3>
-                    <p>Новые претензии</p>
+                    <p>На рассмотрении</p>
                 </div>
                 <div class="icon">
                     <i class="fas fa-clock"></i>
@@ -39,7 +39,7 @@
             <div class="small-box bg-success">
                 <div class="inner">
                     <h3>{{ $stats['resolved'] }}</h3>
-                    <p>Новые претензии</p>
+                    <p>Решенные</p>
                 </div>
                 <div class="icon">
                     <i class="fas fa-check-circle"></i>
@@ -161,6 +161,7 @@
                         <th>ID</th>
                         <th>Дата</th>
                         <th>Покупатель</th>
+                        <th>Номер заказа</th>
                         <th>Товар</th>
                         <th>Поставщик</th>
                         <th>Причина</th>
@@ -180,6 +181,15 @@
                                 </a>
                                 <br>
                                 <small class="text-muted">{{ $dispute->user->email }}</small>
+                            </td>
+                            <td>
+                                @if($dispute->transaction && $dispute->transaction->purchase && $dispute->transaction->purchase->order_number)
+                                    <a href="{{ route('admin.purchases.show', $dispute->transaction->purchase->id) }}" class="text-primary">
+                                        {{ $dispute->transaction->purchase->order_number }}
+                                    </a>
+                                @else
+                                    <span class="text-muted">N/A</span>
+                                @endif
                             </td>
                             <td>
                                 @if($dispute->serviceAccount)
@@ -218,7 +228,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="9" class="text-center text-muted py-4">
+                            <td colspan="10" class="text-center text-muted py-4">
                                 Претензии не найдены
                             </td>
                         </tr>
