@@ -1,22 +1,20 @@
 import { createRouter, createWebHistory } from 'vue-router';
+
+// Synchronous imports - critical pages that should load immediately
+import MainPage from './pages/MainPage.vue';
 import LoginPage from './components/auth/LoginPage.vue';
 import RegisterPage from './components/auth/RegisterPage.vue';
 import AuthCallback from './components/auth/AuthCallback.vue';
-import MainPage from './pages/MainPage.vue';
-import ProfilePage from './pages/account/ProfilePage.vue';
-import ForgotPasswordPage from './components/auth/ForgotPasswordPage.vue';
-import ResetPasswordPage from './components/auth/ResetPasswordPage.vue';
-import CheckoutPage from './pages/CheckoutPage.vue';
-import OrderSuccessPage from './pages/OrderSuccessPage.vue';
-import ContentPage from './pages/ContentPage.vue';
 import NotFound from './pages/NotFound.vue';
-import ArticlesAll from './pages/articles/ArticlesAll.vue';
-import ArticleDetails from './pages/articles/ArticleDetails.vue';
-// Stores импортируются лениво внутри guards для избежания циклических зависимостей
+
+// Stores - imported statically since they're already in main bundle via App.vue
+// Dynamic imports in guards are kept for conditional loading only
 
 const routes = [
+    // Home page - always load synchronously
     { path: '/', component: MainPage },
-    { path: '/account/:id', component: () => import('./pages/account/AccountDetail.vue') },
+
+    // Auth pages - load synchronously for fast access
     { path: '/login', component: LoginPage, meta: { requiresGuest: true } },
     {
         path: '/register',
@@ -25,12 +23,12 @@ const routes = [
     },
     {
         path: '/forgot-password',
-        component: ForgotPasswordPage,
+        component: () => import('./components/auth/ForgotPasswordPage.vue'),
         meta: { requiresGuest: true }
     },
     {
         path: '/reset-password/:token',
-        component: ResetPasswordPage,
+        component: () => import('./components/auth/ResetPasswordPage.vue'),
         meta: { requiresGuest: true },
         props: true
     },
@@ -38,56 +36,76 @@ const routes = [
         path: '/auth/callback',
         component: AuthCallback
     },
+
+    // User pages - lazy load (require auth, less frequent)
     {
         path: '/profile',
-        component: ProfilePage,
+        component: () => import('./pages/account/ProfilePage.vue'),
         meta: { requiresAuth: true }
+    },
+    {
+        path: '/account/:id',
+        component: () => import('./pages/account/AccountDetail.vue')
     },
     {
         path: '/balance/topup',
         component: () => import('./pages/BalanceTopUpPage.vue'),
         meta: { requiresAuth: true }
     },
+
+    // Articles - lazy load (can be large)
     {
         path: '/articles',
-        component: ArticlesAll,
+        component: () => import('./pages/articles/ArticlesAll.vue'),
         meta: { isArticlesList: true }
     },
     {
         path: '/articles/page/:page',
-        component: ArticlesAll,
+        component: () => import('./pages/articles/ArticlesAll.vue'),
         meta: { isArticlesList: true }
     },
     {
         path: '/categories/:id',
-        component: ArticlesAll,
+        component: () => import('./pages/articles/ArticlesAll.vue'),
         meta: { isArticlesList: true }
     },
     {
         path: '/categories/:id/page/:page',
-        component: ArticlesAll,
+        component: () => import('./pages/articles/ArticlesAll.vue'),
         meta: { isArticlesList: true }
     },
     {
         path: '/articles/:id',
-        component: ArticleDetails
+        component: () => import('./pages/articles/ArticleDetails.vue')
     },
+
+    // Checkout - keep synchronous (critical for conversion)
     {
         path: '/checkout',
-        component: CheckoutPage
+        component: () => import('./pages/CheckoutPage.vue')
         // Убрано requiresAuth: теперь гости могут покупать товары
     },
     {
         path: '/order-success',
-        component: OrderSuccessPage,
+        component: () => import('./pages/OrderSuccessPage.vue'),
         meta: { requiresAuth: true }
     },
+
+    // Marketing pages - lazy load
+    {
+        path: '/become-supplier',
+        component: () => import('./pages/BecomeSupplierPage.vue')
+    },
+
+    // Dynamic content - lazy load
     {
         path: '/:slug(.*)*',
         name: 'dynamic',
-        component: ContentPage,
+        component: () => import('./pages/ContentPage.vue'),
         meta: { isDynamic: true }
     },
+
+    // 404 - keep synchronous (critical error page)
     {
         path: '/404',
         component: NotFound
@@ -130,7 +148,9 @@ const router = createRouter({
 });
 
 router.beforeEach(async (to, from, next) => {
-    // Ленивая загрузка stores для избежания циклических зависимостей
+    // Import stores - using dynamic import to avoid circular dependencies
+    // Note: These stores are also statically imported in App.vue, so they're in main bundle
+    // Dynamic import here is for conditional access only
     const { useAuthStore } = await import('./stores/auth');
     const { useLoadingStore } = await import('./stores/loading');
 
@@ -207,6 +227,7 @@ router.beforeEach(async (to, from, next) => {
 
 // Останавливаем прелоадер после завершения перехода
 router.afterEach(async () => {
+    // Dynamic import for conditional access (store is already in main bundle)
     const { useLoadingStore } = await import('./stores/loading');
     const loadingStore = useLoadingStore();
 

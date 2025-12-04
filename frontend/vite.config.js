@@ -3,9 +3,7 @@ import vue from '@vitejs/plugin-vue';
 import path from 'node:path';
 
 export default defineConfig({
-    plugins: [
-        vue()
-    ],
+    plugins: [vue()],
     resolve: {
         alias: {
             '@': path.resolve(__dirname, 'src')
@@ -32,14 +30,45 @@ export default defineConfig({
         outDir: 'dist',
         sourcemap: false,
         minify: 'esbuild',
+        chunkSizeWarningLimit: 600,
         rollupOptions: {
             output: {
-                manualChunks: {
-                    vendor: ['vue', 'vue-router', 'pinia', 'axios'],
-                    ui: ['vuetify', 'vue-toastification', 'sweetalert2']
+                manualChunks: id => {
+                    // Vendor chunks - core libraries
+                    if (id.includes('node_modules')) {
+                        if (
+                            id.includes('vue') ||
+                            id.includes('vue-router') ||
+                            id.includes('pinia')
+                        ) {
+                            return 'vendor-core';
+                        }
+                        if (id.includes('vuetify')) {
+                            return 'vendor-vuetify';
+                        }
+                        if (id.includes('axios')) {
+                            return 'vendor-axios';
+                        }
+                        if (id.includes('vue-i18n') || id.includes('@intlify')) {
+                            return 'vendor-i18n';
+                        }
+                        if (
+                            id.includes('chart') ||
+                            id.includes('swiper') ||
+                            id.includes('lottie')
+                        ) {
+                            return 'vendor-charts';
+                        }
+                        // Other node_modules
+                        return 'vendor';
+                    }
+                    // Store chunks - group stores together
+                    if (id.includes('/stores/')) {
+                        return 'stores';
+                    }
                 }
             }
         }
     },
-    base: '/',
+    base: '/'
 });

@@ -589,5 +589,102 @@
             "title": "Similar Products"
         },
         "out_of_stock": "Out of Stock"
+    },
+    "becomeSupplier": {
+        "welcomeBanner": {
+            "headline": "Have products but no time to sell?",
+            "subtitle": "Become our supplier and start earning today",
+            "ctaButton": "Become a Supplier"
+        },
+        "supplierStats": {
+            "title": "Our Metrics",
+            "activeSuppliers": "Active Suppliers",
+            "totalSales": "Total Sales",
+            "averageRating": "Average Rating",
+            "countries": "Countries"
+        },
+        "processSteps": {
+            "title": "How to Become a Supplier",
+            "step1": {
+                "title": "Registration",
+                "description": "Create an account and fill out your supplier profile"
+            },
+            "step2": {
+                "title": "Add Products",
+                "description": "Upload your products with descriptions and prices"
+            },
+            "step3": {
+                "title": "Start Selling",
+                "description": "Your products will appear in the catalog and start selling"
+            },
+            "step4": {
+                "title": "Get Paid",
+                "description": "Withdraw your earnings using convenient methods"
+            }
+        },
+        "digitalGoodsCategories": {
+            "title": "Digital Goods Categories",
+            "subtitle": "We work with various types of digital products",
+            "socialMedia": "Social Media Accounts",
+            "gaming": "Gaming Accounts",
+            "streaming": "Streaming Subscriptions",
+            "software": "Software Licenses",
+            "other": "Other"
+        },
+        "restrictedItems": {
+            "title": "What We Don't Work With",
+            "subtitle": "To ensure safety and quality",
+            "items": [
+                "Physical goods",
+                "Services violating legislation",
+                "Products with fake reviews",
+                "Accounts with suspicious activity"
+            ],
+            "contactMessage": "Not sure if your product fits? Contact us, we'll help!"
+        },
+        "partnerBenefits": {
+            "title": "With Us You Get",
+            "benefit1": {
+                "title": "Transparent Terms",
+                "description": "You set the price, we add markup. You receive the full amount."
+            },
+            "benefit2": {
+                "title": "Fast Payouts",
+                "description": "Multiple withdrawal methods with minimal fees"
+            },
+            "benefit3": {
+                "title": "24/7 Support",
+                "description": "Our team is always ready to help with any questions"
+            },
+            "benefit4": {
+                "title": "Dispute Protection",
+                "description": "We help resolve disputes fairly"
+            }
+        },
+        "payoutMethods": {
+            "title": "Payout Methods",
+            "subtitle": "Choose a convenient method — it's simple. Start selling today — setup takes 15 minutes",
+            "methods": ["Bank Cards", "Cryptocurrency", "E-wallets"],
+            "ctaButton": "Start Selling"
+        },
+        "faq": {
+            "title": "Frequently Asked Questions",
+            "question1": {
+                "question": "How quickly will I start earning?",
+                "answer": "After registration and adding products, they will appear in the catalog immediately. First sales can start on the day of registration."
+            },
+            "question2": {
+                "question": "What is the platform commission?",
+                "answer": "We add markup to your price. You receive the full amount you set. Transparent terms without hidden fees."
+            },
+            "question3": {
+                "question": "How often can I withdraw funds?",
+                "answer": "You can request withdrawal at any time. Processing usually takes 1-3 business days."
+            },
+            "question4": {
+                "question": "What to do in case of disputes with buyers?",
+                "answer": "Our support team will help resolve any situation. We strive for fair solutions for all parties."
+            }
+        }
     }
 }
