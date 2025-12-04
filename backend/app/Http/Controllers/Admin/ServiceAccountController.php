@@ -16,7 +16,7 @@ class ServiceAccountController extends Controller
     public function index()
     {
         // Сортировка по sort_order (для ручной сортировки), затем по id
-        $serviceAccounts = ServiceAccount::with('category')->orderBy('sort_order', 'asc')
+        $serviceAccounts = ServiceAccount::with('category.translations')->orderBy('sort_order', 'asc')
             ->orderBy('id', 'desc')
             ->get();
 

@@ -236,7 +236,10 @@
                             $soldCount = $serviceAccount->used ?? 0;
                             $availableCount = max(0, $totalQuantity - $soldCount);
                             $categoryId = $serviceAccount->category_id ?? null;
-                            $categoryName = $serviceAccount->category ? ($serviceAccount->category->admin_name ?? 'Без категории') : 'Без категории';
+                            $categoryName = null;
+                            if ($serviceAccount->category) {
+                                $categoryName = $serviceAccount->category->admin_name;
+                            }
                             // Определяем parent_id категории для фильтрации
                             $categoryParentId = $serviceAccount->category ? ($serviceAccount->category->parent_id ?? null) : null;
                         @endphp
@@ -276,7 +279,7 @@
                                 </div>
                             </td>
                             <td class="text-center align-middle">
-                                @if($categoryId)
+                                @if($categoryId && $categoryName)
                                     <span class="badge badge-info badge-modern" title="{{ $categoryName }}">
                                         {{ $categoryName }}
                                     </span>
