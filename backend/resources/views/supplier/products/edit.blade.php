@@ -167,11 +167,29 @@
                                 <option value="">Без категории</option>
                                 @foreach($categories as $category)
                                     <option value="{{ $category->id }}" {{ old('category_id', $product->category_id) == $category->id ? 'selected' : '' }}>
-                                        {{ $category->admin_name }}
+                                    {{ $category->admin_name ?? 'Category #' . $category->id }}
                                     </option>
                                 @endforeach
                             </select>
                             @error('category_id')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <div class="form-group" id="subcategory_group" style="{{ $subcategoryId ? 'display: block;' : 'display: none;' }}">
+                            <label for="subcategory_id">Подкатегория товара</label>
+                            <select name="subcategory_id" id="subcategory_id"
+                                    class="form-control @error('subcategory_id') is-invalid @enderror">
+                                <option value="">Без подкатегории</option>
+                                @if($parentCategoryId)
+                                    @foreach(\App\Models\Category::where('parent_id', $parentCategoryId)->where('type', \App\Models\Category::TYPE_PRODUCT)->with('translations')->get() as $subcategory)
+                                        <option value="{{ $subcategory->id }}" {{ old('subcategory_id', $subcategoryId) == $subcategory->id ? 'selected' : '' }}>
+                                            {{ $subcategory->admin_name ?? 'Подкатегория #' . $subcategory->id }}
+                                        </option>
+                                    @endforeach
+                                @endif
+                            </select>
+                            @error('subcategory_id')
                             <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
@@ -352,6 +370,58 @@
         textarea.value = lines.join('\n');
         alert('Строки перемешаны случайным образом');
     }
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Загрузка подкатегорий при выборе категории
+            const categorySelect = document.getElementById('category_id');
+            const subcategoryGroup = document.getElementById('subcategory_group');
+            const subcategorySelect = document.getElementById('subcategory_id');
+
+            if (categorySelect) {
+                categorySelect.addEventListener('change', function() {
+                    const categoryId = this.value;
+                    
+                    // Очищаем подкатегории
+                    subcategorySelect.innerHTML = '<option value="">Без подкатегории</option>';
+                    subcategoryGroup.style.display = 'none';
+                    
+                    if (categoryId) {
+                        // Загружаем подкатегории через AJAX
+                        fetch(`/api/categories/${categoryId}/subcategories`)
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.length > 0) {
+                                    // Добавляем подкатегории в select
+                                    data.forEach(subcategory => {
+                                        const option = document.createElement('option');
+                                        option.value = subcategory.id;
+                                        option.textContent = subcategory.name || 'Подкатегория #' + subcategory.id;
+                                        // Проверяем, нужно ли выбрать эту подкатегорию
+                                        const currentSubcategoryId = {{ $subcategoryId ? $subcategoryId : 'null' }};
+                                        if (currentSubcategoryId && subcategory.id == currentSubcategoryId) {
+                                            option.selected = true;
+                                        }
+                                        subcategorySelect.appendChild(option);
+                                    });
+                                    
+                                    // Показываем поле подкатегории
+                                    subcategoryGroup.style.display = 'block';
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Ошибка загрузки подкатегорий:', error);
+                            });
+                    }
+                });
+
+                // Загружаем подкатегории при загрузке страницы, если категория уже выбрана
+                if (categorySelect.value) {
+                    categorySelect.dispatchEvent(new Event('change'));
+                }
+            }
+        });
     </script>
 @endsection
 

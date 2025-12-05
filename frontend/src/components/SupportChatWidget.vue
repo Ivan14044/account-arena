@@ -2141,6 +2141,7 @@ watch(adminIsTyping, newVal => {
     text-overflow: ellipsis;
     display: -webkit-box;
     -webkit-line-clamp: 2;
+    line-clamp: 2;
     -webkit-box-orient: vertical;
 }
 
@@ -2608,11 +2609,9 @@ watch(adminIsTyping, newVal => {
         border-radius: 12px;
     }
 
-    .support-chat-button {
-        width: 56px;
-        height: 56px;
-        bottom: 60px;
-        right: 0;
+    .support-chat-widget {
+        bottom: 75px;
+        right: 10px;
     }
 
     .support-chat-input {

@@ -20,7 +20,7 @@ class ProductController extends Controller
 
     public function create()
     {
-        $categories = Category::productCategories()->with('translations')->get();
+        $categories = Category::productCategories()->parentCategories()->with('translations')->get();
         
         return view('supplier.products.create', compact('categories'));
     }
@@ -32,6 +32,11 @@ class ProductController extends Controller
         if ($request->hasFile('image')) {
             $path = $request->file('image')->store('products', 'public');
             $validated['image_url'] = Storage::url($path);
+        }
+
+        // Если выбрана подкатегория, используем её ID как category_id
+        if ($request->has('subcategory_id') && !empty($request->input('subcategory_id'))) {
+            $validated['category_id'] = $request->input('subcategory_id');
         }
         
         // Check if bulk accounts are provided
@@ -70,6 +75,9 @@ class ProductController extends Controller
             $imageUrl = Storage::url($path);
         }
 
+        // Если выбрана подкатегория, используем её ID как category_id
+        $categoryId = $request->input('subcategory_id') ?: $request->input('category_id');
+
         $lines = array_filter(explode("\n", $bulkAccounts));
         $accountsList = [];
         
@@ -97,7 +105,7 @@ class ProductController extends Controller
                 'additional_description_en' => $request->input('additional_description_en'),
                 'additional_description_uk' => $request->input('additional_description_uk'),
                 'image_url' => $imageUrl,
-                'category_id' => $request->input('category_id'),
+                'category_id' => $categoryId,
                 'accounts_data' => $accountsList,
                 'used' => 0,
                 'is_active' => $request->boolean('is_active', false),
@@ -119,9 +127,25 @@ class ProductController extends Controller
             abort(403, 'У вас нет доступа к этому товару.');
         }
         
-        $categories = Category::productCategories()->with('translations')->get();
+        // Определяем родительскую категорию и подкатегорию
+        $parentCategoryId = null;
+        $subcategoryId = null;
+
+        if ($product->category_id) {
+            $category = Category::find($product->category_id);
+            if ($category) {
+                if ($category->isSubcategory()) {
+                    // Товар привязан к подкатегории
+                    $subcategoryId = $category->id;
+                    $parentCategoryId = $category->parent_id;
+                } else {
+                    // Товар привязан к родительской категории
+                    $parentCategoryId = $category->id;
+                }
+            }
+        }
         
-        return view('supplier.products.edit', compact('product', 'categories'));
+        return view('supplier.products.edit', compact('product', 'parentCategoryId', 'subcategoryId'));
     }
 
     public function update(Request $request, ServiceAccount $product)
@@ -136,6 +160,11 @@ class ProductController extends Controller
         if ($request->hasFile('image')) {
             $path = $request->file('image')->store('products', 'public');
             $validated['image_url'] = Storage::url($path);
+        }
+
+        // Если выбрана подкатегория, используем её ID как category_id
+        if ($request->has('subcategory_id') && !empty($request->input('subcategory_id'))) {
+            $validated['category_id'] = $request->input('subcategory_id');
         }
         
         $validated['is_active'] = $request->boolean('is_active', false);
@@ -209,6 +238,7 @@ class ProductController extends Controller
     {
         return [
             'category_id' => ['nullable', 'exists:categories,id'],
+            'subcategory_id' => ['nullable', 'exists:categories,id'],
             'is_active' => ['required', 'boolean'],
             'price' => ['required', 'numeric', 'min:0'],
             'title' => ['required', 'string', 'max:255'],
