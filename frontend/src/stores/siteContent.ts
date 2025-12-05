@@ -22,11 +22,69 @@ interface PromoteSection {
     payment: PromoteItem;
 }
 
+interface BecomeSupplierData {
+    welcomeBanner: {
+        headline: string;
+        subtitle: string;
+        ctaButton: string;
+    };
+    supplierStats: {
+        title: string;
+        activeSuppliers: string;
+        totalSales: string;
+        averageRating: string;
+        countries: string;
+    };
+    processSteps: {
+        title: string;
+        step1: { title: string; description: string };
+        step2: { title: string; description: string };
+        step3: { title: string; description: string };
+        step4: { title: string; description: string };
+    };
+    digitalGoodsCategories: {
+        title: string;
+        subtitle: string;
+        socialMedia: string;
+        gaming: string;
+        streaming: string;
+        software: string;
+        other: string;
+    };
+    restrictedItems: {
+        title: string;
+        subtitle: string;
+        items: string[];
+        contactMessage: string;
+    };
+    partnerBenefits: {
+        title: string;
+        benefit1: { title: string; description: string };
+        benefit2: { title: string; description: string };
+        benefit3: { title: string; description: string };
+        benefit4: { title: string; description: string };
+    };
+    payoutMethods: {
+        title: string;
+        subtitle: string;
+        methods: string[];
+        ctaButton: string;
+    };
+    faq: {
+        title: string;
+        question1: { question: string; answer: string };
+        question2: { question: string; answer: string };
+        question3: { question: string; answer: string };
+        question4: { question: string; answer: string };
+    };
+}
+
 interface SiteContentData {
     hero: Record<string, ContentSection>;
     about: Record<string, ContentSection>;
     promote: Record<string, PromoteSection>;
     steps: Record<string, ContentSection>;
+    becomeSupplier: Record<string, BecomeSupplierData>;
 }
 
 export const useSiteContentStore = defineStore('siteContent', {
@@ -82,6 +140,19 @@ export const useSiteContentStore = defineStore('siteContent', {
             state =>
             (locale: string = 'ru') => {
                 return state.content?.steps?.[locale] || state.content?.steps?.ru || null;
+            },
+
+        /**
+         * Get become supplier content for current locale
+         */
+        becomeSupplier:
+            state =>
+            (locale: string = 'ru') => {
+                return (
+                    state.content?.becomeSupplier?.[locale] ||
+                    state.content?.becomeSupplier?.ru ||
+                    null
+                );
             }
     },
 

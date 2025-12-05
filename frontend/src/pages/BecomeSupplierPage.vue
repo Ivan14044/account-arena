@@ -8,17 +8,16 @@
         >
             <h1
                 class="text-4xl md:text-5xl lg:text-6xl font-light text-gray-900 dark:text-white mb-6 leading-tight"
-            >
-                {{ $t('becomeSupplier.welcomeBanner.headline') }}
-            </h1>
+                v-html="content.welcomeBanner.headline"
+            ></h1>
             <p class="text-xl md:text-2xl text-gray-600 dark:text-gray-400 mb-8 max-w-3xl mx-auto">
-                {{ $t('becomeSupplier.welcomeBanner.subtitle') }}
+                {{ content.welcomeBanner.subtitle }}
             </p>
             <button
                 class="bg-blue-500 dark:bg-blue-600 hover:bg-blue-600 dark:hover:bg-blue-700 text-white font-medium px-8 py-3 rounded-lg text-lg transition-colors"
                 @click="becomeSupportRedirect"
             >
-                {{ $t('becomeSupplier.welcomeBanner.ctaButton') }}
+                {{ content.welcomeBanner.ctaButton }}
             </button>
         </section>
 
@@ -31,7 +30,7 @@
             <h2
                 class="text-3xl md:text-4xl lg:text-5xl font-medium text-gray-900 dark:text-white text-center mb-12"
             >
-                {{ $t('becomeSupplier.supplierStats.title') }}
+                {{ content.supplierStats.title }}
             </h2>
             <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
                 <div
@@ -41,7 +40,7 @@
                         500+
                     </div>
                     <div class="text-sm md:text-base text-gray-600 dark:text-gray-400">
-                        {{ $t('becomeSupplier.supplierStats.activeSuppliers') }}
+                        {{ content.supplierStats.activeSuppliers }}
                     </div>
                 </div>
                 <div
@@ -51,7 +50,7 @@
                         50K+
                     </div>
                     <div class="text-sm md:text-base text-gray-600 dark:text-gray-400">
-                        {{ $t('becomeSupplier.supplierStats.totalSales') }}
+                        {{ content.supplierStats.totalSales }}
                     </div>
                 </div>
                 <div
@@ -61,7 +60,7 @@
                         4.8
                     </div>
                     <div class="text-sm md:text-base text-gray-600 dark:text-gray-400">
-                        {{ $t('becomeSupplier.supplierStats.averageRating') }}
+                        {{ content.supplierStats.averageRating }}
                     </div>
                 </div>
                 <div
@@ -71,7 +70,7 @@
                         50+
                     </div>
                     <div class="text-sm md:text-base text-gray-600 dark:text-gray-400">
-                        {{ $t('becomeSupplier.supplierStats.countries') }}
+                        {{ content.supplierStats.countries }}
                     </div>
                 </div>
             </div>
@@ -86,7 +85,7 @@
             <h2
                 class="text-3xl md:text-4xl lg:text-5xl font-medium text-gray-900 dark:text-white text-center mb-12"
             >
-                {{ $t('becomeSupplier.processSteps.title') }}
+                {{ content.processSteps.title }}
             </h2>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <div
@@ -98,10 +97,10 @@
                         01
                     </div>
                     <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-3">
-                        {{ $t('becomeSupplier.processSteps.step1.title') }}
+                        {{ content.processSteps.step1.title }}
                     </h3>
                     <p class="text-gray-700 dark:text-gray-300">
-                        {{ $t('becomeSupplier.processSteps.step1.description') }}
+                        {{ content.processSteps.step1.description }}
                     </p>
                 </div>
                 <div
@@ -113,10 +112,10 @@
                         02
                     </div>
                     <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-3">
-                        {{ $t('becomeSupplier.processSteps.step2.title') }}
+                        {{ content.processSteps.step2.title }}
                     </h3>
                     <p class="text-gray-700 dark:text-gray-300">
-                        {{ $t('becomeSupplier.processSteps.step2.description') }}
+                        {{ content.processSteps.step2.description }}
                     </p>
                 </div>
                 <div
@@ -128,10 +127,10 @@
                         03
                     </div>
                     <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-3">
-                        {{ $t('becomeSupplier.processSteps.step3.title') }}
+                        {{ content.processSteps.step3.title }}
                     </h3>
                     <p class="text-gray-700 dark:text-gray-300">
-                        {{ $t('becomeSupplier.processSteps.step3.description') }}
+                        {{ content.processSteps.step3.description }}
                     </p>
                 </div>
                 <div
@@ -143,10 +142,10 @@
                         04
                     </div>
                     <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-3">
-                        {{ $t('becomeSupplier.processSteps.step4.title') }}
+                        {{ content.processSteps.step4.title }}
                     </h3>
                     <p class="text-gray-700 dark:text-gray-300">
-                        {{ $t('becomeSupplier.processSteps.step4.description') }}
+                        {{ content.processSteps.step4.description }}
                     </p>
                 </div>
             </div>
@@ -161,45 +160,45 @@
             <h2
                 class="text-3xl md:text-4xl lg:text-5xl font-medium text-gray-900 dark:text-white text-center mb-4"
             >
-                {{ $t('becomeSupplier.digitalGoodsCategories.title') }}
+                {{ content.digitalGoodsCategories.title }}
             </h2>
             <p class="text-center text-gray-600 dark:text-gray-400 mb-12 text-lg">
-                {{ $t('becomeSupplier.digitalGoodsCategories.subtitle') }}
+                {{ content.digitalGoodsCategories.subtitle }}
             </p>
             <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
                 <div
                     class="bg-gradient-to-br from-purple-500/20 via-indigo-500/20 to-blue-500/20 dark:from-indigo-900/30 dark:via-purple-900/30 dark:to-blue-900/30 border border-indigo-400/30 dark:border-gray-700/40 backdrop-blur-md rounded-2xl p-6 text-center"
                 >
                     <div class="text-lg font-semibold text-gray-900 dark:text-white">
-                        {{ $t('becomeSupplier.digitalGoodsCategories.socialMedia') }}
+                        {{ content.digitalGoodsCategories.socialMedia }}
                     </div>
                 </div>
                 <div
                     class="bg-gradient-to-br from-purple-500/20 via-indigo-500/20 to-blue-500/20 dark:from-indigo-900/30 dark:via-purple-900/30 dark:to-blue-900/30 border border-indigo-400/30 dark:border-gray-700/40 backdrop-blur-md rounded-2xl p-6 text-center"
                 >
                     <div class="text-lg font-semibold text-gray-900 dark:text-white">
-                        {{ $t('becomeSupplier.digitalGoodsCategories.gaming') }}
+                        {{ content.digitalGoodsCategories.gaming }}
                     </div>
                 </div>
                 <div
                     class="bg-gradient-to-br from-purple-500/20 via-indigo-500/20 to-blue-500/20 dark:from-indigo-900/30 dark:via-purple-900/30 dark:to-blue-900/30 border border-indigo-400/30 dark:border-gray-700/40 backdrop-blur-md rounded-2xl p-6 text-center"
                 >
                     <div class="text-lg font-semibold text-gray-900 dark:text-white">
-                        {{ $t('becomeSupplier.digitalGoodsCategories.streaming') }}
+                        {{ content.digitalGoodsCategories.streaming }}
                     </div>
                 </div>
                 <div
                     class="bg-gradient-to-br from-purple-500/20 via-indigo-500/20 to-blue-500/20 dark:from-indigo-900/30 dark:via-purple-900/30 dark:to-blue-900/30 border border-indigo-400/30 dark:border-gray-700/40 backdrop-blur-md rounded-2xl p-6 text-center"
                 >
                     <div class="text-lg font-semibold text-gray-900 dark:text-white">
-                        {{ $t('becomeSupplier.digitalGoodsCategories.software') }}
+                        {{ content.digitalGoodsCategories.software }}
                     </div>
                 </div>
                 <div
                     class="bg-gradient-to-br from-purple-500/20 via-indigo-500/20 to-blue-500/20 dark:from-indigo-900/30 dark:via-purple-900/30 dark:to-blue-900/30 border border-indigo-400/30 dark:border-gray-700/40 backdrop-blur-md rounded-2xl p-6 text-center"
                 >
                     <div class="text-lg font-semibold text-gray-900 dark:text-white">
-                        {{ $t('becomeSupplier.digitalGoodsCategories.other') }}
+                        {{ content.digitalGoodsCategories.other }}
                     </div>
                 </div>
             </div>
@@ -214,17 +213,17 @@
             <h2
                 class="text-3xl md:text-4xl lg:text-5xl font-medium text-gray-900 dark:text-white text-center mb-4"
             >
-                {{ $t('becomeSupplier.restrictedItems.title') }}
+                {{ content.restrictedItems.title }}
             </h2>
             <p class="text-center text-gray-600 dark:text-gray-400 mb-8 text-lg">
-                {{ $t('becomeSupplier.restrictedItems.subtitle') }}
+                {{ content.restrictedItems.subtitle }}
             </p>
             <div
                 class="bg-gradient-to-br from-red-500/20 via-orange-500/20 to-yellow-500/20 dark:from-red-900/30 dark:via-orange-900/30 dark:to-yellow-900/30 border border-red-400/30 dark:border-gray-700/40 backdrop-blur-md rounded-2xl p-8 max-w-3xl mx-auto"
             >
                 <ul class="space-y-4 mb-6">
                     <li
-                        v-for="(item, index) in restrictedItems"
+                        v-for="(item, index) in content.restrictedItems.items"
                         :key="index"
                         class="flex items-start text-gray-900 dark:text-white"
                     >
@@ -233,7 +232,7 @@
                     </li>
                 </ul>
                 <p class="text-center text-gray-700 dark:text-gray-300">
-                    {{ $t('becomeSupplier.restrictedItems.contactMessage') }}
+                    {{ content.restrictedItems.contactMessage }}
                 </p>
             </div>
         </section>
@@ -247,47 +246,47 @@
             <h2
                 class="text-3xl md:text-4xl lg:text-5xl font-medium text-gray-900 dark:text-white text-center mb-12"
             >
-                {{ $t('becomeSupplier.partnerBenefits.title') }}
+                {{ content.partnerBenefits.title }}
             </h2>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div
                     class="bg-gradient-to-br from-purple-500/20 via-indigo-500/20 to-blue-500/20 dark:from-indigo-900/30 dark:via-purple-900/30 dark:to-blue-900/30 border border-indigo-400/30 dark:border-gray-700/40 backdrop-blur-md rounded-2xl p-6"
                 >
                     <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-3">
-                        {{ $t('becomeSupplier.partnerBenefits.benefit1.title') }}
+                        {{ content.partnerBenefits.benefit1.title }}
                     </h3>
                     <p class="text-gray-700 dark:text-gray-300">
-                        {{ $t('becomeSupplier.partnerBenefits.benefit1.description') }}
+                        {{ content.partnerBenefits.benefit1.description }}
                     </p>
                 </div>
                 <div
                     class="bg-gradient-to-br from-purple-500/20 via-indigo-500/20 to-blue-500/20 dark:from-indigo-900/30 dark:via-purple-900/30 dark:to-blue-900/30 border border-indigo-400/30 dark:border-gray-700/40 backdrop-blur-md rounded-2xl p-6"
                 >
                     <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-3">
-                        {{ $t('becomeSupplier.partnerBenefits.benefit2.title') }}
+                        {{ content.partnerBenefits.benefit2.title }}
                     </h3>
                     <p class="text-gray-700 dark:text-gray-300">
-                        {{ $t('becomeSupplier.partnerBenefits.benefit2.description') }}
+                        {{ content.partnerBenefits.benefit2.description }}
                     </p>
                 </div>
                 <div
                     class="bg-gradient-to-br from-purple-500/20 via-indigo-500/20 to-blue-500/20 dark:from-indigo-900/30 dark:via-purple-900/30 dark:to-blue-900/30 border border-indigo-400/30 dark:border-gray-700/40 backdrop-blur-md rounded-2xl p-6"
                 >
                     <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-3">
-                        {{ $t('becomeSupplier.partnerBenefits.benefit3.title') }}
+                        {{ content.partnerBenefits.benefit3.title }}
                     </h3>
                     <p class="text-gray-700 dark:text-gray-300">
-                        {{ $t('becomeSupplier.partnerBenefits.benefit3.description') }}
+                        {{ content.partnerBenefits.benefit3.description }}
                     </p>
                 </div>
                 <div
                     class="bg-gradient-to-br from-purple-500/20 via-indigo-500/20 to-blue-500/20 dark:from-indigo-900/30 dark:via-purple-900/30 dark:to-blue-900/30 border border-indigo-400/30 dark:border-gray-700/40 backdrop-blur-md rounded-2xl p-6"
                 >
                     <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-3">
-                        {{ $t('becomeSupplier.partnerBenefits.benefit4.title') }}
+                        {{ content.partnerBenefits.benefit4.title }}
                     </h3>
                     <p class="text-gray-700 dark:text-gray-300">
-                        {{ $t('becomeSupplier.partnerBenefits.benefit4.description') }}
+                        {{ content.partnerBenefits.benefit4.description }}
                     </p>
                 </div>
             </div>
@@ -302,14 +301,14 @@
             <h2
                 class="text-3xl md:text-4xl lg:text-5xl font-medium text-gray-900 dark:text-white text-center mb-4"
             >
-                {{ $t('becomeSupplier.payoutMethods.title') }}
+                {{ content.payoutMethods.title }}
             </h2>
             <p class="text-center text-gray-600 dark:text-gray-400 mb-8 text-lg max-w-3xl mx-auto">
-                {{ $t('becomeSupplier.payoutMethods.subtitle') }}
+                {{ content.payoutMethods.subtitle }}
             </p>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                 <div
-                    v-for="(method, index) in payoutMethods"
+                    v-for="(method, index) in content.payoutMethods.methods"
                     :key="index"
                     class="bg-gradient-to-br from-purple-500/20 via-indigo-500/20 to-blue-500/20 dark:from-indigo-900/30 dark:via-purple-900/30 dark:to-blue-900/30 border border-indigo-400/30 dark:border-gray-700/40 backdrop-blur-md rounded-2xl p-6 text-center"
                 >
@@ -323,7 +322,7 @@
                     class="bg-blue-500 dark:bg-blue-600 hover:bg-blue-600 dark:hover:bg-blue-700 text-white font-medium px-8 py-3 rounded-lg text-lg transition-colors"
                     @click="becomeSupportRedirect"
                 >
-                    {{ $t('becomeSupplier.payoutMethods.ctaButton') }}
+                    {{ content.payoutMethods.ctaButton }}
                 </button>
             </div>
         </section>
@@ -333,11 +332,16 @@
             <h2
                 class="text-3xl md:text-4xl lg:text-5xl font-medium text-gray-900 dark:text-white text-center mb-12"
             >
-                {{ $t('becomeSupplier.faq.title') }}
+                {{ content.faq.title }}
             </h2>
             <div class="max-w-3xl mx-auto space-y-4">
                 <div
-                    v-for="(question, index) in faqItems"
+                    v-for="(question, index) in [
+                        content.faq.question1,
+                        content.faq.question2,
+                        content.faq.question3,
+                        content.faq.question4
+                    ]"
                     :key="index"
                     class="bg-gradient-to-br from-purple-500/20 via-indigo-500/20 to-blue-500/20 dark:from-indigo-900/30 dark:via-purple-900/30 dark:to-blue-900/30 border border-indigo-400/30 dark:border-gray-700/40 backdrop-blur-md rounded-2xl overflow-hidden"
                 >
@@ -374,12 +378,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useOptionStore } from '@/stores/options';
+import { useSiteContentStore } from '@/stores/siteContent';
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
 const optionStore = useOptionStore();
+const siteContentStore = useSiteContentStore();
 const openFaqIndex = ref<number | null>(null);
 
 // Shared intersection observer configuration
@@ -390,46 +396,187 @@ const intersectConfig = {
     rootMargin: '0px 0px -40% 0px'
 };
 
-const restrictedItems = computed(() => {
-    const items = t('becomeSupplier.restrictedItems.items');
-    return Array.isArray(items) ? items : [];
+// Load site content on mount
+onMounted(() => {
+    siteContentStore.loadContent();
 });
 
-const payoutMethods = computed(() => {
-    const methods = t('becomeSupplier.payoutMethods.methods');
-    return Array.isArray(methods) ? methods : [];
+// Single computed object containing all become supplier content
+const content = computed(() => {
+    const data = siteContentStore.becomeSupplier(locale.value);
+    // Fallback to i18n if content is not loaded
+    return {
+        welcomeBanner: {
+            headline: data?.welcomeBanner?.headline || t('becomeSupplier.welcomeBanner.headline'),
+            subtitle: data?.welcomeBanner?.subtitle || t('becomeSupplier.welcomeBanner.subtitle'),
+            ctaButton: data?.welcomeBanner?.ctaButton || t('becomeSupplier.welcomeBanner.ctaButton')
+        },
+        supplierStats: {
+            title: data?.supplierStats?.title || t('becomeSupplier.supplierStats.title'),
+            activeSuppliers:
+                data?.supplierStats?.activeSuppliers ||
+                t('becomeSupplier.supplierStats.activeSuppliers'),
+            totalSales:
+                data?.supplierStats?.totalSales || t('becomeSupplier.supplierStats.totalSales'),
+            averageRating:
+                data?.supplierStats?.averageRating ||
+                t('becomeSupplier.supplierStats.averageRating'),
+            countries: data?.supplierStats?.countries || t('becomeSupplier.supplierStats.countries')
+        },
+        processSteps: {
+            title: data?.processSteps?.title || t('becomeSupplier.processSteps.title'),
+            step1: {
+                title:
+                    data?.processSteps?.step1?.title ||
+                    t('becomeSupplier.processSteps.step1.title'),
+                description:
+                    data?.processSteps?.step1?.description ||
+                    t('becomeSupplier.processSteps.step1.description')
+            },
+            step2: {
+                title:
+                    data?.processSteps?.step2?.title ||
+                    t('becomeSupplier.processSteps.step2.title'),
+                description:
+                    data?.processSteps?.step2?.description ||
+                    t('becomeSupplier.processSteps.step2.description')
+            },
+            step3: {
+                title:
+                    data?.processSteps?.step3?.title ||
+                    t('becomeSupplier.processSteps.step3.title'),
+                description:
+                    data?.processSteps?.step3?.description ||
+                    t('becomeSupplier.processSteps.step3.description')
+            },
+            step4: {
+                title:
+                    data?.processSteps?.step4?.title ||
+                    t('becomeSupplier.processSteps.step4.title'),
+                description:
+                    data?.processSteps?.step4?.description ||
+                    t('becomeSupplier.processSteps.step4.description')
+            }
+        },
+        digitalGoodsCategories: {
+            title:
+                data?.digitalGoodsCategories?.title ||
+                t('becomeSupplier.digitalGoodsCategories.title'),
+            subtitle:
+                data?.digitalGoodsCategories?.subtitle ||
+                t('becomeSupplier.digitalGoodsCategories.subtitle'),
+            socialMedia:
+                data?.digitalGoodsCategories?.socialMedia ||
+                t('becomeSupplier.digitalGoodsCategories.socialMedia'),
+            gaming:
+                data?.digitalGoodsCategories?.gaming ||
+                t('becomeSupplier.digitalGoodsCategories.gaming'),
+            streaming:
+                data?.digitalGoodsCategories?.streaming ||
+                t('becomeSupplier.digitalGoodsCategories.streaming'),
+            software:
+                data?.digitalGoodsCategories?.software ||
+                t('becomeSupplier.digitalGoodsCategories.software'),
+            other:
+                data?.digitalGoodsCategories?.other ||
+                t('becomeSupplier.digitalGoodsCategories.other')
+        },
+        restrictedItems: {
+            title: data?.restrictedItems?.title || t('becomeSupplier.restrictedItems.title'),
+            subtitle:
+                data?.restrictedItems?.subtitle || t('becomeSupplier.restrictedItems.subtitle'),
+            items:
+                Array.isArray(data?.restrictedItems?.items) && data.restrictedItems.items.length > 0
+                    ? data.restrictedItems.items
+                    : Array.isArray(t('becomeSupplier.restrictedItems.items'))
+                      ? t('becomeSupplier.restrictedItems.items')
+                      : [],
+            contactMessage:
+                data?.restrictedItems?.contactMessage ||
+                t('becomeSupplier.restrictedItems.contactMessage')
+        },
+        partnerBenefits: {
+            title: data?.partnerBenefits?.title || t('becomeSupplier.partnerBenefits.title'),
+            benefit1: {
+                title:
+                    data?.partnerBenefits?.benefit1?.title ||
+                    t('becomeSupplier.partnerBenefits.benefit1.title'),
+                description:
+                    data?.partnerBenefits?.benefit1?.description ||
+                    t('becomeSupplier.partnerBenefits.benefit1.description')
+            },
+            benefit2: {
+                title:
+                    data?.partnerBenefits?.benefit2?.title ||
+                    t('becomeSupplier.partnerBenefits.benefit2.title'),
+                description:
+                    data?.partnerBenefits?.benefit2?.description ||
+                    t('becomeSupplier.partnerBenefits.benefit2.description')
+            },
+            benefit3: {
+                title:
+                    data?.partnerBenefits?.benefit3?.title ||
+                    t('becomeSupplier.partnerBenefits.benefit3.title'),
+                description:
+                    data?.partnerBenefits?.benefit3?.description ||
+                    t('becomeSupplier.partnerBenefits.benefit3.description')
+            },
+            benefit4: {
+                title:
+                    data?.partnerBenefits?.benefit4?.title ||
+                    t('becomeSupplier.partnerBenefits.benefit4.title'),
+                description:
+                    data?.partnerBenefits?.benefit4?.description ||
+                    t('becomeSupplier.partnerBenefits.benefit4.description')
+            }
+        },
+        payoutMethods: {
+            title: data?.payoutMethods?.title || t('becomeSupplier.payoutMethods.title'),
+            subtitle: data?.payoutMethods?.subtitle || t('becomeSupplier.payoutMethods.subtitle'),
+            methods:
+                Array.isArray(data?.payoutMethods?.methods) && data.payoutMethods.methods.length > 0
+                    ? data.payoutMethods.methods
+                    : Array.isArray(t('becomeSupplier.payoutMethods.methods'))
+                      ? t('becomeSupplier.payoutMethods.methods')
+                      : [],
+            ctaButton: data?.payoutMethods?.ctaButton || t('becomeSupplier.payoutMethods.ctaButton')
+        },
+        faq: {
+            title: data?.faq?.title || t('becomeSupplier.faq.title'),
+            question1: {
+                question:
+                    data?.faq?.question1?.question || t('becomeSupplier.faq.question1.question'),
+                answer: data?.faq?.question1?.answer || t('becomeSupplier.faq.question1.answer')
+            },
+            question2: {
+                question:
+                    data?.faq?.question2?.question || t('becomeSupplier.faq.question2.question'),
+                answer: data?.faq?.question2?.answer || t('becomeSupplier.faq.question2.answer')
+            },
+            question3: {
+                question:
+                    data?.faq?.question3?.question || t('becomeSupplier.faq.question3.question'),
+                answer: data?.faq?.question3?.answer || t('becomeSupplier.faq.question3.answer')
+            },
+            question4: {
+                question:
+                    data?.faq?.question4?.question || t('becomeSupplier.faq.question4.question'),
+                answer: data?.faq?.question4?.answer || t('becomeSupplier.faq.question4.answer')
+            }
+        }
+    };
 });
-
-const faqItems = computed(() => [
-    {
-        question: t('becomeSupplier.faq.question1.question'),
-        answer: t('becomeSupplier.faq.question1.answer')
-    },
-    {
-        question: t('becomeSupplier.faq.question2.question'),
-        answer: t('becomeSupplier.faq.question2.answer')
-    },
-    {
-        question: t('becomeSupplier.faq.question3.question'),
-        answer: t('becomeSupplier.faq.question3.answer')
-    },
-    {
-        question: t('becomeSupplier.faq.question4.question'),
-        answer: t('becomeSupplier.faq.question4.answer')
-    }
-]);
 
 function toggleFaq(index: number) {
     openFaqIndex.value = openFaqIndex.value === index ? null : index;
 }
 
-function becomeSupportRedirect() {
-    const telegramSupportLink = optionStore.getOption(
+const becomeSupportRedirect = () => {
+    window.location.href = optionStore.getOption(
         'support_chat_telegram_link',
         'https://t.me/support'
     );
-    window.location.href = telegramSupportLink;
-}
+};
 </script>
 
 <style scoped>

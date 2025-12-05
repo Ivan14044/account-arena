@@ -141,6 +141,284 @@ class SiteContentController extends Controller
                     'description' => Option::get('steps_description_uk'),
                 ],
             ],
+            'becomeSupplier' => [
+                'ru' => [
+                    'welcomeBanner' => [
+                        'headline' => Option::get('become_supplier_welcome_headline_ru'),
+                        'subtitle' => Option::get('become_supplier_welcome_subtitle_ru'),
+                        'ctaButton' => Option::get('become_supplier_welcome_cta_ru'),
+                    ],
+                    'supplierStats' => [
+                        'title' => Option::get('become_supplier_stats_title_ru'),
+                        'activeSuppliers' => Option::get('become_supplier_stats_active_suppliers_ru'),
+                        'totalSales' => Option::get('become_supplier_stats_total_sales_ru'),
+                        'averageRating' => Option::get('become_supplier_stats_average_rating_ru'),
+                        'countries' => Option::get('become_supplier_stats_countries_ru'),
+                    ],
+                    'processSteps' => [
+                        'title' => Option::get('become_supplier_process_title_ru'),
+                        'step1' => [
+                            'title' => Option::get('become_supplier_process_step1_title_ru'),
+                            'description' => Option::get('become_supplier_process_step1_description_ru'),
+                        ],
+                        'step2' => [
+                            'title' => Option::get('become_supplier_process_step2_title_ru'),
+                            'description' => Option::get('become_supplier_process_step2_description_ru'),
+                        ],
+                        'step3' => [
+                            'title' => Option::get('become_supplier_process_step3_title_ru'),
+                            'description' => Option::get('become_supplier_process_step3_description_ru'),
+                        ],
+                        'step4' => [
+                            'title' => Option::get('become_supplier_process_step4_title_ru'),
+                            'description' => Option::get('become_supplier_process_step4_description_ru'),
+                        ],
+                    ],
+                    'digitalGoodsCategories' => [
+                        'title' => Option::get('become_supplier_categories_title_ru'),
+                        'subtitle' => Option::get('become_supplier_categories_subtitle_ru'),
+                        'socialMedia' => Option::get('become_supplier_categories_social_media_ru'),
+                        'gaming' => Option::get('become_supplier_categories_gaming_ru'),
+                        'streaming' => Option::get('become_supplier_categories_streaming_ru'),
+                        'software' => Option::get('become_supplier_categories_software_ru'),
+                        'other' => Option::get('become_supplier_categories_other_ru'),
+                    ],
+                    'restrictedItems' => [
+                        'title' => Option::get('become_supplier_restricted_title_ru'),
+                        'subtitle' => Option::get('become_supplier_restricted_subtitle_ru'),
+                        'items' => Option::get('become_supplier_restricted_items_ru') ? explode("\n", Option::get('become_supplier_restricted_items_ru')) : [],
+                        'contactMessage' => Option::get('become_supplier_restricted_contact_ru'),
+                    ],
+                    'partnerBenefits' => [
+                        'title' => Option::get('become_supplier_benefits_title_ru'),
+                        'benefit1' => [
+                            'title' => Option::get('become_supplier_benefits_benefit1_title_ru'),
+                            'description' => Option::get('become_supplier_benefits_benefit1_description_ru'),
+                        ],
+                        'benefit2' => [
+                            'title' => Option::get('become_supplier_benefits_benefit2_title_ru'),
+                            'description' => Option::get('become_supplier_benefits_benefit2_description_ru'),
+                        ],
+                        'benefit3' => [
+                            'title' => Option::get('become_supplier_benefits_benefit3_title_ru'),
+                            'description' => Option::get('become_supplier_benefits_benefit3_description_ru'),
+                        ],
+                        'benefit4' => [
+                            'title' => Option::get('become_supplier_benefits_benefit4_title_ru'),
+                            'description' => Option::get('become_supplier_benefits_benefit4_description_ru'),
+                        ],
+                    ],
+                    'payoutMethods' => [
+                        'title' => Option::get('become_supplier_payout_title_ru'),
+                        'subtitle' => Option::get('become_supplier_payout_subtitle_ru'),
+                        'methods' => Option::get('become_supplier_payout_methods_ru') ? explode("\n", Option::get('become_supplier_payout_methods_ru')) : [],
+                        'ctaButton' => Option::get('become_supplier_payout_cta_ru'),
+                    ],
+                    'faq' => [
+                        'title' => Option::get('become_supplier_faq_title_ru'),
+                        'question1' => [
+                            'question' => Option::get('become_supplier_faq_question1_ru'),
+                            'answer' => Option::get('become_supplier_faq_answer1_ru'),
+                        ],
+                        'question2' => [
+                            'question' => Option::get('become_supplier_faq_question2_ru'),
+                            'answer' => Option::get('become_supplier_faq_answer2_ru'),
+                        ],
+                        'question3' => [
+                            'question' => Option::get('become_supplier_faq_question3_ru'),
+                            'answer' => Option::get('become_supplier_faq_answer3_ru'),
+                        ],
+                        'question4' => [
+                            'question' => Option::get('become_supplier_faq_question4_ru'),
+                            'answer' => Option::get('become_supplier_faq_answer4_ru'),
+                        ],
+                    ],
+                ],
+                'en' => [
+                    'welcomeBanner' => [
+                        'headline' => Option::get('become_supplier_welcome_headline_en'),
+                        'subtitle' => Option::get('become_supplier_welcome_subtitle_en'),
+                        'ctaButton' => Option::get('become_supplier_welcome_cta_en'),
+                    ],
+                    'supplierStats' => [
+                        'title' => Option::get('become_supplier_stats_title_en'),
+                        'activeSuppliers' => Option::get('become_supplier_stats_active_suppliers_en'),
+                        'totalSales' => Option::get('become_supplier_stats_total_sales_en'),
+                        'averageRating' => Option::get('become_supplier_stats_average_rating_en'),
+                        'countries' => Option::get('become_supplier_stats_countries_en'),
+                    ],
+                    'processSteps' => [
+                        'title' => Option::get('become_supplier_process_title_en'),
+                        'step1' => [
+                            'title' => Option::get('become_supplier_process_step1_title_en'),
+                            'description' => Option::get('become_supplier_process_step1_description_en'),
+                        ],
+                        'step2' => [
+                            'title' => Option::get('become_supplier_process_step2_title_en'),
+                            'description' => Option::get('become_supplier_process_step2_description_en'),
+                        ],
+                        'step3' => [
+                            'title' => Option::get('become_supplier_process_step3_title_en'),
+                            'description' => Option::get('become_supplier_process_step3_description_en'),
+                        ],
+                        'step4' => [
+                            'title' => Option::get('become_supplier_process_step4_title_en'),
+                            'description' => Option::get('become_supplier_process_step4_description_en'),
+                        ],
+                    ],
+                    'digitalGoodsCategories' => [
+                        'title' => Option::get('become_supplier_categories_title_en'),
+                        'subtitle' => Option::get('become_supplier_categories_subtitle_en'),
+                        'socialMedia' => Option::get('become_supplier_categories_social_media_en'),
+                        'gaming' => Option::get('become_supplier_categories_gaming_en'),
+                        'streaming' => Option::get('become_supplier_categories_streaming_en'),
+                        'software' => Option::get('become_supplier_categories_software_en'),
+                        'other' => Option::get('become_supplier_categories_other_en'),
+                    ],
+                    'restrictedItems' => [
+                        'title' => Option::get('become_supplier_restricted_title_en'),
+                        'subtitle' => Option::get('become_supplier_restricted_subtitle_en'),
+                        'items' => Option::get('become_supplier_restricted_items_en') ? explode("\n", Option::get('become_supplier_restricted_items_en')) : [],
+                        'contactMessage' => Option::get('become_supplier_restricted_contact_en'),
+                    ],
+                    'partnerBenefits' => [
+                        'title' => Option::get('become_supplier_benefits_title_en'),
+                        'benefit1' => [
+                            'title' => Option::get('become_supplier_benefits_benefit1_title_en'),
+                            'description' => Option::get('become_supplier_benefits_benefit1_description_en'),
+                        ],
+                        'benefit2' => [
+                            'title' => Option::get('become_supplier_benefits_benefit2_title_en'),
+                            'description' => Option::get('become_supplier_benefits_benefit2_description_en'),
+                        ],
+                        'benefit3' => [
+                            'title' => Option::get('become_supplier_benefits_benefit3_title_en'),
+                            'description' => Option::get('become_supplier_benefits_benefit3_description_en'),
+                        ],
+                        'benefit4' => [
+                            'title' => Option::get('become_supplier_benefits_benefit4_title_en'),
+                            'description' => Option::get('become_supplier_benefits_benefit4_description_en'),
+                        ],
+                    ],
+                    'payoutMethods' => [
+                        'title' => Option::get('become_supplier_payout_title_en'),
+                        'subtitle' => Option::get('become_supplier_payout_subtitle_en'),
+                        'methods' => Option::get('become_supplier_payout_methods_en') ? explode("\n", Option::get('become_supplier_payout_methods_en')) : [],
+                        'ctaButton' => Option::get('become_supplier_payout_cta_en'),
+                    ],
+                    'faq' => [
+                        'title' => Option::get('become_supplier_faq_title_en'),
+                        'question1' => [
+                            'question' => Option::get('become_supplier_faq_question1_en'),
+                            'answer' => Option::get('become_supplier_faq_answer1_en'),
+                        ],
+                        'question2' => [
+                            'question' => Option::get('become_supplier_faq_question2_en'),
+                            'answer' => Option::get('become_supplier_faq_answer2_en'),
+                        ],
+                        'question3' => [
+                            'question' => Option::get('become_supplier_faq_question3_en'),
+                            'answer' => Option::get('become_supplier_faq_answer3_en'),
+                        ],
+                        'question4' => [
+                            'question' => Option::get('become_supplier_faq_question4_en'),
+                            'answer' => Option::get('become_supplier_faq_answer4_en'),
+                        ],
+                    ],
+                ],
+                'uk' => [
+                    'welcomeBanner' => [
+                        'headline' => Option::get('become_supplier_welcome_headline_uk'),
+                        'subtitle' => Option::get('become_supplier_welcome_subtitle_uk'),
+                        'ctaButton' => Option::get('become_supplier_welcome_cta_uk'),
+                    ],
+                    'supplierStats' => [
+                        'title' => Option::get('become_supplier_stats_title_uk'),
+                        'activeSuppliers' => Option::get('become_supplier_stats_active_suppliers_uk'),
+                        'totalSales' => Option::get('become_supplier_stats_total_sales_uk'),
+                        'averageRating' => Option::get('become_supplier_stats_average_rating_uk'),
+                        'countries' => Option::get('become_supplier_stats_countries_uk'),
+                    ],
+                    'processSteps' => [
+                        'title' => Option::get('become_supplier_process_title_uk'),
+                        'step1' => [
+                            'title' => Option::get('become_supplier_process_step1_title_uk'),
+                            'description' => Option::get('become_supplier_process_step1_description_uk'),
+                        ],
+                        'step2' => [
+                            'title' => Option::get('become_supplier_process_step2_title_uk'),
+                            'description' => Option::get('become_supplier_process_step2_description_uk'),
+                        ],
+                        'step3' => [
+                            'title' => Option::get('become_supplier_process_step3_title_uk'),
+                            'description' => Option::get('become_supplier_process_step3_description_uk'),
+                        ],
+                        'step4' => [
+                            'title' => Option::get('become_supplier_process_step4_title_uk'),
+                            'description' => Option::get('become_supplier_process_step4_description_uk'),
+                        ],
+                    ],
+                    'digitalGoodsCategories' => [
+                        'title' => Option::get('become_supplier_categories_title_uk'),
+                        'subtitle' => Option::get('become_supplier_categories_subtitle_uk'),
+                        'socialMedia' => Option::get('become_supplier_categories_social_media_uk'),
+                        'gaming' => Option::get('become_supplier_categories_gaming_uk'),
+                        'streaming' => Option::get('become_supplier_categories_streaming_uk'),
+                        'software' => Option::get('become_supplier_categories_software_uk'),
+                        'other' => Option::get('become_supplier_categories_other_uk'),
+                    ],
+                    'restrictedItems' => [
+                        'title' => Option::get('become_supplier_restricted_title_uk'),
+                        'subtitle' => Option::get('become_supplier_restricted_subtitle_uk'),
+                        'items' => Option::get('become_supplier_restricted_items_uk') ? explode("\n", Option::get('become_supplier_restricted_items_uk')) : [],
+                        'contactMessage' => Option::get('become_supplier_restricted_contact_uk'),
+                    ],
+                    'partnerBenefits' => [
+                        'title' => Option::get('become_supplier_benefits_title_uk'),
+                        'benefit1' => [
+                            'title' => Option::get('become_supplier_benefits_benefit1_title_uk'),
+                            'description' => Option::get('become_supplier_benefits_benefit1_description_uk'),
+                        ],
+                        'benefit2' => [
+                            'title' => Option::get('become_supplier_benefits_benefit2_title_uk'),
+                            'description' => Option::get('become_supplier_benefits_benefit2_description_uk'),
+                        ],
+                        'benefit3' => [
+                            'title' => Option::get('become_supplier_benefits_benefit3_title_uk'),
+                            'description' => Option::get('become_supplier_benefits_benefit3_description_uk'),
+                        ],
+                        'benefit4' => [
+                            'title' => Option::get('become_supplier_benefits_benefit4_title_uk'),
+                            'description' => Option::get('become_supplier_benefits_benefit4_description_uk'),
+                        ],
+                    ],
+                    'payoutMethods' => [
+                        'title' => Option::get('become_supplier_payout_title_uk'),
+                        'subtitle' => Option::get('become_supplier_payout_subtitle_uk'),
+                        'methods' => Option::get('become_supplier_payout_methods_uk') ? explode("\n", Option::get('become_supplier_payout_methods_uk')) : [],
+                        'ctaButton' => Option::get('become_supplier_payout_cta_uk'),
+                    ],
+                    'faq' => [
+                        'title' => Option::get('become_supplier_faq_title_uk'),
+                        'question1' => [
+                            'question' => Option::get('become_supplier_faq_question1_uk'),
+                            'answer' => Option::get('become_supplier_faq_answer1_uk'),
+                        ],
+                        'question2' => [
+                            'question' => Option::get('become_supplier_faq_question2_uk'),
+                            'answer' => Option::get('become_supplier_faq_answer2_uk'),
+                        ],
+                        'question3' => [
+                            'question' => Option::get('become_supplier_faq_question3_uk'),
+                            'answer' => Option::get('become_supplier_faq_answer3_uk'),
+                        ],
+                        'question4' => [
+                            'question' => Option::get('become_supplier_faq_question4_uk'),
+                            'answer' => Option::get('become_supplier_faq_answer4_uk'),
+                        ],
+                    ],
+                ],
+            ],
         ];
 
         return response()->json($content);

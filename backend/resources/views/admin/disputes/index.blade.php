@@ -187,6 +187,8 @@
                                     <a href="{{ route('admin.purchases.show', $dispute->transaction->purchase->id) }}" class="text-primary">
                                         {{ $dispute->transaction->purchase->order_number }}
                                     </a>
+                                @elseif($dispute->transaction)
+                                    <span class="text-muted">#{{ $dispute->transaction->id }}</span>
                                 @else
                                     <span class="text-muted">N/A</span>
                                 @endif

@@ -61,16 +61,20 @@
 
                         <dt class="col-sm-3">Транзакция:</dt>
                         <dd class="col-sm-9">
-                            @if($dispute->transaction && $dispute->transaction->purchase && $dispute->transaction->purchase->order_number)
-                                <a href="{{ route('admin.purchases.show', $dispute->transaction->purchase->id) }}" class="text-primary">
-                                    {{ $dispute->transaction->purchase->order_number }}
-                                </a>
+                            @if($dispute->transaction)
+                                @if($dispute->transaction->purchase && $dispute->transaction->purchase->order_number)
+                                    <a href="{{ route('admin.purchases.show', $dispute->transaction->purchase->id) }}" class="text-primary">
+                                        {{ $dispute->transaction->purchase->order_number }}
+                                    </a>
+                                @else
+                                    ID: #{{ $dispute->transaction->id }}
+                                @endif
+                                — ${{ number_format($dispute->transaction->amount, 2) }}
+                                <br>
+                                <small class="text-muted">{{ $dispute->transaction->created_at->format('d.m.Y H:i') }}</small>
                             @else
-                                #{{ $dispute->transaction->id }}
+                                <span class="text-muted">N/A</span>
                             @endif
-                            — ${{ number_format($dispute->transaction->amount, 2) }}
-                            <br>
-                            <small class="text-muted">{{ $dispute->transaction->created_at->format('d.m.Y H:i') }}</small>
                         </dd>
 
                         <dt class="col-sm-3">Причина:</dt>
