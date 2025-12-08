@@ -1361,7 +1361,7 @@
 import { ref, onMounted } from 'vue';
 import { Lock, Mail, User } from 'lucide-vue-next';
 import { useAuthStore } from '../../stores/auth';
-import { useToast } from 'vue-toastification';
+import { POSITION, useToast } from 'vue-toastification';
 import { useI18n } from 'vue-i18n';
 import { useRouter, useRoute } from 'vue-router';
 import { useLoadingStore } from '@/stores/loading';
@@ -1648,14 +1648,9 @@ const activateVoucher = async () => {
 
         // Показываем toast уведомление
         toast.success(response.data.message, {
-            position: 'top-right',
-            duration: 5000
+            position: POSITION.TOP_RIGHT,
+            timeout: 5000
         });
-
-        // Очищаем сообщение успеха через 10 секунд
-        setTimeout(() => {
-            voucherSuccess.value = '';
-        }, 10000);
     } catch (error: any) {
         if (error.response?.data?.errors?.code) {
             voucherError.value = error.response.data.errors.code[0];

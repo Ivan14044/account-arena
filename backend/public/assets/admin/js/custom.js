@@ -4,6 +4,11 @@
 
     // Функция для обновления счетчика непрочитанных сообщений в чате поддержки
     function updateSupportChatBadge() {
+        // Only run on admin pages
+        if (!location.pathname.startsWith("/admin")) {
+            return;
+        }
+
         if (typeof jQuery === 'undefined') {
             return;
         }
@@ -59,9 +64,11 @@
         });
     }
 
-    window.updateSupportChatBadge = updateSupportChatBadge;
-
     function initSupportChatBadge() {
+        if (!location.pathname.startsWith("/admin")) {
+            return;
+        }
+
         if (typeof jQuery !== 'undefined') {
             $(document).ready(function () {
                 setTimeout(function () {
@@ -84,6 +91,11 @@
 
     // Функция для обновления счетчика новых претензий
     function updateDisputesBadge() {
+        // Only run on admin pages
+        if (!location.pathname.startsWith("/admin")) {
+            return;
+        }
+
         if (typeof jQuery === 'undefined') {
             return;
         }
@@ -140,9 +152,12 @@
         });
     }
 
-    window.updateDisputesBadge = updateDisputesBadge;
-
     function initDisputesBadge() {
+        // Only initialize on admin pages
+        if (!location.pathname.startsWith("/admin")) {
+            return;
+        }
+
         if (typeof jQuery !== 'undefined') {
             $(document).ready(function () {
                 setTimeout(function () {

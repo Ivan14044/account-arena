@@ -6,11 +6,8 @@
 @section('plugins.Select2', true)
 
 @section('content_header')
-    <div class="d-flex justify-content-between align-items-center">
+    <div class="d-flex align-items-center">
         <h1>Панель поставщика</h1>
-        <a href="{{ route('supplier.logout') }}" class="btn btn-secondary">
-            <i class="fas fa-sign-out-alt"></i> Выход
-        </a>
     </div>
 @endsection
 
