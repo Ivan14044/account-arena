@@ -627,7 +627,7 @@
                             <!-- Кнопка создания претензии -->
                             <button
                                 v-if="canCreateDispute(purchase)"
-                                class="flex items-center gap-1 px-3 py-1.5 text-xs text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded-lg transition-colors font-medium"
+                                class="flex items-center gap-1.5 px-4 py-2 text-sm text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 hover:bg-purple-100 dark:hover:bg-purple-900/30 bg-purple-50 dark:bg-purple-900/10 border border-purple-200 dark:border-purple-800 rounded-lg transition-all font-medium shadow-sm hover:shadow"
                                 :title="$t('profile.purchases.disputes.create_button')"
                                 @click="openDisputeModal(purchase)"
                             >

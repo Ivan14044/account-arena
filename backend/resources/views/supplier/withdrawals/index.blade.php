@@ -109,6 +109,7 @@
         </div>
         <div class="card-body p-0">
             @if($withdrawalRequests->count() > 0)
+            <div class="table-responsive">
             <table class="table table-striped table-hover">
                 <thead>
                     <tr>
@@ -174,6 +175,7 @@
                     @endforeach
                 </tbody>
             </table>
+            </div>
             @else
             <div class="p-3 text-center text-muted">
                 <p>У вас пока нет запросов на вывод средств</p>

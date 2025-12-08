@@ -244,6 +244,7 @@
                 </div>
                 <div class="card-body p-0">
                     @if($topProducts->count() > 0)
+                    <div class="table-responsive">
                     <table class="table table-striped">
                         <thead>
                             <tr>
@@ -272,6 +273,7 @@
                             @endforeach
                         </tbody>
                     </table>
+                    </div>
                     @else
                     <div class="p-3 text-center text-muted">
                         <p>Пока нет проданных товаров</p>
@@ -292,6 +294,7 @@
                 </div>
                 <div class="card-body p-0">
                     @if(count($lowStockProducts) > 0)
+                    <div class="table-responsive">
                     <table class="table table-striped">
                         <thead>
                             <tr>
@@ -316,6 +319,7 @@
                             @endforeach
                         </tbody>
                     </table>
+                    </div>
                     @else
                     <div class="p-3 text-center text-muted">
                         <p>Все товары в наличии</p>

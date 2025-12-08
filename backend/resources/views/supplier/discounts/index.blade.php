@@ -30,6 +30,7 @@
         </div>
         <div class="card-body p-0">
             @if($products->count() > 0)
+            <div class="table-responsive">
             <table class="table table-striped">
                 <thead>
                     <tr>
@@ -88,6 +89,7 @@
                     @endforeach
                 </tbody>
             </table>
+            </div>
             @else
             <div class="p-4 text-center text-muted">
                 <i class="fas fa-percent fa-3x mb-3"></i>

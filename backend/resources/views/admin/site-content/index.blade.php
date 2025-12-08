@@ -1814,7 +1814,7 @@
                     // Add active to selected tab
                 $(tabId).addClass('active');
                 $(paneId).addClass('show active');
-                }
+            }
             }
         });
     </script>

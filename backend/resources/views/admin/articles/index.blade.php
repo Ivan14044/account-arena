@@ -19,6 +19,7 @@
                     <a href="{{ route('admin.articles.create') }}" class="btn btn-primary float-right">+ Добавить</a>
                 </div>
                 <div class="card-body">
+                    <div class="table-responsive">
                     <table id="articles-table" class="table table-bordered table-striped">
                         <thead>
                         <tr>
@@ -109,6 +110,7 @@
                         @endforeach
                         </tbody>
                     </table>
+                    </div>
                 </div>
             </div>
         </div>

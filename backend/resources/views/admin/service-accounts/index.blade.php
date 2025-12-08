@@ -180,22 +180,24 @@
     <!-- Таблица -->
     <div class="card card-modern">
         <div class="card-header-modern">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
+            <div class="card-header-content">
+                <div class="card-header-title">
                     <h5 class="mb-0">Список товаров</h5>
                     <small class="text-muted">Всего записей: <span id="totalCount">{{ $serviceAccounts->count() }}</span></small>
                 </div>
-                <div class="filters-container d-flex align-items-center gap-3">
-                    <div class="btn-group btn-group-filter" role="group">
-                        <button type="button" class="btn btn-filter active" id="filterAll">Все</button>
-                        <button type="button" class="btn btn-filter" id="filterActive">Активные</button>
-                        <button type="button" class="btn btn-filter" id="filterInactive">Неактивные</button>
+                <div class="card-header-controls">
+                    <div class="filters-container">
+                        <div class="btn-group btn-group-filter" role="group">
+                            <button type="button" class="btn btn-filter active" id="filterAll">Все</button>
+                            <button type="button" class="btn btn-filter" id="filterActive">Активные</button>
+                            <button type="button" class="btn btn-filter" id="filterInactive">Неактивные</button>
+                        </div>
                     </div>
                     <div class="sort-container">
-                        <label for="sortSelect" class="mr-2 mb-0" style="font-size: 0.875rem; color: #6c757d;">
+                        <label for="sortSelect" class="sort-label">
                             <i class="fas fa-sort mr-1"></i>Сортировка:
                         </label>
-                        <select id="sortSelect" class="form-control form-control-sm" style="display: inline-block; width: auto; min-width: 180px;">
+                        <select id="sortSelect" class="form-control form-control-sm sort-select">
                             <option value="sort_order-asc" selected>Ручной порядок</option>
                             <option value="1-asc">ID (по возрастанию)</option>
                             <option value="1-desc">ID (по убыванию)</option>
@@ -351,9 +353,10 @@
 
                                     @if($totalQuantity > 0)
                                     <button class="btn btn-sm btn-success" 
-                                            onclick="exportAccountsFromIndex({{ $serviceAccount->id }}, {{ $availableCount }})"
+                                            data-toggle="modal"
+                                            data-target="#exportModal{{ $serviceAccount->id }}"
                                             title="Экспорт товаров"
-                                            data-toggle="tooltip">
+                                            data-toggle-tooltip="tooltip">
                                         <i class="fas fa-download"></i>
                                     </button>
                                     @endif
@@ -402,6 +405,47 @@
                                                         <i class="fas fa-trash-alt mr-2"></i>Да, удалить
                                                     </button>
                                                 </form>
+                                                <button type="button" class="btn btn-secondary btn-modern" data-dismiss="modal">
+                                                    Отмена
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Модальное окно экспорта -->
+                                <div class="modal fade" id="exportModal{{ $serviceAccount->id }}" tabindex="-1" role="dialog">
+                                    <div class="modal-dialog modal-dialog-centered" role="document">
+                                        <div class="modal-content modal-modern">
+                                            <div class="modal-header-modern">
+                                                <h5 class="modal-title">
+                                                    <i class="fas fa-download mr-2 text-success"></i>
+                                                    Экспорт товаров
+                                                </h5>
+                                                <button type="button" class="close" data-dismiss="modal">
+                                                    <span>&times;</span>
+                                                </button>
+                                            </div>
+                                            <div class="modal-body-modern">
+                                                <p class="mb-3">Сколько товаров выгрузить?</p>
+                                                <div class="form-group">
+                                                    <label for="exportCount{{ $serviceAccount->id }}">Количество (всего доступно: <strong>{{ $availableCount }}</strong>)</label>
+                                                    <input type="number" 
+                                                           class="form-control" 
+                                                           id="exportCount{{ $serviceAccount->id }}" 
+                                                           min="1" 
+                                                           max="{{ $availableCount }}" 
+                                                           value="{{ $availableCount }}"
+                                                           required>
+                                                    <small class="form-text text-muted">Введите количество товаров для экспорта</small>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer-modern justify-content-center">
+                                                <button type="button" 
+                                                        class="btn btn-success btn-modern" 
+                                                        onclick="confirmExport({{ $serviceAccount->id }}, {{ $availableCount }})">
+                                                    <i class="fas fa-download mr-2"></i>Экспортировать
+                                                </button>
                                                 <button type="button" class="btn btn-secondary btn-modern" data-dismiss="modal">
                                                     Отмена
                                                 </button>
@@ -1072,34 +1116,52 @@
         });
 
         // Export function for index page
-        function exportAccountsFromIndex(productId, totalQuantity) {
-            const countStr = prompt('Сколько товаров выгрузить? (всего: ' + totalQuantity + ')', totalQuantity);
+        function confirmExport(productId, totalQuantity) {
+            const countInput = document.getElementById('exportCount' + productId);
+            if (!countInput) return;
             
-            if (countStr === null) return; // User cancelled
-            
-            const count = parseInt(countStr);
-            if (isNaN(count) || count < 1) {
-                alert('Введите корректное число');
+            const count = parseInt(countInput.value);
+            if (isNaN(count) || count < 1 || count > totalQuantity) {
+                alert('Введите корректное число от 1 до ' + totalQuantity);
+                countInput.focus();
                 return;
             }
 
-            // Show loading
-            const btn = event.target.closest('button');
-            const originalHtml = btn.innerHTML;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-            btn.disabled = true;
+            // Close modal
+            $('#exportModal' + productId).modal('hide');
 
-            // Create hidden iframe for download
-            const iframe = document.createElement('iframe');
-            iframe.style.display = 'none';
-            iframe.src = '/admin/service-accounts/' + productId + '/export?count=' + count;
-            document.body.appendChild(iframe);
+            // Show loading on export button
+            const exportBtn = document.querySelector('[data-target="#exportModal' + productId + '"]');
+            if (exportBtn) {
+                const originalHtml = exportBtn.innerHTML;
+                exportBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                exportBtn.disabled = true;
 
-            // After download completes, reload page
-            setTimeout(function() {
-                document.body.removeChild(iframe);
-                window.location.reload();
-            }, 2000);
+                // Create hidden iframe for download
+                const iframe = document.createElement('iframe');
+                iframe.style.display = 'none';
+                iframe.src = '/admin/service-accounts/' + productId + '/export?count=' + count;
+                document.body.appendChild(iframe);
+
+                // After download completes, reload page
+                setTimeout(function() {
+                    document.body.removeChild(iframe);
+                    exportBtn.innerHTML = originalHtml;
+                    exportBtn.disabled = false;
+                    window.location.reload();
+                }, 2000);
+            } else {
+                // Fallback if button not found
+                const iframe = document.createElement('iframe');
+                iframe.style.display = 'none';
+                iframe.src = '/admin/service-accounts/' + productId + '/export?count=' + count;
+                document.body.appendChild(iframe);
+
+                setTimeout(function() {
+                    document.body.removeChild(iframe);
+                    window.location.reload();
+                }, 2000);
+            }
         }
     </script>
 @endsection

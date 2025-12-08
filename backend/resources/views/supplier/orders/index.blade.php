@@ -112,6 +112,7 @@
         </div>
         <div class="card-body p-0">
             @if($orders->count() > 0)
+            <div class="table-responsive">
             <table class="table table-striped table-hover">
                 <thead>
                     <tr>
@@ -156,6 +157,7 @@
                     @endforeach
                 </tbody>
             </table>
+            </div>
             @else
             <div class="p-4 text-center text-muted">
                 <i class="fas fa-inbox fa-3x mb-3"></i>

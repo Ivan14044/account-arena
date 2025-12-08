@@ -19,6 +19,7 @@
                     <a href="{{ route('admin.pages.create') }}" class="btn btn-primary float-right">+ Add</a>
                 </div>
                 <div class="card-body">
+                    <div class="table-responsive">
                     <table id="pages-table" class="table table-bordered table-striped">
                         <thead>
                         <tr>
@@ -83,6 +84,7 @@
                         @endforeach
                         </tbody>
                     </table>
+                    </div>
                 </div>
             </div>
         </div>

@@ -16,9 +16,12 @@
         <div class="card">
             <div class="card-header">
                 <h3 class="card-title">Список уведомлений</h3>
-                <a href="{{ route('admin.notifications.create') }}" class="btn btn-warning float-right">Массовое уведомление</a>
+                <a href="{{ route('admin.notifications.create') }}" class="btn btn-warning float-right">
+                    <i class="fas fa-bullhorn"></i> <span class="d-none d-sm-inline">Массовое уведомление</span>
+                </a>
             </div>
             <div class="card-body">
+                <div class="table-responsive">
                 <table id="notification-templates-table" class="table table-bordered table-striped">
                     <thead>
                     <tr>
@@ -33,27 +36,33 @@
                     <tbody>
                     @foreach ($notifications as $notification)
                         <tr>
-                            <td>{{ $notification->id }}</td>
-                            <td>
+                            <td data-label="ID">{{ $notification->id }}</td>
+                            <td data-label="Пользователь">
                                 <a href="{{ route('admin.users.edit', $notification->user) }}" target="_blank">
-                                    {{ $notification->user->email }}
+                                    <small>{{ $notification->user->email }}</small>
                                 </a>
                             </td>
-                            <td>
+                            <td data-label="Уведомление">
                                 @if($notification->template)
                                     <a href="{{ route('admin.notification-templates.edit', $notification->template) }}" target="_blank">
                                         {{ $notification->template->name }}
                                     </a>
+                                @else
+                                    <span class="text-muted">—</span>
                                 @endif
                             </td>
-                            <td>
-                                {{ $notification->read_at ? 'Да' : 'Нет' }}
+                            <td data-label="Прочитано">
+                                @if($notification->read_at)
+                                    <span class="badge badge-success">Да</span>
+                                @else
+                                    <span class="badge badge-warning">Нет</span>
+                                @endif
                             </td>
-                            <td data-order="{{ strtotime($notification->created_at) }}">
-                                {{ \Carbon\Carbon::parse($notification->created_at)->format('Y-m-d H:i') }}
+                            <td data-label="Создано" data-order="{{ strtotime($notification->created_at) }}">
+                                <small>{{ \Carbon\Carbon::parse($notification->created_at)->format('Y-m-d H:i') }}</small>
                             </td>
-                            <td>
-                                <button class="btn btn-sm btn-danger" data-toggle="modal" data-target="#deleteModal{{ $notification->id }}">
+                            <td data-label="Действия">
+                                <button class="btn btn-sm btn-danger" data-toggle="modal" data-target="#deleteModal{{ $notification->id }}" title="Удалить">
                                     <i class="fas fa-trash"></i>
                                 </button>
 
@@ -83,8 +92,9 @@
                             </td>
                         </tr>
                     @endforeach
-                    </tbody>
-                </table>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
