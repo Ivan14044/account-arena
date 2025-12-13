@@ -326,6 +326,18 @@
                                         @enderror
                                         <small class="text-muted">Процент комиссии с каждой продажи</small>
                                     </div>
+
+                                    <div class="form-group-modern">
+    <label for="supplier_hold_hours" class="form-label-modern">Время холда (в часах)</label>
+    <input type="number" name="supplier_hold_hours" id="supplier_hold_hours" min="0" step="1"
+           class="form-control form-control-modern @error('supplier_hold_hours') is-invalid @enderror"
+           value="{{ old('supplier_hold_hours', $user->supplier_hold_hours ?? 6) }}">
+    @error('supplier_hold_hours')
+        <div class="invalid-feedback d-block">{{ $message }}</div>
+    @enderror
+    <small class="text-muted">Сколько часов после покупки средства будут в холде до возможности вывода (по умолчанию 6 часов)</small>
+</div>
+
                                 </div>
                             </div>
 
