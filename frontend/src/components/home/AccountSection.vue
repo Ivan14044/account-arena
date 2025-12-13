@@ -105,7 +105,7 @@
                     </div>
 
                     <!-- Артикул товара -->
-                    <div v-if="account.sku" class="product-sku">
+                    <div v-if="account.sku" class="product-sku product-sku--desktop">
                         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path
                                 stroke-linecap="round"
@@ -154,6 +154,17 @@
                                     })
                                 }}
                             </div>
+                            <div class="product-sku--mobile">                                                <div v-if="account.sku" class="product-sku">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"
+                            />
+                        </svg>
+                        <span>{{ account.sku }}</span>
+                    </div></div>
                         </div>
 
                         <!-- Quantity Control -->
@@ -907,6 +918,13 @@ onMounted(async () => {
     opacity: 0.7;
 }
 
+.product-sku--mobile {
+  display: none;
+}
+.product-sku--desktop {
+  display: block;
+}
+
 /* Блок действий */
 .product-actions {
     display: flex;
@@ -1289,9 +1307,7 @@ onMounted(async () => {
     }
 
     .product-image-wrapper {
-        width: 100%;
-        height: 200px;
-        border-radius: 12px;
+        display: none !important;
     }
 
     .product-info {
@@ -1312,6 +1328,7 @@ onMounted(async () => {
     .price-section {
         text-align: center;
         width: 100%;
+        flex-direction: row-reverse;
     }
 
     .quantity-control {
@@ -1321,18 +1338,26 @@ onMounted(async () => {
     }
 
     .actions-row {
-        flex-direction: column;
+        flex-direction: row-reverse;
         gap: 10px;
     }
 
     .btn-secondary.btn-icon {
         padding: 12px;
-        width: 100%;
+        width: initial;
     }
 
     .btn-primary {
         width: 100%;
     }
+      .product-sku--mobile {
+display: flex;
+        justify-content: flex-start;
+        width: 100%;     /* выравнивание по правому краю в price-section */
+  }
+  .product-sku--desktop {
+    display: none;
+  }
 }
 
 /* Skeleton Loaders */
