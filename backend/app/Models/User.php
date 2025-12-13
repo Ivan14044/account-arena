@@ -37,6 +37,7 @@ class User extends Authenticatable
         'supplier_commission',
         'trc20_wallet',
         'card_number_uah',
+        'supplier_hold_hours',
     ];
 
     protected $hidden = [
@@ -56,6 +57,7 @@ class User extends Authenticatable
         'supplier_rating' => 'decimal:2',
         'rating_updated_at' => 'datetime',
         'is_supplier' => 'boolean',
+        'supplier_hold_hours' => 'integer',
     ];
 
     /**
