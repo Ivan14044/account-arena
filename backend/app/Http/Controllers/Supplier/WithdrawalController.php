@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Supplier;
 use App\Http\Controllers\Controller;
 use App\Models\Option;
 use App\Models\WithdrawalRequest;
+use App\Models\SupplierEarning;
 use Illuminate\Http\Request;
 
 class WithdrawalController extends Controller
@@ -15,16 +16,34 @@ class WithdrawalController extends Controller
     public function index()
     {
         $supplier = auth()->user();
-        
+
+        // Get available and held amounts from supplier_earnings
+        $availableAmount = SupplierEarning::where('supplier_id', $supplier->id)
+            ->where(function($q) {
+                $q->where('status', 'available')
+                  ->orWhere(function($q2) {
+                      $q2->where('status', 'held')
+                         ->whereNotNull('available_at')
+                         ->where('available_at', '<=', now());
+                  });
+            })->sum('amount');
+
+        $heldAmount = SupplierEarning::where('supplier_id', $supplier->id)
+            ->where('status', 'held')
+            ->where(function($q) {
+                $q->whereNull('available_at')
+                  ->orWhere('available_at', '>', now());
+            })->sum('amount');
+
         // Get withdrawal requests for this supplier
         $withdrawalRequests = WithdrawalRequest::where('supplier_id', $supplier->id)
             ->orderByDesc('created_at')
             ->paginate(10);
-        
+
         // Get telegram support link
         $telegramSupportLink = Option::get('telegram_support_link', 'https://t.me/support');
-        
-        return view('supplier.withdrawals.index', compact('supplier', 'withdrawalRequests', 'telegramSupportLink'));
+
+        return view('supplier.withdrawals.index', compact('supplier', 'withdrawalRequests', 'telegramSupportLink', 'availableAmount', 'heldAmount'));
     }
 
     /**
@@ -59,17 +78,41 @@ class WithdrawalController extends Controller
     public function create()
     {
         $supplier = auth()->user();
-        
+
+        // Recompute available and held amounts for the form
+        $availableAmount = SupplierEarning::where('supplier_id', $supplier->id)
+            ->where(function($q) {
+                $q->where('status', 'available')
+                  ->orWhere(function($q2) {
+                      $q2->where('status', 'held')
+                         ->whereNotNull('available_at')
+                         ->where('available_at', '<=', now());
+                  });
+            })->sum('amount');
+
+        $heldAmount = SupplierEarning::where('supplier_id', $supplier->id)
+            ->where('status', 'held')
+            ->where(function($q) {
+                $q->whereNull('available_at')
+                  ->orWhere('available_at', '>', now());
+            })->sum('amount');
+
         // Check if supplier has payment details
         if (!$supplier->trc20_wallet && !$supplier->card_number_uah) {
             return redirect()->route('supplier.withdrawals.index')
                 ->with('error', 'Сначала укажите реквизиты для вывода средств.');
         }
-        
+
+        // If there's nothing available to withdraw, prevent opening the create page
+        if ($availableAmount <= 0) {
+            return redirect()->route('supplier.withdrawals.index')
+                ->with('error', 'Нет доступных средств для вывода. Дождитесь окончания холда или обратитесь к администратору.');
+        }
+
         // Get telegram support link
         $telegramSupportLink = Option::get('telegram_support_link', 'https://t.me/support');
-        
-        return view('supplier.withdrawals.create', compact('supplier', 'telegramSupportLink'));
+
+        return view('supplier.withdrawals.create', compact('supplier', 'telegramSupportLink', 'availableAmount', 'heldAmount'));
     }
 
     /**
@@ -78,9 +121,25 @@ class WithdrawalController extends Controller
     public function store(Request $request)
     {
         $supplier = auth()->user();
-        
+
+        // Recompute available amount at the moment of request
+        $availableAmount = SupplierEarning::where('supplier_id', $supplier->id)
+            ->where(function($q) {
+                $q->where('status', 'available')
+                  ->orWhere(function($q2) {
+                      $q2->where('status', 'held')
+                         ->whereNotNull('available_at')
+                         ->where('available_at', '<=', now());
+                  });
+            })->sum('amount');
+
+        if ($availableAmount <= 0) {
+            return redirect()->route('supplier.withdrawals.index')
+                ->with('error', 'Нет доступных средств для вывода.');
+        }
+
         $validated = $request->validate([
-            'amount' => ['required', 'numeric', 'min:1', 'max:' . $supplier->supplier_balance],
+            'amount' => ['required','numeric','min:1','max:' . $availableAmount],
             'payment_method' => ['required', 'in:trc20,card_uah'],
         ]);
 
@@ -88,14 +147,14 @@ class WithdrawalController extends Controller
         if ($validated['payment_method'] == 'trc20' && !$supplier->trc20_wallet) {
             return back()->with('error', 'TRC-20 кошелек не указан в реквизитах.');
         }
-        
+
         if ($validated['payment_method'] == 'card_uah' && !$supplier->card_number_uah) {
             return back()->with('error', 'Номер карты не указан в реквизитах.');
         }
 
         // Get payment details based on method
-        $paymentDetails = $validated['payment_method'] == 'trc20' 
-            ? $supplier->trc20_wallet 
+        $paymentDetails = $validated['payment_method'] == 'trc20'
+            ? $supplier->trc20_wallet
             : $supplier->card_number_uah;
 
         WithdrawalRequest::create([
