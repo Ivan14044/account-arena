@@ -105,7 +105,7 @@
                     </div>
 
                     <!-- Артикул товара -->
-                    <div v-if="account.sku" class="product-sku">
+                    <div v-if="account.sku" class="product-sku product-sku--desktop">
                         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path
                                 stroke-linecap="round"
@@ -154,6 +154,17 @@
                                     })
                                 }}
                             </div>
+                                                <div v-if="account.sku" class="product-sku product-sku--mobile">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"
+                            />
+                        </svg>
+                        <span>{{ account.sku }}</span>
+                    </div>
                         </div>
 
                         <!-- Quantity Control -->
@@ -907,6 +918,13 @@ onMounted(async () => {
     opacity: 0.7;
 }
 
+.product-sku--mobile {
+  display: none;
+}
+.product-sku--desktop {
+  display: block;
+}
+
 /* Блок действий */
 .product-actions {
     display: flex;
@@ -1332,6 +1350,14 @@ onMounted(async () => {
     .btn-primary {
         width: 100%;
     }
+      .product-sku--mobile {
+    display: block;
+    margin-right: 30vw;          /* отступ сверху в блоке цены */
+    align-self: flex-end;     /* выравнивание по правому краю в price-section */
+  }
+  .product-sku--desktop {
+    display: none;
+  }
 }
 
 /* Skeleton Loaders */
