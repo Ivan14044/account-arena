@@ -3,9 +3,9 @@
 @section('title', 'Управление скидками')
 
 @section('content_header')
-    <div class="d-flex justify-content-between align-items-center">
-        <h1>Управление скидками</h1>
-        <div>
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center">
+        <h1 class="mb-2 mb-md-0">Управление скидками</h1>
+        <div class="d-flex flex-column flex-sm-row gap-2 w-100 w-md-auto">
             <a href="{{ route('supplier.discounts.create') }}" class="btn btn-primary">
                 <i class="fas fa-plus"></i> Добавить скидку
             </a>
@@ -74,16 +74,18 @@
                             @endif
                         </td>
                         <td>
-                            <a href="{{ route('supplier.discounts.edit', $product) }}" class="btn btn-sm btn-info">
-                                <i class="fas fa-edit"></i>
-                            </a>
-                            <form action="{{ route('supplier.discounts.destroy', $product) }}" method="POST" class="d-inline">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Удалить скидку?')">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </form>
+                            <div class="btn-group-vertical btn-group-sm d-sm-inline-flex" role="group">
+                                <a href="{{ route('supplier.discounts.edit', $product) }}" class="btn btn-info mb-1 mb-sm-0">
+                                    <i class="fas fa-edit"></i> <span class="d-sm-none">Редактировать</span>
+                                </a>
+                                <form action="{{ route('supplier.discounts.destroy', $product) }}" method="POST" class="d-inline">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-danger" onclick="return confirm('Удалить скидку?')">
+                                        <i class="fas fa-trash"></i> <span class="d-sm-none">Удалить</span>
+                                    </button>
+                                </form>
+                            </div>
                         </td>
                     </tr>
                     @endforeach

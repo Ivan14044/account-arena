@@ -3,9 +3,9 @@
 @section('title', 'Редактировать реквизиты')
 
 @section('content_header')
-    <div class="d-flex justify-content-between align-items-center">
-        <h1>Редактировать реквизиты для вывода</h1>
-        <div>
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center">
+        <h1 class="mb-2 mb-md-0">Редактировать реквизиты для вывода</h1>
+        <div class="d-flex flex-column flex-sm-row gap-2 w-100 w-md-auto">
             <a href="{{ route('supplier.withdrawals.index') }}" class="btn btn-secondary">
                 <i class="fas fa-arrow-left"></i> Назад
             </a>
@@ -28,14 +28,14 @@
         <div class="card-body">
             <form action="{{ route('supplier.withdrawals.payment-details.update') }}" method="POST">
                 @csrf
-                
+
                 <div class="form-group">
                     <label for="trc20_wallet">
                         <i class="fas fa-coins"></i> TRC-20 кошелек
                     </label>
-                    <input type="text" 
-                           name="trc20_wallet" 
-                           id="trc20_wallet" 
+                    <input type="text"
+                           name="trc20_wallet"
+                           id="trc20_wallet"
                            class="form-control @error('trc20_wallet') is-invalid @enderror"
                            value="{{ old('trc20_wallet', $supplier->trc20_wallet) }}"
                            placeholder="Введите адрес TRC-20 кошелька">
@@ -51,9 +51,9 @@
                     <label for="card_number_uah">
                         <i class="fas fa-credit-card"></i> Карта (грн)
                     </label>
-                    <input type="text" 
-                           name="card_number_uah" 
-                           id="card_number_uah" 
+                    <input type="text"
+                           name="card_number_uah"
+                           id="card_number_uah"
                            class="form-control @error('card_number_uah') is-invalid @enderror"
                            value="{{ old('card_number_uah', $supplier->card_number_uah) }}"
                            placeholder="Введите номер карты">
@@ -70,12 +70,14 @@
                     <strong>Важно:</strong> Укажите хотя бы один способ вывода средств. Вы можете указать оба способа и выбирать при создании запроса на вывод.
                 </div>
 
-                <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-save"></i> Сохранить
-                </button>
-                <a href="{{ route('supplier.withdrawals.index') }}" class="btn btn-secondary">
-                    <i class="fas fa-times"></i> Отмена
-                </a>
+                <div class="d-flex flex-column flex-sm-row gap-2">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Сохранить
+                    </button>
+                    <a href="{{ route('supplier.withdrawals.index') }}" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Отмена
+                    </a>
+                </div>
             </form>
         </div>
     </div>

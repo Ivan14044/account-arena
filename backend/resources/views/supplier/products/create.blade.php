@@ -3,9 +3,9 @@
 @section('title', 'Добавить товар')
 
 @section('content_header')
-    <div class="d-flex justify-content-between align-items-center">
-        <h1>Добавить товар</h1>
-        <div>
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center">
+        <h1 class="mb-2 mb-md-0">Добавить товар</h1>
+        <div class="d-flex flex-column flex-sm-row gap-2 w-100 w-md-auto">
             <a href="{{ route('supplier.products.index') }}" class="btn btn-info">
                 <i class="fas fa-list"></i> Мои товары
             </a>
@@ -21,7 +21,7 @@
 
 @section('content')
     <div class="row">
-        <div class="col-lg-8">
+        <div class="col-lg-8 col-12 mb-3 mb-lg-0">
             <div class="card">
                 <div class="card-header">
                     <h3 class="card-title">Информация о товаре</h3>
@@ -183,7 +183,7 @@
                         </div>
 
                         <div class="row">
-                            <div class="col-md-6">
+                            <div class="col-md-6 col-12">
                                 <div class="form-group">
                                     <label for="price">Цена (USD) *</label>
                                     <input type="number" step="0.01" name="price" id="price"
@@ -194,9 +194,9 @@
                                     @enderror
                                 </div>
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-6 col-12">
                                 <div class="form-group">
-                                    <div class="custom-control custom-checkbox mt-4">
+                                    <div class="custom-control custom-checkbox mt-md-4">
                                         <input type="checkbox" class="custom-control-input" id="is_active" name="is_active" value="1" {{ old('is_active', true) ? 'checked' : '' }}>
                                         <label class="custom-control-label" for="is_active">Активен (доступен для продажи)</label>
                                     </div>
@@ -215,7 +215,7 @@
                             <small class="form-text text-muted">Введите аккаунты, по одному на строке. Каждая строка = один аккаунт.</small>
                         </div>
 
-                        <div class="d-flex justify-content-between mb-3">
+                        <div class="d-flex flex-column flex-sm-row justify-content-between gap-2 mb-3">
                             <button type="button" class="btn btn-warning btn-sm" onclick="removeDuplicates()">
                                 <i class="fas fa-trash-alt"></i> Удалить дубликаты
                             </button>
@@ -226,18 +226,20 @@
 
                         <hr>
 
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-save"></i> Создать товар
-                        </button>
-                        <a href="{{ route('supplier.products.index') }}" class="btn btn-secondary">
-                            <i class="fas fa-times"></i> Отмена
-                        </a>
+                        <div class="d-flex flex-column flex-sm-row gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Создать товар
+                            </button>
+                            <a href="{{ route('supplier.products.index') }}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Отмена
+                            </a>
+                        </div>
                     </form>
                 </div>
             </div>
         </div>
 
-        <div class="col-lg-4">
+        <div class="col-lg-4 col-12">
             <div class="card card-info">
                 <div class="card-header">
                     <h3 class="card-title">Информация</h3>
@@ -262,7 +264,7 @@
                     const file = e.target.files[0];
                     const preview = document.getElementById('imagePreview');
                     const img = document.getElementById('previewImg');
-                    
+
                     if (file) {
                         const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif', 'image/webp'];
                         if (!validTypes.includes(file.type)) {
@@ -270,13 +272,13 @@
                             this.value = '';
                             return;
                         }
-                        
+
                         if (file.size > 2 * 1024 * 1024) {
                             alert('Размер изображения не должен превышать 2MB');
                             this.value = '';
                             return;
                         }
-                        
+
                         const reader = new FileReader();
                         reader.onload = function(e) {
                             img.src = e.target.result;
@@ -295,7 +297,7 @@
     function removeDuplicates() {
         const textarea = document.getElementById('bulk_accounts');
         if (!textarea) return;
-        
+
         const lines = textarea.value.split('\n');
         const uniqueLines = [];
         const seen = new Set();
@@ -326,7 +328,7 @@
         if (!textarea) return;
 
         const lines = textarea.value.split('\n');
-        
+
         for (let i = lines.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
             [lines[i], lines[j]] = [lines[j], lines[i]];
@@ -347,11 +349,11 @@
             if (categorySelect) {
                 categorySelect.addEventListener('change', function() {
                     const categoryId = this.value;
-                    
+
                     // Очищаем подкатегории
                     subcategorySelect.innerHTML = '<option value="">Без подкатегории</option>';
                     subcategoryGroup.style.display = 'none';
-                    
+
                     if (categoryId) {
                         // Загружаем подкатегории через AJAX
                         fetch(`/api/categories/${categoryId}/subcategories`)
@@ -365,7 +367,7 @@
                                         option.textContent = subcategory.name || 'Подкатегория #' + subcategory.id;
                                         subcategorySelect.appendChild(option);
                                     });
-                                    
+
                                     // Показываем поле подкатегории
                                     subcategoryGroup.style.display = 'block';
                                 }

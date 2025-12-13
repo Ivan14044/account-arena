@@ -3,9 +3,9 @@
 @section('title', 'Вывод средств')
 
 @section('content_header')
-    <div class="d-flex justify-content-between align-items-center">
-        <h1>Вывод средств</h1>
-        <div>
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center">
+        <h1 class="mb-2 mb-md-0">Вывод средств</h1>
+        <div class="d-flex flex-column flex-sm-row gap-2 w-100 w-md-auto">
             <a href="{{ route('supplier.dashboard') }}" class="btn btn-secondary">
                 <i class="fas fa-home"></i> Панель
             </a>
@@ -30,7 +30,7 @@
 
     <!-- Balance Card -->
     <div class="row mb-3">
-        <div class="col-md-6">
+        <div class="col-md-6 col-12 mb-3 mb-md-0">
             <div class="info-box bg-success">
                 <span class="info-box-icon"><i class="fas fa-wallet"></i></span>
                 <div class="info-box-content">
@@ -39,7 +39,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-6">
+        <div class="col-md-6 col-12">
             <div class="info-box bg-info">
                 <span class="info-box-icon"><i class="fas fa-percentage"></i></span>
                 <div class="info-box-content">
@@ -62,13 +62,13 @@
         </div>
         <div class="card-body">
             <div class="row">
-                <div class="col-md-6">
+                <div class="col-md-6 col-12 mb-3 mb-md-0">
                     <strong><i class="fas fa-coins mr-2"></i> TRC-20 кошелек:</strong>
                     <p class="text-muted">
                         {{ $supplier->trc20_wallet ?? 'Не указан' }}
                     </p>
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-6 col-12">
                     <strong><i class="fas fa-credit-card mr-2"></i> Карта (грн):</strong>
                     <p class="text-muted">
                         {{ $supplier->card_number_uah ?? 'Не указана' }}
@@ -85,7 +85,7 @@
 
             <div class="alert alert-info">
                 <i class="fas fa-info-circle"></i>
-                Если вашего способа оплаты нет в списке, пожалуйста, свяжитесь с администратором: 
+                Если вашего способа оплаты нет в списке, пожалуйста, свяжитесь с администратором:
                 <a href="{{ $telegramSupportLink }}" target="_blank" class="alert-link">
                     <i class="fab fa-telegram"></i> Написать в Telegram
                 </a>
@@ -96,7 +96,7 @@
     <!-- Create Withdrawal Request Button -->
     @if($supplier->trc20_wallet || $supplier->card_number_uah)
         <div class="mb-3">
-            <a href="{{ route('supplier.withdrawals.create') }}" class="btn btn-success btn-lg">
+            <a href="{{ route('supplier.withdrawals.create') }}" class="btn btn-success btn-lg btn-block btn-sm-block">
                 <i class="fas fa-plus"></i> Создать запрос на вывод
             </a>
         </div>
@@ -151,11 +151,11 @@
                         </td>
                         <td>
                             @if($request->status == 'pending')
-                                <form action="{{ route('supplier.withdrawals.cancel', $request) }}" method="POST" style="display: inline-block;">
+                                <form action="{{ route('supplier.withdrawals.cancel', $request) }}" method="POST" class="d-inline">
                                     @csrf
-                                    <button type="submit" class="btn btn-sm btn-danger" 
+                                    <button type="submit" class="btn btn-sm btn-danger"
                                             onclick="return confirm('Вы уверены, что хотите отменить этот запрос?')">
-                                        <i class="fas fa-times"></i> Отменить
+                                        <i class="fas fa-times"></i> <span class="d-sm-none">Отменить</span>
                                     </button>
                                 </form>
                             @else

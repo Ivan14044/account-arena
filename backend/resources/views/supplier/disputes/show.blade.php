@@ -3,8 +3,8 @@
 @section('title', 'Претензия #' . $dispute->id)
 
 @section('content_header')
-    <div class="d-flex justify-content-between align-items-center">
-        <h1>Претензия #{{ $dispute->id }}</h1>
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center">
+        <h1 class="mb-2 mb-md-0">Претензия #{{ $dispute->id }}</h1>
         <a href="{{ route('supplier.disputes.index') }}" class="btn btn-secondary">
             <i class="fas fa-arrow-left"></i> Назад к списку
         </a>
@@ -14,7 +14,7 @@
 @section('content')
     <div class="row">
         {{-- Основная информация --}}
-        <div class="col-md-8">
+        <div class="col-md-8 col-12 mb-3 mb-md-0">
             <div class="card">
                 <div class="card-header">
                     <h3 class="card-title">Информация о претензии</h3>
@@ -26,16 +26,16 @@
                 </div>
                 <div class="card-body">
                     <dl class="row">
-                        <dt class="col-sm-3">Дата создания:</dt>
-                        <dd class="col-sm-9">{{ $dispute->created_at->format('d.m.Y H:i:s') }}</dd>
+                        <dt class="col-sm-3 col-12">Дата создания:</dt>
+                        <dd class="col-sm-9 col-12 mb-2">{{ $dispute->created_at->format('d.m.Y H:i:s') }}</dd>
 
-                        <dt class="col-sm-3">Покупатель:</dt>
-                        <dd class="col-sm-9">
+                        <dt class="col-sm-3 col-12">Покупатель:</dt>
+                        <dd class="col-sm-9 col-12 mb-2">
                             {{ $dispute->user->name }} ({{ $dispute->user->email }})
                         </dd>
 
-                        <dt class="col-sm-3">Товар:</dt>
-                        <dd class="col-sm-9">
+                        <dt class="col-sm-3 col-12">Товар:</dt>
+                        <dd class="col-sm-9 col-12 mb-2">
                             @if($dispute->serviceAccount)
                                 <strong>{{ $dispute->serviceAccount->title }}</strong><br>
                                 <small class="text-muted">Логин: {{ $dispute->serviceAccount->login }}</small>
@@ -44,28 +44,28 @@
                             @endif
                         </dd>
 
-                        <dt class="col-sm-3">Сумма покупки:</dt>
-                        <dd class="col-sm-9">
+                        <dt class="col-sm-3 col-12">Сумма покупки:</dt>
+                        <dd class="col-sm-9 col-12 mb-2">
                             ${{ number_format($dispute->transaction->amount, 2) }}
                             <br>
                             <small class="text-muted">Транзакция #{{ $dispute->transaction->id }} от {{ $dispute->transaction->created_at->format('d.m.Y H:i') }}</small>
                         </dd>
 
-                        <dt class="col-sm-3">Причина претензии:</dt>
-                        <dd class="col-sm-9">
+                        <dt class="col-sm-3 col-12">Причина претензии:</dt>
+                        <dd class="col-sm-9 col-12 mb-2">
                             <span class="badge badge-secondary">{{ $dispute->getReasonText() }}</span>
                         </dd>
 
-                        <dt class="col-sm-3">Описание проблемы:</dt>
-                        <dd class="col-sm-9">
+                        <dt class="col-sm-3 col-12">Описание проблемы:</dt>
+                        <dd class="col-sm-9 col-12 mb-2">
                             <div class="alert alert-light border">
                                 {{ $dispute->customer_description }}
                             </div>
                         </dd>
 
                         @if($dispute->screenshot_url)
-                            <dt class="col-sm-3">Скриншот:</dt>
-                            <dd class="col-sm-9">
+                            <dt class="col-sm-3 col-12">Скриншот:</dt>
+                            <dd class="col-sm-9 col-12 mb-2">
                                 <div class="mb-2">
                                     <a href="{{ $dispute->screenshot_url }}" target="_blank" class="btn btn-sm btn-primary">
                                         <i class="fas fa-image"></i> Посмотреть скриншот
@@ -77,8 +77,8 @@
                                     @endif
                                 </div>
                                 <div class="border p-2 bg-light">
-                                    <img src="{{ $dispute->screenshot_url }}" 
-                                         alt="Скриншот проблемы" 
+                                    <img src="{{ $dispute->screenshot_url }}"
+                                         alt="Скриншот проблемы"
                                          class="img-fluid"
                                          style="max-height: 400px; cursor: pointer;"
                                          onclick="window.open('{{ $dispute->screenshot_url }}', '_blank')">
@@ -87,19 +87,19 @@
                         @endif
 
                         @if($dispute->resolved_at)
-                            <dt class="col-sm-3">Дата решения:</dt>
-                            <dd class="col-sm-9">{{ $dispute->resolved_at->format('d.m.Y H:i:s') }}</dd>
+                            <dt class="col-sm-3 col-12">Дата решения:</dt>
+                            <dd class="col-sm-9 col-12 mb-2">{{ $dispute->resolved_at->format('d.m.Y H:i:s') }}</dd>
 
-                            <dt class="col-sm-3">Решение администратора:</dt>
-                            <dd class="col-sm-9">
+                            <dt class="col-sm-3 col-12">Решение администратора:</dt>
+                            <dd class="col-sm-9 col-12 mb-2">
                                 <span class="badge badge-{{ $dispute->admin_decision === 'refund' ? 'danger' : 'info' }} badge-lg">
                                     {{ $dispute->getDecisionText() }}
                                 </span>
                             </dd>
 
                             @if($dispute->refund_amount)
-                                <dt class="col-sm-3">Сумма возврата:</dt>
-                                <dd class="col-sm-9">
+                                <dt class="col-sm-3 col-12">Сумма возврата:</dt>
+                                <dd class="col-sm-9 col-12 mb-2">
                                     <span class="text-danger font-weight-bold">
                                         -${{ number_format($dispute->refund_amount, 2) }}
                                     </span>
@@ -109,8 +109,8 @@
                             @endif
 
                             @if($dispute->admin_comment)
-                                <dt class="col-sm-3">Комментарий администратора:</dt>
-                                <dd class="col-sm-9">
+                                <dt class="col-sm-3 col-12">Комментарий администратора:</dt>
+                                <dd class="col-sm-9 col-12 mb-2">
                                     <div class="alert alert-info border">
                                         {{ $dispute->admin_comment }}
                                     </div>
@@ -118,8 +118,8 @@
                             @endif
 
                             @if($dispute->resolver)
-                                <dt class="col-sm-3">Обработал:</dt>
-                                <dd class="col-sm-9">{{ $dispute->resolver->name }}</dd>
+                                <dt class="col-sm-3 col-12">Обработал:</dt>
+                                <dd class="col-sm-9 col-12 mb-2">{{ $dispute->resolver->name }}</dd>
                             @endif
                         @endif
                     </dl>
@@ -128,7 +128,7 @@
         </div>
 
         {{-- Статус и рекомендации --}}
-        <div class="col-md-4">
+        <div class="col-md-4 col-12">
             <div class="card card-{{ $dispute->status === 'resolved' && $dispute->admin_decision === 'refund' ? 'danger' : ($dispute->status === 'rejected' ? 'success' : 'warning') }}">
                 <div class="card-header">
                     <h3 class="card-title">Статус претензии</h3>

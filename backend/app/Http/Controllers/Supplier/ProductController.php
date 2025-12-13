@@ -145,7 +145,9 @@ class ProductController extends Controller
             }
         }
         
-        return view('supplier.products.edit', compact('product', 'parentCategoryId', 'subcategoryId'));
+        $categories = Category::productCategories()->parentCategories()->with('translations')->get();
+        
+        return view('supplier.products.edit', compact('product', 'parentCategoryId', 'subcategoryId', 'categories'));
     }
 
     public function update(Request $request, ServiceAccount $product)

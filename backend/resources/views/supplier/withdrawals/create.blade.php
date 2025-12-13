@@ -3,9 +3,9 @@
 @section('title', 'Создать запрос на вывод')
 
 @section('content_header')
-    <div class="d-flex justify-content-between align-items-center">
-        <h1>Создать запрос на вывод</h1>
-        <div>
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center">
+        <h1 class="mb-2 mb-md-0">Создать запрос на вывод</h1>
+        <div class="d-flex flex-column flex-sm-row gap-2 w-100 w-md-auto">
             <a href="{{ route('supplier.withdrawals.index') }}" class="btn btn-secondary">
                 <i class="fas fa-arrow-left"></i> Назад
             </a>
@@ -33,15 +33,15 @@
 
             <form action="{{ route('supplier.withdrawals.store') }}" method="POST">
                 @csrf
-                
+
                 <div class="form-group">
                     <label for="amount">Сумма вывода ($)</label>
-                    <input type="number" 
-                           step="0.01" 
-                           min="1" 
+                    <input type="number"
+                           step="0.01"
+                           min="1"
                            max="{{ $supplier->supplier_balance }}"
-                           name="amount" 
-                           id="amount" 
+                           name="amount"
+                           id="amount"
                            class="form-control @error('amount') is-invalid @enderror"
                            value="{{ old('amount') }}"
                            required>
@@ -80,18 +80,20 @@
 
                 <div class="alert alert-info">
                     <i class="fas fa-info-circle"></i>
-                    Если вашего способа оплаты нет в списке, пожалуйста, свяжитесь с администратором: 
+                    Если вашего способа оплаты нет в списке, пожалуйста, свяжитесь с администратором:
                     <a href="{{ $telegramSupportLink }}" target="_blank" class="alert-link">
                         <i class="fab fa-telegram"></i> Написать в Telegram
                     </a>
                 </div>
 
-                <button type="submit" class="btn btn-success">
-                    <i class="fas fa-check"></i> Создать запрос
-                </button>
-                <a href="{{ route('supplier.withdrawals.index') }}" class="btn btn-secondary">
-                    <i class="fas fa-times"></i> Отмена
-                </a>
+                <div class="d-flex flex-column flex-sm-row gap-2">
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-check"></i> Создать запрос
+                    </button>
+                    <a href="{{ route('supplier.withdrawals.index') }}" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Отмена
+                    </a>
+                </div>
             </form>
         </div>
     </div>

@@ -3,9 +3,9 @@
 @section('title', 'Уведомления')
 
 @section('content_header')
-    <div class="d-flex justify-content-between align-items-center">
-        <h1>Уведомления</h1>
-        <div>
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center">
+        <h1 class="mb-2 mb-md-0">Уведомления</h1>
+        <div class="d-flex flex-column flex-sm-row gap-2 w-100 w-md-auto">
             @if($notifications->where('is_read', false)->count() > 0)
             <form action="{{ route('supplier.notifications.mark-all-read') }}" method="POST" class="d-inline">
                 @csrf
@@ -38,9 +38,9 @@
             <ul class="list-group list-group-flush">
                 @foreach($notifications as $notification)
                 <li class="list-group-item {{ !$notification->is_read ? 'bg-light' : '' }}">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div class="flex-grow-1">
-                            <div class="d-flex align-items-center mb-1">
+                    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-start">
+                        <div class="flex-grow-1 mb-2 mb-sm-0">
+                            <div class="d-flex align-items-center mb-1 flex-wrap">
                                 @if($notification->type === 'sale')
                                     <i class="fas fa-shopping-cart text-success mr-2"></i>
                                 @elseif($notification->type === 'low_stock')
@@ -61,12 +61,12 @@
                                 ({{ $notification->created_at->format('d.m.Y H:i') }})
                             </small>
                         </div>
-                        <div class="ml-3">
+                        <div class="ml-sm-3">
                             @if(!$notification->is_read)
                             <form action="{{ route('supplier.notifications.mark-read', $notification) }}" method="POST">
                                 @csrf
                                 <button type="submit" class="btn btn-sm btn-outline-primary" title="Отметить как прочитанное">
-                                    <i class="fas fa-check"></i>
+                                    <i class="fas fa-check"></i> <span class="d-sm-none">Прочитано</span>
                                 </button>
                             </form>
                             @endif

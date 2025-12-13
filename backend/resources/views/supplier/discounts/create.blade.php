@@ -3,11 +3,13 @@
 @section('title', 'Добавить скидку')
 
 @section('content_header')
-    <div class="d-flex justify-content-between align-items-center">
-        <h1>Добавить скидку</h1>
-        <a href="{{ route('supplier.discounts.index') }}" class="btn btn-secondary">
-            <i class="fas fa-arrow-left"></i> Назад
-        </a>
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center">
+        <h1 class="mb-2 mb-md-0">Добавить скидку</h1>
+        <div class="d-flex flex-column flex-sm-row gap-2 w-100 w-md-auto">
+            <a href="{{ route('supplier.discounts.index') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Назад
+            </a>
+        </div>
     </div>
 @endsection
 
@@ -47,7 +49,7 @@
                 </div>
 
                 <div class="row">
-                    <div class="col-md-6">
+                    <div class="col-md-6 col-12 mb-2">
                         <div class="form-group">
                             <label for="discount_start_date">Дата начала (необязательно)</label>
                             <input type="datetime-local" name="discount_start_date" id="discount_start_date"
@@ -59,7 +61,7 @@
                             <small class="form-text text-muted">Оставьте пустым для немедленного старта</small>
                         </div>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-6 col-12 mb-2">
                         <div class="form-group">
                             <label for="discount_end_date">Дата окончания (необязательно)</label>
                             <input type="datetime-local" name="discount_end_date" id="discount_end_date"
@@ -75,12 +77,14 @@
 
                 <hr>
 
-                <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-save"></i> Создать скидку
-                </button>
-                <a href="{{ route('supplier.discounts.index') }}" class="btn btn-secondary">
-                    <i class="fas fa-times"></i> Отмена
-                </a>
+                <div class="d-flex flex-column flex-sm-row gap-2">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Создать скидку
+                    </button>
+                    <a href="{{ route('supplier.discounts.index') }}" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Отмена
+                    </a>
+                </div>
             </form>
         </div>
     </div>

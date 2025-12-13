@@ -18,7 +18,7 @@
                 <div class="alert alert-success">{{ session('success') }}</div>
             @endif
         </div>
-        
+
         <!-- Rating Card - НОВАЯ КАРТОЧКА РЕЙТИНГА -->
         <div class="col-lg-12 col-12 mb-4">
             <div class="card card-{{ $ratingLevel['class'] }}">
@@ -29,7 +29,7 @@
                 </div>
                 <div class="card-body">
                     <div class="row">
-                        <div class="col-md-4 text-center border-right">
+                        <div class="col-md-4 col-12 text-center border-right border-md-right border-bottom border-md-bottom-0 mb-3 mb-md-0 pb-3 pb-md-0">
                             <h1 class="display-3 mb-0" style="font-size: 5rem; font-weight: bold;">
                                 {{ $rating }}%
                             </h1>
@@ -49,42 +49,42 @@
                                 </span>
                             @endif
                         </div>
-                        <div class="col-md-4 border-right">
+                        <div class="col-md-4 col-12 border-right border-md-right border-bottom border-md-bottom-0 mb-3 mb-md-0 pb-3 pb-md-0">
                             <h5 class="mb-3">Статистика (90 дней):</h5>
                             <dl class="row mb-0">
                                 <dt class="col-7">Всего продаж:</dt>
                                 <dd class="col-5">{{ $ratingDetails['total_sales'] }}</dd>
-                                
+
                                 <dt class="col-7 text-success">✅ Валидных:</dt>
                                 <dd class="col-5 text-success font-weight-bold">
                                     {{ $ratingDetails['valid_sales'] }}
                                 </dd>
-                                
+
                                 <dt class="col-7 text-danger">❌ Невалидных:</dt>
                                 <dd class="col-5 text-danger">
                                     {{ $ratingDetails['invalid_sales'] }}
                                 </dd>
-                                
+
                                 <dt class="col-9">└ Возвратов:</dt>
                                 <dd class="col-3">{{ $ratingDetails['refunds'] }}</dd>
-                                
+
                                 <dt class="col-9">└ Замен:</dt>
                                 <dd class="col-3">{{ $ratingDetails['replacements'] }}</dd>
                             </dl>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-4 col-12">
                             <h5 class="mb-3">Процент валида:</h5>
                             <div class="progress mb-3" style="height: 30px;">
-                                <div class="progress-bar bg-{{ $ratingLevel['class'] }}" 
+                                <div class="progress-bar bg-{{ $ratingLevel['class'] }}"
                                      style="width: {{ $rating }}%">
                                     <strong>{{ $rating }}%</strong>
                                 </div>
                             </div>
-                            
+
                             <div class="alert alert-{{ $ratingLevel['class'] }} mb-3">
                                 <strong>{{ $ratingDetails['valid_percent'] }}%</strong> ваших товаров валидны!
                             </div>
-                            
+
                             <h6>💡 Как повысить рейтинг:</h6>
                             <ul class="small mb-0">
                                 <li>Проверяйте товары перед загрузкой</li>
@@ -96,7 +96,7 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- Stats Cards -->
         <div class="col-lg-3 col-md-6 col-12">
             <div class="small-box bg-info">
@@ -149,7 +149,7 @@
 
     <div class="row">
         <!-- График продаж -->
-        <div class="col-lg-8">
+        <div class="col-lg-8 col-12 mb-3 mb-lg-0">
             <div class="card">
                 <div class="card-header">
                     <h3 class="card-title">
@@ -172,7 +172,7 @@
         </div>
 
         <!-- Баланс и уведомления -->
-        <div class="col-lg-4">
+        <div class="col-lg-4 col-12">
             <div class="card bg-gradient-info">
                 <div class="card-header border-0">
                     <h3 class="card-title">
@@ -231,7 +231,7 @@
 
     <div class="row">
         <!-- Топ-5 товаров -->
-        <div class="col-lg-6">
+        <div class="col-lg-6 col-12 mb-3 mb-lg-0">
             <div class="card">
                 <div class="card-header">
                     <h3 class="card-title">
@@ -281,7 +281,7 @@
         </div>
 
         <!-- Товары с низким остатком -->
-        <div class="col-lg-6">
+        <div class="col-lg-6 col-12">
             <div class="card">
                 <div class="card-header">
                     <h3 class="card-title">
@@ -334,18 +334,28 @@
                     <h3 class="card-title">Быстрые действия</h3>
                 </div>
                 <div class="card-body">
-                    <a href="{{ route('supplier.products.create') }}" class="btn btn-primary">
-                        <i class="fas fa-plus"></i> Добавить товар
-                    </a>
-                    <a href="{{ route('supplier.products.index') }}" class="btn btn-info">
-                        <i class="fas fa-list"></i> Мои товары
-                    </a>
-                    <a href="{{ route('supplier.discounts.index') }}" class="btn btn-warning">
-                        <i class="fas fa-percent"></i> Управление скидками
-                    </a>
-                    <a href="{{ route('supplier.orders.index') }}" class="btn btn-success">
-                        <i class="fas fa-chart-bar"></i> Мои заказы
-                    </a>
+                    <div class="row">
+                        <div class="col-12 col-sm-6 col-md-3 mb-2 mb-md-0">
+                            <a href="{{ route('supplier.products.create') }}" class="btn btn-primary btn-block">
+                                <i class="fas fa-plus"></i> Добавить товар
+                            </a>
+                        </div>
+                        <div class="col-12 col-sm-6 col-md-3 mb-2 mb-md-0">
+                            <a href="{{ route('supplier.products.index') }}" class="btn btn-info btn-block">
+                                <i class="fas fa-list"></i> Мои товары
+                            </a>
+                        </div>
+                        <div class="col-12 col-sm-6 col-md-3 mb-2 mb-md-0">
+                            <a href="{{ route('supplier.discounts.index') }}" class="btn btn-warning btn-block">
+                                <i class="fas fa-percent"></i> Управление скидками
+                            </a>
+                        </div>
+                        <div class="col-12 col-sm-6 col-md-3 mb-2 mb-md-0">
+                            <a href="{{ route('supplier.orders.index') }}" class="btn btn-success btn-block">
+                                <i class="fas fa-chart-bar"></i> Мои заказы
+                            </a>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -359,13 +369,13 @@ document.addEventListener('DOMContentLoaded', function() {
     // График продаж
     const salesData = @json($last7Days);
     const chartElement = document.getElementById('salesChart');
-    
+
     if (!chartElement) {
         return; // No chart element, skip initialization
     }
-    
+
     const ctx = chartElement.getContext('2d');
-    
+
     new Chart(ctx, {
         type: 'line',
         data: {

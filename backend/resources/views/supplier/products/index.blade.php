@@ -3,9 +3,9 @@
 @section('title', 'Мои товары')
 
 @section('content_header')
-    <div class="d-flex justify-content-between align-items-center">
-        <h1>Мои товары</h1>
-        <div>
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center">
+        <h1 class="mb-2 mb-md-0">Мои товары</h1>
+        <div class="d-flex flex-column flex-sm-row gap-2 w-100 w-md-auto">
             <a href="{{ route('supplier.dashboard') }}" class="btn btn-info">
                 <i class="fas fa-home"></i> Главная
             </a>
@@ -24,9 +24,9 @@
             @endif
 
             <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title">Список товаров</h3>
-                    <a href="{{ route('supplier.products.create') }}" class="btn btn-primary float-right">+ Добавить товар</a>
+                <div class="card-header d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center">
+                    <h3 class="card-title mb-2 mb-sm-0">Список товаров</h3>
+                    <a href="{{ route('supplier.products.create') }}" class="btn btn-primary">+ Добавить товар</a>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
@@ -71,12 +71,14 @@
                                             @endif
                                         </td>
                                         <td>
-                                            <a href="{{ route('supplier.products.edit', $product) }}" class="btn btn-sm btn-warning">
-                                                <i class="fas fa-edit"></i>
-                                            </a>
-                                            <button class="btn btn-sm btn-danger" data-toggle="modal" data-target="#deleteModal{{ $product->id }}">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
+                                            <div class="btn-group-vertical btn-group-sm d-sm-inline-flex" role="group">
+                                                <a href="{{ route('supplier.products.edit', $product) }}" class="btn btn-warning mb-1 mb-sm-0">
+                                                    <i class="fas fa-edit"></i> <span class="d-sm-none">Редактировать</span>
+                                                </a>
+                                                <button class="btn btn-danger" data-toggle="modal" data-target="#deleteModal{{ $product->id }}">
+                                                    <i class="fas fa-trash"></i> <span class="d-sm-none">Удалить</span>
+                                                </button>
+                                            </div>
 
                                             <!-- Delete Modal -->
                                             <div class="modal fade" id="deleteModal{{ $product->id }}" tabindex="-1" role="dialog" aria-hidden="true">

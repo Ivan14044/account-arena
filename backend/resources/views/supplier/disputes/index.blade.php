@@ -9,7 +9,7 @@
 @section('content')
     {{-- Статистика --}}
     <div class="row mb-3">
-        <div class="col-lg-3 col-md-6">
+        <div class="col-lg-3 col-md-6 col-12 mb-3 mb-md-0">
             <div class="small-box bg-info">
                 <div class="inner">
                     <h3>{{ $stats['total'] }}</h3>
@@ -20,7 +20,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-lg-3 col-md-6">
+        <div class="col-lg-3 col-md-6 col-12 mb-3 mb-md-0">
             <div class="small-box bg-warning">
                 <div class="inner">
                     <h3>{{ $stats['new'] + $stats['in_review'] }}</h3>
@@ -31,7 +31,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-lg-3 col-md-6">
+        <div class="col-lg-3 col-md-6 col-12 mb-3 mb-md-0">
             <div class="small-box bg-success">
                 <div class="inner">
                     <h3>{{ $stats['resolved'] }}</h3>
@@ -42,7 +42,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-lg-3 col-md-6">
+        <div class="col-lg-3 col-md-6 col-12">
             <div class="small-box bg-danger">
                 <div class="inner">
                     <h3>${{ number_format($stats['total_refunded'], 2) }}</h3>
@@ -58,8 +58,8 @@
     {{-- Информация --}}
     <div class="alert alert-info">
         <i class="fas fa-info-circle"></i>
-        <strong>Информация:</strong> Здесь отображаются претензии покупателей на ваши товары. 
-        Администратор рассматривает каждую претензию и принимает решение. 
+        <strong>Информация:</strong> Здесь отображаются претензии покупателей на ваши товары.
+        Администратор рассматривает каждую претензию и принимает решение.
         В случае возврата средств, сумма будет списана с вашего баланса.
     </div>
 
@@ -74,34 +74,49 @@
             </div>
         </div>
         <div class="card-body" style="display: none;">
-            <form action="{{ route('supplier.disputes.index') }}" method="GET" class="form-inline">
-                <div class="form-group mr-2 mb-2">
-                    <label class="mr-2">Статус:</label>
-                    <select name="status" class="form-control">
-                        <option value="">Все</option>
-                        <option value="new" {{ request('status') == 'new' ? 'selected' : '' }}>Новые</option>
-                        <option value="in_review" {{ request('status') == 'in_review' ? 'selected' : '' }}>На рассмотрении</option>
-                        <option value="resolved" {{ request('status') == 'resolved' ? 'selected' : '' }}>Решенные</option>
-                        <option value="rejected" {{ request('status') == 'rejected' ? 'selected' : '' }}>Отклоненные</option>
-                    </select>
-                </div>
+            <form action="{{ route('supplier.disputes.index') }}" method="GET">
+                <div class="row">
+                    <div class="col-md-3 col-12 mb-2">
+                        <div class="form-group">
+                            <label>Статус:</label>
+                            <select name="status" class="form-control">
+                                <option value="">Все</option>
+                                <option value="new" {{ request('status') == 'new' ? 'selected' : '' }}>Новые</option>
+                                <option value="in_review" {{ request('status') == 'in_review' ? 'selected' : '' }}>На рассмотрении</option>
+                                <option value="resolved" {{ request('status') == 'resolved' ? 'selected' : '' }}>Решенные</option>
+                                <option value="rejected" {{ request('status') == 'rejected' ? 'selected' : '' }}>Отклоненные</option>
+                            </select>
+                        </div>
+                    </div>
 
-                <div class="form-group mr-2 mb-2">
-                    <label class="mr-2">Дата с:</label>
-                    <input type="date" name="date_from" class="form-control" value="{{ request('date_from') }}">
-                </div>
+                    <div class="col-md-3 col-12 mb-2">
+                        <div class="form-group">
+                            <label>Дата с:</label>
+                            <input type="date" name="date_from" class="form-control" value="{{ request('date_from') }}">
+                        </div>
+                    </div>
 
-                <div class="form-group mr-2 mb-2">
-                    <label class="mr-2">Дата по:</label>
-                    <input type="date" name="date_to" class="form-control" value="{{ request('date_to') }}">
-                </div>
+                    <div class="col-md-3 col-12 mb-2">
+                        <div class="form-group">
+                            <label>Дата по:</label>
+                            <input type="date" name="date_to" class="form-control" value="{{ request('date_to') }}">
+                        </div>
+                    </div>
 
-                <button type="submit" class="btn btn-primary mr-2 mb-2">
-                    <i class="fas fa-search"></i> Применить
-                </button>
-                <a href="{{ route('supplier.disputes.index') }}" class="btn btn-secondary mb-2">
-                    <i class="fas fa-redo"></i> Сбросить
-                </a>
+                    <div class="col-md-3 col-12 mb-2">
+                        <div class="form-group">
+                            <label>&nbsp;</label>
+                            <div class="d-flex flex-column flex-sm-row gap-2">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-search"></i> Применить
+                                </button>
+                                <a href="{{ route('supplier.disputes.index') }}" class="btn btn-secondary">
+                                    <i class="fas fa-redo"></i> Сбросить
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </form>
         </div>
     </div>

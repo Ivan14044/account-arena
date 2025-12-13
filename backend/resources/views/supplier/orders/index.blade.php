@@ -3,9 +3,9 @@
 @section('title', 'Мои заказы')
 
 @section('content_header')
-    <div class="d-flex justify-content-between align-items-center">
-        <h1>Мои заказы</h1>
-        <div>
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center">
+        <h1 class="mb-2 mb-md-0">Мои заказы</h1>
+        <div class="d-flex flex-column flex-sm-row gap-2 w-100 w-md-auto">
             <a href="{{ route('supplier.dashboard') }}" class="btn btn-secondary">
                 <i class="fas fa-home"></i> Панель
             </a>
@@ -19,7 +19,7 @@
 @section('content')
     <!-- Statistics Cards -->
     <div class="row mb-3">
-        <div class="col-md-6">
+        <div class="col-md-6 col-12 mb-3 mb-md-0">
             <div class="info-box bg-info">
                 <span class="info-box-icon"><i class="fas fa-shopping-cart"></i></span>
                 <div class="info-box-content">
@@ -28,7 +28,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-6">
+        <div class="col-md-6 col-12">
             <div class="info-box bg-success">
                 <span class="info-box-icon"><i class="fas fa-dollar-sign"></i></span>
                 <div class="info-box-content">
@@ -51,7 +51,7 @@
         <div class="card-body">
             <form method="GET" action="{{ route('supplier.orders.index') }}">
                 <div class="row">
-                    <div class="col-md-3">
+                    <div class="col-md-3 col-12 mb-2">
                         <div class="form-group">
                             <label for="product_id">Товар</label>
                             <select name="product_id" id="product_id" class="form-control">
@@ -64,25 +64,25 @@
                             </select>
                         </div>
                     </div>
-                    <div class="col-md-2">
+                    <div class="col-md-2 col-12 mb-2">
                         <div class="form-group">
                             <label for="date_from">Дата от</label>
                             <input type="date" name="date_from" id="date_from" class="form-control" value="{{ request('date_from') }}">
                         </div>
                     </div>
-                    <div class="col-md-2">
+                    <div class="col-md-2 col-12 mb-2">
                         <div class="form-group">
                             <label for="date_to">Дата до</label>
                             <input type="date" name="date_to" id="date_to" class="form-control" value="{{ request('date_to') }}">
                         </div>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-3 col-12 mb-2">
                         <div class="form-group">
                             <label for="search">Поиск</label>
                             <input type="text" name="search" id="search" class="form-control" placeholder="Покупатель или товар..." value="{{ request('search') }}">
                         </div>
                     </div>
-                    <div class="col-md-2">
+                    <div class="col-md-2 col-12 mb-2">
                         <div class="form-group">
                             <label>&nbsp;</label>
                             <div>
