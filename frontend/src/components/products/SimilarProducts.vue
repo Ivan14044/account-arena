@@ -608,7 +608,7 @@ onMounted(async () => {
     }
 
     .product-image-wrapper {
-        display: none;
+        display: none !important;
     }
 
     .product-info {
