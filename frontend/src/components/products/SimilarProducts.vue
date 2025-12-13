@@ -599,4 +599,57 @@ onMounted(async () => {
         height: 70px;
     }
 }
+
+@media (max-width: 640px) {
+    .product-card {
+        grid-template-columns: 1fr;
+        padding: 12px;
+        gap: 12px;
+    }
+
+    .product-image-wrapper {
+        display: none;
+    }
+
+    .product-info {
+        order: 2;
+    }
+
+    .product-actions {
+        order: 3;
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .top-actions-row {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .price-section {
+        text-align: center;
+        width: 100%;
+        flex-direction: row-reverse;
+    }
+
+    .quantity-control {
+        width: 100%;
+        justify-content: center;
+        margin-left: 0;
+    }
+
+    .actions-row {
+        flex-direction: row-reverse;
+        gap: 10px;
+    }
+
+    .btn-secondary.btn-icon {
+        padding: 12px;
+        width: initial;
+    }
+
+    .btn-primary {
+        width: 100%;
+    }
+}
 </style>
