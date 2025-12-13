@@ -1289,9 +1289,7 @@ onMounted(async () => {
     }
 
     .product-image-wrapper {
-        width: 100%;
-        height: 200px;
-        border-radius: 12px;
+        display: none !important;
     }
 
     .product-info {
@@ -1312,6 +1310,7 @@ onMounted(async () => {
     .price-section {
         text-align: center;
         width: 100%;
+        flex-direction: row-reverse;
     }
 
     .quantity-control {
@@ -1321,13 +1320,13 @@ onMounted(async () => {
     }
 
     .actions-row {
-        flex-direction: column;
+        flex-direction: row-reverse;
         gap: 10px;
     }
 
     .btn-secondary.btn-icon {
         padding: 12px;
-        width: 100%;
+        width: initial;
     }
 
     .btn-primary {
