@@ -1351,9 +1351,9 @@ onMounted(async () => {
         width: 100%;
     }
       .product-sku--mobile {
-    display: block;
-    margin-right: 30vw;          /* отступ сверху в блоке цены */
-    align-self: flex-end;     /* выравнивание по правому краю в price-section */
+display: flex;
+        justify-content: flex-start;
+        width: 100%;     /* выравнивание по правому краю в price-section */
   }
   .product-sku--desktop {
     display: none;
