@@ -154,7 +154,7 @@
                                     })
                                 }}
                             </div>
-                                                <div v-if="account.sku" class="product-sku product-sku--mobile">
+                            <div class="product-sku--mobile">                                                <div v-if="account.sku" class="product-sku">
                         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path
                                 stroke-linecap="round"
@@ -164,7 +164,7 @@
                             />
                         </svg>
                         <span>{{ account.sku }}</span>
-                    </div>
+                    </div></div>
                         </div>
 
                         <!-- Quantity Control -->
