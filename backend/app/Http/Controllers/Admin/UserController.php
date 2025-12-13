@@ -52,49 +52,63 @@ class UserController extends Controller
         return view('admin.users.edit', compact('user', 'purchases'));
     }
 
-    public function update(Request $request, User $user)
-    {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email,' . $user->id,
-            'is_blocked' => 'required',
-            'password' => 'nullable|min:6|confirmed',
-            'personal_discount' => 'nullable|integer|min:0|max:100',
-            'personal_discount_expires_at' => 'nullable|date',
-            'is_supplier' => 'nullable|boolean',
-            'supplier_balance' => 'nullable|numeric|min:0',
-            'supplier_commission' => 'nullable|numeric|min:0|max:100',
-        ]);
+public function update(Request $request, User $user)
+{
+    $request->validate([
+        'name' => 'required|string|max:255',
+        'email' => 'required|email|unique:users,email,' . $user->id,
+        'is_blocked' => 'required',
+        'password' => 'nullable|min:6|confirmed',
+        'personal_discount' => 'nullable|integer|min:0|max:100',
+        'personal_discount_expires_at' => 'nullable|date',
+        'is_supplier' => 'nullable|boolean',
+        'supplier_balance' => 'nullable|numeric|min:0',
+        'supplier_commission' => 'nullable|numeric|min:0|max:100',
+        'supplier_hold_hours' => 'nullable|integer|min:0|max:8760', // <-- новое правило
+    ]);
 
-        $is_blocked = $request->is_blocked;
-        $is_pending = $user->is_pending;
-        if ($request->is_blocked == 2) {
-            $is_blocked = 0;
-            $is_pending = 1;
-        } elseif ($request->is_blocked == 0) {
-            $is_blocked = 0;
-            $is_pending = 0;
-        }
-
-        $user->update([
-            'name' => $request->name,
-            'email' => $request->email,
-            'is_blocked' => $is_blocked,
-            'is_pending' => $is_pending,
-            'password' => $request->password ? Hash::make($request->password) : $user->password,
-            'personal_discount' => $request->personal_discount ?? 0,
-            'personal_discount_expires_at' => $request->personal_discount_expires_at,
-            'is_supplier' => $request->boolean('is_supplier', false),
-            'supplier_balance' => $request->input('supplier_balance', 0),
-            'supplier_commission' => $request->input('supplier_commission', 10),
-        ]);
-
-        $route = $request->has('save')
-            ? route('admin.users.edit', $user->id)
-            : route('admin.users.index');
-
-        return redirect($route)->with('success', 'Пользователь успешно обновлен.');
+    $is_blocked = $request->is_blocked;
+    $is_pending = $user->is_pending;
+    if ($request->is_blocked == 2) {
+        $is_blocked = 0;
+        $is_pending = 1;
+    } elseif ($request->is_blocked == 0) {
+        $is_blocked = 0;
+        $is_pending = 0;
     }
+
+    // Подготовим значения для update
+    $updateData = [
+        'name' => $request->name,
+        'email' => $request->email,
+        'is_blocked' => $is_blocked,
+        'is_pending' => $is_pending,
+        'password' => $request->password ? Hash::make($request->password) : $user->password,
+        'personal_discount' => $request->personal_discount ?? 0,
+        'personal_discount_expires_at' => $request->personal_discount_expires_at,
+        'is_supplier' => $request->boolean('is_supplier', false),
+        'supplier_balance' => $request->input('supplier_balance', 0),
+        'supplier_commission' => $request->input('supplier_commission', 10),
+    ];
+
+    // Сохраняем supplier_hold_hours корректно:
+    if ($request->filled('supplier_hold_hours')) {
+        $updateData['supplier_hold_hours'] = (int) $request->input('supplier_hold_hours');
+    } else {
+        // если поле не передано (например, форма не отправила), оставляем текущее значение в БД,
+        // но если в БД оно было null — ставим дефолт 6
+        $updateData['supplier_hold_hours'] = $user->supplier_hold_hours ?? 6;
+    }
+
+    $user->update($updateData);
+
+    $route = $request->has('save')
+        ? route('admin.users.edit', $user->id)
+        : route('admin.users.index');
+
+    return redirect($route)->with('success', 'Пользователь успешно обновлен.');
+}
+
 
     public function destroy(User $user)
     {
