@@ -18,7 +18,7 @@
 
                 <!-- Left: Product Image -->
                 <div
-                    class="product-image-wrapper clickable"
+                    class="product-image-wrapper main_card clickable"
                     :title="getProductTitle(product)"
                     @click="goToProduct(product)"
                 >
@@ -607,7 +607,7 @@ onMounted(async () => {
         gap: 12px;
     }
 
-    .product-image-wrapper {
+    .main_card {
         display: none !important;
     }
 
