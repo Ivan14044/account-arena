@@ -40,7 +40,7 @@
         >
             <div
                 v-if="isOpen"
-                class="absolute top-[45px] right-0 bg-indigo-soft-200/90 dark:bg-gray-800/90 rounded-lg border !border-indigo-soft-400 dark:!border-gray-700 overflow-hidden min-w-[160px]"
+                class="absolute top-[45px] right-0 bg-indigo-soft-200/90 dark:bg-gray-800/90 rounded-lg border !border-indigo-soft-400 dark:!border-gray-700 overflow-hidden min-w-[200px]"
             >
                 <div>
                     <!-- Баланс (мобильная версия + всегда показываем) -->
