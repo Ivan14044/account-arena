@@ -922,7 +922,8 @@ onMounted(async () => {
   display: none;
 }
 .product-sku--desktop {
-  display: block;
+  display: flex;
+        justify-content: flex-start;
 }
 
 /* Блок действий */
