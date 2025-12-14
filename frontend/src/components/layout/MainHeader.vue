@@ -14,7 +14,7 @@
                         alt="Logo"
                         class="!w-[29px] sm:w-8 sm:h-8 object-contain rounded-full spin-slow-reverse"
                     />
-                    <span class="text-xl font-semibold whitespace-nowrap hidden sm:flex">
+                    <span class="text-xl font-semibold whitespace-nowrap hidden sm:flex w-full">
                         {{ printedText }}
                     </span>
                 </div>
