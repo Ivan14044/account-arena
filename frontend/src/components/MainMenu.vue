@@ -4,7 +4,7 @@
             <li
                 v-for="(item, index) in headerMenu"
                 :key="index"
-                class="cursor-pointer !text-[15px] h-[30px] d-flex align-center leading-none hover:bg-indigo-200 dark:hover:bg-gray-700 transition-all duration-300 px-2 px-lg-3 py-2 rounded-lg"
+                class="cursor-pointer !text-[14px] h-[30px] d-flex align-center leading-none hover:bg-indigo-200 dark:hover:bg-gray-700 transition-all duration-300 px-2 px-lg-3 py-2 rounded-lg"
                 @click="handleClick(item)"
             >
                 {{ item.title }}
