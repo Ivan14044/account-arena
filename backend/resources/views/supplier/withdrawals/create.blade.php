@@ -21,6 +21,14 @@
         </div>
     @endif
 
+    @php
+        // Безопасные fallback'ы — контроллер должен передать $availableAmount и $heldAmount
+        $available = (float)($availableAmount ?? 0);
+        $held = (float)($heldAmount ?? 0);
+        // max в input должен быть в формате с точкой для HTML
+        $maxAvailableForInput = number_format($available, 2, '.', '');
+    @endphp
+
     <div class="card">
         <div class="card-header">
             <h3 class="card-title">Информация о выводе</h3>
@@ -28,8 +36,33 @@
         <div class="card-body">
             <div class="alert alert-info">
                 <i class="fas fa-info-circle"></i>
-                <strong>Доступный баланс:</strong> {{ number_format($supplier->supplier_balance, 2) }} $
+                <strong>Доступный баланс:</strong> {{ number_format($available, 2) }} $
+                <br>
+                <small class="text-muted">Средства, которые вы можете запросить на вывод</small>
             </div>
+
+            <div class="mb-3">
+                <div class="info-box">
+                    <div class="info-box-content p-2">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>В холде</strong>
+                                <div class="text-muted">Ожидают окончания холд-периода</div>
+                            </div>
+                            <div class="text-right">
+                                <span class="h4 mb-0">{{ number_format($held, 2) }} $</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @if($available <= 0)
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    На данный момент у вас нет доступных средств для вывода. Дождитесь окончания холда или обратитесь к администратору.
+                </div>
+            @endif
 
             <form action="{{ route('supplier.withdrawals.store') }}" method="POST">
                 @csrf
@@ -39,23 +72,24 @@
                     <input type="number"
                            step="0.01"
                            min="1"
-                           max="{{ $supplier->supplier_balance }}"
+                           max="{{ $maxAvailableForInput }}"
                            name="amount"
                            id="amount"
                            class="form-control @error('amount') is-invalid @enderror"
                            value="{{ old('amount') }}"
+                           @if($available <= 0) disabled @endif
                            required>
                     @error('amount')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
                     <small class="form-text text-muted">
-                        Максимум: {{ number_format($supplier->supplier_balance, 2) }} $
+                        Максимум: {{ number_format($available, 2) }} $
                     </small>
                 </div>
 
                 <div class="form-group">
                     <label for="payment_method">Способ вывода</label>
-                    <select name="payment_method" id="payment_method" class="form-control @error('payment_method') is-invalid @enderror" required>
+                    <select name="payment_method" id="payment_method" class="form-control @error('payment_method') is-invalid @enderror" required @if($available <= 0) disabled @endif>
                         <option value="">Выберите способ</option>
                         @if($supplier->trc20_wallet)
                             <option value="trc20" {{ old('payment_method') == 'trc20' ? 'selected' : '' }}>
@@ -87,7 +121,7 @@
                 </div>
 
                 <div class="d-flex flex-column flex-sm-row gap-2">
-                    <button type="submit" class="btn btn-success">
+                    <button type="submit" class="btn btn-success" @if($available <= 0) disabled title="Нет доступных средств" @endif>
                         <i class="fas fa-check"></i> Создать запрос
                     </button>
                     <a href="{{ route('supplier.withdrawals.index') }}" class="btn btn-secondary">
@@ -98,7 +132,3 @@
         </div>
     </div>
 @endsection
-
-
-
-
