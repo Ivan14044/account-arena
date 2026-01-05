@@ -122,15 +122,32 @@ class CartController extends Controller
                 ], 500);
             }
 
-            // Записываем использование промокода если применялся
+            // Записываем использование промокода если применялся (с проверкой дублирования)
             if ($promoData) {
-                DB::transaction(function () use ($promoData, $user) {
+                DB::transaction(function () use ($promoData, $user, $purchases) {
+                    // Генерируем уникальный order_id на основе первой покупки
+                    $orderId = !empty($purchases) && isset($purchases[0]) && $purchases[0]->order_number
+                        ? 'balance_' . $purchases[0]->order_number
+                        : 'balance_' . $user->id . '_' . time();
+                    
+                    // ВАЖНО: Проверяем, не был ли промокод уже использован для этого заказа
+                    $existingUsage = PromocodeUsage::where('order_id', $orderId)->first();
+                    if ($existingUsage) {
+                        \Log::info('CartController: Promocode already used for this order', [
+                            'order_id' => $orderId,
+                            'user_id' => $user->id,
+                            'promocode' => $promoData['code'] ?? '',
+                            'existing_usage_id' => $existingUsage->id,
+                        ]);
+                        return; // Промокод уже использован
+                    }
+                    
                     $promo = Promocode::where('code', $promoData['code'] ?? '')->lockForUpdate()->first();
                     if ($promo) {
                         PromocodeUsage::create([
                             'promocode_id' => $promo->id,
                             'user_id' => $user->id,
-                            'order_id' => 'balance_' . $user->id . '_' . time(),
+                            'order_id' => $orderId,
                         ]);
 
                         if ((int)$promo->usage_limit > 0 && (int)$promo->usage_count < (int)$promo->usage_limit) {

@@ -252,22 +252,27 @@ public function createProductPurchase(
         
         DB::transaction(function () use ($productsData, $userId, $guestEmail, $paymentMethod, &$purchases) {
             foreach ($productsData as $item) {
-                // ВАЖНО: Блокируем товар для предотвращения race condition
-                // Товар уже заблокирован в webhook обработчиках, но для балансовых платежей
-                // нужно заблокировать здесь
-                $product = $item['product'];
-                if (!$product->exists || !$product->isDirty()) {
-                    // Если товар еще не заблокирован, блокируем его
-                    $product = \App\Models\ServiceAccount::lockForUpdate()->find($product->id);
-                    if (!$product) {
-                        Log::error('Product not found during purchase creation', [
-                            'product_id' => $item['product']->id ?? null,
-                        ]);
-                        continue;
-                    }
-                    // Обновляем объект товара в массиве
-                    $item['product'] = $product;
+                // ВАЖНО: Всегда блокируем товар для предотвращения race condition
+                // Не полагаемся на состояние объекта, всегда делаем новый запрос с блокировкой
+                $productId = $item['product']->id ?? $item['product_id'] ?? null;
+                if (!$productId) {
+                    Log::error('ProductPurchaseService: Missing product ID', [
+                        'item' => $item,
+                    ]);
+                    throw new \Exception('Missing product ID in products data');
                 }
+                
+                // Всегда блокируем товар через новый запрос
+                $product = \App\Models\ServiceAccount::lockForUpdate()->find($productId);
+                if (!$product) {
+                    Log::error('ProductPurchaseService: Product not found during purchase creation', [
+                        'product_id' => $productId,
+                    ]);
+                    throw new \Exception("Product not found: {$productId}");
+                }
+                
+                // Обновляем объект товара в массиве
+                $item['product'] = $product;
                 
                 $result = $this->createProductPurchase(
                     $item['product'],

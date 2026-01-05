@@ -100,9 +100,27 @@ class GuestCartController extends Controller
         
         DB::transaction(function () use ($guestEmail, $productsData, $purchaseService) {
             foreach ($productsData as $item) {
-                $product = ServiceAccount::find($item['product_id']);
+                // ВАЖНО: Блокируем товар для предотвращения race condition
+                $product = ServiceAccount::lockForUpdate()->find($item['product_id']);
                 if (!$product) {
-                    continue;
+                    \Illuminate\Support\Facades\Log::error('GuestCartController: Product not found', [
+                        'product_id' => $item['product_id'] ?? null,
+                        'guest_email' => $guestEmail,
+                    ]);
+                    throw new \Exception("Product not found: {$item['product_id']}");
+                }
+
+                // ВАЖНО: Проверяем наличие товара перед созданием покупки
+                $available = $product->getAvailableStock();
+                if ($available < $item['quantity']) {
+                    \Illuminate\Support\Facades\Log::error('GuestCartController: Insufficient stock', [
+                        'product_id' => $product->id,
+                        'product_title' => $product->title,
+                        'requested' => $item['quantity'],
+                        'available' => $available,
+                        'guest_email' => $guestEmail,
+                    ]);
+                    throw new \Exception("Insufficient stock for product {$product->id}. Available: {$available}, requested: {$item['quantity']}");
                 }
 
                 $quantity = $item['quantity'];
