@@ -1,0 +1,22 @@
+# Команды для деплоя на сервере
+# Выполните эти команды на сервере через SSH:
+
+cd /var/www/subcloudy
+git pull origin main
+cd backend
+composer install --no-dev --optimize-autoloader --no-interaction
+php artisan migrate --force
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
+php artisan optimize
+cd ../frontend
+npm install --silent
+npm run build
+cd /var/www/subcloudy
+chown -R www-data:www-data .
+chmod -R 775 backend/storage backend/bootstrap/cache
+systemctl restart php8.2-fpm
+systemctl reload nginx
+systemctl restart account-arena-worker 2>/dev/null || true
+echo "Деплой завершен!"
