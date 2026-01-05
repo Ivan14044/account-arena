@@ -7,6 +7,7 @@ use App\Models\ServiceAccount;
 use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use App\Services\NotifierService;
 
 class ProductController extends Controller
 {
@@ -61,11 +62,37 @@ class ProductController extends Controller
         $validated['accounts_data'] = $accountsList;
         $validated['used'] = 0;
         $validated['supplier_id'] = auth()->id();
-        $validated['is_active'] = $request->boolean('is_active', false);
         
-        ServiceAccount::create($validated);
+        // ВАЖНО: Товары поставщика требуют модерации
+        // Устанавливаем статус модерации и деактивируем товар до одобрения
+        $validated['moderation_status'] = 'pending';
+        $validated['is_active'] = false; // Не показывать до одобрения администратором
+        
+        $product = ServiceAccount::create($validated);
 
-        return redirect()->route('supplier.products.index')->with('success', 'Товар успешно создан.');
+        // Отправляем уведомление администратору о новом товаре на модерации
+        try {
+            NotifierService::sendFromTemplate(
+                'supplier_product_created',
+                'supplier_product_created',
+                [
+                    'product_id' => $product->id,
+                    'product_title' => $product->title,
+                    'supplier_name' => auth()->user()->name,
+                    'supplier_email' => auth()->user()->email,
+                    'price' => number_format($product->price, 2),
+                ],
+                'info'
+            );
+        } catch (\Throwable $e) {
+            \Log::error('Error sending admin notification for supplier product', [
+                'product_id' => $product->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
+
+        return redirect()->route('supplier.products.index')
+            ->with('success', 'Товар успешно создан и отправлен на модерацию. Он будет доступен после одобрения администратором.');
     }
 
     private function storeBulkAccounts(Request $request)
@@ -105,7 +132,7 @@ class ProductController extends Controller
         }
 
         try {
-            ServiceAccount::create([
+            $product = ServiceAccount::create([
                 'title' => $request->input('title'),
                 'title_en' => $request->input('title_en'),
                 'title_uk' => $request->input('title_uk'),
@@ -120,11 +147,35 @@ class ProductController extends Controller
                 'category_id' => $categoryId,
                 'accounts_data' => $accountsList,
                 'used' => 0,
-                'is_active' => $request->boolean('is_active', false),
                 'supplier_id' => auth()->id(),
+                // ВАЖНО: Товары поставщика требуют модерации
+                'moderation_status' => 'pending',
+                'is_active' => false, // Не показывать до одобрения администратором
             ]);
 
-            $message = "Товар успешно создан! Аккаунтов в наличии: " . count($accountsList);
+            // Отправляем уведомление администратору о новом товаре на модерации
+            try {
+                NotifierService::sendFromTemplate(
+                    'supplier_product_created',
+                    'supplier_product_created',
+                    [
+                        'product_id' => $product->id,
+                        'product_title' => $product->title,
+                        'supplier_name' => auth()->user()->name,
+                        'supplier_email' => auth()->user()->email,
+                        'price' => number_format($product->price, 2),
+                        'accounts_count' => count($accountsList),
+                    ],
+                    'info'
+                );
+            } catch (\Throwable $e) {
+                \Log::error('Error sending admin notification for supplier product (bulk)', [
+                    'product_id' => $product->id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+
+            $message = "Товар успешно создан! Аккаунтов в наличии: " . count($accountsList) . ". Товар отправлен на модерацию и будет доступен после одобрения администратором.";
             
             return redirect()->route('supplier.products.index')->with('success', $message);
         } catch (\Exception $e) {
@@ -229,6 +280,98 @@ class ProductController extends Controller
         $product->delete();
 
         return redirect()->route('supplier.products.index')->with('success', 'Товар успешно удален.');
+    }
+
+    /**
+     * Экспорт аккаунтов товара
+     * Аналогично Admin/ServiceAccountController::export()
+     */
+    public function export(Request $request, ServiceAccount $product)
+    {
+        // ВАЖНО: Проверяем, что товар принадлежит этому поставщику
+        if ($product->supplier_id !== auth()->id()) {
+            abort(403, 'У вас нет доступа к этому товару.');
+        }
+
+        // ВАЖНО: Используем транзакцию с блокировкой для предотвращения race condition
+        // при одновременном экспорте и покупке товара
+        return \Illuminate\Support\Facades\DB::transaction(function () use ($request, $product) {
+            // Блокируем товар для предотвращения race condition
+            $product = ServiceAccount::lockForUpdate()->findOrFail($product->id);
+            
+            // Повторная проверка после блокировки
+            if ($product->supplier_id !== auth()->id()) {
+                abort(403, 'У вас нет доступа к этому товару.');
+            }
+            
+            $allAccountsData = is_array($product->accounts_data) ? $product->accounts_data : [];
+
+            if (empty($allAccountsData)) {
+                return redirect()->route('supplier.products.index')
+                    ->with('error', 'Нет товаров для выгрузки');
+            }
+
+            // Get current used count (same logic as purchase)
+            $usedCount = $product->used ?? 0;
+
+            // ВАЖНО: Проверяем доступное количество после блокировки
+            $availableCount = count($allAccountsData) - $usedCount;
+            if ($availableCount <= 0) {
+                return redirect()->route('supplier.products.index')
+                    ->with('error', 'Нет доступных товаров для выгрузки');
+            }
+
+            // If count is provided, use it; otherwise export all remaining
+            if ($request->has('count')) {
+                $count = (int) $request->input('count');
+                $exportCount = max(1, min($count, $availableCount));
+            } else {
+                $exportCount = $availableCount;
+            }
+
+            // Get accounts to export starting from used index (same as purchase logic)
+            $assignedAccounts = [];
+            for ($i = 0; $i < $exportCount; $i++) {
+                if (isset($allAccountsData[$usedCount + $i])) {
+                    $assignedAccounts[] = $allAccountsData[$usedCount + $i];
+                }
+            }
+
+            // ВАЖНО: Проверяем, что аккаунты были успешно назначены
+            if (empty($assignedAccounts)) {
+                \Illuminate\Support\Facades\Log::error('Supplier Product export: No accounts assigned', [
+                    'service_account_id' => $product->id,
+                    'supplier_id' => auth()->id(),
+                    'export_count' => $exportCount,
+                    'used_count' => $usedCount,
+                    'accounts_data_count' => count($allAccountsData),
+                ]);
+                return redirect()->route('supplier.products.index')
+                    ->with('error', 'Ошибка при выгрузке товаров. Попробуйте еще раз.');
+            }
+
+            $content = implode("\n", $assignedAccounts);
+
+            // Ensure UTF-8 encoding with BOM for Windows compatibility
+            $content = "\xEF\xBB\xBF" . $content;
+
+            $filename = 'product_' . $product->id . '_' . date('Y-m-d') . '.txt';
+
+            // Increment used count (same as purchase logic - don't remove from array)
+            $product->used = $usedCount + $exportCount;
+            $product->save();
+
+            // Calculate remaining count
+            $remainingCount = count($allAccountsData) - $product->used;
+
+            // Store success message in session for redirect after download
+            session()->flash('export_success', 'Выгружено ' . $exportCount . ' товаров. Осталось: ' . $remainingCount);
+
+            return response($content, 200, [
+                'Content-Type' => 'text/plain; charset=utf-8',
+                'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+            ]);
+        });
     }
 
     /**

@@ -19,6 +19,11 @@ class AccountController extends Controller
                 ->where('is_active', true)
                 ->whereNotNull('title')
                 ->whereNotNull('price')
+                // ВАЖНО: Показываем только одобренные товары или товары администратора
+                ->where(function($query) {
+                    $query->where('moderation_status', 'approved')
+                          ->orWhereNull('supplier_id'); // Товары администратора не требуют модерации
+                })
                 ->orderBy('sort_order', 'asc') // Использовать sort_order для ручной сортировки
                 ->orderBy('id', 'desc') // Дополнительная сортировка по id
                 ->get();
@@ -56,7 +61,7 @@ class AccountController extends Controller
                 'meta_description_uk' => $account->meta_description_uk,
                 'price' => $account->price,
                 'discount_percent' => $account->discount_percent,
-                'current_price' => $account->getCurrentPrice(),
+                'current_price' => $account->getPriceWithCommission(), // ВАЖНО: Используем getPriceWithCommission() для применения комиссии
                 'has_discount' => $account->hasActiveDiscount(),
                 'image_url' => $account->image_url,
                 'category' => $account->category ? [
@@ -84,6 +89,11 @@ class AccountController extends Controller
         // Поиск по ID или артикулу (SKU)
         $account = ServiceAccount::with('category')
             ->where('is_active', true)
+            // ВАЖНО: Показываем только одобренные товары или товары администратора
+            ->where(function($query) {
+                $query->where('moderation_status', 'approved')
+                      ->orWhereNull('supplier_id'); // Товары администратора не требуют модерации
+            })
             ->where(function($query) use ($id) {
                 $query->where('id', $id)
                       ->orWhere('sku', $id);
@@ -114,7 +124,7 @@ class AccountController extends Controller
             'meta_description_uk' => $account->meta_description_uk,
             'price' => $account->price,
             'discount_percent' => $account->discount_percent,
-            'current_price' => $account->getCurrentPrice(),
+            'current_price' => $account->getPriceWithCommission(), // ВАЖНО: Используем getPriceWithCommission() для применения комиссии
             'has_discount' => $account->hasActiveDiscount(),
             'image_url' => $account->image_url,
             'category' => $account->category ? [
@@ -137,6 +147,11 @@ class AccountController extends Controller
     public function similar($id)
     {
         $account = ServiceAccount::where('is_active', true)
+            // ВАЖНО: Показываем только одобренные товары или товары администратора
+            ->where(function($query) {
+                $query->where('moderation_status', 'approved')
+                      ->orWhereNull('supplier_id'); // Товары администратора не требуют модерации
+            })
             ->where(function($query) use ($id) {
                 $query->where('id', $id)
                       ->orWhere('sku', $id);
@@ -162,7 +177,7 @@ class AccountController extends Controller
                 'description_uk' => $item->description_uk,
                 'price' => $item->price,
                 'discount_percent' => $item->discount_percent,
-                'current_price' => $item->getCurrentPrice(),
+                'current_price' => $item->getPriceWithCommission(), // ВАЖНО: Используем getPriceWithCommission() для применения комиссии
                 'has_discount' => $item->hasActiveDiscount(),
                 'image_url' => $item->image_url,
                 'category' => $item->category ? [

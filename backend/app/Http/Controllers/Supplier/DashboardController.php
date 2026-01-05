@@ -138,6 +138,11 @@ class DashboardController extends Controller
 
                 $totalAmount = $readyToRelease->sum('amount');
 
+                // ВАЖНО: Проверяем, что сумма положительная
+                if ($totalAmount <= 0) {
+                    return; // Нет средств для перевода
+                }
+
                 // Обновляем статус на 'available'
                 $readyToRelease->each(function ($earning) {
                     $earning->update([
@@ -145,6 +150,20 @@ class DashboardController extends Controller
                         'processed_at' => now(),
                     ]);
                 });
+
+                // ВАЖНО: Проверяем, что баланс не станет отрицательным
+                $currentBalance = $supplier->supplier_balance ?? 0;
+                $newBalance = $currentBalance + $totalAmount;
+                
+                if ($newBalance < 0) {
+                    \Illuminate\Support\Facades\Log::error('Supplier balance sync: New balance would be negative', [
+                        'supplier_id' => $supplier->id,
+                        'current_balance' => $currentBalance,
+                        'amount_to_add' => $totalAmount,
+                        'new_balance' => $newBalance,
+                    ]);
+                    return; // Не обновляем баланс, если он станет отрицательным
+                }
 
                 // Увеличиваем баланс поставщика
                 $supplier->increment('supplier_balance', $totalAmount);

@@ -70,6 +70,10 @@ class ServiceAccount extends Model
         'account_suffix_text_en',
         'account_suffix_text_uk',
         'sku', // Артикул товара
+        'moderation_status', // Статус модерации
+        'moderation_comment', // Комментарий администратора
+        'moderated_at', // Дата модерации
+        'moderated_by', // ID администратора, который провел модерацию
     ];
 
     protected $casts = [
@@ -83,6 +87,7 @@ class ServiceAccount extends Model
         'show_only_telegram' => 'boolean',
         'price' => 'decimal:2',
         'discount_percent' => 'decimal:2',
+        'moderated_at' => 'datetime',
     ];
 
     public function category()
@@ -97,6 +102,14 @@ class ServiceAccount extends Model
             'email' => 'admin',
             'is_supplier' => false,
         ]);
+    }
+
+    /**
+     * Администратор, который провел модерацию
+     */
+    public function moderator()
+    {
+        return $this->belongsTo(User::class, 'moderated_by');
     }
 
     /**
@@ -117,14 +130,90 @@ class ServiceAccount extends Model
 
     /**
      * Get the current price with discount applied if active
+     * ВАЖНО: Для товаров поставщика использует getPriceWithCommission()
      */
     public function getCurrentPrice()
     {
+        // Для товаров поставщика применяем комиссию
+        if ($this->supplier_id) {
+            return $this->getPriceWithCommission();
+        }
+        
+        // Для товаров администратора применяем только скидку
         if ($this->hasActiveDiscount()) {
             $discount = ($this->price * $this->discount_percent) / 100;
             return round($this->price - $discount, 2);
         }
         return $this->price;
+    }
+
+    /**
+     * Получить цену с учетом комиссии поставщика
+     * Формула: final_price = supplier_price / (1 - commission/100)
+     * 
+     * Пример: поставщик указал 10 USD, комиссия 10%
+     * - Поставщик получает: 10 * 0.9 = 9 USD
+     * - Покупатель платит: 10 / 0.9 = 11.11 USD
+     */
+    public function getPriceWithCommission()
+    {
+        // Если товар администратора, возвращаем цену без комиссии
+        if (!$this->supplier_id) {
+            if ($this->hasActiveDiscount()) {
+                $discount = ($this->price * $this->discount_percent) / 100;
+                return round($this->price - $discount, 2);
+            }
+            return $this->price;
+        }
+
+        // Получаем поставщика и его комиссию
+        $supplier = $this->supplier;
+        if (!$supplier || !$supplier->is_supplier) {
+            // Если поставщик не найден или не является поставщиком, возвращаем базовую цену
+            if ($this->hasActiveDiscount()) {
+                $discount = ($this->price * $this->discount_percent) / 100;
+                return round($this->price - $discount, 2);
+            }
+            return $this->price;
+        }
+
+        // Комиссия платформы в процентах (если null — по умолчанию 0)
+        $supplierCommission = $supplier->supplier_commission !== null
+            ? (float)$supplier->supplier_commission
+            : 0.0;
+
+        // Если комиссия 0, возвращаем цену без изменений (с учетом скидки)
+        if ($supplierCommission <= 0) {
+            if ($this->hasActiveDiscount()) {
+                $discount = ($this->price * $this->discount_percent) / 100;
+                return round($this->price - $discount, 2);
+            }
+            return $this->price;
+        }
+
+        // Применяем комиссию: final_price = supplier_price / (1 - commission/100)
+        $commissionMultiplier = 1 - ($supplierCommission / 100);
+        
+        // Защита от деления на ноль
+        if ($commissionMultiplier <= 0) {
+            \Log::warning('ServiceAccount::getPriceWithCommission: Invalid commission multiplier', [
+                'product_id' => $this->id,
+                'supplier_id' => $supplier->id,
+                'supplier_commission' => $supplierCommission,
+                'commission_multiplier' => $commissionMultiplier,
+            ]);
+            return $this->price; // Возвращаем базовую цену в случае ошибки
+        }
+
+        $priceWithCommission = $this->price / $commissionMultiplier;
+
+        // Применяем скидку, если активна
+        if ($this->hasActiveDiscount()) {
+            $discount = ($priceWithCommission * $this->discount_percent) / 100;
+            $priceWithCommission = $priceWithCommission - $discount;
+        }
+
+        return round($priceWithCommission, 2);
     }
 
     /**
@@ -174,6 +263,50 @@ class ServiceAccount extends Model
     public function isLowStock()
     {
         return $this->getAvailableStock() < 10;
+    }
+
+    /**
+     * Scope: товары, ожидающие модерации
+     */
+    public function scopePendingModeration($query)
+    {
+        return $query->where('moderation_status', 'pending');
+    }
+
+    /**
+     * Scope: одобренные товары
+     */
+    public function scopeApproved($query)
+    {
+        return $query->where('moderation_status', 'approved');
+    }
+
+    /**
+     * Scope: отклоненные товары
+     */
+    public function scopeRejected($query)
+    {
+        return $query->where('moderation_status', 'rejected');
+    }
+
+    /**
+     * Проверить, требует ли товар модерации
+     */
+    public function requiresModeration()
+    {
+        return $this->supplier_id !== null;
+    }
+
+    /**
+     * Проверить, одобрен ли товар
+     */
+    public function isApproved()
+    {
+        // Товары администратора не требуют модерации
+        if (!$this->requiresModeration()) {
+            return true;
+        }
+        return $this->moderation_status === 'approved';
     }
 
     /**

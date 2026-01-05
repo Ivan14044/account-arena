@@ -70,6 +70,12 @@ Route::prefix('/admin')
             Route::resource('service-accounts', ServiceAccountController::class)->except(['show']);
             Route::get('service-accounts/{serviceAccount}/export', [ServiceAccountController::class, 'export'])->name('service-accounts.export');
             Route::post('service-accounts/{serviceAccount}/import', [ServiceAccountController::class, 'import'])->name('service-accounts.import');
+            
+            // Модерация товаров поставщика
+            Route::get('product-moderation', [\App\Http\Controllers\Admin\ProductModerationController::class, 'index'])->name('product-moderation.index');
+            Route::get('product-moderation/{product}', [\App\Http\Controllers\Admin\ProductModerationController::class, 'show'])->name('product-moderation.show');
+            Route::post('product-moderation/{product}/approve', [\App\Http\Controllers\Admin\ProductModerationController::class, 'approve'])->name('product-moderation.approve');
+            Route::post('product-moderation/{product}/reject', [\App\Http\Controllers\Admin\ProductModerationController::class, 'reject'])->name('product-moderation.reject');
             Route::post('service-accounts/upload-image', [ServiceAccountController::class, 'uploadImage'])->name('service-accounts.upload-image');
             Route::post('service-accounts/update-sort-order', [ServiceAccountController::class, 'updateSortOrder'])->name('service-accounts.update-sort-order');
             Route::post('service-accounts/apply-sort-order', [ServiceAccountController::class, 'applySortOrder'])->name('service-accounts.apply-sort-order');
@@ -152,6 +158,7 @@ Route::prefix('supplier')
             Route::get('/', [SupplierDashboardController::class, 'index'])->name('dashboard');
             Route::match(['get', 'post'], '/logout', [\App\Http\Controllers\Supplier\AuthController::class, 'logout'])->name('logout');
             Route::resource('products', SupplierProductController::class)->except(['show']);
+            Route::get('products/{product}/export', [SupplierProductController::class, 'export'])->name('products.export');
             Route::post('/products/upload-image', [SupplierProductController::class, 'uploadImage'])->name('products.upload-image');
             Route::get('/orders', [\App\Http\Controllers\Supplier\OrderController::class, 'index'])->name('orders.index');
             Route::resource('discounts', \App\Http\Controllers\Supplier\DiscountController::class)->except(['show']);

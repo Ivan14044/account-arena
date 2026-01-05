@@ -35,12 +35,7 @@ class EmailService
             $subject = self::renderTemplate($translation['title'], $params);
             $body = self::renderTemplate($translation['message'], $params);
 
-            Mail::send('emails.base', [
-                'subject' => $subject,
-                'body' => $body,
-            ], function ($message) use ($user, $subject) {
-                $message->to($user->email)->subject($subject);
-            });
+            Mail::to($user->email)->queue(new \App\Mail\BaseMail($subject, $body));
 
             return true;
         } catch (Throwable $e) {

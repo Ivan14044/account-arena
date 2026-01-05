@@ -38,8 +38,9 @@
                                     <th style="width: 100px">Цена</th>
                                     <th style="width: 100px">В наличии</th>
                                     <th style="width: 100px">Продано</th>
-                                    <th style="width: 80px">Статус</th>
-                                    <th style="width: 150px">Действия</th>
+                                    <th style="width: 100px">Статус</th>
+                                    <th style="width: 120px">Модерация</th>
+                                    <th style="width: 200px">Действия</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -71,10 +72,43 @@
                                             @endif
                                         </td>
                                         <td>
+                                            @if($product->moderation_status === 'pending')
+                                                <span class="badge badge-warning">
+                                                    <i class="fas fa-clock"></i> Ожидает модерации
+                                                </span>
+                                            @elseif($product->moderation_status === 'approved')
+                                                <span class="badge badge-success">
+                                                    <i class="fas fa-check"></i> Одобрен
+                                                </span>
+                                            @elseif($product->moderation_status === 'rejected')
+                                                <span class="badge badge-danger">
+                                                    <i class="fas fa-times"></i> Отклонен
+                                                </span>
+                                                @if($product->moderation_comment)
+                                                    <br><small class="text-muted" title="{{ $product->moderation_comment }}" data-toggle="tooltip">
+                                                        {{ \Illuminate\Support\Str::limit($product->moderation_comment, 30) }}
+                                                    </small>
+                                                @endif
+                                            @else
+                                                <span class="badge badge-secondary">N/A</span>
+                                            @endif
+                                        </td>
+                                        <td>
                                             <div class="btn-group-vertical btn-group-sm d-sm-inline-flex" role="group">
                                                 <a href="{{ route('supplier.products.edit', $product) }}" class="btn btn-warning mb-1 mb-sm-0">
                                                     <i class="fas fa-edit"></i> <span class="d-sm-none">Редактировать</span>
                                                 </a>
+                                                @php
+                                                    $accountsData = is_array($product->accounts_data) ? $product->accounts_data : [];
+                                                    $totalQty = count($accountsData);
+                                                    $used = $product->used ?? 0;
+                                                    $available = max(0, $totalQty - $used);
+                                                @endphp
+                                                @if($available > 0)
+                                                    <a href="{{ route('supplier.products.export', $product) }}" class="btn btn-info mb-1 mb-sm-0" title="Экспорт аккаунтов">
+                                                        <i class="fas fa-download"></i> <span class="d-sm-none">Экспорт</span>
+                                                    </a>
+                                                @endif
                                                 <button class="btn btn-danger" data-toggle="modal" data-target="#deleteModal{{ $product->id }}">
                                                     <i class="fas fa-trash"></i> <span class="d-sm-none">Удалить</span>
                                                 </button>
@@ -122,9 +156,12 @@
             $('#products-table').DataTable({
                 "order": [[0, "desc"]],
                 "columnDefs": [
-                    { "orderable": false, "targets": 6 }
+                    { "orderable": false, "targets": [6, 7, 8] }
                 ]
             });
+            
+            // Инициализация tooltips для комментариев модерации
+            $('[data-toggle="tooltip"]').tooltip();
         });
     </script>
 @endsection
