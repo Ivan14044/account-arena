@@ -228,6 +228,7 @@
         "balance_placeholder": "Оплата з балансу акаунта",
         "insufficient_balance": "Недостатньо коштів на балансі",
         "balance_success": "Оплата з балансу успішна!",
+        "preparing_product": "Підготовка товару до видачі",
         "default": "Типовий",
         "credit_card": "Кредитна картка",
         "credit_card_placeholder": "Apple Pay, Visa, MasterCard та інші",

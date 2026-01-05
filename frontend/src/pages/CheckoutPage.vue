@@ -877,6 +877,12 @@ const processBalancePayment = async () => {
             headers: { Authorization: `Bearer ${authStore.token}` }
         });
 
+        // Показываем сообщение о подготовке товара к выдаче
+        loadingStore.start(t('checkout.preparing_product'));
+
+        // Небольшая задержка для отображения сообщения
+        await new Promise(resolve => setTimeout(resolve, 500));
+
         productCartStore.clearCart();
         await authStore.fetchUser();
         promo.clear();

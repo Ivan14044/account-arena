@@ -228,6 +228,7 @@
         "balance_placeholder": "Pay from your account balance",
         "insufficient_balance": "Insufficient balance",
         "balance_success": "Payment from balance successful!",
+        "preparing_product": "Preparing product for delivery",
         "default": "Default",
         "credit_card": "Credit Card",
         "credit_card_placeholder": "Apple Pay, Visa, MasterCard and others",

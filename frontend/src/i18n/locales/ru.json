@@ -228,6 +228,7 @@
         "balance_placeholder": "Оплата с баланса аккаунта",
         "insufficient_balance": "Недостаточно средств на балансе",
         "balance_success": "Оплата с баланса прошла успешно!",
+        "preparing_product": "Подготовка товара к выдаче",
         "default": "По умолчанию",
         "credit_card": "Кредитная карта",
         "credit_card_placeholder": "Apple Pay, Visa, MasterCard и другие",

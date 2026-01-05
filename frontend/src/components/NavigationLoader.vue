@@ -10,6 +10,13 @@
                     alt="Loading..."
                     class="w-24 h-24 object-contain navigation-pulse"
                 />
+                <!-- Показываем кастомное сообщение, если оно есть -->
+                <p
+                    v-if="loadingStore.message"
+                    class="mt-4 text-lg font-medium text-gray-700 dark:text-gray-300"
+                >
+                    {{ loadingStore.message }}
+                </p>
             </div>
         </div>
     </Transition>
