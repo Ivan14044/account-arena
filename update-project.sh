@@ -3,7 +3,7 @@
 ###############################################################################
 # Account Arena - Скрипт обновления проекта на сервере
 # Используется для быстрого обновления после push на GitHub
-# Версия: 1.0
+# Версия: 2.0
 ###############################################################################
 
 set -e
@@ -50,25 +50,22 @@ print_header "⚙️  Обновление Backend"
 cd backend
 
 print_info "Обновление зависимостей..."
-composer install --no-dev --optimize-autoloader --no-interaction > /dev/null 2>&1
+composer install --no-dev --optimize-autoloader --no-interaction
 
 print_info "Выполнение миграций..."
-php artisan migrate --force > /dev/null 2>&1
-
-print_info "Обновление системных шаблонов уведомлений..."
-php artisan db:seed --class=NotificationTemplateSeeder --force > /dev/null 2>&1 || true
+php artisan migrate --force
 
 print_info "Очистка кэша..."
-php artisan cache:clear > /dev/null 2>&1
-php artisan config:clear > /dev/null 2>&1
-php artisan route:clear > /dev/null 2>&1
-php artisan view:clear > /dev/null 2>&1
+php artisan cache:clear > /dev/null 2>&1 || true
+php artisan config:clear > /dev/null 2>&1 || true
+php artisan route:clear > /dev/null 2>&1 || true
+php artisan view:clear > /dev/null 2>&1 || true
 
 print_info "Оптимизация..."
-php artisan config:cache > /dev/null 2>&1
-php artisan route:cache > /dev/null 2>&1
-php artisan view:cache > /dev/null 2>&1
-php artisan optimize > /dev/null 2>&1
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
+php artisan optimize
 
 print_success "Backend обновлён"
 
@@ -80,10 +77,10 @@ print_header "🎨 Обновление Frontend"
 cd ../frontend
 
 print_info "Установка зависимостей..."
-npm install --silent > /dev/null 2>&1
+npm install --silent
 
 print_info "Сборка проекта..."
-npm run build > /dev/null 2>&1
+npm run build
 
 print_success "Frontend обновлён"
 
@@ -94,8 +91,6 @@ print_header "🔐 Установка прав доступа"
 
 cd /var/www/subcloudy
 chown -R www-data:www-data .
-find . -type d -exec chmod 755 {} \;
-find . -type f -exec chmod 644 {} \;
 chmod -R 775 backend/storage backend/bootstrap/cache
 
 print_success "Права доступа обновлены"
@@ -107,7 +102,7 @@ print_header "🔄 Перезапуск сервисов"
 
 systemctl restart php8.2-fpm
 systemctl reload nginx
-systemctl restart account-arena-worker
+systemctl restart account-arena-worker 2>/dev/null || true
 
 print_success "Сервисы перезапущены"
 
@@ -120,24 +115,6 @@ systemctl is-active --quiet nginx && print_success "Nginx работает" || e
 systemctl is-active --quiet php8.2-fpm && print_success "PHP-FPM работает" || echo "❌ PHP-FPM не работает"
 systemctl is-active --quiet mysql && print_success "MySQL работает" || echo "❌ MySQL не работает"
 systemctl is-active --quiet redis-server && print_success "Redis работает" || echo "❌ Redis не работает"
-systemctl is-active --quiet account-arena-worker && print_success "Queue Worker работает" || echo "❌ Queue Worker не работает"
+systemctl is-active --quiet account-arena-worker && print_success "Queue Worker работает" || echo "⚠️ Queue Worker не настроен"
 
 print_header "🎉 ОБНОВЛЕНИЕ ЗАВЕРШЕНО!"
-
-# Получение домена из nginx конфига
-DOMAIN=$(grep -m 1 'server_name' /etc/nginx/sites-available/account-arena | awk '{print $2}' | sed 's/;//')
-
-echo ""
-echo -e "${GREEN}Сайт обновлён и доступен по адресу:${NC}"
-if [[ ! "$DOMAIN" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-    echo -e "${YELLOW}https://${DOMAIN}${NC}"
-else
-    echo -e "${YELLOW}http://${DOMAIN}${NC}"
-fi
-echo ""
-
-# Просмотр последних логов
-echo -e "${YELLOW}Последние 10 строк логов:${NC}"
-tail -10 /var/www/subcloudy/backend/storage/logs/laravel.log 2>/dev/null || echo "Логов пока нет"
-echo ""
-
