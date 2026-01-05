@@ -108,8 +108,20 @@ class ServiceAccountController extends Controller
         $price = $request->input('price');
         $description = $request->input('description');
         $additionalDescription = $request->input('additional_description');
-        // Если выбрана подкатегория, используем её ID как category_id
+        
+        // ВАЖНО: Проверяем существование и валидность категории
         $categoryId = $request->input('subcategory_id') ?: $request->input('category_id');
+        if ($categoryId) {
+            $category = \App\Models\Category::find($categoryId);
+            if (!$category || $category->type !== \App\Models\Category::TYPE_PRODUCT) {
+                return redirect()->back()->withErrors(['category_id' => 'Категория не найдена или неверного типа.'])->withInput();
+            }
+            // Если выбрана подкатегория, проверяем что это действительно подкатегория
+            if ($request->input('subcategory_id') && !$category->isSubcategory()) {
+                return redirect()->back()->withErrors(['subcategory_id' => 'Выбранная категория не является подкатегорией.'])->withInput();
+            }
+        }
+        
         $isActive = $request->input('is_active', true);
         $imageUrl = null;
 
