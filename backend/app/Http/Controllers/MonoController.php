@@ -119,6 +119,26 @@ class MonoController extends Controller
             'payment_type' => $paymentMetadata['type'],
         ]);
 
+        // ВАЖНО: Проверяем дублирование покупок ДО обновления статуса транзакции
+        // Для типов 'user' и 'guest' проверяем, что покупка еще не была создана
+        if (in_array($paymentMetadata['type'], ['user', 'guest'])) {
+            $existingPurchase = \App\Models\Purchase::where('transaction_id', $transaction->id)->first();
+            if ($existingPurchase) {
+                Log::info('MonoBank Webhook: Purchase already exists for transaction (duplicate webhook)', [
+                    'invoiceId' => $invoiceId,
+                    'transaction_id' => $transaction->id,
+                    'purchase_id' => $existingPurchase->id,
+                    'purchase_order_number' => $existingPurchase->order_number,
+                ]);
+                // Обновляем статус транзакции, если еще не обновлен
+                if ($transaction->status !== 'completed' && $status === 'success') {
+                    $transaction->status = 'completed';
+                    $transaction->save();
+                }
+                return \App\Http\Responses\ApiResponse::success(['message' => 'Already processed']);
+            }
+        }
+
         // Update Transaction status
         $transaction->status = $status === 'success' ? 'completed' : ($status === 'failure' ? 'failed' : 'pending');
         $transaction->save();
@@ -522,27 +542,72 @@ class MonoController extends Controller
         $promocode = trim((string)($metadata['promocode'] ?? ''));
 
         try {
+            // ВАЖНО: Получаем транзакцию для проверки дублирования
+            $transaction = Transaction::whereRaw("JSON_EXTRACT(metadata, '$.invoice_id') = ?", [$invoiceId])->first();
+            if ($transaction) {
+                $existingPurchase = \App\Models\Purchase::where('transaction_id', $transaction->id)->first();
+                if ($existingPurchase) {
+                    Log::info('MonoBank Webhook (User Purchase): Purchase already exists (duplicate webhook)', [
+                        'invoiceId' => $invoiceId,
+                        'transaction_id' => $transaction->id,
+                        'purchase_id' => $existingPurchase->id,
+                        'user_id' => $userId,
+                    ]);
+                    return \App\Http\Responses\ApiResponse::success(['message' => 'Already processed']);
+                }
+            }
+
             $purchaseService = app(\App\Services\ProductPurchaseService::class);
             
             // Подготавливаем данные о товарах для создания покупок
             $preparedProductsData = [];
             foreach ($productsData as $item) {
-                $product = ServiceAccount::find($item['product_id']);
+                // Блокируем товар для проверки наличия и цены
+                $product = ServiceAccount::lockForUpdate()->find($item['product_id']);
                 if (!$product) {
                     Log::warning('Product not found in webhook', ['product_id' => $item['product_id']]);
                     continue;
                 }
                 
+                // Проверяем наличие товара
+                $available = $product->getAvailableStock();
+                if ($available < $item['quantity']) {
+                    Log::error('MonoBank Webhook (User Purchase): Insufficient stock', [
+                        'product_id' => $item['product_id'],
+                        'requested' => $item['quantity'],
+                        'available' => $available,
+                    ]);
+                    continue;
+                }
+                
+                // Проверяем актуальную цену (используем текущую цену товара)
+                $currentPrice = $product->getCurrentPrice();
+                $actualTotal = $currentPrice * $item['quantity'];
+                
+                // Логируем, если цена изменилась
+                if (abs($item['price'] - $currentPrice) > 0.01) {
+                    Log::warning('MonoBank Webhook (User Purchase): Price changed', [
+                        'product_id' => $item['product_id'],
+                        'original_price' => $item['price'],
+                        'current_price' => $currentPrice,
+                        'original_total' => $item['total'],
+                        'actual_total' => $actualTotal,
+                    ]);
+                }
+                
                 $preparedProductsData[] = [
                     'product' => $product,
                     'quantity' => $item['quantity'],
-                    'price' => $item['price'],
-                    'total' => $item['total'],
+                    'price' => $currentPrice, // Используем актуальную цену
+                    'total' => $actualTotal, // Пересчитываем с актуальной ценой
                 ];
             }
             
             if (empty($preparedProductsData)) {
-                Log::error('No valid products found in webhook');
+                Log::error('MonoBank Webhook (User Purchase): No valid products after validation', [
+                    'invoiceId' => $invoiceId,
+                    'user_id' => $userId,
+                ]);
                 return response()->json(['success' => false, 'message' => 'No valid products'], 400);
             }
             
@@ -596,9 +661,21 @@ class MonoController extends Controller
                 'modified_date' => $modifiedDate,
             ]);
 
-            // Record promocode usage if exists
+            // Record promocode usage if exists (с проверкой дублирования)
             if ($promocode !== '') {
                 DB::transaction(function () use ($promocode, $user, $invoiceId) {
+                    // Проверяем, не был ли промокод уже использован для этого заказа
+                    $existingUsage = PromocodeUsage::where('order_id', (string)$invoiceId)->first();
+                    if ($existingUsage) {
+                        Log::info('MonoBank Webhook (User Purchase): Promocode already used for this order', [
+                            'invoiceId' => $invoiceId,
+                            'user_id' => $user->id,
+                            'promocode' => $promocode,
+                            'existing_usage_id' => $existingUsage->id,
+                        ]);
+                        return; // Промокод уже использован
+                    }
+                    
                     $promo = Promocode::where('code', $promocode)->lockForUpdate()->first();
                     if ($promo) {
                         PromocodeUsage::create([
@@ -659,20 +736,83 @@ class MonoController extends Controller
             return \App\Http\Responses\ApiResponse::success();
         }
 
+        // ВАЖНО: Проверяем дублирование покупок для гостя
+        $transaction = Transaction::whereRaw("JSON_EXTRACT(metadata, '$.invoice_id') = ?", [$invoiceId])->first();
+        if ($transaction) {
+            $existingPurchase = \App\Models\Purchase::where('transaction_id', $transaction->id)->first();
+            if ($existingPurchase) {
+                Log::info('MonoBank Webhook (Guest): Purchase already exists (duplicate webhook)', [
+                    'invoiceId' => $invoiceId,
+                    'transaction_id' => $transaction->id,
+                    'purchase_id' => $existingPurchase->id,
+                    'guest_email' => $guestEmail,
+                ]);
+                return \App\Http\Responses\ApiResponse::success(['message' => 'Already processed']);
+            }
+        }
+
         $promocode = trim((string)($metadata['promocode'] ?? ''));
 
         try {
+            // ВАЖНО: Проверяем наличие товаров и актуальные цены перед созданием покупок
+            $validatedProductsData = [];
+            foreach ($productsData as $item) {
+                $product = ServiceAccount::lockForUpdate()->find($item['product_id']);
+                if (!$product) {
+                    Log::warning('MonoBank Webhook (Guest): Product not found', ['product_id' => $item['product_id']]);
+                    continue;
+                }
+                
+                // Проверяем наличие товара
+                $available = $product->getAvailableStock();
+                if ($available < $item['quantity']) {
+                    Log::error('MonoBank Webhook (Guest): Insufficient stock', [
+                        'product_id' => $item['product_id'],
+                        'requested' => $item['quantity'],
+                        'available' => $available,
+                    ]);
+                    continue;
+                }
+                
+                // Проверяем актуальную цену
+                $currentPrice = $product->getCurrentPrice();
+                $actualTotal = $currentPrice * $item['quantity'];
+                
+                if (abs($item['price'] - $currentPrice) > 0.01) {
+                    Log::warning('MonoBank Webhook (Guest): Price changed', [
+                        'product_id' => $item['product_id'],
+                        'original_price' => $item['price'],
+                        'current_price' => $currentPrice,
+                    ]);
+                }
+                
+                $validatedProductsData[] = [
+                    'product_id' => $item['product_id'],
+                    'quantity' => $item['quantity'],
+                    'price' => $currentPrice,
+                    'total' => $actualTotal,
+                ];
+            }
+            
+            if (empty($validatedProductsData)) {
+                Log::error('MonoBank Webhook (Guest): No valid products after validation', [
+                    'invoiceId' => $invoiceId,
+                    'guest_email' => $guestEmail,
+                ]);
+                return response()->json(['success' => false, 'message' => 'No valid products'], 400);
+            }
+            
             // Создаем покупки для гостя
-            GuestCartController::createGuestPurchases($guestEmail, $productsData, $promocode);
+            GuestCartController::createGuestPurchases($guestEmail, $validatedProductsData, $promocode);
 
             // Отправляем email уведомление гостю с информацией о покупке
-            $totalAmount = array_sum(array_column($productsData, 'total'));
+            $totalAmount = array_sum(array_column($validatedProductsData, 'total'));
             try {
                 EmailService::sendToGuest(
                     $guestEmail,
                     'guest_purchase_confirmation',
                     [
-                        'products_count' => count($productsData),
+                        'products_count' => count($validatedProductsData),
                         'total_amount' => number_format($totalAmount, 2, '.', '') . ' ' . strtoupper(Option::get('currency')),
                         'guest_email' => $guestEmail,
                     ]
@@ -692,7 +832,7 @@ class MonoController extends Controller
                     'method' => 'Monobank',
                     'email' => $guestEmail,
                     'name' => 'Гость',
-                    'products' => count($productsData),
+                    'products' => count($validatedProductsData),
                     'amount' => number_format($totalAmount, 2),
                 ]
             );
@@ -700,13 +840,25 @@ class MonoController extends Controller
             Log::info('MonoBank Webhook (Guest): Guest purchase completed', [
                 'guest_email' => $guestEmail,
                 'invoiceId' => $invoiceId,
-                'products_count' => count($productsData),
+                'products_count' => count($validatedProductsData),
                 'modified_date' => $modifiedDate,
             ]);
 
-            // Record promocode usage if exists
+            // Record promocode usage if exists (с проверкой дублирования)
             if ($promocode !== '') {
                 DB::transaction(function () use ($promocode, $guestEmail, $invoiceId) {
+                    // Проверяем, не был ли промокод уже использован для этого заказа
+                    $existingUsage = PromocodeUsage::where('order_id', (string)$invoiceId)->first();
+                    if ($existingUsage) {
+                        Log::info('MonoBank Webhook (Guest): Promocode already used for this order', [
+                            'invoiceId' => $invoiceId,
+                            'guest_email' => $guestEmail,
+                            'promocode' => $promocode,
+                            'existing_usage_id' => $existingUsage->id,
+                        ]);
+                        return; // Промокод уже использован
+                    }
+                    
                     $promo = Promocode::where('code', $promocode)->lockForUpdate()->first();
                     if ($promo) {
                         PromocodeUsage::create([

@@ -88,6 +88,9 @@ public function createProductPurchase(
     ?string $guestEmail = null,
     string $paymentMethod = 'balance'
 ): array {
+    // ВАЖНО: Товар должен быть заблокирован (lockForUpdate) перед вызовом этого метода
+    // Это предотвращает race condition при одновременной выдаче товара
+    
     // Получаем аккаунты из accounts_data
     $accountsData = $product->accounts_data ?? [];
     $usedCount = $product->used ?? 0;
@@ -249,6 +252,23 @@ public function createProductPurchase(
         
         DB::transaction(function () use ($productsData, $userId, $guestEmail, $paymentMethod, &$purchases) {
             foreach ($productsData as $item) {
+                // ВАЖНО: Блокируем товар для предотвращения race condition
+                // Товар уже заблокирован в webhook обработчиках, но для балансовых платежей
+                // нужно заблокировать здесь
+                $product = $item['product'];
+                if (!$product->exists || !$product->isDirty()) {
+                    // Если товар еще не заблокирован, блокируем его
+                    $product = \App\Models\ServiceAccount::lockForUpdate()->find($product->id);
+                    if (!$product) {
+                        Log::error('Product not found during purchase creation', [
+                            'product_id' => $item['product']->id ?? null,
+                        ]);
+                        continue;
+                    }
+                    // Обновляем объект товара в массиве
+                    $item['product'] = $product;
+                }
+                
                 $result = $this->createProductPurchase(
                     $item['product'],
                     $item['quantity'],

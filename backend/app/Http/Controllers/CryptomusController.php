@@ -409,6 +409,26 @@ class CryptomusController extends Controller
             return \App\Http\Responses\ApiResponse::success();
         }
 
+        // ВАЖНО: Проверяем дублирование покупок ДО обновления статуса транзакции
+        // Для типов 'user' и 'guest' проверяем, что покупка еще не была создана
+        if (in_array($metadata['payment_type'], ['user', 'guest'])) {
+            $existingPurchase = \App\Models\Purchase::where('transaction_id', $transaction->id)->first();
+            if ($existingPurchase) {
+                Log::info('Cryptomus webhook: Purchase already exists for transaction (duplicate webhook)', [
+                    'order_id' => $orderId,
+                    'transaction_id' => $transaction->id,
+                    'purchase_id' => $existingPurchase->id,
+                    'purchase_order_number' => $existingPurchase->order_number,
+                ]);
+                // Обновляем статус транзакции, если еще не обновлен
+                if ($transaction->status !== 'completed') {
+                    $transaction->status = 'completed';
+                    $transaction->save();
+                }
+                return \App\Http\Responses\ApiResponse::success(['message' => 'Already processed']);
+            }
+        }
+
         $transaction->status = 'completed';
         $transaction->save();
 
@@ -528,12 +548,69 @@ class CryptomusController extends Controller
             return \App\Http\Responses\ApiResponse::success();
         }
 
+        // ВАЖНО: Проверяем дублирование покупок
+        $existingPurchase = \App\Models\Purchase::where('transaction_id', $transaction->id)->first();
+        if ($existingPurchase) {
+            Log::info('Cryptomus webhook (User Purchase): Purchase already exists (duplicate webhook)', [
+                'order_id' => $orderId,
+                'transaction_id' => $transaction->id,
+                'purchase_id' => $existingPurchase->id,
+                'user_id' => $userId,
+            ]);
+            return \App\Http\Responses\ApiResponse::success(['message' => 'Already processed']);
+        }
+
         $promocode = trim((string)($metadata['promocode'] ?? ''));
 
         try {
-            $preparedProductsData = $this->prepareProductsForPurchase($productsData);
+            // ВАЖНО: Подготавливаем данные с проверкой наличия и актуальной цены
+            $preparedProductsData = [];
+            foreach ($productsData as $item) {
+                // Блокируем товар для проверки наличия и цены
+                $product = \App\Models\ServiceAccount::lockForUpdate()->find($item['product_id']);
+                if (!$product) {
+                    Log::warning('Cryptomus webhook (User Purchase): Product not found', ['product_id' => $item['product_id']]);
+                    continue;
+                }
+                
+                // Проверяем наличие товара
+                $available = $product->getAvailableStock();
+                if ($available < $item['quantity']) {
+                    Log::error('Cryptomus webhook (User Purchase): Insufficient stock', [
+                        'product_id' => $item['product_id'],
+                        'requested' => $item['quantity'],
+                        'available' => $available,
+                    ]);
+                    continue;
+                }
+                
+                // Проверяем актуальную цену
+                $currentPrice = $product->getCurrentPrice();
+                $actualTotal = $currentPrice * $item['quantity'];
+                
+                if (abs($item['price'] - $currentPrice) > 0.01) {
+                    Log::warning('Cryptomus webhook (User Purchase): Price changed', [
+                        'product_id' => $item['product_id'],
+                        'original_price' => $item['price'],
+                        'current_price' => $currentPrice,
+                        'original_total' => $item['total'],
+                        'actual_total' => $actualTotal,
+                    ]);
+                }
+                
+                $preparedProductsData[] = [
+                    'product' => $product,
+                    'quantity' => $item['quantity'],
+                    'price' => $currentPrice, // Используем актуальную цену
+                    'total' => $actualTotal, // Пересчитываем с актуальной ценой
+                ];
+            }
+            
             if (empty($preparedProductsData)) {
-                Log::error('Cryptomus webhook (User Purchase): No valid products', ['order_id' => $orderId]);
+                Log::error('Cryptomus webhook (User Purchase): No valid products after validation', [
+                    'order_id' => $orderId,
+                    'user_id' => $userId,
+                ]);
                 return \App\Http\Responses\ApiResponse::success();
             }
 
@@ -545,7 +622,7 @@ class CryptomusController extends Controller
                 'crypto'
             );
 
-            $totalAmount = array_sum(array_column($productsData, 'total'));
+            $totalAmount = array_sum(array_column($preparedProductsData, 'total'));
 
             $this->sendPurchaseNotifications($user, $totalAmount, $purchases);
             $this->recordPromocodeUsage($promocode, $user->id, $orderId);
@@ -589,10 +666,73 @@ class CryptomusController extends Controller
             return \App\Http\Responses\ApiResponse::success();
         }
 
+        // ВАЖНО: Проверяем дублирование покупок для гостя
+        $transaction = Transaction::whereRaw("JSON_EXTRACT(metadata, '$.order_id') = ?", [$orderId])->first();
+        if ($transaction) {
+            $existingPurchase = \App\Models\Purchase::where('transaction_id', $transaction->id)->first();
+            if ($existingPurchase) {
+                Log::info('Cryptomus webhook (Guest): Purchase already exists (duplicate webhook)', [
+                    'order_id' => $orderId,
+                    'transaction_id' => $transaction->id,
+                    'purchase_id' => $existingPurchase->id,
+                    'guest_email' => $guestEmail,
+                ]);
+                return \App\Http\Responses\ApiResponse::success(['message' => 'Already processed']);
+            }
+        }
+
         $promocode = trim((string)($metadata['promocode'] ?? ''));
 
         try {
-            GuestCartController::createGuestPurchases($guestEmail, $productsData, $promocode);
+            // ВАЖНО: Проверяем наличие товаров и актуальные цены перед созданием покупок
+            $validatedProductsData = [];
+            foreach ($productsData as $item) {
+                $product = \App\Models\ServiceAccount::lockForUpdate()->find($item['product_id']);
+                if (!$product) {
+                    Log::warning('Cryptomus webhook (Guest): Product not found', ['product_id' => $item['product_id']]);
+                    continue;
+                }
+                
+                // Проверяем наличие товара
+                $available = $product->getAvailableStock();
+                if ($available < $item['quantity']) {
+                    Log::error('Cryptomus webhook (Guest): Insufficient stock', [
+                        'product_id' => $item['product_id'],
+                        'requested' => $item['quantity'],
+                        'available' => $available,
+                    ]);
+                    continue;
+                }
+                
+                // Проверяем актуальную цену
+                $currentPrice = $product->getCurrentPrice();
+                $actualTotal = $currentPrice * $item['quantity'];
+                
+                if (abs($item['price'] - $currentPrice) > 0.01) {
+                    Log::warning('Cryptomus webhook (Guest): Price changed', [
+                        'product_id' => $item['product_id'],
+                        'original_price' => $item['price'],
+                        'current_price' => $currentPrice,
+                    ]);
+                }
+                
+                $validatedProductsData[] = [
+                    'product_id' => $item['product_id'],
+                    'quantity' => $item['quantity'],
+                    'price' => $currentPrice,
+                    'total' => $actualTotal,
+                ];
+            }
+            
+            if (empty($validatedProductsData)) {
+                Log::error('Cryptomus webhook (Guest): No valid products after validation', [
+                    'order_id' => $orderId,
+                    'guest_email' => $guestEmail,
+                ]);
+                return response()->json(['success' => false, 'message' => 'No valid products'], 400);
+            }
+            
+            GuestCartController::createGuestPurchases($guestEmail, $validatedProductsData, $promocode);
 
             $totalAmount = array_sum(array_column($productsData, 'total'));
 
@@ -600,7 +740,7 @@ class CryptomusController extends Controller
                 $guestEmail,
                 'guest_purchase_confirmation',
                 [
-                    'products_count' => count($productsData),
+                    'products_count' => count($validatedProductsData),
                     'total_amount' => number_format($totalAmount, 2, '.', '') . ' ' . strtoupper(Option::get('currency')),
                     'guest_email' => $guestEmail,
                 ]
@@ -613,7 +753,7 @@ class CryptomusController extends Controller
                     'method' => 'Cryptomus',
                     'email' => $guestEmail,
                     'name' => 'Гость',
-                    'products' => count($productsData),
+                    'products' => count($validatedProductsData),
                     'amount' => number_format($totalAmount, 2),
                 ]
             );
@@ -623,7 +763,7 @@ class CryptomusController extends Controller
             Log::info('Cryptomus webhook (Guest): Guest purchase completed', [
                 'guest_email' => $guestEmail,
                 'order_id' => $orderId,
-                'products_count' => count($productsData),
+                'products_count' => count($validatedProductsData),
             ]);
 
             return \App\Http\Responses\ApiResponse::success();
@@ -718,6 +858,18 @@ class CryptomusController extends Controller
 
         try {
             DB::transaction(function () use ($promocode, $userId, $orderId) {
+                // Проверяем, не был ли промокод уже использован для этого заказа
+                $existingUsage = PromocodeUsage::where('order_id', (string)$orderId)->first();
+                if ($existingUsage) {
+                    Log::info('Cryptomus webhook: Promocode already used for this order', [
+                        'order_id' => $orderId,
+                        'user_id' => $userId,
+                        'promocode' => $promocode,
+                        'existing_usage_id' => $existingUsage->id,
+                    ]);
+                    return; // Промокод уже использован
+                }
+                
                 $promo = Promocode::where('code', $promocode)->lockForUpdate()->first();
                 if (!$promo) {
                     return;
