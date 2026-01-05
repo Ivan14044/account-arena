@@ -187,7 +187,7 @@ class ProductDispute extends Model
                             'current_balance' => $this->supplier->supplier_balance,
                         ]);
 
-                        // Проверяем, что баланс достаточен
+                        // ВАЖНО: Проверяем, что баланс достаточен, и запрещаем отрицательный баланс
                         if ($this->supplier->supplier_balance < $supplierAmountToDeduct) {
                             \Illuminate\Support\Facades\Log::error('ProductDispute refund: Insufficient supplier balance', [
                                 'dispute_id' => $this->id,
@@ -195,7 +195,7 @@ class ProductDispute extends Model
                                 'required' => $supplierAmountToDeduct,
                                 'available' => $this->supplier->supplier_balance,
                             ]);
-                            // Все равно списываем, но логируем ошибку
+                            throw new \Exception("Insufficient supplier balance for refund. Required: {$supplierAmountToDeduct} USD, available: {$this->supplier->supplier_balance} USD");
                         }
 
                         // Списываем из баланса поставщика
@@ -258,19 +258,18 @@ class ProductDispute extends Model
                         'refund_amount' => $this->refund_amount,
                     ]);
 
-                    // Проверяем, что баланс достаточен
-                    if ($this->supplier->supplier_balance >= $this->refund_amount) {
-                        $this->supplier->decrement('supplier_balance', $this->refund_amount);
-                    } else {
+                    // ВАЖНО: Проверяем, что баланс достаточен, и запрещаем отрицательный баланс
+                    if ($this->supplier->supplier_balance < $this->refund_amount) {
                         \Illuminate\Support\Facades\Log::error('ProductDispute refund: Insufficient supplier balance (no SupplierEarning found)', [
                             'dispute_id' => $this->id,
                             'supplier_id' => $this->supplier_id,
                             'required' => $this->refund_amount,
                             'available' => $this->supplier->supplier_balance,
                         ]);
-                        // Все равно списываем, но логируем ошибку
-                        $this->supplier->decrement('supplier_balance', $this->refund_amount);
+                        throw new \Exception("Insufficient supplier balance for refund. Required: {$this->refund_amount} USD, available: {$this->supplier->supplier_balance} USD");
                     }
+                    
+                    $this->supplier->decrement('supplier_balance', $this->refund_amount);
                 }
             }
 

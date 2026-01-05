@@ -61,6 +61,9 @@ class CartController extends Controller
                 $totalAmount = $totalAmount - ($totalAmount * $discountPercent / 100);
             }
 
+            // ВАЖНО: Округляем и проверяем минимальную сумму (как в MonoController и CryptomusController)
+            $totalAmount = max(round($totalAmount, 2), 0.01);
+
             // ИСПРАВЛЕНО: Правильная проверка баланса с учетом null
             $currentBalance = $user->balance ?? 0;
             if ($currentBalance < $totalAmount) {

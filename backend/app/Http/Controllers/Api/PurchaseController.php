@@ -10,15 +10,26 @@ use Illuminate\Http\Request;
 class PurchaseController extends Controller
 {
     /**
-     * Получить список покупок текущего пользователя
+     * Получить список покупок текущего пользователя или гостя
      * Поддерживает фильтрацию по дате и статусу
+     * Для гостей требуется передать email в query параметре
      */
     public function index(\App\Http\Requests\Purchase\PurchaseIndexRequest $request)
     {
         $user = $request->user();
+        $guestEmail = $request->query('guest_email');
         
-        if (!$user) {
-            return response()->json(['error' => 'Unauthorized'], 401);
+        // Если пользователь не авторизован, проверяем guest_email
+        if (!$user && !$guestEmail) {
+            return response()->json(['error' => 'Unauthorized. Please provide guest_email for guest purchases.'], 401);
+        }
+        
+        // Валидация email для гостей
+        if (!$user && $guestEmail) {
+            $guestEmail = strtolower(trim($guestEmail));
+            if (!filter_var($guestEmail, FILTER_VALIDATE_EMAIL)) {
+                return response()->json(['error' => 'Invalid guest email format'], 422);
+            }
         }
         
         // Получаем locale из заголовка X-Locale
@@ -37,7 +48,14 @@ class PurchaseController extends Controller
                 $q->select('id', 'currency', 'payment_method');
             },
             'transaction.dispute'
-        ])->where('user_id', $user->id);
+        ]);
+        
+        // Фильтруем по user_id для авторизованных пользователей или по guest_email для гостей
+        if ($user) {
+            $query->where('user_id', $user->id);
+        } else {
+            $query->whereNull('user_id')->where('guest_email', $guestEmail);
+        }
         
         // Фильтрация по дате "с"
         if ($request->has('date_from') && $request->date_from) {
@@ -104,13 +122,24 @@ class PurchaseController extends Controller
     
     /**
      * Получить конкретную покупку
+     * Для гостей требуется передать email в query параметре
      */
     public function show(Request $request, $id)
     {
         $user = $request->user();
+        $guestEmail = $request->query('guest_email');
         
-        if (!$user) {
-            return response()->json(['error' => 'Unauthorized'], 401);
+        // Если пользователь не авторизован, проверяем guest_email
+        if (!$user && !$guestEmail) {
+            return response()->json(['error' => 'Unauthorized. Please provide guest_email for guest purchases.'], 401);
+        }
+        
+        // Валидация email для гостей
+        if (!$user && $guestEmail) {
+            $guestEmail = strtolower(trim($guestEmail));
+            if (!filter_var($guestEmail, FILTER_VALIDATE_EMAIL)) {
+                return response()->json(['error' => 'Invalid guest email format'], 422);
+            }
         }
         
         // Получаем locale из заголовка X-Locale
@@ -119,10 +148,17 @@ class PurchaseController extends Controller
             $locale = app()->getLocale();
         }
         
-        $purchase = Purchase::with(['serviceAccount', 'transaction'])
-            ->where('user_id', $user->id)
-            ->where('id', $id)
-            ->first();
+        $query = Purchase::with(['serviceAccount', 'transaction'])
+            ->where('id', $id);
+        
+        // Фильтруем по user_id для авторизованных пользователей или по guest_email для гостей
+        if ($user) {
+            $query->where('user_id', $user->id);
+        } else {
+            $query->whereNull('user_id')->where('guest_email', $guestEmail);
+        }
+        
+        $purchase = $query->first();
         
         if (!$purchase) {
             return response()->json(['error' => 'Purchase not found'], 404);
@@ -158,19 +194,37 @@ class PurchaseController extends Controller
     
     /**
      * Скачать купленные товары в виде текстового файла с кодировкой UTF-8
+     * Для гостей требуется передать email в query параметре
      */
     public function download(Request $request, $id)
     {
         $user = $request->user();
+        $guestEmail = $request->query('guest_email');
         
-        if (!$user) {
-            return response()->json(['error' => 'Unauthorized'], 401);
+        // Если пользователь не авторизован, проверяем guest_email
+        if (!$user && !$guestEmail) {
+            return response()->json(['error' => 'Unauthorized. Please provide guest_email for guest purchases.'], 401);
         }
         
-        $purchase = Purchase::with(['serviceAccount'])
-            ->where('user_id', $user->id)
-            ->where('id', $id)
-            ->first();
+        // Валидация email для гостей
+        if (!$user && $guestEmail) {
+            $guestEmail = strtolower(trim($guestEmail));
+            if (!filter_var($guestEmail, FILTER_VALIDATE_EMAIL)) {
+                return response()->json(['error' => 'Invalid guest email format'], 422);
+            }
+        }
+        
+        $query = Purchase::with(['serviceAccount'])
+            ->where('id', $id);
+        
+        // Фильтруем по user_id для авторизованных пользователей или по guest_email для гостей
+        if ($user) {
+            $query->where('user_id', $user->id);
+        } else {
+            $query->whereNull('user_id')->where('guest_email', $guestEmail);
+        }
+        
+        $purchase = $query->first();
         
         if (!$purchase) {
             return response()->json(['error' => 'Purchase not found'], 404);
