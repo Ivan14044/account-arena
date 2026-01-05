@@ -150,6 +150,16 @@ class ProductDispute extends Model
      */
     public function resolveWithRefund($adminId, $comment = null)
     {
+        // ВАЖНО: Проверяем, что претензия еще не обработана
+        if ($this->status === self::STATUS_RESOLVED || $this->status === self::STATUS_REJECTED) {
+            throw new \Exception('Dispute already resolved or rejected');
+        }
+
+        // ВАЖНО: Проверяем, что транзакция еще не была возвращена
+        if ($this->transaction->status === 'refunded') {
+            throw new \Exception('Transaction already refunded');
+        }
+
         DB::transaction(function () use ($adminId, $comment) {
             // Возвращаем деньги пользователю на баланс (полная сумма покупки)
             $this->user->increment('balance', $this->refund_amount);
@@ -213,19 +223,18 @@ class ProductDispute extends Model
                             'current_balance' => $this->supplier->supplier_balance,
                         ]);
 
-                        // Проверяем, что баланс достаточен
-                        if ($this->supplier->supplier_balance >= $supplierAmountToDeduct) {
-                            $this->supplier->decrement('supplier_balance', $supplierAmountToDeduct);
-                        } else {
+                        // ВАЖНО: Проверяем, что баланс достаточен, и запрещаем отрицательный баланс
+                        if ($this->supplier->supplier_balance < $supplierAmountToDeduct) {
                             \Illuminate\Support\Facades\Log::error('ProductDispute refund: Insufficient supplier balance for available earning', [
                                 'dispute_id' => $this->id,
                                 'supplier_id' => $this->supplier_id,
                                 'required' => $supplierAmountToDeduct,
                                 'available' => $this->supplier->supplier_balance,
                             ]);
-                            // Все равно списываем, но логируем ошибку
-                            $this->supplier->decrement('supplier_balance', $supplierAmountToDeduct);
+                            throw new \Exception("Insufficient supplier balance for refund. Required: {$supplierAmountToDeduct} USD, available: {$this->supplier->supplier_balance} USD");
                         }
+                        
+                        $this->supplier->decrement('supplier_balance', $supplierAmountToDeduct);
                         
                         // Отменяем SupplierEarning
                         $supplierEarning->reverse('Product dispute refund');
