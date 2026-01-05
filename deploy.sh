@@ -1,13 +1,14 @@
 #!/bin/bash
 
 ###############################################################################
-# Account Arena - Простой скрипт деплоя
-# Выполняет обновление проекта на сервере пошагово
+# Account Arena - Скрипт деплоя на сервер
+# Использование: ./deploy.sh
 ###############################################################################
 
 set -e
 
-VPS="root@31.131.26.78"
+# Настройки
+VPS="${SSH_HOST:-account-arena-server}"
 PROJECT_DIR="/var/www/subcloudy"
 
 # Цвета
@@ -15,67 +16,95 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 RED='\033[0;31m'
+CYAN='\033[0;36m'
 NC='\033[0m'
 
-echo -e "${BLUE}══════════════════════════════════════════════════════════════${NC}"
-echo -e "${BLUE}        ДЕПЛОЙ ACCOUNT ARENA${NC}"
-echo -e "${BLUE}══════════════════════════════════════════════════════════════${NC}\n"
+echo -e "${CYAN}══════════════════════════════════════════════════════════════${NC}"
+echo -e "${CYAN}        ДЕПЛОЙ ACCOUNT ARENA${NC}"
+echo -e "${CYAN}══════════════════════════════════════════════════════════════${NC}\n"
+
+# Функции для вывода
+print_step() {
+    echo -e "${YELLOW}[$1/7] $2${NC}"
+}
+
+print_success() {
+    echo -e "${GREEN}✓ $1${NC}"
+}
+
+print_error() {
+    echo -e "${RED}✗ $1${NC}"
+}
 
 # Шаг 1: Получение изменений
-echo -e "${YELLOW}[1/7] Получение изменений из GitHub...${NC}"
-ssh -o ConnectTimeout=10 -o StrictHostKeyChecking=no $VPS "cd $PROJECT_DIR && git pull origin main" || {
-    echo -e "${RED}Ошибка при получении изменений${NC}"
+print_step 1 "Получение изменений из GitHub..."
+if ssh -o ConnectTimeout=10 -o StrictHostKeyChecking=no $VPS "cd $PROJECT_DIR && git pull origin main"; then
+    print_success "Изменения получены"
+    echo ""
+else
+    print_error "Ошибка при получении изменений"
     exit 1
-}
-echo -e "${GREEN}✓ Изменения получены${NC}\n"
+fi
 
 # Шаг 2: Backend - Composer
-echo -e "${YELLOW}[2/7] Установка зависимостей Backend...${NC}"
-ssh -o ConnectTimeout=30 -o StrictHostKeyChecking=no $VPS "cd $PROJECT_DIR/backend && composer install --no-dev --optimize-autoloader --no-interaction" || {
-    echo -e "${RED}Ошибка при установке зависимостей${NC}"
+print_step 2 "Установка зависимостей Backend..."
+if ssh -o ConnectTimeout=30 -o StrictHostKeyChecking=no $VPS "cd $PROJECT_DIR/backend && composer install --no-dev --optimize-autoloader --no-interaction"; then
+    print_success "Зависимости установлены"
+    echo ""
+else
+    print_error "Ошибка при установке зависимостей"
     exit 1
-}
-echo -e "${GREEN}✓ Зависимости установлены${NC}\n"
+fi
 
 # Шаг 3: Backend - Миграции
-echo -e "${YELLOW}[3/7] Выполнение миграций...${NC}"
-ssh -o ConnectTimeout=30 -o StrictHostKeyChecking=no $VPS "cd $PROJECT_DIR/backend && php artisan migrate --force" || {
-    echo -e "${RED}Ошибка при выполнении миграций${NC}"
+print_step 3 "Выполнение миграций..."
+if ssh -o ConnectTimeout=30 -o StrictHostKeyChecking=no $VPS "cd $PROJECT_DIR/backend && php artisan migrate --force"; then
+    print_success "Миграции выполнены"
+    echo ""
+else
+    print_error "Ошибка при выполнении миграций"
     exit 1
-}
-echo -e "${GREEN}✓ Миграции выполнены${NC}\n"
+fi
 
 # Шаг 4: Backend - Кэш
-echo -e "${YELLOW}[4/7] Очистка и обновление кэша...${NC}"
-ssh -o ConnectTimeout=20 -o StrictHostKeyChecking=no $VPS "cd $PROJECT_DIR/backend && php artisan config:cache && php artisan route:cache && php artisan view:cache && php artisan optimize" || {
-    echo -e "${RED}Ошибка при обновлении кэша${NC}"
+print_step 4 "Очистка и обновление кэша..."
+if ssh -o ConnectTimeout=20 -o StrictHostKeyChecking=no $VPS "cd $PROJECT_DIR/backend && php artisan config:cache && php artisan route:cache && php artisan view:cache && php artisan optimize"; then
+    print_success "Кэш обновлен"
+    echo ""
+else
+    print_error "Ошибка при обновлении кэша"
     exit 1
-}
-echo -e "${GREEN}✓ Кэш обновлен${NC}\n"
+fi
 
 # Шаг 5: Frontend - Установка зависимостей
-echo -e "${YELLOW}[5/7] Установка зависимостей Frontend...${NC}"
-ssh -o ConnectTimeout=60 -o StrictHostKeyChecking=no $VPS "cd $PROJECT_DIR/frontend && npm install --silent" || {
-    echo -e "${RED}Ошибка при установке зависимостей Frontend${NC}"
+print_step 5 "Установка зависимостей Frontend..."
+if ssh -o ConnectTimeout=60 -o StrictHostKeyChecking=no $VPS "cd $PROJECT_DIR/frontend && npm install --silent"; then
+    print_success "Зависимости Frontend установлены"
+    echo ""
+else
+    print_error "Ошибка при установке зависимостей Frontend"
     exit 1
-}
-echo -e "${GREEN}✓ Зависимости Frontend установлены${NC}\n"
+fi
 
 # Шаг 6: Frontend - Сборка
-echo -e "${YELLOW}[6/7] Сборка Frontend...${NC}"
-ssh -o ConnectTimeout=120 -o StrictHostKeyChecking=no $VPS "cd $PROJECT_DIR/frontend && npm run build" || {
-    echo -e "${RED}Ошибка при сборке Frontend${NC}"
+print_step 6 "Сборка Frontend..."
+if ssh -o ConnectTimeout=120 -o StrictHostKeyChecking=no $VPS "cd $PROJECT_DIR/frontend && npm run build"; then
+    print_success "Frontend собран"
+    echo ""
+else
+    print_error "Ошибка при сборке Frontend"
     exit 1
-}
-echo -e "${GREEN}✓ Frontend собран${NC}\n"
+fi
 
 # Шаг 7: Права и перезапуск
-echo -e "${YELLOW}[7/7] Установка прав и перезапуск сервисов...${NC}"
-ssh -o ConnectTimeout=20 -o StrictHostKeyChecking=no $VPS "cd $PROJECT_DIR && chown -R www-data:www-data . && chmod -R 775 backend/storage backend/bootstrap/cache && systemctl restart php8.2-fpm && systemctl reload nginx && (systemctl restart account-arena-worker 2>/dev/null || true)" || {
-    echo -e "${RED}Ошибка при установке прав или перезапуске${NC}"
+print_step 7 "Установка прав и перезапуск сервисов..."
+if ssh -o ConnectTimeout=20 -o StrictHostKeyChecking=no $VPS "cd $PROJECT_DIR && chown -R www-data:www-data . && chmod -R 775 backend/storage backend/bootstrap/cache && systemctl restart php8.2-fpm && systemctl reload nginx && (systemctl restart account-arena-worker 2>/dev/null || true)"; then
+    print_success "Права установлены, сервисы перезапущены"
+    echo ""
+else
+    print_error "Ошибка при установке прав или перезапуске"
     exit 1
-}
-echo -e "${GREEN}✓ Права установлены, сервисы перезапущены${NC}\n"
+fi
 
 echo -e "${GREEN}══════════════════════════════════════════════════════════════${NC}"
 echo -e "${GREEN}        ✅ ДЕПЛОЙ ЗАВЕРШЕН УСПЕШНО!${NC}"
