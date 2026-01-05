@@ -165,6 +165,7 @@ class ProductDispute extends Model
                 if ($supplierEarning) {
                     // Найден SupplierEarning - списываем только ту сумму, которая была зачислена поставщику
                     $supplierAmountToDeduct = $supplierEarning->amount;
+                    $originalStatus = $supplierEarning->status; // Сохраняем оригинальный статус ДО изменений
                     
                     \Illuminate\Support\Facades\Log::info('ProductDispute refund: Found SupplierEarning', [
                         'dispute_id' => $this->id,
@@ -173,11 +174,11 @@ class ProductDispute extends Model
                         'refund_amount' => $this->refund_amount,
                         'supplier_earning_id' => $supplierEarning->id,
                         'supplier_earning_amount' => $supplierAmountToDeduct,
-                        'supplier_earning_status' => $supplierEarning->status,
+                        'supplier_earning_status' => $originalStatus,
                     ]);
 
-                    // Проверяем статус SupplierEarning
-                    if ($supplierEarning->status === 'withdrawn') {
+                    // Проверяем статус SupplierEarning ДО вызова reverse()
+                    if ($originalStatus === 'withdrawn') {
                         // Средства уже выведены - нужно списать из баланса
                         \Illuminate\Support\Facades\Log::warning('ProductDispute refund: SupplierEarning already withdrawn, deducting from balance', [
                             'dispute_id' => $this->id,
@@ -202,30 +203,50 @@ class ProductDispute extends Model
                         
                         // Помечаем SupplierEarning как reversed (для учета)
                         $supplierEarning->reverse('Refund after withdrawal');
-                    } elseif (in_array($supplierEarning->status, ['held', 'available'])) {
-                        // Средства еще не выведены - просто отменяем SupplierEarning
-                        $supplierEarning->reverse('Product dispute refund');
-                        
-                        // Если средства уже переведены в supplier_balance (status = available), списываем из баланса
-                        if ($supplierEarning->status === 'available') {
-                            // Проверяем, что баланс достаточен
-                            if ($this->supplier->supplier_balance >= $supplierAmountToDeduct) {
-                                $this->supplier->decrement('supplier_balance', $supplierAmountToDeduct);
-                            } else {
-                                \Illuminate\Support\Facades\Log::error('ProductDispute refund: Insufficient supplier balance for available earning', [
-                                    'dispute_id' => $this->id,
-                                    'supplier_id' => $this->supplier_id,
-                                    'required' => $supplierAmountToDeduct,
-                                    'available' => $this->supplier->supplier_balance,
-                                ]);
-                            }
+                    } elseif ($originalStatus === 'available') {
+                        // Средства уже переведены в supplier_balance командой release-earnings
+                        // Нужно списать из баланса И отменить SupplierEarning
+                        \Illuminate\Support\Facades\Log::info('ProductDispute refund: SupplierEarning status is available, deducting from balance', [
+                            'dispute_id' => $this->id,
+                            'supplier_id' => $this->supplier_id,
+                            'amount' => $supplierAmountToDeduct,
+                            'current_balance' => $this->supplier->supplier_balance,
+                        ]);
+
+                        // Проверяем, что баланс достаточен
+                        if ($this->supplier->supplier_balance >= $supplierAmountToDeduct) {
+                            $this->supplier->decrement('supplier_balance', $supplierAmountToDeduct);
+                        } else {
+                            \Illuminate\Support\Facades\Log::error('ProductDispute refund: Insufficient supplier balance for available earning', [
+                                'dispute_id' => $this->id,
+                                'supplier_id' => $this->supplier_id,
+                                'required' => $supplierAmountToDeduct,
+                                'available' => $this->supplier->supplier_balance,
+                            ]);
+                            // Все равно списываем, но логируем ошибку
+                            $this->supplier->decrement('supplier_balance', $supplierAmountToDeduct);
                         }
+                        
+                        // Отменяем SupplierEarning
+                        $supplierEarning->reverse('Product dispute refund');
+                    } elseif ($originalStatus === 'held') {
+                        // Средства еще в холде - просто отменяем SupplierEarning (средства еще не в балансе)
+                        \Illuminate\Support\Facades\Log::info('ProductDispute refund: SupplierEarning status is held, reversing without balance deduction', [
+                            'dispute_id' => $this->id,
+                            'supplier_id' => $this->supplier_id,
+                            'amount' => $supplierAmountToDeduct,
+                        ]);
+                        
+                        $supplierEarning->reverse('Product dispute refund');
                     } else {
                         \Illuminate\Support\Facades\Log::error('ProductDispute refund: Unexpected SupplierEarning status', [
                             'dispute_id' => $this->id,
                             'supplier_earning_id' => $supplierEarning->id,
-                            'status' => $supplierEarning->status,
+                            'status' => $originalStatus,
                         ]);
+                        
+                        // Все равно пытаемся отменить
+                        $supplierEarning->reverse('Product dispute refund (unexpected status)');
                     }
                 } else {
                     // SupplierEarning не найден - возможно товар администратора или старая покупка
