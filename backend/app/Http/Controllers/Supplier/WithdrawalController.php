@@ -17,6 +17,9 @@ class WithdrawalController extends Controller
     {
         $supplier = auth()->user();
 
+        // ВАЖНО: Синхронизируем баланс перед отображением
+        $this->syncSupplierBalance($supplier);
+
         // Get available and held amounts from supplier_earnings
         $availableAmount = SupplierEarning::where('supplier_id', $supplier->id)
             ->where(function($q) {
@@ -187,5 +190,54 @@ class WithdrawalController extends Controller
         $withdrawal->update(['status' => 'rejected']);
 
         return back()->with('success', 'Запрос на вывод средств отменен.');
+    }
+
+    /**
+     * Синхронизирует supplier_balance из SupplierEarning
+     * Переводит средства из held в available и обновляет баланс
+     */
+    private function syncSupplierBalance($supplier)
+    {
+        try {
+            \Illuminate\Support\Facades\DB::transaction(function () use ($supplier) {
+                // Находим earnings, готовые к переводу
+                $readyToRelease = SupplierEarning::where('supplier_id', $supplier->id)
+                    ->where('status', 'held')
+                    ->whereNotNull('available_at')
+                    ->where('available_at', '<=', now())
+                    ->lockForUpdate()
+                    ->get();
+
+                if ($readyToRelease->isEmpty()) {
+                    return; // Нет средств для перевода
+                }
+
+                $totalAmount = $readyToRelease->sum('amount');
+
+                // Обновляем статус на 'available'
+                $readyToRelease->each(function ($earning) {
+                    $earning->update([
+                        'status' => 'available',
+                        'processed_at' => now(),
+                    ]);
+                });
+
+                // Увеличиваем баланс поставщика
+                $supplier->increment('supplier_balance', $totalAmount);
+
+                \Illuminate\Support\Facades\Log::info('Supplier balance synced on withdrawal page', [
+                    'supplier_id' => $supplier->id,
+                    'earnings_count' => $readyToRelease->count(),
+                    'amount_added' => $totalAmount,
+                    'new_balance' => $supplier->fresh()->supplier_balance,
+                ]);
+            });
+        } catch (\Throwable $e) {
+            // Не ломаем загрузку страницы, но логируем ошибку
+            \Illuminate\Support\Facades\Log::error('Failed to sync supplier balance on withdrawal page', [
+                'supplier_id' => $supplier->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 }

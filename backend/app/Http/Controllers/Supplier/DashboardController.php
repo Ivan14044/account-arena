@@ -14,6 +14,10 @@ class DashboardController extends Controller
         $supplier = auth()->user();
         $supplierId = $supplier->id;
         
+        // ВАЖНО: Синхронизируем баланс поставщика из SupplierEarning
+        // Это гарантирует, что supplier_balance всегда актуален
+        $this->syncSupplierBalance($supplier);
+        
         // Статистика по товарам поставщика
         $products = ServiceAccount::where('supplier_id', $supplierId)->get();
         $totalProducts = $products->count();
@@ -110,5 +114,54 @@ class DashboardController extends Controller
             'ratingLevel',
             'ratingDetails'
         ));
+    }
+
+    /**
+     * Синхронизирует supplier_balance из SupplierEarning
+     * Переводит средства из held в available и обновляет баланс
+     */
+    private function syncSupplierBalance($supplier)
+    {
+        try {
+            \Illuminate\Support\Facades\DB::transaction(function () use ($supplier) {
+                // Находим earnings, готовые к переводу
+                $readyToRelease = \App\Models\SupplierEarning::where('supplier_id', $supplier->id)
+                    ->where('status', 'held')
+                    ->whereNotNull('available_at')
+                    ->where('available_at', '<=', now())
+                    ->lockForUpdate()
+                    ->get();
+
+                if ($readyToRelease->isEmpty()) {
+                    return; // Нет средств для перевода
+                }
+
+                $totalAmount = $readyToRelease->sum('amount');
+
+                // Обновляем статус на 'available'
+                $readyToRelease->each(function ($earning) {
+                    $earning->update([
+                        'status' => 'available',
+                        'processed_at' => now(),
+                    ]);
+                });
+
+                // Увеличиваем баланс поставщика
+                $supplier->increment('supplier_balance', $totalAmount);
+
+                \Illuminate\Support\Facades\Log::info('Supplier balance synced on dashboard load', [
+                    'supplier_id' => $supplier->id,
+                    'earnings_count' => $readyToRelease->count(),
+                    'amount_added' => $totalAmount,
+                    'new_balance' => $supplier->fresh()->supplier_balance,
+                ]);
+            });
+        } catch (\Throwable $e) {
+            // Не ломаем загрузку dashboard, но логируем ошибку
+            \Illuminate\Support\Facades\Log::error('Failed to sync supplier balance on dashboard', [
+                'supplier_id' => $supplier->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 }

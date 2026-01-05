@@ -83,19 +83,86 @@ class WithdrawalRequestController extends Controller
             return back()->with('error', 'Можно отметить как оплаченный только одобренные запросы.');
         }
 
-        // Deduct amount from supplier balance
-        $supplier = $withdrawalRequest->supplier;
-        if ($supplier->supplier_balance < $withdrawalRequest->amount) {
-            return back()->with('error', 'Недостаточно средств на балансе поставщика.');
-        }
+        // ВАЖНО: Используем транзакцию для атомарности операций
+        \Illuminate\Support\Facades\DB::transaction(function () use ($withdrawalRequest, $validated) {
+            $supplier = \App\Models\User::lockForUpdate()->find($withdrawalRequest->supplier_id);
+            
+            if (!$supplier) {
+                throw new \Exception('Поставщик не найден');
+            }
 
-        $supplier->decrement('supplier_balance', $withdrawalRequest->amount);
+            // Сначала синхронизируем баланс (переводим held -> available -> supplier_balance)
+            $this->syncSupplierBalance($supplier);
+            
+            // Обновляем объект поставщика после синхронизации
+            $supplier->refresh();
 
-        $withdrawalRequest->update([
-            'status' => 'paid',
-            'admin_comment' => $validated['admin_comment'] ?? null,
-            'processed_at' => now(),
-        ]);
+            // Проверяем баланс поставщика (который должен быть синхронизирован)
+            if ($supplier->supplier_balance < $withdrawalRequest->amount) {
+                throw new \Exception('Недостаточно средств на балансе поставщика. Доступно: ' . number_format($supplier->supplier_balance, 2) . ' USD');
+            }
+
+            // Списываем с баланса поставщика
+            $supplier->decrement('supplier_balance', $withdrawalRequest->amount);
+
+            // Обновляем статус SupplierEarning на 'withdrawn' для учета выведенных средств
+            // Списываем по принципу FIFO (первыми выводим самые старые доступные earnings)
+            $remainingAmount = $withdrawalRequest->amount;
+            $earningsToWithdraw = \App\Models\SupplierEarning::where('supplier_id', $supplier->id)
+                ->where('status', 'available')
+                ->orderBy('available_at', 'asc')
+                ->orderBy('created_at', 'asc')
+                ->lockForUpdate()
+                ->get();
+
+            foreach ($earningsToWithdraw as $earning) {
+                if ($remainingAmount <= 0) {
+                    break;
+                }
+
+                $amountToDeduct = min($earning->amount, $remainingAmount);
+                $remainingAmount -= $amountToDeduct;
+
+                // Если списываем полностью - меняем статус на withdrawn
+                if ($amountToDeduct >= $earning->amount) {
+                    $earning->update([
+                        'status' => 'withdrawn',
+                        'processed_at' => now(),
+                    ]);
+                } else {
+                    // Если частично - создаем новую запись для остатка
+                    \App\Models\SupplierEarning::create([
+                        'supplier_id' => $earning->supplier_id,
+                        'purchase_id' => $earning->purchase_id,
+                        'transaction_id' => $earning->transaction_id,
+                        'amount' => $earning->amount - $amountToDeduct,
+                        'status' => 'available',
+                        'available_at' => $earning->available_at,
+                    ]);
+
+                    // Текущую запись помечаем как withdrawn
+                    $earning->update([
+                        'amount' => $amountToDeduct,
+                        'status' => 'withdrawn',
+                        'processed_at' => now(),
+                    ]);
+                }
+            }
+
+            // Обновляем запрос на вывод
+            $withdrawalRequest->update([
+                'status' => 'paid',
+                'admin_comment' => $validated['admin_comment'] ?? null,
+                'processed_at' => now(),
+            ]);
+
+            \Illuminate\Support\Facades\Log::info('Supplier withdrawal paid', [
+                'withdrawal_request_id' => $withdrawalRequest->id,
+                'supplier_id' => $supplier->id,
+                'amount' => $withdrawalRequest->amount,
+                'new_balance' => $supplier->fresh()->supplier_balance,
+            ]);
+        });
 
         return back()->with('success', 'Запрос отмечен как оплаченный. Баланс поставщика обновлен.');
     }
@@ -120,5 +187,52 @@ class WithdrawalRequestController extends Controller
         ]);
 
         return back()->with('success', 'Запрос на вывод средств отклонен.');
+    }
+
+    /**
+     * Синхронизирует supplier_balance из SupplierEarning
+     * Переводит средства из held в available и обновляет баланс
+     */
+    private function syncSupplierBalance($supplier)
+    {
+        try {
+            // Находим earnings, готовые к переводу
+            $readyToRelease = \App\Models\SupplierEarning::where('supplier_id', $supplier->id)
+                ->where('status', 'held')
+                ->whereNotNull('available_at')
+                ->where('available_at', '<=', now())
+                ->lockForUpdate()
+                ->get();
+
+            if ($readyToRelease->isEmpty()) {
+                return; // Нет средств для перевода
+            }
+
+            $totalAmount = $readyToRelease->sum('amount');
+
+            // Обновляем статус на 'available'
+            $readyToRelease->each(function ($earning) {
+                $earning->update([
+                    'status' => 'available',
+                    'processed_at' => now(),
+                ]);
+            });
+
+            // Увеличиваем баланс поставщика
+            $supplier->increment('supplier_balance', $totalAmount);
+
+            \Illuminate\Support\Facades\Log::info('Supplier balance synced in withdrawal approval', [
+                'supplier_id' => $supplier->id,
+                'earnings_count' => $readyToRelease->count(),
+                'amount_added' => $totalAmount,
+                'new_balance' => $supplier->fresh()->supplier_balance,
+            ]);
+        } catch (\Throwable $e) {
+            // Логируем ошибку, но не прерываем процесс
+            \Illuminate\Support\Facades\Log::error('Failed to sync supplier balance in withdrawal approval', [
+                'supplier_id' => $supplier->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 }
