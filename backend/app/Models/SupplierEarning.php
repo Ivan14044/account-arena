@@ -60,4 +60,107 @@ class SupplierEarning extends Model
               });
         });
     }
+
+    /**
+     * Отменить earning при возврате средств (reversal)
+     * 
+     * @param string|null $reason Причина отмены
+     * @return bool Успешно ли отменено
+     */
+    public function reverse(?string $reason = null): bool
+    {
+        // Нельзя отменить уже отмененные или выведенные средства
+        if ($this->status === 'reversed') {
+            \Illuminate\Support\Facades\Log::warning('Attempt to reverse already reversed SupplierEarning', [
+                'earning_id' => $this->id,
+                'supplier_id' => $this->supplier_id,
+                'transaction_id' => $this->transaction_id,
+            ]);
+            return false;
+        }
+
+        if ($this->status === 'withdrawn') {
+            \Illuminate\Support\Facades\Log::error('Attempt to reverse withdrawn SupplierEarning - funds already withdrawn!', [
+                'earning_id' => $this->id,
+                'supplier_id' => $this->supplier_id,
+                'transaction_id' => $this->transaction_id,
+                'amount' => $this->amount,
+                'processed_at' => $this->processed_at,
+            ]);
+            return false;
+        }
+
+        // Обновляем статус на reversed
+        $this->update([
+            'status' => 'reversed',
+            'processed_at' => now(),
+        ]);
+
+        \Illuminate\Support\Facades\Log::info('SupplierEarning reversed', [
+            'earning_id' => $this->id,
+            'supplier_id' => $this->supplier_id,
+            'transaction_id' => $this->transaction_id,
+            'purchase_id' => $this->purchase_id,
+            'amount' => $this->amount,
+            'previous_status' => $this->getOriginal('status'),
+            'reason' => $reason,
+        ]);
+
+        return true;
+    }
+
+    /**
+     * Частично отменить earning (если уже частично выведено)
+     * 
+     * @param float $amountToReverse Сумма для отмены
+     * @param string|null $reason Причина отмены
+     * @return bool Успешно ли отменено
+     */
+    public function partialReverse(float $amountToReverse, ?string $reason = null): bool
+    {
+        if ($amountToReverse <= 0 || $amountToReverse > $this->amount) {
+            \Illuminate\Support\Facades\Log::error('Invalid amount for partial reverse', [
+                'earning_id' => $this->id,
+                'requested_amount' => $amountToReverse,
+                'earning_amount' => $this->amount,
+            ]);
+            return false;
+        }
+
+        // Если списываем полностью - просто отменяем
+        if (abs($amountToReverse - $this->amount) < 0.01) {
+            return $this->reverse($reason);
+        }
+
+        // Если частично - создаем новую запись для остатка и отменяем текущую
+        $remainingAmount = $this->amount - $amountToReverse;
+
+        // Создаем новую запись для остатка
+        self::create([
+            'supplier_id' => $this->supplier_id,
+            'purchase_id' => $this->purchase_id,
+            'transaction_id' => $this->transaction_id,
+            'amount' => $remainingAmount,
+            'status' => $this->status,
+            'available_at' => $this->available_at,
+        ]);
+
+        // Текущую запись отменяем
+        $this->update([
+            'amount' => $amountToReverse,
+            'status' => 'reversed',
+            'processed_at' => now(),
+        ]);
+
+        \Illuminate\Support\Facades\Log::info('SupplierEarning partially reversed', [
+            'earning_id' => $this->id,
+            'supplier_id' => $this->supplier_id,
+            'transaction_id' => $this->transaction_id,
+            'reversed_amount' => $amountToReverse,
+            'remaining_amount' => $remainingAmount,
+            'reason' => $reason,
+        ]);
+
+        return true;
+    }
 }
