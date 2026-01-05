@@ -381,7 +381,7 @@ class ServiceAccountController extends Controller
             'credentials' => ['nullable', 'array'],
             'expiring_at' => ['nullable', 'date'],
             'is_active' => ['required', 'boolean'],
-            'price' => ['required', 'numeric', 'min:0'],
+            'price' => ['required', 'numeric', 'min:0.01'], // ВАЖНО: Минимальная цена 0.01 USD
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'title_en' => ['nullable', 'string', 'max:255'],

@@ -61,7 +61,7 @@ class ProductController extends Controller
         $request->validate([
             'bulk_accounts' => 'required|string',
             'title' => 'required|string|max:255',
-            'price' => 'required|numeric|min:0',
+            'price' => 'required|numeric|min:0.01', // ВАЖНО: Минимальная цена 0.01 USD
             'description' => 'nullable|string',
             'is_active' => 'required|boolean',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
@@ -242,7 +242,7 @@ class ProductController extends Controller
             'category_id' => ['nullable', 'exists:categories,id'],
             'subcategory_id' => ['nullable', 'exists:categories,id'],
             'is_active' => ['required', 'boolean'],
-            'price' => ['required', 'numeric', 'min:0'],
+            'price' => ['required', 'numeric', 'min:0.01'], // ВАЖНО: Минимальная цена 0.01 USD
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'title_en' => ['nullable', 'string', 'max:255'],

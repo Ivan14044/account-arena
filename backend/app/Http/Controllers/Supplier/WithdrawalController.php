@@ -136,9 +136,17 @@ class WithdrawalController extends Controller
                   });
             })->sum('amount');
 
+        // ВАЖНО: Вычитаем сумму уже созданных pending запросов на вывод
+        // Это предотвращает создание нескольких запросов, сумма которых превышает доступную
+        $pendingWithdrawals = WithdrawalRequest::where('supplier_id', $supplier->id)
+            ->where('status', 'pending')
+            ->sum('amount');
+        
+        $availableAmount = $availableAmount - $pendingWithdrawals;
+
         if ($availableAmount <= 0) {
             return redirect()->route('supplier.withdrawals.index')
-                ->with('error', 'Нет доступных средств для вывода.');
+                ->with('error', 'Нет доступных средств для вывода. Возможно, у вас уже есть запросы на вывод в обработке.');
         }
 
         $validated = $request->validate([

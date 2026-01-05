@@ -67,13 +67,19 @@ class CryptomusController extends Controller
         $totalAmount = $productsTotal;
 
         $personalDiscountPercent = $user->getActivePersonalDiscount();
-        if ($personalDiscountPercent > 0) {
-            $totalAmount = $totalAmount - ($totalAmount * $personalDiscountPercent / 100);
+        $promoDiscountPercent = 0;
+        
+        if ($promoData && ($promoData['type'] ?? '') === 'discount') {
+            $promoDiscountPercent = floatval($promoData['discount_percent'] ?? 0);
         }
 
-        if ($promoData && ($promoData['type'] ?? '') === 'discount') {
-            $discountPercent = floatval($promoData['discount_percent'] ?? 0);
-            $totalAmount = $totalAmount - ($totalAmount * $discountPercent / 100);
+        // ВАЖНО: Ограничиваем максимальную суммарную скидку 99% (чтобы итоговая сумма была минимум 1%)
+        // Это предотвращает ситуацию, когда персональная скидка + промокод дают более 100% скидки
+        $totalDiscountPercent = $personalDiscountPercent + $promoDiscountPercent;
+        $maxDiscountPercent = min(99, $totalDiscountPercent);
+        
+        if ($maxDiscountPercent > 0) {
+            $totalAmount = $totalAmount - ($totalAmount * $maxDiscountPercent / 100);
         }
 
         $totalAmount = max(round($totalAmount, 2), 0.01);
@@ -734,7 +740,7 @@ class CryptomusController extends Controller
             
             GuestCartController::createGuestPurchases($guestEmail, $validatedProductsData, $promocode);
 
-            $totalAmount = array_sum(array_column($productsData, 'total'));
+            $totalAmount = array_sum(array_column($validatedProductsData, 'total'));
 
             EmailService::sendToGuest(
                 $guestEmail,
