@@ -79,6 +79,7 @@ project-map.md
 !deploy-now.sh
 !setup-server.sh
 !update-project.sh
+!deploy.sh
 
 # Игнорируем остальные скрипты
 *.bat
@@ -87,6 +88,7 @@ project-map.md
 !deploy-now.sh
 !setup-server.sh
 !update-project.sh
+!deploy.sh
 
 # Служебные файлы
 APP_KEY_FOR_RAILWAY.txt
