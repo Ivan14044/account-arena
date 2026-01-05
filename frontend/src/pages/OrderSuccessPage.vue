@@ -393,6 +393,7 @@ const getVisibleAccounts = purchase => {
 onMounted(async () => {
     // Если нет сообщения о подготовке, но мы только что пришли с checkout,
     // показываем сообщение "Подготовка товара к выдаче"
+    // НО не запускаем прелоадер, если он уже запущен (чтобы не увеличивать activeRequests)
     if (!isPreparingProduct.value && !loadingStore.isLoading) {
         loadingStore.start(t('checkout.preparing_product'));
     }
@@ -455,11 +456,16 @@ const fetchPurchases = async () => {
             // Если товар выдан (есть покупки), скрываем ВСЕ прелоадеры немедленно
             if (purchases.value.length > 0) {
                 loading.value = false;
-                loadingStore.stop();
+                // Используем reset() для гарантированного скрытия прелоадера
+                // независимо от количества activeRequests
+                loadingStore.reset();
+                console.log('✅ Preloaders hidden, purchases loaded');
                 return;
             }
         } else {
             console.warn('⚠️ Response success=false');
+            loading.value = false;
+            loadingStore.reset();
         }
     } catch (error) {
         console.error('❌ Failed to fetch purchases:', {
@@ -471,13 +477,13 @@ const fetchPurchases = async () => {
             t('order_success.load_error') + ': ' + (error.response?.data?.message || error.message)
         );
         // При ошибке скрываем прелоадеры
-        loadingStore.stop();
         loading.value = false;
+        loadingStore.reset();
     } finally {
-        // Гарантируем скрытие, если товар выдан
+        // Гарантируем скрытие, если товар выдан (на случай, если мы не вышли через return)
         if (purchases.value && purchases.value.length > 0) {
             loading.value = false;
-            loadingStore.stop();
+            loadingStore.reset();
         }
     }
 };
