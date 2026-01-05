@@ -42,6 +42,13 @@ Route::prefix('/admin')
         Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
         Route::post('/login', [LoginController::class, 'login']);
 
+        // Logout БЕЗ audit.admin middleware (только admin.auth)
+        // Это предотвращает ошибку 405 Not Allowed при выходе
+        Route::middleware(['admin.auth'])->group(function () {
+            Route::match(['get', 'post'], '/logout', [LoginController::class, 'logout'])->name('logout');
+        });
+
+        // Все остальные роуты с audit.admin middleware
         Route::middleware(['admin.auth', 'audit.admin'])->group(function () {
             Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
@@ -141,7 +148,6 @@ Route::prefix('/admin')
 
 
             Route::resource('profile', ProfileController::class)->only(['index', 'store']);
-            Route::match(['get', 'post'], '/logout', [LoginController::class, 'logout'])->name('logout');
         });
     });
 
