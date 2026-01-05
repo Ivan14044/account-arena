@@ -111,7 +111,7 @@
 
         <form class="space-y-6" @submit.prevent="handleSubmit">
             <div class="space-y-2">
-                <label class="text-sm text-gray-700 dark:text-gray-300" for="name">{{
+                <label class="text-sm text-gray-800 dark:text-gray-200 font-medium" for="name">{{
                     $t('profile.name')
                 }}</label>
                 <div class="relative">
@@ -122,7 +122,7 @@
                         id="name"
                         v-model="name"
                         type="text"
-                        class="w-full pl-10 pr-4 py-2 border rounded-lg dark:!border-gray-500 dark:text-gray-300"
+                        class="w-full pl-10 pr-4 py-2 border rounded-lg dark:!border-gray-500 dark:text-gray-200"
                         :placeholder="$t('profile.namePlaceholder')"
                         required
                     />
@@ -133,7 +133,7 @@
             </div>
 
             <div class="space-y-2">
-                <label class="text-sm text-gray-700 dark:text-gray-300" for="email">{{
+                <label class="text-sm text-gray-800 dark:text-gray-200 font-medium" for="email">{{
                     $t('profile.email')
                 }}</label>
                 <div class="relative">
@@ -144,7 +144,7 @@
                         id="email"
                         v-model="email"
                         type="email"
-                        class="w-full pl-10 pr-4 py-2 border dark:!border-gray-500 rounded-lg dark:text-gray-300"
+                        class="w-full pl-10 pr-4 py-2 border dark:!border-gray-500 rounded-lg dark:text-gray-200"
                         :placeholder="$t('profile.emailPlaceholder')"
                         required
                     />
@@ -155,7 +155,7 @@
             </div>
 
             <div class="space-y-2">
-                <label class="text-sm text-gray-700 dark:text-gray-300" for="password">{{
+                <label class="text-sm text-gray-800 dark:text-gray-200 font-medium" for="password">{{
                     $t('profile.password')
                 }}</label>
                 <div class="relative">
@@ -167,7 +167,7 @@
                         v-model="password"
                         type="password"
                         autocomplete="off"
-                        class="w-full pl-10 pr-4 py-2 border dark:!border-gray-500 rounded-lg dark:text-gray-300"
+                        class="w-full pl-10 pr-4 py-2 border dark:!border-gray-500 rounded-lg dark:text-gray-200"
                         :placeholder="$t('profile.passwordPlaceholder')"
                     />
                 </div>
@@ -178,7 +178,7 @@
 
             <div class="space-y-2">
                 <label
-                    class="text-sm text-gray-700 dark:text-gray-300"
+                    class="text-sm text-gray-800 dark:text-gray-200 font-medium"
                     for="password_confirmation"
                     >{{ $t('profile.confirmPassword') }}</label
                 >
@@ -191,7 +191,7 @@
                         v-model="password_confirmation"
                         type="password"
                         autocomplete="off"
-                        class="w-full pl-10 pr-4 py-2 border dark:!border-gray-500 rounded-lg dark:text-gray-300"
+                        class="w-full pl-10 pr-4 py-2 border dark:!border-gray-500 rounded-lg dark:text-gray-200"
                         :placeholder="$t('profile.confirmPasswordPlaceholder')"
                     />
                 </div>
@@ -271,7 +271,7 @@
                                     {{ dispute.status_text }}
                                 </span>
                             </div>
-                            <p class="text-sm text-gray-600 dark:text-gray-400 mb-1">
+                            <p class="text-sm text-gray-700 dark:text-gray-300 mb-1">
                                 <strong>{{ $t('profile.purchases.disputes.product') }}:</strong>
                                 {{
                                     dispute.product_title
@@ -279,11 +279,11 @@
                                         : $t('profile.purchases.disputes.deleted')
                                 }}
                             </p>
-                            <p class="text-sm text-gray-600 dark:text-gray-400 mb-1">
+                            <p class="text-sm text-gray-700 dark:text-gray-300 mb-1">
                                 <strong>{{ $t('profile.purchases.disputes.reason') }}:</strong>
                                 {{ dispute.reason_text }}
                             </p>
-                            <p class="text-sm text-gray-500 dark:text-gray-500">
+                            <p class="text-sm text-gray-600 dark:text-gray-400">
                                 {{ formatDate(dispute.created_at) }}
                             </p>
                         </div>
@@ -310,7 +310,7 @@
                                     {{ $t('profile.purchases.disputes.your_description') }}:
                                 </p>
                                 <p
-                                    class="text-sm text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg"
+                                    class="text-sm text-gray-800 dark:text-gray-100 bg-gray-50 dark:bg-gray-700/70 p-3 rounded-lg"
                                 >
                                     {{ dispute.customer_description }}
                                 </p>
@@ -465,37 +465,37 @@
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
                         <label
-                            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                            class="block text-sm font-medium text-gray-800 dark:text-gray-200 mb-2"
                         >
                             {{ $t('profile.purchases.filters.date_from') }}
                         </label>
                         <input
                             v-model="filters.date_from"
                             type="date"
-                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
+                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-200"
                         />
                     </div>
                     <div>
                         <label
-                            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                            class="block text-sm font-medium text-gray-800 dark:text-gray-200 mb-2"
                         >
                             {{ $t('profile.purchases.filters.date_to') }}
                         </label>
                         <input
                             v-model="filters.date_to"
                             type="date"
-                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
+                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-200"
                         />
                     </div>
                     <div>
                         <label
-                            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                            class="block text-sm font-medium text-gray-800 dark:text-gray-200 mb-2"
                         >
                             {{ $t('profile.purchases.filters.status') }}
                         </label>
                         <select
                             v-model="filters.status"
-                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
+                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-gray-200"
                         >
                             <option value="">{{ $t('profile.purchases.filters.all') }}</option>
                             <option value="completed">
@@ -905,7 +905,7 @@
                                     <!-- Причина -->
                                     <div>
                                         <label
-                                            class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3"
+                                            class="block text-sm font-semibold text-gray-800 dark:text-gray-200 mb-3"
                                         >
                                             {{ $t('profile.purchases.disputes.reason') }}
                                             <span class="text-red-500">*</span>
@@ -913,7 +913,7 @@
                                         <div class="relative">
                                             <select
                                                 v-model="disputeForm.reason"
-                                                class="dispute-select w-full px-4 pr-10 py-3.5 bg-white/50 dark:bg-gray-700/50 border border-gray-300/50 dark:border-gray-600/50 rounded-xl dark:text-white focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-300 backdrop-blur-sm cursor-pointer"
+                                                class="dispute-select w-full px-4 pr-10 py-3.5 bg-white/70 dark:bg-gray-700/70 border border-gray-300/50 dark:border-gray-600/50 rounded-xl dark:text-gray-100 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-300 backdrop-blur-sm cursor-pointer"
                                                 required
                                             >
                                                 <option value="">
@@ -992,14 +992,14 @@
                                     <!-- Описание -->
                                     <div>
                                         <label
-                                            class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3"
+                                            class="block text-sm font-semibold text-gray-800 dark:text-gray-200 mb-3"
                                         >
                                             {{ $t('profile.purchases.disputes.description') }}
                                             <span class="text-red-500">*</span>
                                         </label>
                                         <textarea
                                             v-model="disputeForm.description"
-                                            class="w-full px-4 py-3.5 bg-white/50 dark:bg-gray-700/50 border border-gray-300/50 dark:border-gray-600/50 rounded-xl dark:text-white focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 resize-none transition-all backdrop-blur-sm"
+                                            class="w-full px-4 py-3.5 bg-white/70 dark:bg-gray-700/70 border border-gray-300/50 dark:border-gray-600/50 rounded-xl dark:text-gray-100 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 resize-none transition-all backdrop-blur-sm"
                                             rows="4"
                                             :placeholder="
                                                 $t(
@@ -1102,7 +1102,7 @@
                                                 <input
                                                     type="file"
                                                     accept="image/jpeg,image/png,image/jpg,image/webp"
-                                                    class="w-full px-4 py-3.5 bg-white/50 dark:bg-gray-700/50 border border-gray-300/50 dark:border-gray-600/50 rounded-xl dark:text-white backdrop-blur-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-gradient-to-r file:from-blue-500 file:to-purple-600 file:text-white hover:file:from-blue-600 hover:file:to-purple-700 file:transition-all file:duration-200"
+                                                    class="w-full px-4 py-3.5 bg-white/70 dark:bg-gray-700/70 border border-gray-300/50 dark:border-gray-600/50 rounded-xl dark:text-gray-100 backdrop-blur-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-gradient-to-r file:from-blue-500 file:to-purple-600 file:text-white hover:file:from-blue-600 hover:file:to-purple-700 file:transition-all file:duration-200"
                                                     @change="handleFileUpload"
                                                 />
                                             </div>
@@ -1191,7 +1191,7 @@
                                                     v-model="disputeForm.screenshot_link"
                                                     type="url"
                                                     placeholder="https://i.imgur.com/example.png"
-                                                    class="w-full pl-12 pr-4 py-3.5 bg-white/50 dark:bg-gray-700/50 border border-gray-300/50 dark:border-gray-600/50 rounded-xl dark:text-white focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all backdrop-blur-sm"
+                                                    class="w-full pl-12 pr-4 py-3.5 bg-white/70 dark:bg-gray-700/70 border border-gray-300/50 dark:border-gray-600/50 rounded-xl dark:text-gray-100 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all backdrop-blur-sm"
                                                 />
                                             </div>
                                             <p
@@ -1964,7 +1964,7 @@ onMounted(async () => {
 .balance-label {
     font-size: 13px;
     font-weight: 500;
-    color: #6b7280;
+    color: #4b5563;
     margin-bottom: 2px;
     font-family: 'SFT Schrifted Sans', sans-serif;
 }
@@ -2022,7 +2022,7 @@ onMounted(async () => {
 
 .voucher-description {
     font-size: 13px;
-    color: #6b7280;
+    color: #4b5563;
     margin-bottom: 12px;
 }
 
@@ -2246,7 +2246,7 @@ onMounted(async () => {
 }
 
 .dark .purchase-date {
-    color: #6b7280;
+    color: #9ca3af;
 }
 
 /* Filters Card */
