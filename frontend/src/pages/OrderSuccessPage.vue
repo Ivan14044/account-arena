@@ -51,9 +51,6 @@
                     <p class="text-lg font-medium text-gray-700 dark:text-gray-300">
                         {{ $t('checkout.preparing_product') }}
                     </p>
-                    <p class="text-sm text-gray-500 dark:text-gray-500 mt-2">
-                        {{ $t('order_success.loading_hint') }}
-                    </p>
                 </div>
             </div>
 
@@ -455,22 +452,14 @@ const fetchPurchases = async () => {
             purchases.value = response.data.purchases;
             console.log('✅ Purchases set:', purchases.value.length);
             
-            // Скрываем глобальный NavigationLoader сразу после загрузки данных
-            // чтобы не было ситуации, когда контент виден за прелоадером
-            loadingStore.stop();
-            
-            // Если товар выдан (есть покупки), скрываем локальный прелоадер
+            // Если товар выдан (есть покупки), скрываем ВСЕ прелоадеры немедленно
             if (purchases.value.length > 0) {
                 loading.value = false;
-                return; // Выходим, чтобы не выполнять finally
+                loadingStore.stop();
+                return;
             }
-            // Если покупок нет - товар еще не выдан
-            // Оставляем локальный прелоадер с сообщением "Подготовка товара к выдаче"
-            // loading.value остается true, чтобы показывать локальный прелоадер
         } else {
             console.warn('⚠️ Response success=false');
-            loading.value = false;
-            loadingStore.stop();
         }
     } catch (error) {
         console.error('❌ Failed to fetch purchases:', {
@@ -481,12 +470,15 @@ const fetchPurchases = async () => {
         toast.error(
             t('order_success.load_error') + ': ' + (error.response?.data?.message || error.message)
         );
-        // При ошибке скрываем прелоадер
+        // При ошибке скрываем прелоадеры
         loadingStore.stop();
-    } finally {
         loading.value = false;
-        // Если данные загружены, но покупок нет - товар еще не выдан, оставляем сообщение
-        // Прелоадер будет скрыт при следующей успешной загрузке с покупками
+    } finally {
+        // Гарантируем скрытие, если товар выдан
+        if (purchases.value && purchases.value.length > 0) {
+            loading.value = false;
+            loadingStore.stop();
+        }
     }
 };
 
