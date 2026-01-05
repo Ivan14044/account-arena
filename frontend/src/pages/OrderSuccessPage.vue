@@ -44,14 +44,14 @@
                 </div>
             </div>
 
-            <!-- Загрузка -->
+            <!-- Загрузка / Подготовка товара -->
             <div v-if="loading" class="flex justify-center py-12">
                 <div class="flex flex-col items-center">
                     <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
                     <p class="text-lg font-medium text-gray-700 dark:text-gray-300">
-                        {{ isPreparingProduct ? loadingStore.message : $t('order_success.loading') }}
+                        {{ $t('checkout.preparing_product') }}
                     </p>
-                    <p v-if="!isPreparingProduct" class="text-sm text-gray-500 dark:text-gray-500 mt-2">
+                    <p class="text-sm text-gray-500 dark:text-gray-500 mt-2">
                         {{ $t('order_success.loading_hint') }}
                     </p>
                 </div>
@@ -394,6 +394,12 @@ const getVisibleAccounts = purchase => {
 
 // Загрузка покупок при монтировании
 onMounted(async () => {
+    // Если нет сообщения о подготовке, но мы только что пришли с checkout,
+    // показываем сообщение "Подготовка товара к выдаче"
+    if (!isPreparingProduct.value && !loadingStore.isLoading) {
+        loadingStore.start(t('checkout.preparing_product'));
+    }
+    
     await fetchPurchases();
 
     // Автоматически перезагружаем через 2 секунды, если покупок нет
@@ -408,9 +414,10 @@ const fetchPurchases = async () => {
     try {
         loading.value = true;
 
-        // Если нет сообщения о подготовке, показываем обычную загрузку
+        // Если нет сообщения о подготовке, показываем сообщение "Подготовка товара к выдаче"
+        // Это более понятно для пользователя, чем просто "Загрузка..."
         if (!isPreparingProduct.value) {
-            loadingStore.start(t('order_success.loading'));
+            loadingStore.start(t('checkout.preparing_product'));
         }
 
         // ИСПРАВЛЕНИЕ: Используем authStore вместо прямого доступа к localStorage
@@ -447,8 +454,23 @@ const fetchPurchases = async () => {
         if (response.data.success) {
             purchases.value = response.data.purchases;
             console.log('✅ Purchases set:', purchases.value.length);
+            
+            // Скрываем глобальный NavigationLoader сразу после загрузки данных
+            // чтобы не было ситуации, когда контент виден за прелоадером
+            loadingStore.stop();
+            
+            // Если товар выдан (есть покупки), скрываем локальный прелоадер
+            if (purchases.value.length > 0) {
+                loading.value = false;
+                return; // Выходим, чтобы не выполнять finally
+            }
+            // Если покупок нет - товар еще не выдан
+            // Оставляем локальный прелоадер с сообщением "Подготовка товара к выдаче"
+            // loading.value остается true, чтобы показывать локальный прелоадер
         } else {
             console.warn('⚠️ Response success=false');
+            loading.value = false;
+            loadingStore.stop();
         }
     } catch (error) {
         console.error('❌ Failed to fetch purchases:', {
@@ -463,10 +485,8 @@ const fetchPurchases = async () => {
         loadingStore.stop();
     } finally {
         loading.value = false;
-        // Скрываем прелоадер только когда товар выдан (есть покупки)
-        if (purchases.value.length > 0) {
-            loadingStore.stop();
-        }
+        // Если данные загружены, но покупок нет - товар еще не выдан, оставляем сообщение
+        // Прелоадер будет скрыт при следующей успешной загрузке с покупками
     }
 };
 
