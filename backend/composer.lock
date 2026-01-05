@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "7abc4a48f9c688cc649dd1b4ca9932fc",
+    "content-hash": "39f9f4473e7438a9d107ddd8878c5cbc",
     "packages": [
         {
             "name": "almasaeed2010/adminlte",
@@ -48,6 +48,59 @@
                 "source": "https://github.com/ColorlibHQ/AdminLTE/tree/v3.2.0"
             },
             "time": "2022-02-07T20:33:09+00:00"
+        },
+        {
+            "name": "archtechx/enums",
+            "version": "v1.1.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/archtechx/enums.git",
+                "reference": "81375b71c176f680880a95e7448d84258cfb5c72"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/archtechx/enums/zipball/81375b71c176f680880a95e7448d84258cfb5c72",
+                "reference": "81375b71c176f680880a95e7448d84258cfb5c72",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^8.1"
+            },
+            "require-dev": {
+                "larastan/larastan": "^2.4",
+                "orchestra/testbench": "^8.0 || ^9.0",
+                "pestphp/pest": "^2.0",
+                "pestphp/pest-plugin-laravel": "^2.0"
+            },
+            "type": "library",
+            "extra": {
+                "phpstan": {
+                    "includes": [
+                        "extension.neon"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "ArchTech\\Enums\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Samuel Štancl",
+                    "email": "samuel@archte.ch"
+                }
+            ],
+            "description": "Helpers for making PHP enums more lovable.",
+            "support": {
+                "issues": "https://github.com/archtechx/enums/issues",
+                "source": "https://github.com/archtechx/enums/tree/v1.1.2"
+            },
+            "time": "2025-06-06T23:15:09+00:00"
         },
         {
             "name": "brick/math",
@@ -1709,6 +1762,137 @@
                 "source": "https://github.com/jeroennoten/Laravel-AdminLTE/tree/v3.15.0"
             },
             "time": "2025-02-24T22:20:15+00:00"
+        },
+        {
+            "name": "laravel-lang/config",
+            "version": "1.14.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/Laravel-Lang/config.git",
+                "reference": "0f6a41a1d5f4bde6ff59fbfd9e349ac64b737c69"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/Laravel-Lang/config/zipball/0f6a41a1d5f4bde6ff59fbfd9e349ac64b737c69",
+                "reference": "0f6a41a1d5f4bde6ff59fbfd9e349ac64b737c69",
+                "shasum": ""
+            },
+            "require": {
+                "archtechx/enums": "^1.0",
+                "illuminate/config": "^10.0 || ^11.0 || ^12.0",
+                "illuminate/support": "^10.0 || ^11.0 || ^12.0",
+                "laravel-lang/locale-list": "^1.5",
+                "php": "^8.1"
+            },
+            "require-dev": {
+                "orchestra/testbench": "^8.23 || ^9.1 || ^10.0",
+                "pestphp/pest": "^2.34 || ^3.0"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "LaravelLang\\Config\\ServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "LaravelLang\\Config\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Andrey Helldar",
+                    "email": "helldar@dragon-code.pro",
+                    "homepage": "https://dragon-code.pro"
+                },
+                {
+                    "name": "Laravel-Lang Team",
+                    "homepage": "https://laravel-lang.com"
+                }
+            ],
+            "description": "The Laravel-Lang config package",
+            "keywords": [
+                "Laravel-lang",
+                "Settings",
+                "config",
+                "lang",
+                "languages",
+                "laravel",
+                "locale",
+                "locales",
+                "localization",
+                "localizations",
+                "translation",
+                "translations"
+            ],
+            "support": {
+                "issues": "https://github.com/Laravel-Lang/config/issues",
+                "source": "https://github.com/Laravel-Lang/config/tree/1.14.0"
+            },
+            "time": "2025-04-11T07:31:54+00:00"
+        },
+        {
+            "name": "laravel-lang/locale-list",
+            "version": "1.5.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/Laravel-Lang/locale-list.git",
+                "reference": "060475db218a97a54612163112b44782024d79c1"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/Laravel-Lang/locale-list/zipball/060475db218a97a54612163112b44782024d79c1",
+                "reference": "060475db218a97a54612163112b44782024d79c1",
+                "shasum": ""
+            },
+            "require": {
+                "archtechx/enums": "^0.3.2 || ^1.0",
+                "php": "^8.1"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "LaravelLang\\LocaleList\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Andrey Helldar",
+                    "email": "helldar@dragon-code.pro",
+                    "homepage": "https://dragon-code.pro"
+                },
+                {
+                    "name": "Laravel-Lang Team",
+                    "homepage": "https://laravel-lang.com"
+                }
+            ],
+            "description": "List of localizations available in Laravel Lang projects",
+            "keywords": [
+                "Laravel-lang",
+                "lang",
+                "languages",
+                "laravel",
+                "locale",
+                "locales",
+                "localization",
+                "translation",
+                "translations"
+            ],
+            "support": {
+                "issues": "https://github.com/Laravel-Lang/locale-list/issues",
+                "source": "https://github.com/Laravel-Lang/locale-list"
+            },
+            "time": "2025-06-23T09:39:26+00:00"
         },
         {
             "name": "laravel/framework",
@@ -6857,59 +7041,6 @@
     ],
     "packages-dev": [
         {
-            "name": "archtechx/enums",
-            "version": "v1.1.2",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/archtechx/enums.git",
-                "reference": "81375b71c176f680880a95e7448d84258cfb5c72"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/archtechx/enums/zipball/81375b71c176f680880a95e7448d84258cfb5c72",
-                "reference": "81375b71c176f680880a95e7448d84258cfb5c72",
-                "shasum": ""
-            },
-            "require": {
-                "php": "^8.1"
-            },
-            "require-dev": {
-                "larastan/larastan": "^2.4",
-                "orchestra/testbench": "^8.0 || ^9.0",
-                "pestphp/pest": "^2.0",
-                "pestphp/pest-plugin-laravel": "^2.0"
-            },
-            "type": "library",
-            "extra": {
-                "phpstan": {
-                    "includes": [
-                        "extension.neon"
-                    ]
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "ArchTech\\Enums\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Samuel Štancl",
-                    "email": "samuel@archte.ch"
-                }
-            ],
-            "description": "Helpers for making PHP enums more lovable.",
-            "support": {
-                "issues": "https://github.com/archtechx/enums/issues",
-                "source": "https://github.com/archtechx/enums/tree/v1.1.2"
-            },
-            "time": "2025-06-06T23:15:09+00:00"
-        },
-        {
             "name": "composer/semver",
             "version": "3.4.4",
             "source": {
@@ -7454,80 +7585,6 @@
             "time": "2020-07-09T08:09:16+00:00"
         },
         {
-            "name": "laravel-lang/config",
-            "version": "1.14.0",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/Laravel-Lang/config.git",
-                "reference": "0f6a41a1d5f4bde6ff59fbfd9e349ac64b737c69"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/Laravel-Lang/config/zipball/0f6a41a1d5f4bde6ff59fbfd9e349ac64b737c69",
-                "reference": "0f6a41a1d5f4bde6ff59fbfd9e349ac64b737c69",
-                "shasum": ""
-            },
-            "require": {
-                "archtechx/enums": "^1.0",
-                "illuminate/config": "^10.0 || ^11.0 || ^12.0",
-                "illuminate/support": "^10.0 || ^11.0 || ^12.0",
-                "laravel-lang/locale-list": "^1.5",
-                "php": "^8.1"
-            },
-            "require-dev": {
-                "orchestra/testbench": "^8.23 || ^9.1 || ^10.0",
-                "pestphp/pest": "^2.34 || ^3.0"
-            },
-            "type": "library",
-            "extra": {
-                "laravel": {
-                    "providers": [
-                        "LaravelLang\\Config\\ServiceProvider"
-                    ]
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "LaravelLang\\Config\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Andrey Helldar",
-                    "email": "helldar@dragon-code.pro",
-                    "homepage": "https://dragon-code.pro"
-                },
-                {
-                    "name": "Laravel-Lang Team",
-                    "homepage": "https://laravel-lang.com"
-                }
-            ],
-            "description": "The Laravel-Lang config package",
-            "keywords": [
-                "Laravel-lang",
-                "Settings",
-                "config",
-                "lang",
-                "languages",
-                "laravel",
-                "locale",
-                "locales",
-                "localization",
-                "localizations",
-                "translation",
-                "translations"
-            ],
-            "support": {
-                "issues": "https://github.com/Laravel-Lang/config/issues",
-                "source": "https://github.com/Laravel-Lang/config/tree/1.14.0"
-            },
-            "time": "2025-04-11T07:31:54+00:00"
-        },
-        {
             "name": "laravel-lang/lang",
             "version": "15.2.2",
             "source": {
@@ -7586,63 +7643,6 @@
                 "source": "https://github.com/Laravel-Lang/lang"
             },
             "time": "2024-05-06T09:53:28+00:00"
-        },
-        {
-            "name": "laravel-lang/locale-list",
-            "version": "1.5.1",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/Laravel-Lang/locale-list.git",
-                "reference": "060475db218a97a54612163112b44782024d79c1"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/Laravel-Lang/locale-list/zipball/060475db218a97a54612163112b44782024d79c1",
-                "reference": "060475db218a97a54612163112b44782024d79c1",
-                "shasum": ""
-            },
-            "require": {
-                "archtechx/enums": "^0.3.2 || ^1.0",
-                "php": "^8.1"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "LaravelLang\\LocaleList\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Andrey Helldar",
-                    "email": "helldar@dragon-code.pro",
-                    "homepage": "https://dragon-code.pro"
-                },
-                {
-                    "name": "Laravel-Lang Team",
-                    "homepage": "https://laravel-lang.com"
-                }
-            ],
-            "description": "List of localizations available in Laravel Lang projects",
-            "keywords": [
-                "Laravel-lang",
-                "lang",
-                "languages",
-                "laravel",
-                "locale",
-                "locales",
-                "localization",
-                "translation",
-                "translations"
-            ],
-            "support": {
-                "issues": "https://github.com/Laravel-Lang/locale-list/issues",
-                "source": "https://github.com/Laravel-Lang/locale-list"
-            },
-            "time": "2025-06-23T09:39:26+00:00"
         },
         {
             "name": "laravel-lang/locales",
