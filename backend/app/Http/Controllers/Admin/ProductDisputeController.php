@@ -134,14 +134,47 @@ class ProductDisputeController extends Controller
         }
 
         try {
-            $dispute->resolveWithReplacement(auth()->id(), $request->admin_comment);
+            // ВАЖНО: Используем транзакцию с блокировкой для атомарности операций
+            \Illuminate\Support\Facades\DB::transaction(function () use ($dispute, $request) {
+                $dispute->resolveWithReplacement(auth()->id(), $request->admin_comment);
 
-            // Выдаем новый товар пользователю
-            $replacementAccount = ServiceAccount::findOrFail($request->replacement_account_id);
-            $replacementAccount->used = 1;
-            $replacementAccount->used_by = $dispute->user_id;
-            $replacementAccount->used_at = now();
-            $replacementAccount->save();
+                // ВАЖНО: Блокируем товар для замены и проверяем его доступность
+                $replacementAccount = ServiceAccount::lockForUpdate()->findOrFail($request->replacement_account_id);
+                
+                // Проверяем, что товар доступен (не продан)
+                $availableStock = $replacementAccount->getAvailableStock();
+                if ($availableStock <= 0) {
+                    throw new \Exception('Товар для замены недоступен (нет в наличии). Выберите другой товар.');
+                }
+
+                // Проверяем, что товар не является тем же самым, что был куплен
+                if ($replacementAccount->id === $dispute->service_account_id) {
+                    throw new \Exception('Нельзя заменить товар на тот же самый. Выберите другой товар.');
+                }
+
+                // Выдаем новый товар пользователю (используем логику из ProductPurchaseService)
+                $purchaseService = app(\App\Services\ProductPurchaseService::class);
+                try {
+                    // Создаем покупку для замены (quantity = 1)
+                    $purchaseService->createProductPurchase(
+                        $replacementAccount,
+                        1, // quantity
+                        $replacementAccount->getCurrentPrice(),
+                        $replacementAccount->getCurrentPrice(),
+                        $dispute->user_id,
+                        null, // guest_email
+                        'replacement' // payment_method
+                    );
+                } catch (\Exception $e) {
+                    \Illuminate\Support\Facades\Log::error('ProductDispute replacement: Failed to create replacement purchase', [
+                        'dispute_id' => $dispute->id,
+                        'replacement_account_id' => $replacementAccount->id,
+                        'user_id' => $dispute->user_id,
+                        'error' => $e->getMessage(),
+                    ]);
+                    throw new \Exception('Ошибка при выдаче товара для замены: ' . $e->getMessage());
+                }
+            });
 
             // Очищаем кеш счетчика новых претензий
             Cache::forget('disputes_new_count');

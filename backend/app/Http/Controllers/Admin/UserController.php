@@ -64,7 +64,7 @@ public function update(Request $request, User $user)
         'is_supplier' => 'nullable|boolean',
         'supplier_balance' => 'nullable|numeric|min:0',
         'supplier_commission' => 'nullable|numeric|min:0|max:100',
-        'supplier_hold_hours' => 'nullable|integer|min:0|max:8760', // <-- новое правило
+        'supplier_hold_hours' => 'nullable|integer|min:1|max:8760', // ВАЖНО: min:1, так как 0 часов означает отсутствие холда
     ]);
 
     $is_blocked = $request->is_blocked;
@@ -128,6 +128,7 @@ public function update(Request $request, User $user)
 
     /**
      * Управление балансом пользователя (пополнение/списание/установка)
+     * ВАЖНО: Используем BalanceService для обеспечения целостности данных
      */
     public function updateBalance(Request $request, User $user)
     {
@@ -141,71 +142,138 @@ public function update(Request $request, User $user)
         $amount = $request->input('amount');
         $comment = $request->input('comment', '');
         $oldBalance = $user->balance ?? 0;
-        $newBalance = $oldBalance;
 
-        // Выполняем операцию
-        switch ($operation) {
-            case 'add':
-                // Пополнение
-                $newBalance = $oldBalance + $amount;
-                $operationText = 'пополнен на';
-                $paymentMethod = 'admin_balance_topup';
-                break;
+        // ВАЖНО: Используем транзакцию для атомарности операций
+        try {
+            \Illuminate\Support\Facades\DB::transaction(function () use ($operation, $amount, $user, $oldBalance, $comment) {
+                $balanceService = app(\App\Services\BalanceService::class);
+                $newBalance = $oldBalance;
+                $operationText = '';
+                $paymentMethod = '';
 
-            case 'subtract':
-                // Списание
-                $newBalance = $oldBalance - $amount;
-                if ($newBalance < 0) {
-                    return redirect()
-                        ->route('admin.users.edit', $user)
-                        ->with('error', "Недостаточно средств. Текущий баланс: $oldBalance USD, попытка списать: $amount USD");
+                // Выполняем операцию через BalanceService
+                switch ($operation) {
+                    case 'add':
+                        // Пополнение через BalanceService
+                        $balanceService->topUp(
+                            $user,
+                            $amount,
+                            \App\Services\BalanceService::TYPE_TOPUP_ADMIN,
+                            [
+                                'admin_id' => auth()->id(),
+                                'admin_email' => auth()->user()->email,
+                                'comment' => $comment,
+                            ]
+                        );
+                        $newBalance = $user->fresh()->balance;
+                        $operationText = 'пополнен на';
+                        $paymentMethod = 'admin_balance_topup';
+                        break;
+
+                    case 'subtract':
+                        // Списание через BalanceService
+                        // BalanceService сам проверит достаточность средств
+                        try {
+                            $balanceService->deduct(
+                                $user,
+                                $amount,
+                                \App\Services\BalanceService::TYPE_DEDUCTION,
+                                [
+                                    'admin_id' => auth()->id(),
+                                    'admin_email' => auth()->user()->email,
+                                    'comment' => $comment,
+                                ]
+                            );
+                            $newBalance = $user->fresh()->balance;
+                            $operationText = 'уменьшен на';
+                            $paymentMethod = 'admin_balance_deduction';
+                        } catch (\Exception $e) {
+                            throw new \Exception("Недостаточно средств. Текущий баланс: {$oldBalance} USD, попытка списать: {$amount} USD");
+                        }
+                        break;
+
+                    case 'set':
+                        // Установка нового баланса
+                        // ВАЖНО: Запрещаем установку отрицательного баланса
+                        if ($amount < 0) {
+                            throw new \Exception("Баланс не может быть отрицательным. Минимальное значение: 0 USD");
+                        }
+
+                        // Вычисляем разницу и применяем через BalanceService
+                        $difference = $amount - $oldBalance;
+                        if ($difference > 0) {
+                            // Пополняем
+                            $balanceService->topUp(
+                                $user,
+                                $difference,
+                                \App\Services\BalanceService::TYPE_ADJUSTMENT,
+                                [
+                                    'admin_id' => auth()->id(),
+                                    'admin_email' => auth()->user()->email,
+                                    'comment' => $comment ?: 'Admin balance adjustment (set)',
+                                ]
+                            );
+                        } elseif ($difference < 0) {
+                            // Списываем
+                            try {
+                                $balanceService->deduct(
+                                    $user,
+                                    abs($difference),
+                                    \App\Services\BalanceService::TYPE_ADJUSTMENT,
+                                    [
+                                        'admin_id' => auth()->id(),
+                                        'admin_email' => auth()->user()->email,
+                                        'comment' => $comment ?: 'Admin balance adjustment (set)',
+                                    ]
+                                );
+                            } catch (\Exception $e) {
+                                throw new \Exception("Недостаточно средств для установки баланса. Текущий баланс: {$oldBalance} USD, требуется: {$amount} USD");
+                            }
+                        }
+                        $newBalance = $user->fresh()->balance;
+                        $operationText = 'установлен в';
+                        $paymentMethod = 'admin_balance_adjustment';
+                        break;
                 }
-                $operationText = 'уменьшен на';
-                $paymentMethod = 'admin_balance_deduction';
-                break;
 
-            case 'set':
-                // Установка нового баланса
-                // ВАЖНО: Запрещаем установку отрицательного баланса
-                if ($amount < 0) {
-                    return redirect()
-                        ->route('admin.users.edit', $user)
-                        ->with('error', "Баланс не может быть отрицательным. Минимальное значение: 0 USD");
-                }
-                $newBalance = $amount;
-                $operationText = 'установлен в';
-                $paymentMethod = 'admin_balance_adjustment';
-                break;
+                // Логируем действие администратора
+                \Log::info('Admin balance update', [
+                    'admin_id' => auth()->id(),
+                    'admin_email' => auth()->user()->email,
+                    'user_id' => $user->id,
+                    'user_email' => $user->email,
+                    'operation' => $operation,
+                    'amount' => $amount,
+                    'old_balance' => $oldBalance,
+                    'new_balance' => $newBalance,
+                    'comment' => $comment,
+                ]);
+            });
+
+            // Получаем обновленный баланс для сообщения
+            $user->refresh();
+            $newBalance = $user->balance ?? 0;
+            $operationText = match($operation) {
+                'add' => 'пополнен на',
+                'subtract' => 'уменьшен на',
+                'set' => 'установлен в',
+            };
+
+            return redirect()
+                ->route('admin.users.edit', $user)
+                ->with('success', "Баланс успешно {$operationText} {$amount} USD. Новый баланс: {$newBalance} USD");
+        } catch (\Exception $e) {
+            \Log::error('Admin balance update failed', [
+                'admin_id' => auth()->id(),
+                'user_id' => $user->id,
+                'operation' => $operation,
+                'amount' => $amount,
+                'error' => $e->getMessage(),
+            ]);
+
+            return redirect()
+                ->route('admin.users.edit', $user)
+                ->with('error', $e->getMessage());
         }
-
-        // Обновляем баланс
-        $user->balance = $newBalance;
-        $user->save();
-
-        // Создаем запись транзакции для истории
-        \App\Models\Transaction::create([
-            'user_id' => $user->id,
-            'amount' => ($operation === 'subtract') ? -$amount : $amount,
-            'currency' => 'USD',
-            'payment_method' => $paymentMethod,
-            'status' => 'completed',
-        ]);
-
-        // Логируем действие администратора
-        \Log::info('Admin balance update', [
-            'admin_id' => auth()->id(),
-            'admin_email' => auth()->user()->email,
-            'user_id' => $user->id,
-            'user_email' => $user->email,
-            'operation' => $operation,
-            'amount' => $amount,
-            'old_balance' => $oldBalance,
-            'new_balance' => $newBalance,
-            'comment' => $comment,
-        ]);
-
-        return redirect()
-            ->route('admin.users.edit', $user)
-            ->with('success', "Баланс успешно {$operationText} {$amount} USD. Новый баланс: {$newBalance} USD");
     }
 }

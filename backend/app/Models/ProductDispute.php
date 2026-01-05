@@ -161,8 +161,30 @@ class ProductDispute extends Model
         }
 
         DB::transaction(function () use ($adminId, $comment) {
-            // Возвращаем деньги пользователю на баланс (полная сумма покупки)
-            $this->user->increment('balance', $this->refund_amount);
+            // ВАЖНО: Возвращаем деньги пользователю на баланс через BalanceService
+            // Это обеспечивает создание BalanceTransaction и полную историю операций
+            $balanceService = app(\App\Services\BalanceService::class);
+            try {
+                $balanceService->topUp(
+                    $this->user,
+                    $this->refund_amount,
+                    \App\Services\BalanceService::TYPE_REFUND,
+                    [
+                        'dispute_id' => $this->id,
+                        'transaction_id' => $this->transaction_id,
+                        'admin_id' => $adminId,
+                        'comment' => $comment,
+                    ]
+                );
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error('ProductDispute refund: Failed to refund via BalanceService', [
+                    'dispute_id' => $this->id,
+                    'user_id' => $this->user->id,
+                    'refund_amount' => $this->refund_amount,
+                    'error' => $e->getMessage(),
+                ]);
+                throw $e;
+            }
 
             // ВАЖНО: Обрабатываем SupplierEarning только если товар от поставщика
             if ($this->supplier_id && $this->supplier) {

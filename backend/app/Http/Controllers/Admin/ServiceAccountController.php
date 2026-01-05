@@ -306,54 +306,79 @@ class ServiceAccountController extends Controller
 
     public function export(Request $request, ServiceAccount $serviceAccount)
     {
-        $allAccountsData = is_array($serviceAccount->accounts_data) ? $serviceAccount->accounts_data : [];
+        // ВАЖНО: Используем транзакцию с блокировкой для предотвращения race condition
+        // при одновременном экспорте и покупке товара
+        return \Illuminate\Support\Facades\DB::transaction(function () use ($request, $serviceAccount) {
+            // Блокируем товар для предотвращения race condition
+            $serviceAccount = ServiceAccount::lockForUpdate()->findOrFail($serviceAccount->id);
+            
+            $allAccountsData = is_array($serviceAccount->accounts_data) ? $serviceAccount->accounts_data : [];
 
-        if (empty($allAccountsData)) {
-            return redirect()->route('admin.service-accounts.index')
-                ->with('error', 'Нет товаров для выгрузки');
-        }
-
-        // Get current used count (same logic as purchase)
-        $usedCount = $serviceAccount->used ?? 0;
-
-        // If count is provided, use it; otherwise export all remaining
-        if ($request->has('count')) {
-            $count = (int) $request->input('count');
-            $availableCount = count($allAccountsData) - $usedCount;
-            $exportCount = max(1, min($count, $availableCount));
-        } else {
-            $exportCount = count($allAccountsData) - $usedCount;
-        }
-
-        // Get accounts to export starting from used index (same as purchase logic)
-        $assignedAccounts = [];
-        for ($i = 0; $i < $exportCount; $i++) {
-            if (isset($allAccountsData[$usedCount + $i])) {
-                $assignedAccounts[] = $allAccountsData[$usedCount + $i];
+            if (empty($allAccountsData)) {
+                return redirect()->route('admin.service-accounts.index')
+                    ->with('error', 'Нет товаров для выгрузки');
             }
-        }
 
-        $content = implode("\n", $assignedAccounts);
+            // Get current used count (same logic as purchase)
+            $usedCount = $serviceAccount->used ?? 0;
 
-        // Ensure UTF-8 encoding with BOM for Windows compatibility
-        $content = "\xEF\xBB\xBF" . $content;
+            // ВАЖНО: Проверяем доступное количество после блокировки
+            $availableCount = count($allAccountsData) - $usedCount;
+            if ($availableCount <= 0) {
+                return redirect()->route('admin.service-accounts.index')
+                    ->with('error', 'Нет доступных товаров для выгрузки');
+            }
 
-        $filename = 'product_' . $serviceAccount->id . '_' . date('Y-m-d') . '.txt';
+            // If count is provided, use it; otherwise export all remaining
+            if ($request->has('count')) {
+                $count = (int) $request->input('count');
+                $exportCount = max(1, min($count, $availableCount));
+            } else {
+                $exportCount = $availableCount;
+            }
 
-        // Increment used count (same as purchase logic - don't remove from array)
-        $serviceAccount->used = $usedCount + $exportCount;
-        $serviceAccount->save();
+            // Get accounts to export starting from used index (same as purchase logic)
+            $assignedAccounts = [];
+            for ($i = 0; $i < $exportCount; $i++) {
+                if (isset($allAccountsData[$usedCount + $i])) {
+                    $assignedAccounts[] = $allAccountsData[$usedCount + $i];
+                }
+            }
 
-        // Calculate remaining count
-        $remainingCount = count($allAccountsData) - $serviceAccount->used;
+            // ВАЖНО: Проверяем, что аккаунты были успешно назначены
+            if (empty($assignedAccounts)) {
+                \Illuminate\Support\Facades\Log::error('ServiceAccount export: No accounts assigned', [
+                    'service_account_id' => $serviceAccount->id,
+                    'export_count' => $exportCount,
+                    'used_count' => $usedCount,
+                    'accounts_data_count' => count($allAccountsData),
+                ]);
+                return redirect()->route('admin.service-accounts.index')
+                    ->with('error', 'Ошибка при выгрузке товаров. Попробуйте еще раз.');
+            }
 
-        // Store success message in session for redirect after download
-        session()->flash('export_success', 'Выгружено ' . $exportCount . ' товаров. Осталось: ' . $remainingCount);
+            $content = implode("\n", $assignedAccounts);
 
-        return response($content, 200, [
-            'Content-Type' => 'text/plain; charset=utf-8',
-            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
-        ]);
+            // Ensure UTF-8 encoding with BOM for Windows compatibility
+            $content = "\xEF\xBB\xBF" . $content;
+
+            $filename = 'product_' . $serviceAccount->id . '_' . date('Y-m-d') . '.txt';
+
+            // Increment used count (same as purchase logic - don't remove from array)
+            $serviceAccount->used = $usedCount + $exportCount;
+            $serviceAccount->save();
+
+            // Calculate remaining count
+            $remainingCount = count($allAccountsData) - $serviceAccount->used;
+
+            // Store success message in session for redirect after download
+            session()->flash('export_success', 'Выгружено ' . $exportCount . ' товаров. Осталось: ' . $remainingCount);
+
+            return response($content, 200, [
+                'Content-Type' => 'text/plain; charset=utf-8',
+                'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+            ]);
+        });
     }
 
     public function import(Request $request, ServiceAccount $serviceAccount)
@@ -373,14 +398,42 @@ class ServiceAccountController extends Controller
             }
         }
 
+        if (empty($newAccounts)) {
+            return redirect()->back()
+                ->with('error', 'Нет данных для импорта. Добавьте хотя бы одну строку.');
+        }
+
+        // ВАЖНО: Получаем существующие аккаунты и проверяем на дубликаты
         $existingAccounts = is_array($serviceAccount->accounts_data) ? $serviceAccount->accounts_data : [];
-        $combinedAccounts = array_merge($existingAccounts, $newAccounts);
+        
+        // Создаем массив для быстрой проверки дубликатов
+        $existingAccountsMap = array_flip($existingAccounts);
+        
+        // Фильтруем дубликаты из новых аккаунтов
+        $uniqueNewAccounts = [];
+        $duplicatesCount = 0;
+        foreach ($newAccounts as $account) {
+            if (!isset($existingAccountsMap[$account])) {
+                $uniqueNewAccounts[] = $account;
+                $existingAccountsMap[$account] = true; // Добавляем в карту для проверки дубликатов внутри новых
+            } else {
+                $duplicatesCount++;
+            }
+        }
+
+        // Объединяем существующие и уникальные новые аккаунты
+        $combinedAccounts = array_merge($existingAccounts, $uniqueNewAccounts);
 
         $serviceAccount->accounts_data = $combinedAccounts;
         $serviceAccount->save();
 
+        $message = 'Успешно загружено ' . count($uniqueNewAccounts) . ' строк в товар "' . $serviceAccount->title . '". Всего товаров: ' . count($combinedAccounts);
+        if ($duplicatesCount > 0) {
+            $message .= ' (пропущено дубликатов: ' . $duplicatesCount . ')';
+        }
+
         return redirect()->route('admin.service-accounts.index')
-            ->with('success', 'Успешно загружено ' . count($newAccounts) . ' строк в товар "' . $serviceAccount->title . '". Всего товаров: ' . count($combinedAccounts));
+            ->with('success', $message);
     }
 
     public function destroy(ServiceAccount $serviceAccount)
@@ -423,7 +476,7 @@ class ServiceAccountController extends Controller
             'meta_description_en' => ['nullable', 'string'],
             'meta_description_uk' => ['nullable', 'string'],
             'accounts_data' => ['nullable', 'string'],
-            'discount_percent' => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'discount_percent' => ['nullable', 'numeric', 'min:0', 'max:99'], // ВАЖНО: max:99 для соответствия логике в других местах
             'discount_start_date' => ['nullable', 'date'],
             'discount_end_date' => ['nullable', 'date', 'after_or_equal:discount_start_date'],
         ];

@@ -78,7 +78,7 @@ class DiscountController extends Controller
         }
 
         $validated = $request->validate([
-            'discount_percent' => ['required', 'numeric', 'min:0', 'max:99'],
+            'discount_percent' => ['required', 'numeric', 'min:1', 'max:99'], // ВАЖНО: min:1, так как 0% не имеет смысла
             'discount_start_date' => ['nullable', 'date'],
             'discount_end_date' => ['nullable', 'date', 'after_or_equal:discount_start_date'],
         ]);
