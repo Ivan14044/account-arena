@@ -222,8 +222,20 @@ class ServiceAccountController extends Controller
         unset($validationRules['accounts_data']);
         $validated = $request->validate($validationRules);
 
+        // ВАЖНО: Проверяем существование и валидность категории
+        if ($request->has('category_id') && $request->category_id) {
+            $category = \App\Models\Category::find($request->category_id);
+            if (!$category || $category->type !== \App\Models\Category::TYPE_PRODUCT) {
+                return back()->withErrors(['category_id' => 'Категория не найдена или неверного типа.'])->withInput();
+            }
+        }
+
         // Если выбрана подкатегория, используем её ID как category_id
         if ($request->has('subcategory_id') && !empty($request->input('subcategory_id'))) {
+            $subcategory = \App\Models\Category::find($request->input('subcategory_id'));
+            if (!$subcategory || $subcategory->type !== \App\Models\Category::TYPE_PRODUCT || !$subcategory->isSubcategory()) {
+                return back()->withErrors(['subcategory_id' => 'Подкатегория не найдена или неверного типа.'])->withInput();
+            }
             $validated['category_id'] = $request->input('subcategory_id');
         }
 

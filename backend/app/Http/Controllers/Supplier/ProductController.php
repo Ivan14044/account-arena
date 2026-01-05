@@ -29,14 +29,26 @@ class ProductController extends Controller
     {
         $validated = $request->validate($this->getRules());
         
-        if ($request->hasFile('image')) {
-            $path = $request->file('image')->store('products', 'public');
-            $validated['image_url'] = Storage::url($path);
+        // ВАЖНО: Проверяем существование и валидность категории
+        if ($request->has('category_id') && $request->category_id) {
+            $category = Category::find($request->category_id);
+            if (!$category || $category->type !== Category::TYPE_PRODUCT) {
+                return back()->withErrors(['category_id' => 'Категория не найдена или неверного типа.'])->withInput();
+            }
         }
 
         // Если выбрана подкатегория, используем её ID как category_id
         if ($request->has('subcategory_id') && !empty($request->input('subcategory_id'))) {
+            $subcategory = Category::find($request->input('subcategory_id'));
+            if (!$subcategory || $subcategory->type !== Category::TYPE_PRODUCT || !$subcategory->isSubcategory()) {
+                return back()->withErrors(['subcategory_id' => 'Подкатегория не найдена или неверного типа.'])->withInput();
+            }
             $validated['category_id'] = $request->input('subcategory_id');
+        }
+        
+        if ($request->hasFile('image')) {
+            $path = $request->file('image')->store('products', 'public');
+            $validated['image_url'] = Storage::url($path);
         }
         
         // Check if bulk accounts are provided
@@ -159,14 +171,26 @@ class ProductController extends Controller
         
         $validated = $request->validate($this->getRules($product->id));
         
-        if ($request->hasFile('image')) {
-            $path = $request->file('image')->store('products', 'public');
-            $validated['image_url'] = Storage::url($path);
+        // ВАЖНО: Проверяем существование и валидность категории
+        if ($request->has('category_id') && $request->category_id) {
+            $category = Category::find($request->category_id);
+            if (!$category || $category->type !== Category::TYPE_PRODUCT) {
+                return back()->withErrors(['category_id' => 'Категория не найдена или неверного типа.'])->withInput();
+            }
         }
 
         // Если выбрана подкатегория, используем её ID как category_id
         if ($request->has('subcategory_id') && !empty($request->input('subcategory_id'))) {
+            $subcategory = Category::find($request->input('subcategory_id'));
+            if (!$subcategory || $subcategory->type !== Category::TYPE_PRODUCT || !$subcategory->isSubcategory()) {
+                return back()->withErrors(['subcategory_id' => 'Подкатегория не найдена или неверного типа.'])->withInput();
+            }
             $validated['category_id'] = $request->input('subcategory_id');
+        }
+        
+        if ($request->hasFile('image')) {
+            $path = $request->file('image')->store('products', 'public');
+            $validated['image_url'] = Storage::url($path);
         }
         
         $validated['is_active'] = $request->boolean('is_active', false);

@@ -61,13 +61,38 @@ class ReleaseSupplierEarnings extends Command
 
                     $totalAmount = $earnings->sum('amount');
 
+                    // ВАЖНО: Проверяем, что сумма положительная
+                    if ($totalAmount <= 0) {
+                        $this->warn("Поставщик {$supplierId}: сумма для перевода равна нулю или отрицательна.");
+                        return;
+                    }
+
+                    // ВАЖНО: Блокируем earnings перед обновлением для предотвращения race condition
                     // Обновляем статус всех earnings на 'available'
                     $earnings->each(function ($earning) {
-                        $earning->update([
-                            'status' => 'available',
-                            'processed_at' => now(),
-                        ]);
+                        // Блокируем запись перед обновлением
+                        $lockedEarning = SupplierEarning::lockForUpdate()->find($earning->id);
+                        if ($lockedEarning && $lockedEarning->status === 'held') {
+                            $lockedEarning->update([
+                                'status' => 'available',
+                                'processed_at' => now(),
+                            ]);
+                        }
                     });
+
+                    // ВАЖНО: Проверяем, что баланс не станет отрицательным (хотя это маловероятно)
+                    $currentBalance = $supplier->supplier_balance ?? 0;
+                    $newBalance = $currentBalance + $totalAmount;
+                    
+                    if ($newBalance < 0) {
+                        Log::error('ReleaseSupplierEarnings: New balance would be negative', [
+                            'supplier_id' => $supplierId,
+                            'current_balance' => $currentBalance,
+                            'amount_to_add' => $totalAmount,
+                            'new_balance' => $newBalance,
+                        ]);
+                        throw new \Exception("Новый баланс будет отрицательным: {$newBalance}");
+                    }
 
                     // Увеличиваем баланс поставщика
                     $supplier->increment('supplier_balance', $totalAmount);

@@ -195,6 +195,18 @@ class WithdrawalController extends Controller
             return back()->with('error', 'Можно отменить только запросы со статусом "В обработке".');
         }
 
+        // ВАЖНО: Логируем отмену запроса
+        \Illuminate\Support\Facades\Log::info('Withdrawal request cancelled by supplier', [
+            'withdrawal_request_id' => $withdrawal->id,
+            'supplier_id' => $withdrawal->supplier_id,
+            'amount' => $withdrawal->amount,
+            'payment_method' => $withdrawal->payment_method,
+            'cancelled_at' => now()->toDateTimeString(),
+        ]);
+
+        // ВАЖНО: Используем статус 'rejected' для отмененных пользователем запросов
+        // Это позволяет отличать их от отклоненных администратором
+        // В будущем можно добавить отдельный статус 'cancelled' в миграцию
         $withdrawal->update(['status' => 'rejected']);
 
         return back()->with('success', 'Запрос на вывод средств отменен.');
@@ -222,6 +234,11 @@ class WithdrawalController extends Controller
 
                 $totalAmount = $readyToRelease->sum('amount');
 
+                // ВАЖНО: Проверяем, что сумма положительная
+                if ($totalAmount <= 0) {
+                    return; // Нет средств для перевода
+                }
+
                 // Обновляем статус на 'available'
                 $readyToRelease->each(function ($earning) {
                     $earning->update([
@@ -229,6 +246,20 @@ class WithdrawalController extends Controller
                         'processed_at' => now(),
                     ]);
                 });
+
+                // ВАЖНО: Проверяем, что баланс не станет отрицательным
+                $currentBalance = $supplier->supplier_balance ?? 0;
+                $newBalance = $currentBalance + $totalAmount;
+                
+                if ($newBalance < 0) {
+                    \Illuminate\Support\Facades\Log::error('Supplier balance sync: New balance would be negative', [
+                        'supplier_id' => $supplier->id,
+                        'current_balance' => $currentBalance,
+                        'amount_to_add' => $totalAmount,
+                        'new_balance' => $newBalance,
+                    ]);
+                    return; // Не обновляем баланс, если он станет отрицательным
+                }
 
                 // Увеличиваем баланс поставщика
                 $supplier->increment('supplier_balance', $totalAmount);

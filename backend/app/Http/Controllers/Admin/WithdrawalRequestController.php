@@ -62,12 +62,68 @@ class WithdrawalRequestController extends Controller
             return back()->with('error', 'Можно одобрить только запросы со статусом "В обработке".');
         }
 
-        $withdrawalRequest->update([
-            'status' => 'approved',
-            'processed_at' => now(),
-        ]);
+        // ВАЖНО: Синхронизируем баланс и проверяем доступность средств перед одобрением
+        // Это предотвращает одобрение запросов, для которых недостаточно средств
+        try {
+            $supplier = \App\Models\User::find($withdrawalRequest->supplier_id);
+            if (!$supplier) {
+                return back()->with('error', 'Поставщик не найден.');
+            }
 
-        return back()->with('success', 'Запрос на вывод средств одобрен.');
+            // Синхронизируем баланс (переводим held -> available -> supplier_balance)
+            $this->syncSupplierBalance($supplier);
+            $supplier->refresh();
+
+            // Вычисляем доступную сумму с учетом pending запросов
+            $availableAmount = \App\Models\SupplierEarning::where('supplier_id', $supplier->id)
+                ->where(function($q) {
+                    $q->where('status', 'available')
+                      ->orWhere(function($q2) {
+                          $q2->where('status', 'held')
+                             ->whereNotNull('available_at')
+                             ->where('available_at', '<=', now());
+                      });
+                })->sum('amount');
+
+            // Вычитаем сумму других pending запросов (кроме текущего)
+            $pendingWithdrawals = WithdrawalRequest::where('supplier_id', $supplier->id)
+                ->where('status', 'pending')
+                ->where('id', '!=', $withdrawalRequest->id)
+                ->sum('amount');
+            
+            $availableAmount = max(0, $availableAmount - $pendingWithdrawals);
+
+            if ($availableAmount < $withdrawalRequest->amount) {
+                \Illuminate\Support\Facades\Log::warning('Withdrawal request approval rejected: insufficient funds', [
+                    'withdrawal_request_id' => $withdrawalRequest->id,
+                    'supplier_id' => $supplier->id,
+                    'requested_amount' => $withdrawalRequest->amount,
+                    'available_amount' => $availableAmount,
+                ]);
+                return back()->with('error', 'Недостаточно средств для одобрения запроса. Доступно: ' . number_format($availableAmount, 2) . ' USD, запрошено: ' . number_format($withdrawalRequest->amount, 2) . ' USD');
+            }
+
+            $withdrawalRequest->update([
+                'status' => 'approved',
+                'processed_at' => now(),
+            ]);
+
+            \Illuminate\Support\Facades\Log::info('Withdrawal request approved', [
+                'withdrawal_request_id' => $withdrawalRequest->id,
+                'supplier_id' => $supplier->id,
+                'amount' => $withdrawalRequest->amount,
+                'available_amount' => $availableAmount,
+            ]);
+
+            return back()->with('success', 'Запрос на вывод средств одобрен.');
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Failed to approve withdrawal request', [
+                'withdrawal_request_id' => $withdrawalRequest->id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return back()->with('error', 'Ошибка при одобрении запроса: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -131,13 +187,15 @@ class WithdrawalRequestController extends Controller
                     ]);
                 } else {
                     // Если частично - создаем новую запись для остатка
+                    // ВАЖНО: available_at устанавливаем в null или now(), так как это новая запись
+                    // и она уже должна быть доступна (средства уже переведены в supplier_balance)
                     \App\Models\SupplierEarning::create([
                         'supplier_id' => $earning->supplier_id,
                         'purchase_id' => $earning->purchase_id,
                         'transaction_id' => $earning->transaction_id,
                         'amount' => $earning->amount - $amountToDeduct,
                         'status' => 'available',
-                        'available_at' => $earning->available_at,
+                        'available_at' => now(), // Устанавливаем текущее время, так как средства уже доступны
                     ]);
 
                     // Текущую запись помечаем как withdrawn
@@ -210,6 +268,11 @@ class WithdrawalRequestController extends Controller
 
             $totalAmount = $readyToRelease->sum('amount');
 
+            // ВАЖНО: Проверяем, что сумма положительная
+            if ($totalAmount <= 0) {
+                return; // Нет средств для перевода
+            }
+
             // Обновляем статус на 'available'
             $readyToRelease->each(function ($earning) {
                 $earning->update([
@@ -217,6 +280,20 @@ class WithdrawalRequestController extends Controller
                     'processed_at' => now(),
                 ]);
             });
+
+            // ВАЖНО: Проверяем, что баланс не станет отрицательным
+            $currentBalance = $supplier->supplier_balance ?? 0;
+            $newBalance = $currentBalance + $totalAmount;
+            
+            if ($newBalance < 0) {
+                \Illuminate\Support\Facades\Log::error('Supplier balance sync: New balance would be negative', [
+                    'supplier_id' => $supplier->id,
+                    'current_balance' => $currentBalance,
+                    'amount_to_add' => $totalAmount,
+                    'new_balance' => $newBalance,
+                ]);
+                return; // Не обновляем баланс, если он станет отрицательным
+            }
 
             // Увеличиваем баланс поставщика
             $supplier->increment('supplier_balance', $totalAmount);
