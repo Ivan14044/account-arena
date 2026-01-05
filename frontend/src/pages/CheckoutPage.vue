@@ -719,7 +719,8 @@ watch(isZeroTotalWithServices, val => {
 });
 
 const processMonoPayment = async () => {
-    loadingStore.start();
+    // Показываем сообщение о подготовке заказа
+    loadingStore.start(t('checkout.preparing_product'));
 
     try {
         // Проверяем, гость или авторизованный пользователь
@@ -744,6 +745,8 @@ const processMonoPayment = async () => {
 
             const { data } = await axios.post('/guest/mono/create-payment', payload);
             if (data.url) {
+                // Небольшая задержка для отображения сообщения перед перенаправлением
+                await new Promise(resolve => setTimeout(resolve, 500));
                 window.location.href = data.url;
             } else {
                 loadingStore.stop();
@@ -762,6 +765,8 @@ const processMonoPayment = async () => {
                 headers: { Authorization: `Bearer ${authStore.token}` }
             });
             if (data.url) {
+                // Небольшая задержка для отображения сообщения перед перенаправлением
+                await new Promise(resolve => setTimeout(resolve, 500));
                 window.location.href = data.url;
             } else {
                 loadingStore.stop();
@@ -778,7 +783,8 @@ const processMonoPayment = async () => {
 };
 
 const processCryptoPayment = async () => {
-    loadingStore.start();
+    // Показываем сообщение о подготовке заказа
+    loadingStore.start(t('checkout.preparing_product'));
 
     try {
         // Проверяем, гость или авторизованный пользователь
@@ -803,6 +809,8 @@ const processCryptoPayment = async () => {
 
             const { data } = await axios.post('/guest/cryptomus/create-payment', payload);
             if (data.url) {
+                // Небольшая задержка для отображения сообщения перед перенаправлением
+                await new Promise(resolve => setTimeout(resolve, 500));
                 window.location.href = data.url;
             } else {
                 loadingStore.stop();
@@ -821,6 +829,8 @@ const processCryptoPayment = async () => {
                 headers: { Authorization: `Bearer ${authStore.token}` }
             });
             if (data.url) {
+                // Небольшая задержка для отображения сообщения перед перенаправлением
+                await new Promise(resolve => setTimeout(resolve, 500));
                 window.location.href = data.url;
             } else {
                 loadingStore.stop();
@@ -854,7 +864,8 @@ const buyFree = async () => {
 };
 
 const processBalancePayment = async () => {
-    loadingStore.start();
+    // Показываем сообщение о подготовке заказа
+    loadingStore.start(t('checkout.preparing_product'));
     try {
         // Проверяем достаточно ли средств на балансе
         if (authStore.user && authStore.user.balance < finalTotal.value) {
@@ -876,9 +887,6 @@ const processBalancePayment = async () => {
         await axios.post('/cart', payload, {
             headers: { Authorization: `Bearer ${authStore.token}` }
         });
-
-        // Показываем сообщение о подготовке товара к выдаче
-        loadingStore.start(t('checkout.preparing_product'));
 
         // Небольшая задержка для отображения сообщения
         await new Promise(resolve => setTimeout(resolve, 500));
