@@ -46,7 +46,15 @@
 
             <!-- Загрузка -->
             <div v-if="loading" class="flex justify-center py-12">
-                <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                <div class="flex flex-col items-center">
+                    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
+                    <p class="text-lg font-medium text-gray-700 dark:text-gray-300">
+                        {{ isPreparingProduct ? loadingStore.message : $t('order_success.loading') }}
+                    </p>
+                    <p v-if="!isPreparingProduct" class="text-sm text-gray-500 dark:text-gray-500 mt-2">
+                        {{ $t('order_success.loading_hint') }}
+                    </p>
+                </div>
             </div>
 
             <!-- Список купленных товаров -->
@@ -331,15 +339,27 @@ import { useToast } from 'vue-toastification';
 import { useI18n } from 'vue-i18n';
 import axios from '@/bootstrap'; // Используем настроенный axios из bootstrap
 import { useProductTitle } from '@/composables/useProductTitle';
+import { useLoadingStore } from '@/stores/loading';
 
 const router = useRouter();
 const toast = useToast();
 const { t } = useI18n();
 const { getProductTitle } = useProductTitle();
+const loadingStore = useLoadingStore();
 
 const purchases = ref([]);
 const loading = ref(true);
 const expandedPurchases = ref(new Set()); // Отслеживаем раскрытые покупки
+
+// Проверяем, есть ли сообщение о подготовке товара
+const isPreparingProduct = computed(() => {
+    const msg = loadingStore.message;
+    return msg && (
+        msg.includes('Подготовка') || 
+        msg.includes('Preparing') ||
+        msg.includes('Підготовка')
+    );
+});
 
 // Вычисляемое свойство для покупок (убран фильтр времени)
 const recentPurchases = computed(() => {
@@ -388,6 +408,11 @@ const fetchPurchases = async () => {
     try {
         loading.value = true;
 
+        // Если нет сообщения о подготовке, показываем обычную загрузку
+        if (!isPreparingProduct.value) {
+            loadingStore.start(t('order_success.loading'));
+        }
+
         // ИСПРАВЛЕНИЕ: Используем authStore вместо прямого доступа к localStorage
         const { useAuthStore } = await import('@/stores/auth');
         const authStore = useAuthStore();
@@ -434,8 +459,14 @@ const fetchPurchases = async () => {
         toast.error(
             t('order_success.load_error') + ': ' + (error.response?.data?.message || error.message)
         );
+        // При ошибке скрываем прелоадер
+        loadingStore.stop();
     } finally {
         loading.value = false;
+        // Скрываем прелоадер только когда товар выдан (есть покупки)
+        if (purchases.value.length > 0) {
+            loadingStore.stop();
+        }
     }
 };
 

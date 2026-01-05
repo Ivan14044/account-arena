@@ -235,7 +235,18 @@ router.afterEach(async () => {
     setTimeout(() => {
         // Даём компоненту время отрендериться
         requestAnimationFrame(() => {
-            loadingStore.stop();
+            // Проверяем, есть ли сообщение о подготовке товара
+            const preparingMessage = loadingStore.message && (
+                loadingStore.message.includes('Подготовка') || 
+                loadingStore.message.includes('Preparing') ||
+                loadingStore.message.includes('Підготовка')
+            );
+            
+            // НЕ скрываем прелоадер, если есть сообщение о подготовке товара
+            // Это сообщение должно оставаться видимым до выдачи товара
+            if (!preparingMessage) {
+                loadingStore.stop();
+            }
         });
     }, 150);
 });

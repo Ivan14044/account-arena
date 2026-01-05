@@ -888,15 +888,14 @@ const processBalancePayment = async () => {
             headers: { Authorization: `Bearer ${authStore.token}` }
         });
 
-        // Небольшая задержка для отображения сообщения
-        await new Promise(resolve => setTimeout(resolve, 500));
-
         productCartStore.clearCart();
         await authStore.fetchUser();
         promo.clear();
         inputCode.value = '';
         toast.success(t('checkout.balance_success'));
-        // Перенаправляем на страницу успешного заказа
+        
+        // НЕ скрываем прелоадер! Переходим с видимым сообщением "Подготовка товара к выдаче"
+        // Прелоадер будет скрыт на OrderSuccessPage после загрузки данных
         await router.push('/order-success');
     } catch (error) {
         console.error('Balance payment error:', error);
@@ -904,9 +903,10 @@ const processBalancePayment = async () => {
             (error && (error as any).response?.data?.message) ||
             t('checkout.balance_payment_error');
         toast.error(errMsg as string);
-    } finally {
+        // Только при ошибке скрываем прелоадер
         loadingStore.stop();
     }
+    // УБРАН finally блок - прелоадер остается видимым до выдачи товара
 };
 
 async function onApply() {
