@@ -31,8 +31,8 @@
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <div class="d-flex gap-2">
-                            <button type="submit" class="btn btn-primary flex-fill">
+                        <div class="d-flex">
+                            <button type="submit" class="btn btn-primary flex-fill mr-2">
                                 <i class="fas fa-search"></i> <span class="d-none d-sm-inline">Поиск</span>
                             </button>
                             @if(request('search'))

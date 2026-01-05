@@ -106,11 +106,11 @@
                     <div class="col-md-3 col-12 mb-2">
                         <div class="form-group">
                             <label>&nbsp;</label>
-                            <div class="d-flex flex-column flex-sm-row gap-2">
-                                <button type="submit" class="btn btn-primary">
+                            <div class="d-flex flex-column flex-sm-row">
+                                <button type="submit" class="btn btn-primary mb-2 mb-sm-0 mr-sm-2">
                                     <i class="fas fa-search"></i> Применить
                                 </button>
-                                <a href="{{ route('supplier.disputes.index') }}" class="btn btn-secondary">
+                                <a href="{{ route('supplier.disputes.index') }}" class="btn btn-secondary mb-2 mb-sm-0">
                                     <i class="fas fa-redo"></i> Сбросить
                                 </a>
                             </div>

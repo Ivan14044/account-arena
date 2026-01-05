@@ -5,11 +5,11 @@
 @section('content_header')
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center">
         <h1 class="mb-2 mb-md-0">Мои товары</h1>
-        <div class="d-flex flex-column flex-sm-row gap-2 w-100 w-md-auto">
-            <a href="{{ route('supplier.dashboard') }}" class="btn btn-info">
+        <div class="d-flex flex-column flex-sm-row w-100 w-md-auto">
+            <a href="{{ route('supplier.dashboard') }}" class="btn btn-info mb-2 mb-sm-0 mr-sm-2">
                 <i class="fas fa-home"></i> Главная
             </a>
-            <a href="{{ route('supplier.logout') }}" class="btn btn-secondary">
+            <a href="{{ route('supplier.logout') }}" class="btn btn-secondary mb-2 mb-sm-0">
                 <i class="fas fa-sign-out-alt"></i> Выход
             </a>
         </div>
@@ -95,7 +95,7 @@
                                         </td>
                                         <td>
                                             <div class="btn-group-vertical btn-group-sm d-sm-inline-flex" role="group">
-                                                <a href="{{ route('supplier.products.edit', $product) }}" class="btn btn-warning mb-1 mb-sm-0">
+                                                <a href="{{ route('supplier.products.edit', $product) }}" class="btn btn-warning mb-2 mb-sm-0">
                                                     <i class="fas fa-edit"></i> <span class="d-sm-none">Редактировать</span>
                                                 </a>
                                                 @php
@@ -105,11 +105,11 @@
                                                     $available = max(0, $totalQty - $used);
                                                 @endphp
                                                 @if($available > 0)
-                                                    <a href="{{ route('supplier.products.export', $product) }}" class="btn btn-info mb-1 mb-sm-0" title="Экспорт аккаунтов">
+                                                    <a href="{{ route('supplier.products.export', $product) }}" class="btn btn-info mb-2 mb-sm-0" title="Экспорт аккаунтов">
                                                         <i class="fas fa-download"></i> <span class="d-sm-none">Экспорт</span>
                                                     </a>
                                                 @endif
-                                                <button class="btn btn-danger" data-toggle="modal" data-target="#deleteModal{{ $product->id }}">
+                                                <button class="btn btn-danger mb-2 mb-sm-0" data-toggle="modal" data-target="#deleteModal{{ $product->id }}">
                                                     <i class="fas fa-trash"></i> <span class="d-sm-none">Удалить</span>
                                                 </button>
                                             </div>

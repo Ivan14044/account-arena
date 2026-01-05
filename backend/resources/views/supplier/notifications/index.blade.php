@@ -5,16 +5,16 @@
 @section('content_header')
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center">
         <h1 class="mb-2 mb-md-0">Уведомления</h1>
-        <div class="d-flex flex-column flex-sm-row gap-2 w-100 w-md-auto">
+        <div class="d-flex flex-column flex-sm-row w-100 w-md-auto">
             @if($notifications->where('is_read', false)->count() > 0)
-            <form action="{{ route('supplier.notifications.mark-all-read') }}" method="POST" class="d-inline">
+            <form action="{{ route('supplier.notifications.mark-all-read') }}" method="POST" class="d-inline mb-2 mb-sm-0 mr-sm-2">
                 @csrf
                 <button type="submit" class="btn btn-primary">
                     <i class="fas fa-check-double"></i> Отметить все как прочитанные
                 </button>
             </form>
             @endif
-            <a href="{{ route('supplier.dashboard') }}" class="btn btn-secondary">
+            <a href="{{ route('supplier.dashboard') }}" class="btn btn-secondary mb-2 mb-sm-0">
                 <i class="fas fa-home"></i> Панель
             </a>
         </div>

@@ -8,6 +8,7 @@ use App\Services\EmailService;
 use App\Services\NotifierService;
 use App\Services\ProductPurchaseService;
 use App\Services\NotificationTemplateService;
+use App\Services\BalanceService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 
@@ -83,24 +84,22 @@ class CartController extends Controller
             // Списываем средства с баланса и создаем покупки одновременно
             DB::beginTransaction();
             try {
-                // Блокируем пользователя для обновления баланса
-                $user = \App\Models\User::lockForUpdate()->findOrFail($user->id);
-                $currentBalance = $user->balance ?? 0;
+                // ВАЖНО: Используем BalanceService для списания баланса
+                // Это гарантирует создание записей в BalanceTransaction и Transaction
+                $balanceService = app(BalanceService::class);
                 
-                // Повторная проверка баланса после блокировки
-                if ($currentBalance < $totalAmount) {
-                    DB::rollBack();
-                    return response()->json([
-                        'success' => false, 
-                        'message' => 'Insufficient balance. Your balance: ' . $currentBalance . ' USD, required: ' . $totalAmount . ' USD'
-                    ], 422);
-                }
+                // Списываем средства с баланса через BalanceService
+                $balanceTransaction = $balanceService->deduct(
+                    $user,
+                    $totalAmount,
+                    BalanceService::TYPE_PURCHASE,
+                    [
+                        'products_count' => count($productsData),
+                        'payment_method' => 'balance',
+                    ]
+                );
 
-                // Списываем средства с баланса
-                $user->balance = $currentBalance - $totalAmount;
-                $user->save();
-
-                // Создаем покупки товаров и транзакции
+                // Создаем покупки товаров
                 $purchases = [];
                 if (!empty($productsData)) {
                     $purchases = $purchaseService->createMultiplePurchases($productsData, $user->id, null, 'balance');
@@ -133,15 +132,6 @@ class CartController extends Controller
                         'message' => 'Some products could not be purchased. Please try again or contact support.'
                     ], 500);
                 }
-
-                // Создаем транзакцию списания с баланса
-                Transaction::create([
-                    'user_id' => $user->id,
-                    'amount' => -$totalAmount, // Отрицательная сумма = списание
-                    'currency' => Option::get('currency'),
-                    'payment_method' => 'balance_deduction',
-                    'status' => 'completed',
-                ]);
 
                 // Коммитим транзакцию - товар выдан, баланс списан
                 DB::commit();

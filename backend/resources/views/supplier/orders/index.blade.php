@@ -5,11 +5,11 @@
 @section('content_header')
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center">
         <h1 class="mb-2 mb-md-0">Мои заказы</h1>
-        <div class="d-flex flex-column flex-sm-row gap-2 w-100 w-md-auto">
-            <a href="{{ route('supplier.dashboard') }}" class="btn btn-secondary">
+        <div class="d-flex flex-column flex-sm-row w-100 w-md-auto">
+            <a href="{{ route('supplier.dashboard') }}" class="btn btn-secondary mb-2 mb-sm-0 mr-sm-2">
                 <i class="fas fa-home"></i> Панель
             </a>
-            <a href="{{ route('supplier.logout') }}" class="btn btn-secondary">
+            <a href="{{ route('supplier.logout') }}" class="btn btn-secondary mb-2 mb-sm-0">
                 <i class="fas fa-sign-out-alt"></i> Выход
             </a>
         </div>

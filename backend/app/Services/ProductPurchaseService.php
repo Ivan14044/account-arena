@@ -214,7 +214,8 @@ public function createProductPurchase(
     try {
         $supplierId = $product->supplier_id ?? null;
         if ($supplierId) {
-            $supplier = User::find($supplierId);
+            // ВАЖНО: Блокируем поставщика для предотвращения race condition при создании earnings
+            $supplier = User::lockForUpdate()->find($supplierId);
             if ($supplier && $supplier->is_supplier) {
                 // Комиссия платформы в процентах (если null — по умолчанию 0)
                 $supplierCommission = $supplier->supplier_commission !== null

@@ -5,8 +5,8 @@
 @section('content_header')
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center">
         <h1 class="mb-2 mb-md-0">Создать запрос на вывод</h1>
-        <div class="d-flex flex-column flex-sm-row gap-2 w-100 w-md-auto">
-            <a href="{{ route('supplier.withdrawals.index') }}" class="btn btn-secondary">
+        <div class="d-flex flex-column flex-sm-row w-100 w-md-auto">
+            <a href="{{ route('supplier.withdrawals.index') }}" class="btn btn-secondary mb-2 mb-sm-0">
                 <i class="fas fa-arrow-left"></i> Назад
             </a>
         </div>
@@ -120,11 +120,11 @@
                     </a>
                 </div>
 
-                <div class="d-flex flex-column flex-sm-row gap-2">
-                    <button type="submit" class="btn btn-success" @if($available <= 0) disabled title="Нет доступных средств" @endif>
+                <div class="d-flex flex-column flex-sm-row">
+                    <button type="submit" class="btn btn-success mb-2 mb-sm-0 mr-sm-2" @if($available <= 0) disabled title="Нет доступных средств" @endif>
                         <i class="fas fa-check"></i> Создать запрос
                     </button>
-                    <a href="{{ route('supplier.withdrawals.index') }}" class="btn btn-secondary">
+                    <a href="{{ route('supplier.withdrawals.index') }}" class="btn btn-secondary mb-2 mb-sm-0">
                         <i class="fas fa-times"></i> Отмена
                     </a>
                 </div>

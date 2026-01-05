@@ -127,7 +127,7 @@
         <div class="card-body">
             @if($withdrawalRequest->status == 'pending')
                 <div class="row">
-                    <div class="col-md-6">
+                    <div class="col-md-6 mb-2 mb-md-0">
                         <form action="{{ route('admin.withdrawal-requests.approve', $withdrawalRequest) }}" method="POST">
                             @csrf
                             <button type="submit" class="btn btn-success btn-lg btn-block" 
@@ -144,7 +144,7 @@
                 </div>
             @elseif($withdrawalRequest->status == 'approved')
                 <div class="row">
-                    <div class="col-md-6">
+                    <div class="col-md-6 mb-2 mb-md-0">
                         <button type="button" class="btn btn-success btn-lg btn-block" data-toggle="modal" data-target="#paidModal">
                             <i class="fas fa-money-bill-wave"></i> Отметить как оплачено
                         </button>

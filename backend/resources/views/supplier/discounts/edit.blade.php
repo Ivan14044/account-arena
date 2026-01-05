@@ -5,8 +5,8 @@
 @section('content_header')
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center">
         <h1 class="mb-2 mb-md-0">Редактировать скидку</h1>
-        <div class="d-flex flex-column flex-sm-row gap-2 w-100 w-md-auto">
-            <a href="{{ route('supplier.discounts.index') }}" class="btn btn-secondary">
+        <div class="d-flex flex-column flex-sm-row w-100 w-md-auto">
+            <a href="{{ route('supplier.discounts.index') }}" class="btn btn-secondary mb-2 mb-sm-0">
                 <i class="fas fa-arrow-left"></i> Назад
             </a>
         </div>
@@ -70,11 +70,11 @@
 
                 <hr>
 
-                <div class="d-flex flex-column flex-sm-row gap-2">
-                    <button type="submit" class="btn btn-primary">
+                <div class="d-flex flex-column flex-sm-row">
+                    <button type="submit" class="btn btn-primary mb-2 mb-sm-0 mr-sm-2">
                         <i class="fas fa-save"></i> Сохранить изменения
                     </button>
-                    <a href="{{ route('supplier.discounts.index') }}" class="btn btn-secondary">
+                    <a href="{{ route('supplier.discounts.index') }}" class="btn btn-secondary mb-2 mb-sm-0">
                         <i class="fas fa-times"></i> Отмена
                     </a>
                 </div>

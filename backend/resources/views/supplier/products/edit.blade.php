@@ -5,14 +5,14 @@
 @section('content_header')
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center">
         <h1 class="mb-2 mb-md-0">Редактировать товар</h1>
-        <div class="d-flex flex-column flex-sm-row gap-2 w-100 w-md-auto">
-            <a href="{{ route('supplier.products.index') }}" class="btn btn-info">
+        <div class="d-flex flex-column flex-sm-row w-100 w-md-auto">
+            <a href="{{ route('supplier.products.index') }}" class="btn btn-info mb-2 mb-sm-0 mr-sm-2">
                 <i class="fas fa-list"></i> Мои товары
             </a>
-            <a href="{{ route('supplier.dashboard') }}" class="btn btn-info">
+            <a href="{{ route('supplier.dashboard') }}" class="btn btn-info mb-2 mb-sm-0 mr-sm-2">
                 <i class="fas fa-home"></i> Главная
             </a>
-            <a href="{{ route('supplier.logout') }}" class="btn btn-secondary">
+            <a href="{{ route('supplier.logout') }}" class="btn btn-secondary mb-2 mb-sm-0">
                 <i class="fas fa-sign-out-alt"></i> Выход
             </a>
         </div>
@@ -240,22 +240,22 @@
                             <small class="form-text text-muted">Введите дополнительные аккаунты, которые будут добавлены к существующим</small>
                         </div>
 
-                        <div class="d-flex flex-column flex-sm-row justify-content-between gap-2 mb-3">
-                            <button type="button" class="btn btn-warning btn-sm" onclick="removeDuplicates()">
+                        <div class="d-flex flex-column flex-sm-row justify-content-between mb-3">
+                            <button type="button" class="btn btn-warning btn-sm mb-2 mb-sm-0" onclick="removeDuplicates()">
                                 <i class="fas fa-trash-alt"></i> Удалить дубликаты
                             </button>
-                            <button type="button" class="btn btn-light btn-sm" onclick="shuffleLines()">
+                            <button type="button" class="btn btn-light btn-sm mb-2 mb-sm-0" onclick="shuffleLines()">
                                 <i class="fas fa-random"></i> Перемешать
                             </button>
                         </div>
 
                         <hr>
 
-                        <div class="d-flex flex-column flex-sm-row gap-2">
-                            <button type="submit" class="btn btn-primary">
+                        <div class="d-flex flex-column flex-sm-row">
+                            <button type="submit" class="btn btn-primary mb-2 mb-sm-0 mr-sm-2">
                                 <i class="fas fa-save"></i> Сохранить изменения
                             </button>
-                            <a href="{{ route('supplier.products.index') }}" class="btn btn-secondary">
+                            <a href="{{ route('supplier.products.index') }}" class="btn btn-secondary mb-2 mb-sm-0">
                                 <i class="fas fa-times"></i> Отмена
                             </a>
                         </div>

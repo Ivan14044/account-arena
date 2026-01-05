@@ -447,7 +447,7 @@ class CryptomusController extends Controller
         return match ($metadata['payment_type']) {
             'topup' => $this->handleTopUpWebhook($data, $metadata),
             'guest' => $this->handleGuestWebhook($data, $metadata),
-            'user' => $this->handleUserPurchaseWebhook($data, $metadata),
+            'user' => $this->handleUserPurchaseWebhook($data, $metadata, $transaction),
             default => $this->handleUnknownPaymentType($orderId),
         };
     }
@@ -532,7 +532,7 @@ class CryptomusController extends Controller
     /**
      * Handle user purchase webhook
      */
-    private function handleUserPurchaseWebhook(array $data, array $metadata): JsonResponse
+    private function handleUserPurchaseWebhook(array $data, array $metadata, Transaction $transaction): JsonResponse
     {
         $orderId = $data['order_id'] ?? null;
         $userId = $metadata['user_id'] ?? null;

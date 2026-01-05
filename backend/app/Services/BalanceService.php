@@ -80,17 +80,35 @@ class BalanceService
         
         // Выполняем операцию в транзакции базы данных
         return DB::transaction(function () use ($user, $amount, $type, $metadata) {
+            // ВАЖНО: Блокируем пользователя для предотвращения race condition
+            $lockedUser = User::lockForUpdate()->findOrFail($user->id);
+            
             // Сохраняем старый баланс
-            $oldBalance = $user->balance ?? 0;
+            $oldBalance = $lockedUser->balance ?? 0;
             
             // Пополняем баланс
             $newBalance = $oldBalance + $amount;
+            
+            // ВАЖНО: Проверяем, что баланс не стал отрицательным (защита от ошибок)
+            if ($newBalance < 0) {
+                Log::error('Попытка пополнения приведет к отрицательному балансу', [
+                    'user_id' => $lockedUser->id,
+                    'old_balance' => $oldBalance,
+                    'amount' => $amount,
+                    'new_balance' => $newBalance,
+                ]);
+                throw new \Exception('Ошибка: баланс не может быть отрицательным');
+            }
+            
+            $lockedUser->balance = $newBalance;
+            $lockedUser->save();
+            
+            // Обновляем объект пользователя для возврата
             $user->balance = $newBalance;
-            $user->save();
             
             // Создаем запись о транзакции баланса
             $balanceTransaction = BalanceTransaction::create([
-                'user_id' => $user->id,
+                'user_id' => $lockedUser->id,
                 'type' => $type,
                 'amount' => $amount,
                 'balance_before' => $oldBalance,
@@ -102,7 +120,7 @@ class BalanceService
             
             // Также создаем запись в старой таблице transactions для совместимости
             Transaction::create([
-                'user_id' => $user->id,
+                'user_id' => $lockedUser->id,
                 'amount' => $amount,
                 'currency' => \App\Models\Option::get('currency', 'USD'),
                 'payment_method' => $this->mapTypeToPaymentMethod($type),
@@ -115,7 +133,7 @@ class BalanceService
             ]);
             
             Log::info('Баланс успешно пополнен', [
-                'user_id' => $user->id,
+                'user_id' => $lockedUser->id,
                 'amount' => $amount,
                 'type' => $type,
                 'old_balance' => $oldBalance,
@@ -147,30 +165,47 @@ class BalanceService
         // Округляем до 2 знаков после запятой
         $amount = round($amount, 2);
         
-        // Проверяем достаточность средств
-        $currentBalance = $user->balance ?? 0;
-        if ($currentBalance < $amount) {
-            Log::error('Недостаточно средств для списания', [
-                'user_id' => $user->id,
-                'amount' => $amount,
-                'current_balance' => $currentBalance,
-            ]);
-            throw new \Exception('Недостаточно средств на балансе');
-        }
-        
         // Выполняем операцию в транзакции базы данных
         return DB::transaction(function () use ($user, $amount, $type, $metadata) {
+            // ВАЖНО: Блокируем пользователя для предотвращения race condition
+            $lockedUser = User::lockForUpdate()->findOrFail($user->id);
+            
             // Сохраняем старый баланс
-            $oldBalance = $user->balance ?? 0;
+            $oldBalance = $lockedUser->balance ?? 0;
+            
+            // ВАЖНО: Проверяем достаточность средств ВНУТРИ транзакции после блокировки
+            if ($oldBalance < $amount) {
+                Log::error('Недостаточно средств для списания', [
+                    'user_id' => $lockedUser->id,
+                    'amount' => $amount,
+                    'current_balance' => $oldBalance,
+                ]);
+                throw new \Exception('Недостаточно средств на балансе');
+            }
             
             // Списываем средства
             $newBalance = $oldBalance - $amount;
+            
+            // ВАЖНО: Проверяем, что баланс не стал отрицательным (защита от ошибок)
+            if ($newBalance < 0) {
+                Log::error('Попытка списания приведет к отрицательному балансу', [
+                    'user_id' => $lockedUser->id,
+                    'old_balance' => $oldBalance,
+                    'amount' => $amount,
+                    'new_balance' => $newBalance,
+                ]);
+                throw new \Exception('Ошибка: баланс не может быть отрицательным');
+            }
+            
+            $lockedUser->balance = $newBalance;
+            $lockedUser->save();
+            
+            // Обновляем объект пользователя для возврата
             $user->balance = $newBalance;
-            $user->save();
             
             // Создаем запись о транзакции баланса
             $balanceTransaction = BalanceTransaction::create([
-                'user_id' => $user->id,
+                'user_id' => $lockedUser->id,
                 'type' => $type,
                 'amount' => -$amount, // Отрицательное значение для списания
                 'balance_before' => $oldBalance,
@@ -182,7 +217,7 @@ class BalanceService
             
             // Также создаем запись в старой таблице transactions для совместимости
             Transaction::create([
-                'user_id' => $user->id,
+                'user_id' => $lockedUser->id,
                 'amount' => $amount,
                 'currency' => \App\Models\Option::get('currency', 'USD'),
                 'payment_method' => $this->mapTypeToPaymentMethod($type),
@@ -195,7 +230,7 @@ class BalanceService
             ]);
             
             Log::info('Средства успешно списаны с баланса', [
-                'user_id' => $user->id,
+                'user_id' => $lockedUser->id,
                 'amount' => $amount,
                 'type' => $type,
                 'old_balance' => $oldBalance,
