@@ -166,6 +166,12 @@ public function update(Request $request, User $user)
 
             case 'set':
                 // Установка нового баланса
+                // ВАЖНО: Запрещаем установку отрицательного баланса
+                if ($amount < 0) {
+                    return redirect()
+                        ->route('admin.users.edit', $user)
+                        ->with('error', "Баланс не может быть отрицательным. Минимальное значение: 0 USD");
+                }
                 $newBalance = $amount;
                 $operationText = 'установлен в';
                 $paymentMethod = 'admin_balance_adjustment';

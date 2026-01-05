@@ -149,8 +149,22 @@ class ServiceAccount extends Model
     public function getAvailableStock()
     {
         $accountsData = $this->accounts_data ?? [];
-        $totalQty = is_array($accountsData) ? count($accountsData) : 0;
-        $used = $this->used ?? 0;
+        
+        // ВАЖНО: Проверяем, что accounts_data является массивом
+        if (!is_array($accountsData)) {
+            // Если это строка (JSON), пытаемся декодировать
+            if (is_string($accountsData) && !empty($accountsData)) {
+                $decoded = json_decode($accountsData, true);
+                $accountsData = is_array($decoded) ? $decoded : [];
+            } else {
+                $accountsData = [];
+            }
+        }
+        
+        $totalQty = count($accountsData);
+        $used = (int)($this->used ?? 0);
+        
+        // Гарантируем, что результат не отрицательный
         return max(0, $totalQty - $used);
     }
 

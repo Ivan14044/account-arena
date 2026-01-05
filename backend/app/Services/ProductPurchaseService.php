@@ -127,6 +127,27 @@ public function createProductPurchase(
         }
     }
 
+    // ВАЖНО: Проверяем, что аккаунты были успешно назначены
+    if (empty($assignedAccounts)) {
+        Log::error('ProductPurchaseService: No accounts assigned', [
+            'product_id' => $product->id,
+            'quantity' => $quantity,
+            'used_count' => $usedCount,
+            'accounts_data_count' => count($accountsData),
+        ]);
+        throw new \Exception("Failed to assign accounts. Product may be out of stock. Requested: {$quantity}, available: " . (count($accountsData) - $usedCount));
+    }
+
+    // ВАЖНО: Проверяем, что количество назначенных аккаунтов соответствует запрошенному
+    if (count($assignedAccounts) !== $quantity) {
+        Log::error('ProductPurchaseService: Mismatch in assigned accounts count', [
+            'product_id' => $product->id,
+            'requested_quantity' => $quantity,
+            'assigned_count' => count($assignedAccounts),
+        ]);
+        throw new \Exception("Failed to assign all requested accounts. Requested: {$quantity}, assigned: " . count($assignedAccounts));
+    }
+
     // Увеличиваем счетчик использованных
     $product->used = $usedCount + $quantity;
     $product->save();
@@ -269,6 +290,19 @@ public function createProductPurchase(
                         'product_id' => $productId,
                     ]);
                     throw new \Exception("Product not found: {$productId}");
+                }
+                
+                // ВАЖНО: Проверяем наличие товара после блокировки (race condition protection)
+                $available = $product->getAvailableStock();
+                if ($available < $item['quantity']) {
+                    Log::error('ProductPurchaseService: Insufficient stock after lock', [
+                        'product_id' => $productId,
+                        'requested_quantity' => $item['quantity'],
+                        'available_stock' => $available,
+                        'user_id' => $userId,
+                        'guest_email' => $guestEmail,
+                    ]);
+                    throw new \Exception("Insufficient stock for product {$productId}. Available: {$available}, requested: {$item['quantity']}");
                 }
                 
                 // Обновляем объект товара в массиве

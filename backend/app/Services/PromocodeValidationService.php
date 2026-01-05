@@ -49,6 +49,8 @@ class PromocodeValidationService
         }
 
         // Per-user limit check if provided
+        // ПРИМЕЧАНИЕ: Финальная проверка per_user_limit выполняется при записи использования
+        // с блокировкой (lockForUpdate) в контроллерах для предотвращения race condition
         if ($userId && (int)($promocode->per_user_limit ?? 0) > 0) {
             $usedCount = \DB::table('promocode_usages')
                 ->where('promocode_id', $promocode->id)
@@ -62,6 +64,10 @@ class PromocodeValidationService
                 ];
             }
         }
+        
+        // ПРИМЕЧАНИЕ: Для гостей (userId = null) per_user_limit не проверяется
+        // Это может позволить гостю использовать промокод несколько раз
+        // Если требуется ограничение для гостей, нужно добавить проверку по email или IP
 
         $payload = [
             'ok' => true,

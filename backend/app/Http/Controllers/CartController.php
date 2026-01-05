@@ -97,6 +97,34 @@ class CartController extends Controller
                     $purchases = $purchaseService->createMultiplePurchases($productsData, $user->id, null, 'balance');
                 }
 
+                // ВАЖНО: Проверяем, что покупки были успешно созданы
+                if (empty($purchases)) {
+                    DB::rollBack();
+                    \Log::error('Balance payment: No purchases created after balance deduction', [
+                        'user_id' => $user->id,
+                        'total_amount' => $totalAmount,
+                        'products_count' => count($productsData),
+                    ]);
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Failed to create purchases. Please try again or contact support.'
+                    ], 500);
+                }
+
+                // Проверяем, что количество созданных покупок соответствует количеству товаров
+                if (count($purchases) !== count($productsData)) {
+                    DB::rollBack();
+                    \Log::error('Balance payment: Mismatch in purchases count', [
+                        'user_id' => $user->id,
+                        'expected_count' => count($productsData),
+                        'created_count' => count($purchases),
+                    ]);
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Some products could not be purchased. Please try again or contact support.'
+                    ], 500);
+                }
+
                 // Создаем транзакцию списания с баланса
                 Transaction::create([
                     'user_id' => $user->id,
