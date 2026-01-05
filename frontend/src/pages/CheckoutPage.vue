@@ -623,7 +623,11 @@ onMounted(() => {
         productCartStore.clearCart();
         promo.clear();
 
-        router.replace({ path: '/' }).then(() => {
+        // Показываем сообщение о подготовке товара
+        loadingStore.start(t('checkout.preparing_product'));
+        
+        // Перенаправляем на страницу успешного заказа
+        router.replace({ path: '/order-success' }).then(() => {
             toast.success(t('checkout.success'));
         });
     }

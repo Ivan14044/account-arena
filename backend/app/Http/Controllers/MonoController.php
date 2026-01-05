@@ -222,7 +222,7 @@ class MonoController extends Controller
             amount: $totalAmount,
             webhookUrl: config('app.url') . '/api/mono/webhook',
             options: [
-                'successUrl' => config('app.url') . '/checkout?success=true',
+                'successUrl' => config('app.url') . '/order-success',
                 'failUrl' => config('app.url') . '/checkout?error=payment_failed',
             ]
         );
@@ -332,7 +332,7 @@ class MonoController extends Controller
             amount: $totalAmount,
             webhookUrl: config('app.url') . '/api/mono/webhook',
             options: [
-                'successUrl' => config('app.url') . '/checkout?success=true',
+                'successUrl' => config('app.url') . '/order-success',
                 'failUrl' => config('app.url') . '/checkout?error=payment_failed',
             ]
         );

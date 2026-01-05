@@ -109,7 +109,7 @@ class CryptomusController extends Controller
                 '',
                 config('app.url') . '/checkout',
                 config('app.url') . '/api/cryptomus/webhook',
-                config('app.url') . '/checkout?success=true',
+                config('app.url') . '/order-success',
             );
 
             if ($response) {
@@ -229,7 +229,7 @@ class CryptomusController extends Controller
                 '',
                 config('app.url') . '/checkout',
                 config('app.url') . '/api/cryptomus/webhook',
-                config('app.url') . '/checkout?success=true',
+                config('app.url') . '/order-success',
             );
 
             if ($response) {
