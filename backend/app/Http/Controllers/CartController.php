@@ -143,39 +143,28 @@ class CartController extends Controller
 
             // ВАЖНО: Возвращаем ответ пользователю СРАЗУ после создания покупки
             // Уведомления отправляем в фоне, чтобы не блокировать ответ
-            $response = \App\Http\Responses\ApiResponse::success(['message' => 'Payment completed successfully']);
+            \Log::info('Balance payment completed', [
+                'user_id' => $user->id,
+                'user_email' => $user->email,
+                'total_amount' => $totalAmount,
+                'old_balance' => $user->balance + $totalAmount,
+                'new_balance' => $user->balance,
+                'products_count' => count($productsData),
+            ]);
 
-            // Отправляем уведомления в фоне (не блокируем ответ)
-            try {
-                \Log::info('Balance payment completed', [
-                    'user_id' => $user->id,
-                    'user_email' => $user->email,
-                    'total_amount' => $totalAmount,
-                    'old_balance' => $user->balance + $totalAmount,
-                    'new_balance' => $user->balance,
-                    'products_count' => count($productsData),
-                ]);
-
-                // Email подтверждение покупки (асинхронно через queue)
-                EmailService::send('product_purchase_confirmation', $user->id, [
-                    'products_count' => count($productsData),
-                    'total_amount' => number_format($totalAmount, 2, '.', '') . ' ' . strtoupper(Option::get('currency')),
-                ]);
-
-                // Отправляем общее уведомление об оплате с баланса (асинхронно через queue)
-                EmailService::send('payment_confirmation', $user->id, [
-                    'amount' => number_format($totalAmount, 2, '.', '') . ' ' . strtoupper(Option::get('currency'))
-                ]);
-
-                // Отправляем уведомление пользователю о покупке (быстро, только запись в БД)
-                if (!empty($purchases) && isset($purchases[0]) && $purchases[0]->order_number) {
+            // Отправляем быстрые уведомления (только запись в БД, не блокирует)
+            if (!empty($purchases) && isset($purchases[0]) && $purchases[0]->order_number) {
+                try {
                     $notificationService = app(NotificationTemplateService::class);
                     $notificationService->sendToUser($user, 'purchase', [
                         'order_number' => $purchases[0]->order_number,
                     ]);
+                } catch (\Throwable $e) {
+                    \Log::error('Error sending user notification', ['error' => $e->getMessage()]);
                 }
+            }
 
-                // Уведомление админу о новом заказе (быстро, только запись в БД)
+            try {
                 NotifierService::sendFromTemplate(
                     'product_purchase',
                     'admin_product_purchase',
@@ -188,15 +177,35 @@ class CartController extends Controller
                     ]
                 );
             } catch (\Throwable $e) {
-                // Логируем ошибку, но не блокируем ответ пользователю
-                \Log::error('Error sending notifications after balance payment', [
-                    'user_id' => $user->id,
-                    'error' => $e->getMessage(),
-                    'trace' => $e->getTraceAsString(),
-                ]);
+                \Log::error('Error sending admin notification', ['error' => $e->getMessage()]);
             }
 
-            return $response;
+            // ВАЖНО: Email отправляем ПОСЛЕ ответа клиенту через register_shutdown_function
+            // Это гарантирует, что ответ будет отправлен сразу, а email в фоне
+            $emailParams = [
+                'user_id' => $user->id,
+                'products_count' => count($productsData),
+                'total_amount' => number_format($totalAmount, 2, '.', '') . ' ' . strtoupper(Option::get('currency')),
+            ];
+            
+            register_shutdown_function(function () use ($emailParams) {
+                try {
+                    EmailService::send('product_purchase_confirmation', $emailParams['user_id'], [
+                        'products_count' => $emailParams['products_count'],
+                        'total_amount' => $emailParams['total_amount'],
+                    ]);
+                    EmailService::send('payment_confirmation', $emailParams['user_id'], [
+                        'amount' => $emailParams['total_amount']
+                    ]);
+                } catch (\Throwable $e) {
+                    \Log::error('Error sending email after balance payment', [
+                        'user_id' => $emailParams['user_id'],
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+            });
+
+            return \App\Http\Responses\ApiResponse::success(['message' => 'Payment completed successfully']);
         }
 
         // Для других методов оплаты возвращаем ошибку
