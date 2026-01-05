@@ -97,7 +97,7 @@ class ServiceAccountController extends Controller
         $request->validate([
             'bulk_accounts' => 'required|string',
             'title' => 'required|string|max:255',
-            'price' => 'required|numeric|min:0',
+            'price' => 'required|numeric|min:0.01', // ВАЖНО: Минимальная цена 0.01 USD
             'description' => 'nullable|string',
             'is_active' => 'required|boolean',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
