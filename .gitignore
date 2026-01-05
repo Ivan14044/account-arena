@@ -46,6 +46,8 @@ backend/database/*.sqlite
 *.cache
 .phpunit.cache/
 .phpunit.result.cache
+backend/bootstrap/cache/*
+!backend/bootstrap/cache/.gitignore
 
 # Laravel
 backend/homestead.json
