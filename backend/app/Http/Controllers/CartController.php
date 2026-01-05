@@ -70,14 +70,29 @@ class CartController extends Controller
                 ], 422);
             }
 
-            // Списываем средства с баланса
-            $user->balance = $currentBalance - $totalAmount;
-            $user->save();
+            // ВАЖНО: Все операции выполняем в одной транзакции для атомарности
+            // Списываем средства с баланса и создаем покупки одновременно
+            DB::beginTransaction();
+            try {
+                // Блокируем пользователя для обновления баланса
+                $user = \App\Models\User::lockForUpdate()->findOrFail($user->id);
+                $currentBalance = $user->balance ?? 0;
+                
+                // Повторная проверка баланса после блокировки
+                if ($currentBalance < $totalAmount) {
+                    DB::rollBack();
+                    return response()->json([
+                        'success' => false, 
+                        'message' => 'Insufficient balance. Your balance: ' . $currentBalance . ' USD, required: ' . $totalAmount . ' USD'
+                    ], 422);
+                }
 
-            // Создаем покупки товаров и транзакции
-            $purchases = [];
-            DB::transaction(function () use ($productsData, $user, $totalAmount, $purchaseService, &$purchases) {
-                // Обработка товаров используя сервис
+                // Списываем средства с баланса
+                $user->balance = $currentBalance - $totalAmount;
+                $user->save();
+
+                // Создаем покупки товаров и транзакции
+                $purchases = [];
                 if (!empty($productsData)) {
                     $purchases = $purchaseService->createMultiplePurchases($productsData, $user->id, null, 'balance');
                 }
@@ -90,7 +105,22 @@ class CartController extends Controller
                     'payment_method' => 'balance_deduction',
                     'status' => 'completed',
                 ]);
-            });
+
+                // Коммитим транзакцию - товар выдан, баланс списан
+                DB::commit();
+            } catch (\Throwable $e) {
+                // Откатываем транзакцию при ошибке
+                DB::rollBack();
+                \Log::error('Balance payment failed', [
+                    'user_id' => $user->id,
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString(),
+                ]);
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Error processing payment: ' . $e->getMessage()
+                ], 500);
+            }
 
             // Записываем использование промокода если применялся
             if ($promoData) {
@@ -111,48 +141,62 @@ class CartController extends Controller
                 });
             }
 
-            \Log::info('Balance payment completed', [
-                'user_id' => $user->id,
-                'user_email' => $user->email,
-                'total_amount' => $totalAmount,
-                'old_balance' => $user->balance + $totalAmount,
-                'new_balance' => $user->balance,
-                'products_count' => count($productsData),
-            ]);
+            // ВАЖНО: Возвращаем ответ пользователю СРАЗУ после создания покупки
+            // Уведомления отправляем в фоне, чтобы не блокировать ответ
+            $response = \App\Http\Responses\ApiResponse::success(['message' => 'Payment completed successfully']);
 
-            // Email подтверждение покупки
-            EmailService::send('product_purchase_confirmation', $user->id, [
-                'products_count' => count($productsData),
-                'total_amount' => number_format($totalAmount, 2, '.', '') . ' ' . strtoupper(Option::get('currency')),
-            ]);
+            // Отправляем уведомления в фоне (не блокируем ответ)
+            try {
+                \Log::info('Balance payment completed', [
+                    'user_id' => $user->id,
+                    'user_email' => $user->email,
+                    'total_amount' => $totalAmount,
+                    'old_balance' => $user->balance + $totalAmount,
+                    'new_balance' => $user->balance,
+                    'products_count' => count($productsData),
+                ]);
 
-            // Отправляем общее уведомление об оплате с баланса
-            EmailService::send('payment_confirmation', $user->id, [
-                'amount' => number_format($totalAmount, 2, '.', '') . ' ' . strtoupper(Option::get('currency'))
-            ]);
+                // Email подтверждение покупки (асинхронно через queue)
+                EmailService::send('product_purchase_confirmation', $user->id, [
+                    'products_count' => count($productsData),
+                    'total_amount' => number_format($totalAmount, 2, '.', '') . ' ' . strtoupper(Option::get('currency')),
+                ]);
 
-            // Отправляем уведомление пользователю о покупке
-            if (!empty($purchases) && isset($purchases[0]) && $purchases[0]->order_number) {
-                $notificationService = app(NotificationTemplateService::class);
-                $notificationService->sendToUser($user, 'purchase', [
-                    'order_number' => $purchases[0]->order_number,
+                // Отправляем общее уведомление об оплате с баланса (асинхронно через queue)
+                EmailService::send('payment_confirmation', $user->id, [
+                    'amount' => number_format($totalAmount, 2, '.', '') . ' ' . strtoupper(Option::get('currency'))
+                ]);
+
+                // Отправляем уведомление пользователю о покупке (быстро, только запись в БД)
+                if (!empty($purchases) && isset($purchases[0]) && $purchases[0]->order_number) {
+                    $notificationService = app(NotificationTemplateService::class);
+                    $notificationService->sendToUser($user, 'purchase', [
+                        'order_number' => $purchases[0]->order_number,
+                    ]);
+                }
+
+                // Уведомление админу о новом заказе (быстро, только запись в БД)
+                NotifierService::sendFromTemplate(
+                    'product_purchase',
+                    'admin_product_purchase',
+                    [
+                        'method' => 'Balance',
+                        'email' => $user->email,
+                        'name' => $user->name,
+                        'products' => count($productsData),
+                        'amount' => number_format($totalAmount, 2),
+                    ]
+                );
+            } catch (\Throwable $e) {
+                // Логируем ошибку, но не блокируем ответ пользователю
+                \Log::error('Error sending notifications after balance payment', [
+                    'user_id' => $user->id,
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString(),
                 ]);
             }
 
-            // Уведомление админу о новом заказе
-            NotifierService::sendFromTemplate(
-                'product_purchase',
-                'admin_product_purchase',
-                [
-                    'method' => 'Balance',
-                    'email' => $user->email,
-                    'name' => $user->name,
-                    'products' => count($productsData),
-                    'amount' => number_format($totalAmount, 2),
-                ]
-            );
-
-            return \App\Http\Responses\ApiResponse::success(['message' => 'Payment completed successfully']);
+            return $response;
         }
 
         // Для других методов оплаты возвращаем ошибку

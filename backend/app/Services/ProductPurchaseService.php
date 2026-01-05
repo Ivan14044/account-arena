@@ -118,6 +118,9 @@ public function createProductPurchase(
             }
 
             $assignedAccounts[] = $account;
+        } else {
+            // Если аккаунт не найден, выбрасываем исключение
+            throw new \Exception("Insufficient accounts in product. Requested: {$quantity}, available: " . (count($accountsData) - $usedCount));
         }
     }
 
