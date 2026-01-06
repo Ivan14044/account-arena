@@ -68,6 +68,9 @@ class ProductController extends Controller
         $validated['moderation_status'] = 'pending';
         $validated['is_active'] = false; // Не показывать до одобрения администратором
         
+        // Исключаем SEO поля - поставщики не могут их заполнять
+        $validated = $this->getAllowedFieldsForSupplier($validated);
+        
         $product = ServiceAccount::create($validated);
 
         // Отправляем уведомление администратору о новом товаре на модерации
@@ -132,7 +135,8 @@ class ProductController extends Controller
         }
 
         try {
-            $product = ServiceAccount::create([
+            // Формируем массив данных для создания товара
+            $productData = [
                 'title' => $request->input('title'),
                 'title_en' => $request->input('title_en'),
                 'title_uk' => $request->input('title_uk'),
@@ -151,7 +155,12 @@ class ProductController extends Controller
                 // ВАЖНО: Товары поставщика требуют модерации
                 'moderation_status' => 'pending',
                 'is_active' => false, // Не показывать до одобрения администратором
-            ]);
+            ];
+            
+            // Исключаем SEO поля - поставщики не могут их заполнять
+            $productData = $this->getAllowedFieldsForSupplier($productData);
+            
+            $product = ServiceAccount::create($productData);
 
             // Отправляем уведомление администратору о новом товаре на модерации
             try {
@@ -264,6 +273,9 @@ class ProductController extends Controller
                 $validated['accounts_data'] = array_merge($existingAccounts, $newAccountsList);
             }
         }
+        
+        // Исключаем SEO поля - поставщики не могут их заполнять
+        $validated = $this->getAllowedFieldsForSupplier($validated);
         
         $product->update($validated);
 
@@ -422,5 +434,38 @@ class ProductController extends Controller
             'image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,webp', 'max:2048'],
             'bulk_accounts' => ['nullable', 'string'],
         ];
+    }
+    
+    /**
+     * Фильтрует данные, исключая SEO поля, которые поставщики не могут заполнять
+     * 
+     * @param array $data Данные для сохранения
+     * @return array Отфильтрованные данные без SEO полей
+     */
+    private function getAllowedFieldsForSupplier(array $data): array
+    {
+        // Список SEO полей, которые поставщики НЕ могут заполнять
+        // Эти поля могут заполнять только администраторы
+        $seoFields = [
+            'meta_title',
+            'meta_title_en',
+            'meta_title_uk',
+            'meta_description',
+            'meta_description_en',
+            'meta_description_uk',
+            'seo_text',
+            'seo_text_en',
+            'seo_text_uk',
+            'instruction',
+            'instruction_en',
+            'instruction_uk',
+        ];
+        
+        // Удаляем SEO поля из данных
+        foreach ($seoFields as $field) {
+            unset($data[$field]);
+        }
+        
+        return $data;
     }
 }
