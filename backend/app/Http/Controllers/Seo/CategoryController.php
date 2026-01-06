@@ -20,7 +20,12 @@ class CategoryController extends Controller
             'translations',
             'parent.translations',
             'children.translations'
-        ])->findOrFail($id);
+        ])->find($id);
+        
+        // Если категория не найдена, возвращаем 404
+        if (!$category) {
+            abort(404);
+        }
         
         // Получаем переводы для текущей локали
         $name = $category->translate('name', $locale);
