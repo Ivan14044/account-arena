@@ -108,7 +108,7 @@ class Category extends Model
 
     public function saveTranslation(array $validated): void
     {
-        $this->translations()->whereIn('code', ['name', 'meta_title', 'meta_description', 'text'])->delete();
+        $this->translations()->whereIn('code', ['name', 'meta_title', 'meta_description', 'text', 'instruction'])->delete();
 
         foreach (config('langs') as $locale => $langValue) {
             $name = $validated['name'][$locale] ?? null;
@@ -140,6 +140,14 @@ class Category extends Model
                 $this->translations()->updateOrCreate(
                     ['locale' => $locale, 'code' => 'text'],
                     ['value' => $text]
+                );
+            }
+
+            $instruction = $validated['instruction'][$locale] ?? null;
+            if ($instruction !== null && $instruction !== '') {
+                $this->translations()->updateOrCreate(
+                    ['locale' => $locale, 'code' => 'instruction'],
+                    ['value' => $instruction]
                 );
             }
         }

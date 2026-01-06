@@ -189,6 +189,14 @@ Route::prefix('supplier')
         });
     });
 
+// SEO-важные страницы (SSR для поисковых систем)
+Route::prefix('seo')->name('seo.')->group(function () {
+    Route::get('/categories/{id}', [\App\Http\Controllers\Seo\CategoryController::class, 'show'])->name('category');
+    Route::get('/articles', [\App\Http\Controllers\Seo\ArticleController::class, 'index'])->name('articles');
+    Route::get('/articles/{id}', [\App\Http\Controllers\Seo\ArticleController::class, 'show'])->name('article');
+    Route::get('/products/{id}', [\App\Http\Controllers\Seo\ProductController::class, 'show'])->name('product');
+});
+
 // Redirect /login to /admin/login for convenience
 Route::get('/login', function () {
     return redirect()->route('admin.login');
