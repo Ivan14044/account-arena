@@ -647,15 +647,13 @@ onMounted(async () => {
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
 }
 
-.subcategory-btn {
-    /* GPU acceleration */
-    will-change: transform;
-    transform: translateZ(0);
-}
-
 .subcategory-btn:hover {
     transform: translateY(-1px) translateZ(0);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.dark .subcategory-btn:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 .subcategory-btn:not(:hover) {
