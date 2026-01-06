@@ -26,12 +26,53 @@ class ArticleController extends Controller
         $metaDescription = __('articles.description', [], $locale) ?? 
             'Читайте полезные статьи и инструкции на ' . config('app.name');
         
+        // Open Graph изображение (дефолтное или логотип)
+        $ogImage = url('/favicon.ico');
+        
+        // Hreflang альтернативные URL
+        $alternateUrls = $this->getAlternateUrls('seo.articles', []);
+        
+        // Структурированные данные для списка статей
+        $structuredData = $this->getArticlesListStructuredData($articles, $locale);
+        
         return view('seo.articles', compact(
             'articles',
             'pageTitle',
             'metaDescription',
-            'locale'
+            'locale',
+            'ogImage',
+            'alternateUrls',
+            'structuredData'
         ));
+    }
+    
+    /**
+     * Получить структурированные данные для списка статей (Schema.org)
+     */
+    private function getArticlesListStructuredData($articles, string $locale): array
+    {
+        $items = [];
+        foreach ($articles as $index => $article) {
+            $title = $article->translate('title', $locale);
+            $url = route('seo.article', $article->id);
+            
+            $items[] = [
+                '@type' => 'ListItem',
+                'position' => $index + 1,
+                'item' => [
+                    '@type' => 'Article',
+                    'headline' => $title,
+                    'url' => $url,
+                    'datePublished' => $article->created_at->toIso8601String(),
+                ]
+            ];
+        }
+        
+        return [
+            '@context' => 'https://schema.org',
+            '@type' => 'ItemList',
+            'itemListElement' => $items
+        ];
     }
     
     /**
@@ -104,10 +145,11 @@ class ArticleController extends Controller
         $alternateUrls = [];
         $locales = ['ru', 'en', 'uk'];
         $baseUrl = config('app.url');
+        $url = $baseUrl . route($routeName, $params, false);
         
         foreach ($locales as $loc) {
-            // Генерируем URL без locale параметра (так как роуты не принимают locale)
-            $alternateUrls[$loc] = $baseUrl . route($routeName, $params, false);
+            // Добавляем параметр языка к URL
+            $alternateUrls[$loc] = $url . '?lang=' . $loc;
         }
         
         return $alternateUrls;

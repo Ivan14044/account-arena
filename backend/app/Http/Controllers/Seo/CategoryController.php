@@ -101,17 +101,18 @@ class CategoryController extends Controller
         $alternateUrls = [];
         $locales = ['ru', 'en', 'uk'];
         $baseUrl = config('app.url');
+        $url = $baseUrl . route($routeName, $params, false);
         
         foreach ($locales as $loc) {
-            // Генерируем URL без locale параметра (так как роуты не принимают locale)
-            $alternateUrls[$loc] = $baseUrl . route($routeName, $params, false);
+            // Добавляем параметр языка к URL
+            $alternateUrls[$loc] = $url . '?lang=' . $loc;
         }
         
         return $alternateUrls;
     }
     
     /**
-     * Получить breadcrumbs для категории
+     * Получить breadcrumbs для категории (с поддержкой вложенных категорий)
      */
     private function getBreadcrumbs(Category $category, string $locale): array
     {
@@ -122,14 +123,23 @@ class CategoryController extends Controller
             ]
         ];
         
-        if ($category->parent) {
-            $parent = $category->parent;
+        // Рекурсивно добавляем всех родителей
+        $parents = [];
+        $parent = $category->parent;
+        while ($parent) {
+            array_unshift($parents, $parent);
+            $parent = $parent->parent;
+        }
+        
+        // Добавляем всех родителей в breadcrumbs
+        foreach ($parents as $parent) {
             $breadcrumbs[] = [
                 'name' => $parent->translate('name', $locale),
                 'url' => route('seo.category', ['id' => $parent->id])
             ];
         }
         
+        // Добавляем текущую категорию
         $breadcrumbs[] = [
             'name' => $category->translate('name', $locale),
             'url' => url()->current()
@@ -143,11 +153,16 @@ class CategoryController extends Controller
      */
     private function getCategoryStructuredData(Category $category, string $name, ?string $seoText, string $locale): array
     {
+        $description = Str::limit(strip_tags($seoText ?? ''), 160);
+        if (empty($description)) {
+            $description = $name . ' - ' . config('app.name');
+        }
+        
         $data = [
             '@context' => 'https://schema.org',
             '@type' => 'CollectionPage',
             'name' => $name,
-            'description' => Str::limit(strip_tags($seoText ?? ''), 160)
+            'description' => $description
         ];
         
         if ($category->image_url) {

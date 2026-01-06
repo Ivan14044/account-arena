@@ -1,5 +1,13 @@
 @extends('seo.layout')
 
+@push('structured-data')
+@if(isset($structuredData))
+<script type="application/ld+json">
+{!! json_encode($structuredData, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) !!}
+</script>
+@endif
+@endpush
+
 @section('content')
 <div class="container mx-auto px-4 py-8">
     {{-- H1 заголовок --}}

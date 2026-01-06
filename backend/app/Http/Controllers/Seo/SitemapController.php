@@ -25,10 +25,8 @@ class SitemapController extends Controller
             $xml .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"';
             $xml .= ' xmlns:xhtml="http://www.w3.org/1999/xhtml">' . "\n";
             
-            // Главная страница
-            foreach ($locales as $locale) {
-                $xml .= $this->generateUrl($baseUrl, 1.0, 'daily', $locale);
-            }
+            // Главная страница (один раз, но с hreflang для всех языков)
+            $xml .= $this->generateUrl($baseUrl, 1.0, 'daily', 'ru');
             
             // SEO страницы статей
             $articles = Article::where('status', 'published')
@@ -36,21 +34,17 @@ class SitemapController extends Controller
                 ->get();
             
             foreach ($articles as $article) {
-                foreach ($locales as $locale) {
-                    $url = $baseUrl . '/seo/articles/' . $article->id;
-                    $lastmod = $article->updated_at->format('Y-m-d');
-                    $xml .= $this->generateUrl($url, 0.8, 'weekly', $locale, $lastmod);
-                }
+                $url = $baseUrl . '/seo/articles/' . $article->id;
+                $lastmod = $article->updated_at->format('Y-m-d');
+                $xml .= $this->generateUrl($url, 0.8, 'weekly', 'ru', $lastmod);
             }
             
             // SEO страницы категорий
             $categories = Category::all();
             
             foreach ($categories as $category) {
-                foreach ($locales as $locale) {
-                    $url = $baseUrl . '/seo/categories/' . $category->id;
-                    $xml .= $this->generateUrl($url, 0.7, 'weekly', $locale);
-                }
+                $url = $baseUrl . '/seo/categories/' . $category->id;
+                $xml .= $this->generateUrl($url, 0.7, 'weekly', 'ru');
             }
             
             // SEO страницы товаров
@@ -59,18 +53,14 @@ class SitemapController extends Controller
                 ->get();
             
             foreach ($products as $product) {
-                foreach ($locales as $locale) {
-                    $url = $baseUrl . '/seo/products/' . $product->id;
-                    $lastmod = $product->updated_at->format('Y-m-d');
-                    $xml .= $this->generateUrl($url, 0.6, 'monthly', $locale, $lastmod);
-                }
+                $url = $baseUrl . '/seo/products/' . $product->id;
+                $lastmod = $product->updated_at->format('Y-m-d');
+                $xml .= $this->generateUrl($url, 0.6, 'monthly', 'ru', $lastmod);
             }
             
             // Список статей
-            foreach ($locales as $locale) {
-                $url = $baseUrl . '/seo/articles';
-                $xml .= $this->generateUrl($url, 0.7, 'daily', $locale);
-            }
+            $url = $baseUrl . '/seo/articles';
+            $xml .= $this->generateUrl($url, 0.7, 'daily', 'ru');
             
             $xml .= '</urlset>';
             
@@ -100,7 +90,8 @@ class SitemapController extends Controller
         if ($locale) {
             $locales = ['ru', 'en', 'uk'];
             foreach ($locales as $altLocale) {
-                $xml .= "    <xhtml:link rel=\"alternate\" hreflang=\"{$altLocale}\" href=\"" . htmlspecialchars($url, ENT_XML1, 'UTF-8') . "\" />\n";
+                $altUrl = $url . '?lang=' . $altLocale;
+                $xml .= "    <xhtml:link rel=\"alternate\" hreflang=\"{$altLocale}\" href=\"" . htmlspecialchars($altUrl, ENT_XML1, 'UTF-8') . "\" />\n";
             }
         }
         

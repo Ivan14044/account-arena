@@ -84,10 +84,11 @@ class ProductController extends Controller
         $alternateUrls = [];
         $locales = ['ru', 'en', 'uk'];
         $baseUrl = config('app.url');
+        $url = $baseUrl . route($routeName, $params, false);
         
         foreach ($locales as $loc) {
-            // Генерируем URL без locale параметра (так как роуты не принимают locale)
-            $alternateUrls[$loc] = $baseUrl . route($routeName, $params, false);
+            // Добавляем параметр языка к URL
+            $alternateUrls[$loc] = $url . '?lang=' . $loc;
         }
         
         return $alternateUrls;
@@ -125,12 +126,16 @@ class ProductController extends Controller
      */
     private function getProductStructuredData(ServiceAccount $product, string $title, ?string $description, string $locale): array
     {
+        $descriptionText = Str::limit(strip_tags($description ?? ''), 160);
+        if (empty($descriptionText)) {
+            $descriptionText = $title . ' - ' . config('app.name');
+        }
+        
         $data = [
             '@context' => 'https://schema.org',
             '@type' => 'Product',
             'name' => $title,
-            'description' => Str::limit(strip_tags($description ?? ''), 160),
-            'sku' => $product->sku ?? null,
+            'description' => $descriptionText,
             'brand' => [
                 '@type' => 'Brand',
                 'name' => config('app.name')
@@ -145,6 +150,17 @@ class ProductController extends Controller
                 'url' => url()->current()
             ]
         ];
+        
+        if ($product->sku) {
+            $data['sku'] = $product->sku;
+            $data['additionalProperty'] = [
+                [
+                    '@type' => 'PropertyValue',
+                    'name' => 'SKU',
+                    'value' => $product->sku
+                ]
+            ];
+        }
         
         if ($product->image_url) {
             $imageUrl = $product->image_url;
