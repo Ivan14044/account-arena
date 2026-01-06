@@ -197,6 +197,9 @@ Route::prefix('seo')->name('seo.')->group(function () {
     Route::get('/products/{id}', [\App\Http\Controllers\Seo\ProductController::class, 'show'])->name('product');
 });
 
+// Sitemap
+Route::get('/sitemap.xml', [\App\Http\Controllers\Seo\SitemapController::class, 'index'])->name('sitemap');
+
 // Redirect /login to /admin/login for convenience
 Route::get('/login', function () {
     return redirect()->route('admin.login');

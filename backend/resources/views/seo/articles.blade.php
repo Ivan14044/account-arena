@@ -21,7 +21,10 @@
                 <div class="mb-4">
                     <img src="{{ \Illuminate\Support\Facades\Storage::url($article->img) }}" 
                          alt="{{ $article->translate('title', $locale) }}" 
-                         class="w-full rounded-lg">
+                         class="w-full rounded-lg"
+                         loading="lazy"
+                         width="400"
+                         height="300">
                 </div>
                 @endif
                 

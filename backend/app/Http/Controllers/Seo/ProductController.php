@@ -41,6 +41,24 @@ class ProductController extends Controller
         // Формируем уникальный title
         $pageTitle = $metaTitle ?: ($title . ' - ' . config('app.name'));
         
+        // Open Graph изображение
+        $ogImage = null;
+        if ($product->image_url) {
+            $ogImage = $product->image_url;
+            if (!str_starts_with($ogImage, 'http')) {
+                $ogImage = url($ogImage);
+            }
+        }
+        
+        // Hreflang альтернативные URL
+        $alternateUrls = $this->getAlternateUrls('seo.product', ['id' => $id]);
+        
+        // Breadcrumbs
+        $breadcrumbs = $this->getBreadcrumbs($product, $locale, $title);
+        
+        // Структурированные данные
+        $structuredData = $this->getProductStructuredData($product, $title, $description, $locale);
+        
         return view('seo.product', compact(
             'product',
             'title',
@@ -50,8 +68,97 @@ class ProductController extends Controller
             'seoText',
             'instruction',
             'pageTitle',
-            'locale'
+            'locale',
+            'ogImage',
+            'alternateUrls',
+            'breadcrumbs',
+            'structuredData'
         ));
+    }
+    
+    /**
+     * Получить альтернативные URL для hreflang
+     */
+    private function getAlternateUrls(string $routeName, array $params = []): array
+    {
+        $alternateUrls = [];
+        $locales = ['ru', 'en', 'uk'];
+        $baseUrl = config('app.url');
+        
+        foreach ($locales as $loc) {
+            // Генерируем URL без locale параметра (так как роуты не принимают locale)
+            $alternateUrls[$loc] = $baseUrl . route($routeName, $params, false);
+        }
+        
+        return $alternateUrls;
+    }
+    
+    /**
+     * Получить breadcrumbs для товара
+     */
+    private function getBreadcrumbs(ServiceAccount $product, string $locale, ?string $title = null): array
+    {
+        $breadcrumbs = [
+            [
+                'name' => __('Home', [], $locale),
+                'url' => url('/')
+            ]
+        ];
+        
+        if ($product->category) {
+            $breadcrumbs[] = [
+                'name' => $product->category->translate('name', $locale),
+                'url' => route('seo.category', ['id' => $product->category->id])
+            ];
+        }
+        
+        $breadcrumbs[] = [
+            'name' => $title ?? $product->title,
+            'url' => url()->current()
+        ];
+        
+        return $breadcrumbs;
+    }
+    
+    /**
+     * Получить структурированные данные для товара (Schema.org)
+     */
+    private function getProductStructuredData(ServiceAccount $product, string $title, ?string $description, string $locale): array
+    {
+        $data = [
+            '@context' => 'https://schema.org',
+            '@type' => 'Product',
+            'name' => $title,
+            'description' => Str::limit(strip_tags($description ?? ''), 160),
+            'sku' => $product->sku ?? null,
+            'brand' => [
+                '@type' => 'Brand',
+                'name' => config('app.name')
+            ],
+            'offers' => [
+                '@type' => 'Offer',
+                'price' => $product->price ?? 0,
+                'priceCurrency' => config('app.currency', 'USD'),
+                'availability' => $product->getAvailableStock() > 0 
+                    ? 'https://schema.org/InStock' 
+                    : 'https://schema.org/OutOfStock',
+                'url' => url()->current()
+            ]
+        ];
+        
+        if ($product->image_url) {
+            $imageUrl = $product->image_url;
+            if (!str_starts_with($imageUrl, 'http')) {
+                $imageUrl = url($imageUrl);
+            }
+            $data['image'] = $imageUrl;
+        }
+        
+        if ($product->category) {
+            $data['category'] = $product->category->translate('name', $locale);
+        }
+        
+        return $data;
     }
     
     /**

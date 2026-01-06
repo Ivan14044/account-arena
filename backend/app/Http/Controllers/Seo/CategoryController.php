@@ -58,6 +58,24 @@ class CategoryController extends Controller
         // Формируем уникальный title (не дублирует H1)
         $pageTitle = $metaTitle ?: ($name . ' - ' . config('app.name'));
         
+        // Open Graph изображение
+        $ogImage = null;
+        if ($category->image_url) {
+            $ogImage = $category->image_url;
+            if (!str_starts_with($ogImage, 'http')) {
+                $ogImage = url($ogImage);
+            }
+        }
+        
+        // Hreflang альтернативные URL
+        $alternateUrls = $this->getAlternateUrls('seo.category', ['id' => $id]);
+        
+        // Breadcrumbs
+        $breadcrumbs = $this->getBreadcrumbs($category, $locale);
+        
+        // Структурированные данные
+        $structuredData = $this->getCategoryStructuredData($category, $name, $seoText, $locale);
+        
         return view('seo.category', compact(
             'category',
             'name',
@@ -67,7 +85,79 @@ class CategoryController extends Controller
             'instruction',
             'items',
             'pageTitle',
-            'locale'
+            'locale',
+            'ogImage',
+            'alternateUrls',
+            'breadcrumbs',
+            'structuredData'
         ));
+    }
+    
+    /**
+     * Получить альтернативные URL для hreflang
+     */
+    private function getAlternateUrls(string $routeName, array $params = []): array
+    {
+        $alternateUrls = [];
+        $locales = ['ru', 'en', 'uk'];
+        $baseUrl = config('app.url');
+        
+        foreach ($locales as $loc) {
+            // Генерируем URL без locale параметра (так как роуты не принимают locale)
+            $alternateUrls[$loc] = $baseUrl . route($routeName, $params, false);
+        }
+        
+        return $alternateUrls;
+    }
+    
+    /**
+     * Получить breadcrumbs для категории
+     */
+    private function getBreadcrumbs(Category $category, string $locale): array
+    {
+        $breadcrumbs = [
+            [
+                'name' => __('Home', [], $locale),
+                'url' => url('/')
+            ]
+        ];
+        
+        if ($category->parent) {
+            $parent = $category->parent;
+            $breadcrumbs[] = [
+                'name' => $parent->translate('name', $locale),
+                'url' => route('seo.category', ['id' => $parent->id])
+            ];
+        }
+        
+        $breadcrumbs[] = [
+            'name' => $category->translate('name', $locale),
+            'url' => url()->current()
+        ];
+        
+        return $breadcrumbs;
+    }
+    
+    /**
+     * Получить структурированные данные для категории (Schema.org)
+     */
+    private function getCategoryStructuredData(Category $category, string $name, ?string $seoText, string $locale): array
+    {
+        $data = [
+            '@context' => 'https://schema.org',
+            '@type' => 'CollectionPage',
+            'name' => $name,
+            'description' => Str::limit(strip_tags($seoText ?? ''), 160)
+        ];
+        
+        if ($category->image_url) {
+            $imageUrl = $category->image_url;
+            if (!str_starts_with($imageUrl, 'http')) {
+                $imageUrl = url($imageUrl);
+            }
+            $data['image'] = $imageUrl;
+        }
+        
+        return $data;
     }
 }

@@ -1,5 +1,13 @@
 @extends('seo.layout')
 
+@push('structured-data')
+@if(isset($structuredData))
+<script type="application/ld+json">
+{!! json_encode($structuredData, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) !!}
+</script>
+@endif
+@endpush
+
 @section('content')
 <article class="container mx-auto px-4 py-8">
     {{-- H1 заголовок (уникальный, не дублирует title) --}}
@@ -8,7 +16,9 @@
     {{-- Дата публикации --}}
     @if($article->created_at)
     <div class="text-gray-500 mb-4">
-        {{ $article->created_at->format('d.m.Y') }}
+        <time datetime="{{ $article->created_at->toIso8601String() }}">
+            {{ $article->created_at->format('d.m.Y') }}
+        </time>
     </div>
     @endif
     
@@ -26,7 +36,15 @@
     {{-- Изображение статьи --}}
     @if($article->img)
     <div class="mb-6">
-        <img src="{{ \Illuminate\Support\Facades\Storage::url($article->img) }}" alt="{{ $title }}" class="w-full rounded-lg">
+        @php
+            $imageUrl = \Illuminate\Support\Facades\Storage::url($article->img);
+        @endphp
+        <img src="{{ $imageUrl }}" 
+             alt="{{ $title }}" 
+             class="w-full rounded-lg"
+             loading="lazy"
+             width="1200"
+             height="630">
     </div>
     @endif
     

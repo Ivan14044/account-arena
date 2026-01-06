@@ -1,2 +1,10 @@
 User-agent: *
-Disallow:
+Allow: /seo/
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+Disallow: /supplier/
+Disallow: /vendor/
+
+# Sitemap
+Sitemap: https://account-arena.com/sitemap.xml

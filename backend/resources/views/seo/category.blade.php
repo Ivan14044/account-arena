@@ -1,7 +1,53 @@
 @extends('seo.layout')
 
+@push('structured-data')
+@if(isset($structuredData))
+<script type="application/ld+json">
+{!! json_encode($structuredData, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) !!}
+</script>
+@endif
+@if(isset($breadcrumbs) && count($breadcrumbs) > 0)
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+        @foreach($breadcrumbs as $index => $crumb)
+        {
+            "@type": "ListItem",
+            "position": {{ $index + 1 }},
+            "name": "{{ $crumb['name'] }}",
+            "item": "{{ $crumb['url'] }}"
+        }@if(!$loop->last),@endif
+        @endforeach
+    ]
+}
+</script>
+@endif
+@endpush
+
 @section('content')
 <article class="container mx-auto px-4 py-8">
+    {{-- Breadcrumbs --}}
+    @if(isset($breadcrumbs) && count($breadcrumbs) > 0)
+    <nav aria-label="Breadcrumb" class="mb-4">
+        <ol class="flex flex-wrap items-center text-sm text-gray-600">
+            @foreach($breadcrumbs as $index => $crumb)
+                <li class="flex items-center">
+                    @if($index > 0)
+                        <span class="mx-2">/</span>
+                    @endif
+                    @if($loop->last)
+                        <span class="text-gray-900 font-semibold">{{ $crumb['name'] }}</span>
+                    @else
+                        <a href="{{ $crumb['url'] }}" class="hover:text-blue-600">{{ $crumb['name'] }}</a>
+                    @endif
+                </li>
+            @endforeach
+        </ol>
+    </nav>
+    @endif
+    
     {{-- H1 заголовок (уникальный, не дублирует title) --}}
     <h1 class="text-4xl font-bold mb-6">{{ $name ?? $category->translate('name') }}</h1>
     

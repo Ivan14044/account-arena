@@ -65,6 +65,21 @@ class ArticleController extends Controller
         // Формируем уникальный title
         $pageTitle = $metaTitle ?: ($title . ' - ' . config('app.name'));
         
+        // Open Graph изображение
+        $ogImage = null;
+        if ($article->img) {
+            $ogImage = Storage::url($article->img);
+            if (!str_starts_with($ogImage, 'http')) {
+                $ogImage = url($ogImage);
+            }
+        }
+        
+        // Hreflang альтернативные URL
+        $alternateUrls = $this->getAlternateUrls('seo.article', ['id' => $id]);
+        
+        // Структурированные данные для статьи
+        $structuredData = $this->getArticleStructuredData($article, $title, $content, $locale);
+        
         return view('seo.article', compact(
             'article',
             'title',
@@ -73,7 +88,69 @@ class ArticleController extends Controller
             'metaDescription',
             'seoText',
             'pageTitle',
-            'locale'
-        ));
+            'locale',
+            'ogImage',
+            'ogType',
+            'alternateUrls',
+            'structuredData'
+        ))->with('ogType', 'article');
+    }
+    
+    /**
+     * Получить альтернативные URL для hreflang
+     */
+    private function getAlternateUrls(string $routeName, array $params = []): array
+    {
+        $alternateUrls = [];
+        $locales = ['ru', 'en', 'uk'];
+        $baseUrl = config('app.url');
+        
+        foreach ($locales as $loc) {
+            // Генерируем URL без locale параметра (так как роуты не принимают locale)
+            $alternateUrls[$loc] = $baseUrl . route($routeName, $params, false);
+        }
+        
+        return $alternateUrls;
+    }
+    
+    /**
+     * Получить структурированные данные для статьи (Schema.org)
+     */
+    private function getArticleStructuredData(Article $article, string $title, string $content, string $locale): array
+    {
+        $data = [
+            '@context' => 'https://schema.org',
+            '@type' => 'Article',
+            'headline' => $title,
+            'description' => Str::limit(strip_tags($content), 160),
+            'datePublished' => $article->created_at->toIso8601String(),
+            'dateModified' => $article->updated_at->toIso8601String(),
+            'author' => [
+                '@type' => 'Organization',
+                'name' => config('app.name')
+            ],
+            'publisher' => [
+                '@type' => 'Organization',
+                'name' => config('app.name'),
+                'logo' => [
+                    '@type' => 'ImageObject',
+                    'url' => url('/favicon.ico')
+                ]
+            ]
+        ];
+        
+        if ($article->img) {
+            $imageUrl = Storage::url($article->img);
+            if (!str_starts_with($imageUrl, 'http')) {
+                $imageUrl = url($imageUrl);
+            }
+            $data['image'] = $imageUrl;
+        }
+        
+        if ($article->categories->count() > 0) {
+            $data['articleSection'] = $article->categories->first()->translate('name', $locale);
+        }
+        
+        return $data;
     }
 }
