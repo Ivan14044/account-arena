@@ -62,6 +62,9 @@
                         class="product-image"
                         :loading="index < 6 ? 'eager' : 'lazy'"
                         :fetchpriority="index < 3 ? 'high' : 'auto'"
+                        decoding="async"
+                        width="400"
+                        height="300"
                     />
                 </div>
 
@@ -615,10 +618,15 @@ onMounted(async () => {
 }
 
 .product-card:hover {
-    transform: translateX(6px) translateY(-2px);
+    transform: translateX(6px) translateY(-2px) translateZ(0);
     box-shadow: 0 12px 32px rgba(108, 92, 231, 0.18);
     border-color: rgba(108, 92, 231, 0.4);
     background: rgba(255, 255, 255, 0.95);
+}
+
+/* Убираем will-change после hover для экономии памяти */
+.product-card:not(:hover) {
+    will-change: auto;
 }
 
 .dark .product-card:hover {

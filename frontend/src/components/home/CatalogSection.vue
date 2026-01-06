@@ -628,13 +628,17 @@ onMounted(async () => {
     border: 2px solid transparent;
     border-radius: 8px;
     cursor: pointer;
-    transition: all 0.3s ease;
+    /* Оптимизация: только transform для GPU acceleration */
+    transition: transform 0.2s ease, opacity 0.2s ease, box-shadow 0.2s ease;
     font-size: 14px;
     font-weight: 500;
     color: #374151;
     white-space: nowrap;
     font-family: 'SFT Schrifted Sans', sans-serif;
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+    /* GPU acceleration */
+    will-change: transform;
+    transform: translateZ(0);
 }
 
 .dark .subcategory-btn {
