@@ -1,3 +1,28 @@
+// Глобальный observer для оптимизации производительности
+let globalObserver: IntersectionObserver | null = null;
+const observedElements = new WeakMap<HTMLElement, () => void>();
+
+function getGlobalObserver() {
+    if (!globalObserver) {
+        globalObserver = new IntersectionObserver(
+            (entries) => {
+                entries.forEach(entry => {
+                    const callback = observedElements.get(entry.target as HTMLElement);
+                    if (callback) {
+                        callback();
+                    }
+                });
+            },
+            {
+                root: null,
+                threshold: [0, 0.05, 0.2, 0.9999],
+                rootMargin: '0px 0px -20% 0px'
+            }
+        );
+    }
+    return globalObserver;
+}
+
 export default {
     mounted(el: HTMLElement, binding: any) {
         const animationClass = binding.value || 'animate-fade-in-up';
@@ -13,72 +38,66 @@ export default {
         const once = options.once !== false; // default true
 
         let hasAppeared = false; // guard against multiple triggers (iOS Safari can fire twice)
-        let observer: IntersectionObserver | null = null;
 
-        const initObserver = () => {
-            // Earlier reveal on small screens: lower threshold and negative bottom rootMargin (pulls boundary up slightly)
-            const isSmallScreen = window.innerWidth < 768;
-            const baseThreshold =
-                typeof options.threshold === 'number'
-                    ? options.threshold
-                    : isSmallScreen
-                      ? 0.05
-                      : 0.2;
+        // Earlier reveal on small screens: lower threshold and negative bottom rootMargin
+        const isSmallScreen = window.innerWidth < 768;
+        const baseThreshold =
+            typeof options.threshold === 'number'
+                ? options.threshold
+                : isSmallScreen
+                  ? 0.05
+                  : 0.2;
 
-            // rootMargin pulls the viewport bottom edge upward on mobile to trigger sooner
-            const baseRootMargin =
-                typeof options.rootMargin === 'string'
-                    ? options.rootMargin
-                    : isSmallScreen
-                      ? '0px 0px -30% 0px'
-                      : '0px 0px -10% 0px';
+        const baseRootMargin =
+            typeof options.rootMargin === 'string'
+                ? options.rootMargin
+                : isSmallScreen
+                  ? '0px 0px -30% 0px'
+                  : '0px 0px -10% 0px';
 
-            // IntersectionObserver init
-            observer = new IntersectionObserver(
-                entries => {
-                    const entry = entries[0];
-                    if (!entry) return;
+        const callback = () => {
+            if (hasAppeared && once) return;
 
-                    // Some Safari versions can report isIntersecting=false yet ratio>0; use either condition
-                    const isVisible = entry.isIntersecting || entry.intersectionRatio > 0;
-                    if (!isVisible) return;
+            const rect = el.getBoundingClientRect();
+            const isVisible = rect.top < window.innerHeight * 1.2 && rect.bottom > 0;
 
-                    // Guard to ensure one-time activation
-                    if (hasAppeared) {
-                        if (once && observer) observer.unobserve(el);
-                        return;
+            if (isVisible) {
+                const ratio = Math.min(1, Math.max(0, (window.innerHeight - rect.top) / (rect.height + window.innerHeight)));
+                
+                if (ratio >= baseThreshold) {
+                    hasAppeared = true;
+                    el.classList.add(targetClass);
+                    el.classList.remove('opacity-0', 'translate-y-8');
+                    
+                    if (once) {
+                        const observer = getGlobalObserver();
+                        observer.unobserve(el);
+                        observedElements.delete(el);
                     }
-
-                    // Apply only when ratio crosses our threshold
-                    if (entry.intersectionRatio >= baseThreshold) {
-                        hasAppeared = true;
-                        el.classList.add(targetClass);
-                        el.classList.remove('opacity-0', 'translate-y-8');
-                        if (once && observer) {
-                            observer.unobserve(el);
-                            observer.disconnect();
-                            observer = null;
-                        }
-                    }
-                },
-                {
-                    root: null,
-                    threshold: [0, baseThreshold, 0.9999],
-                    rootMargin: baseRootMargin
                 }
-            );
-
-            observer.observe(el);
+            }
         };
 
-        initObserver();
+        observedElements.set(el, callback);
+        const observer = getGlobalObserver();
+        observer.observe(el);
 
-        // If the element initially has zero height (lazy content), retry once after layout settles
+        // Проверка сразу если элемент уже виден
+        requestAnimationFrame(callback);
+
+        // Если элемент изначально имеет нулевую высоту, повторяем проверку после загрузки
         if (el.clientHeight === 0) {
             setTimeout(() => {
-                if (observer) observer.disconnect();
-                initObserver();
+                requestAnimationFrame(callback);
             }, 500);
+        }
+    },
+    
+    unmounted(el: HTMLElement) {
+        const observer = getGlobalObserver();
+        if (observer) {
+            observer.unobserve(el);
+            observedElements.delete(el);
         }
     }
 };

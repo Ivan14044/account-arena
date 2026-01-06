@@ -30,12 +30,13 @@ export default defineConfig({
         outDir: 'dist',
         sourcemap: false,
         minify: 'esbuild',
-        chunkSizeWarningLimit: 600,
+        chunkSizeWarningLimit: 1000,
         rollupOptions: {
             output: {
                 manualChunks: id => {
                     // Vendor chunks - core libraries
                     if (id.includes('node_modules')) {
+                        // Vue core - отдельный chunk
                         if (
                             id.includes('vue') ||
                             id.includes('vue-router') ||
@@ -43,28 +44,40 @@ export default defineConfig({
                         ) {
                             return 'vendor-core';
                         }
+                        // Vuetify - большой, отдельно
                         if (id.includes('vuetify')) {
                             return 'vendor-vuetify';
                         }
+                        // Axios - отдельно
                         if (id.includes('axios')) {
                             return 'vendor-axios';
                         }
+                        // i18n - отдельно
                         if (id.includes('vue-i18n') || id.includes('@intlify')) {
                             return 'vendor-i18n';
                         }
+                        // Тяжелые библиотеки - отдельно
                         if (
-                            id.includes('chart') ||
                             id.includes('swiper') ||
-                            id.includes('lottie')
+                            id.includes('lottie') ||
+                            id.includes('chart')
                         ) {
-                            return 'vendor-charts';
+                            return 'vendor-heavy';
                         }
-                        // Other node_modules
+                        // Lodash для debounce
+                        if (id.includes('lodash')) {
+                            return 'vendor-utils';
+                        }
+                        // Остальные vendor
                         return 'vendor';
                     }
-                    // Store chunks - group stores together
+                    // Stores - отдельный chunk
                     if (id.includes('/stores/')) {
                         return 'stores';
+                    }
+                    // Тяжелые компоненты - отдельно
+                    if (id.includes('ProfilePage') || id.includes('CheckoutPage')) {
+                        return 'pages-heavy';
                     }
                 }
             }

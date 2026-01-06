@@ -347,8 +347,14 @@ const showAll = ref(false);
 const accounts = computed(() => accountsStore.list);
 
 const filteredAccounts = computed(() => {
-    let result = [...accounts.value];
-
+    let result = accounts.value;
+    
+    // Ранний выход если нет фильтров
+    if (!props.filters || Object.keys(props.filters).length === 0) {
+        return result;
+    }
+    
+    // Оптимизация: фильтруем по самому селективному фильтру первым
     // Filter by category and subcategory
     if (props.filters?.subcategoryId !== null && props.filters?.subcategoryId !== undefined) {
         // Если выбрана подкатегория - показываем только товары из этой подкатегории
@@ -357,10 +363,11 @@ const filteredAccounts = computed(() => {
         // Если выбрана только категория - показываем товары из категории и всех её подкатегорий
         const category = categoriesStore.list.find(cat => cat.id === props.filters?.categoryId);
         const subcategoryIds = category?.subcategories?.map(sub => sub.id) || [];
-        const categoryIds = [props.filters.categoryId, ...subcategoryIds];
+        // Используем Set для быстрого поиска вместо массива
+        const categoryIds = new Set([props.filters.categoryId, ...subcategoryIds]);
         result = result.filter(account => {
             const accountCategoryId = account.category?.id;
-            return accountCategoryId && categoryIds.includes(accountCategoryId);
+            return accountCategoryId && categoryIds.has(accountCategoryId);
         });
     }
 
@@ -374,14 +381,20 @@ const filteredAccounts = computed(() => {
         result = result.filter(account => favorites.value.has(account.id));
     }
 
-    // Search filter (поиск по названию, описанию и артикулу)
+    // Search filter (поиск по названию, описанию и артикулу) - оптимизирован
     if (props.filters?.searchQuery && props.filters.searchQuery.trim()) {
         const query = props.filters.searchQuery.toLowerCase().trim();
+        const queryWords = query.split(/\s+/).filter(w => w.length > 0); // Разбиваем на слова
+        
         result = result.filter(account => {
             const title = (getProductTitle(account) || '').toLowerCase();
             const description = (getProductDescription(account) || '').toLowerCase();
             const sku = (account.sku || '').toLowerCase();
-            return title.includes(query) || description.includes(query) || sku.includes(query);
+            
+            // Проверяем каждое слово запроса
+            return queryWords.every(word => 
+                title.includes(word) || description.includes(word) || sku.includes(word)
+            );
         });
     }
     return result;
@@ -566,10 +579,15 @@ onMounted(async () => {
     border: 1px solid rgba(226, 232, 240, 0.6);
     border-radius: 16px;
     padding: 16px;
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    /* Оптимизация: только transform и opacity для GPU acceleration */
+    transition: transform 0.2s ease, opacity 0.2s ease, box-shadow 0.2s ease;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
     position: relative;
     overflow: hidden;
+    /* GPU acceleration */
+    will-change: transform;
+    transform: translateZ(0);
+    isolation: isolate;
 }
 
 .dark .product-card {

@@ -16,7 +16,9 @@
   },
   "dependencies": {
     "@mdi/font": "^7.4.47",
+    "@types/lodash-es": "^4.17.12",
     "axios": "^1.11.0",
+    "lodash-es": "^4.17.22",
     "lucide-vue-next": "^0.539.0",
     "pinia": "^3.0.3",
     "pinia-plugin-persistedstate": "^4.4.1",

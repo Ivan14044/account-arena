@@ -90,6 +90,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue';
+import { debounce } from 'lodash-es';
 import { useProductCategoriesStore, type ProductCategory } from '@/stores/productCategories';
 import { useAccountsStore } from '@/stores/accounts';
 import { useI18n } from 'vue-i18n';
@@ -103,6 +104,7 @@ const selectedSubcategoryId = ref<number | null>(null);
 const hideOutOfStock = ref(false);
 const showFavoritesOnly = ref(false);
 const searchQuery = ref('');
+const debouncedSearchQuery = ref('');
 
 const categories = computed(() => {
     // Add "Все категории" as first option
@@ -184,7 +186,7 @@ const selectCategory = (categoryId: number | null) => {
         subcategoryId: null,
         hideOutOfStock: hideOutOfStock.value,
         showFavoritesOnly: showFavoritesOnly.value,
-        searchQuery: searchQuery.value
+        searchQuery: debouncedSearchQuery.value || searchQuery.value
     });
 };
 
@@ -196,7 +198,7 @@ const selectSubcategory = (subcategoryId: number | null) => {
         subcategoryId: selectedSubcategoryId.value,
         hideOutOfStock: hideOutOfStock.value,
         showFavoritesOnly: showFavoritesOnly.value,
-        searchQuery: searchQuery.value
+        searchQuery: debouncedSearchQuery.value || searchQuery.value
     });
 };
 
@@ -212,15 +214,33 @@ const emit = defineEmits<{
     ];
 }>();
 
-watch([hideOutOfStock, showFavoritesOnly, searchQuery], () => {
+// Debounce функция для поиска (300ms задержка)
+const updateSearchQuery = debounce((value: string) => {
+    debouncedSearchQuery.value = value;
     emit('filter-change', {
         categoryId: selectedCategoryId.value,
         subcategoryId: selectedSubcategoryId.value,
         hideOutOfStock: hideOutOfStock.value,
         showFavoritesOnly: showFavoritesOnly.value,
-        searchQuery: searchQuery.value
+        searchQuery: debouncedSearchQuery.value
     });
+}, 300);
+
+// Watch для поиска с debounce
+watch(searchQuery, (newValue) => {
+    updateSearchQuery(newValue);
 });
+
+// Watch для остальных фильтров (без debounce, но с flush: post)
+watch([hideOutOfStock, showFavoritesOnly], () => {
+    emit('filter-change', {
+        categoryId: selectedCategoryId.value,
+        subcategoryId: selectedSubcategoryId.value,
+        hideOutOfStock: hideOutOfStock.value,
+        showFavoritesOnly: showFavoritesOnly.value,
+        searchQuery: debouncedSearchQuery.value || searchQuery.value
+    });
+}, { flush: 'post' });
 
 onMounted(async () => {
     await categoriesStore.fetchAll();
@@ -298,7 +318,8 @@ onMounted(async () => {
     border: 1px solid rgba(226, 232, 240, 0.8);
     border-radius: 14px;
     cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    /* Оптимизация: только transform и opacity для GPU acceleration */
+    transition: transform 0.2s ease, opacity 0.2s ease, box-shadow 0.2s ease;
     font-size: 15px;
     font-weight: 600;
     color: #1f2937;
@@ -309,6 +330,10 @@ onMounted(async () => {
     min-width: fit-content;
     position: relative;
     overflow: hidden;
+    /* GPU acceleration */
+    will-change: transform;
+    transform: translateZ(0);
+    isolation: isolate;
 }
 
 .category-btn::before {
@@ -334,10 +359,15 @@ onMounted(async () => {
 }
 
 .category-btn:hover {
-    transform: translateY(-2px);
+    transform: translateY(-2px) translateZ(0);
     box-shadow: 0 6px 20px rgba(108, 92, 231, 0.15);
     border-color: rgba(108, 92, 231, 0.3);
     background: rgba(255, 255, 255, 0.95);
+}
+
+/* Убираем will-change после hover для экономии памяти */
+.category-btn:not(:hover) {
+    will-change: auto;
 }
 
 .dark .category-btn:hover {
@@ -351,7 +381,7 @@ onMounted(async () => {
     color: #ffffff;
     border-color: #6c5ce7;
     box-shadow: 0 6px 24px rgba(108, 92, 231, 0.35);
-    transform: translateY(-2px);
+    transform: translateY(-2px) translateZ(0);
 }
 
 .category-btn.active::before {
@@ -613,9 +643,19 @@ onMounted(async () => {
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
 }
 
+.subcategory-btn {
+    /* GPU acceleration */
+    will-change: transform;
+    transform: translateZ(0);
+}
+
 .subcategory-btn:hover {
-    transform: translateY(-1px);
+    transform: translateY(-1px) translateZ(0);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.subcategory-btn:not(:hover) {
+    will-change: auto;
 }
 
 .dark .subcategory-btn:hover {
