@@ -11,6 +11,10 @@ import Toast, { POSITION } from 'vue-toastification';
 import 'vue-toastification/dist/index.css';
 import Vue3Lottie from 'vue3-lottie';
 import IntersectDirective from './directives/intersect';
+import { initPerformanceOptimizations } from './utils/performance';
+
+// Проверка производительности при загрузке
+initPerformanceOptimizations();
 
 // Disable native scroll restoration to let Vue Router handle it
 if ('scrollRestoration' in window.history) {

@@ -315,7 +315,6 @@ onMounted(async () => {
     padding: 32px;
     margin-bottom: 32px;
     /* GPU acceleration для backdrop-filter */
-    will-change: backdrop-filter;
     transform: translateZ(0);
     isolation: isolate;
     contain: layout style paint;
@@ -390,7 +389,6 @@ onMounted(async () => {
     position: relative;
     overflow: hidden;
     /* GPU acceleration */
-    will-change: transform;
     transform: translateZ(0);
     isolation: isolate;
 }
@@ -418,6 +416,7 @@ onMounted(async () => {
 }
 
 .category-btn:hover {
+    will-change: transform;
     transform: translateY(-2px) translateZ(0);
     box-shadow: 0 6px 20px rgba(108, 92, 231, 0.15);
     border-color: rgba(108, 92, 231, 0.3);
@@ -696,7 +695,6 @@ onMounted(async () => {
     font-family: 'SFT Schrifted Sans', sans-serif;
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
     /* GPU acceleration */
-    will-change: transform;
     transform: translateZ(0);
 }
 
@@ -707,6 +705,7 @@ onMounted(async () => {
 }
 
 .subcategory-btn:hover {
+    will-change: transform;
     transform: translateY(-1px) translateZ(0);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }

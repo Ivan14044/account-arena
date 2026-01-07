@@ -163,9 +163,17 @@ button.swal2-cancel {
     background: rgba(255, 255, 255, 0.2);
     border: 1px solid rgba(255, 255, 255, 0.06);
     /* Оптимизация: GPU acceleration */
-    will-change: backdrop-filter;
     transform: translateZ(0);
     isolation: isolate;
+    contain: layout style paint;
+}
+
+.glass-card:hover {
+    will-change: backdrop-filter, transform;
+}
+
+.glass-card:not(:hover) {
+    will-change: auto;
 }
 
 .glass-button {
@@ -173,9 +181,17 @@ button.swal2-cancel {
     background: rgba(255, 255, 255, 0.2);
     border: 1px solid rgba(255, 255, 255, 0.08);
     /* Оптимизация: GPU acceleration */
-    will-change: backdrop-filter;
     transform: translateZ(0);
     isolation: isolate;
+    contain: layout style paint;
+}
+
+.glass-button:hover {
+    will-change: backdrop-filter, transform;
+}
+
+.glass-button:not(:hover) {
+    will-change: auto;
 }
 
 .cta-button {
@@ -295,4 +311,37 @@ button.swal2-cancel {
 .dark .Vue-Toastification__toast--warning {
     background: linear-gradient(135deg, #5b4bcf 0%, #9189e8 100%);
     box-shadow: 0 8px 24px rgba(91, 75, 207, 0.4);
+}
+
+/* ============================================
+   ОПТИМИЗАЦИЯ ПРОИЗВОДИТЕЛЬНОСТИ
+   ============================================ */
+
+/* Fallback для браузеров без поддержки backdrop-filter */
+@supports not (backdrop-filter: blur(1px)) {
+    .glass-card,
+    .glass-button,
+    .product-card,
+    .catalog-section,
+    .category-btn {
+        backdrop-filter: none !important;
+        background: rgba(255, 255, 255, 0.95) !important;
+    }
+
+    .dark .glass-card,
+    .dark .glass-button,
+    .dark .product-card,
+    .dark .catalog-section,
+    .dark .category-btn {
+        background: rgba(31, 41, 55, 0.95) !important;
+    }
+}
+
+/* Оптимизация для пользователей с prefers-reduced-motion */
+.reduced-motion *,
+.reduced-motion *::before,
+.reduced-motion *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
 }

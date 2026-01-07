@@ -601,7 +601,6 @@ onMounted(async () => {
     position: relative;
     overflow: hidden;
     /* GPU acceleration для backdrop-filter */
-    will-change: backdrop-filter, transform;
     transform: translateZ(0);
     isolation: isolate;
     /* Оптимизация: создаем отдельный слой для backdrop-filter */
@@ -633,6 +632,7 @@ onMounted(async () => {
 }
 
 .product-card:hover {
+    will-change: backdrop-filter, transform;
     transform: translateX(6px) translateY(-2px) translateZ(0);
     box-shadow: 0 12px 32px rgba(108, 92, 231, 0.18);
     border-color: rgba(108, 92, 231, 0.4);
