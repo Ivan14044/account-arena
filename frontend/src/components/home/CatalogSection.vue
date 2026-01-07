@@ -307,11 +307,12 @@ onMounted(async () => {
 
 <style scoped>
 .catalog-section {
-    background: rgba(255, 255, 255, 0.6);
-    backdrop-filter: blur(10px);
+    /* Упрощаем для производительности - убираем блюр */
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: none; /* Убираем блюр для FPS */
     border: 1px solid rgba(255, 255, 255, 0.3);
     border-radius: 20px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06); /* Упрощенная тень */
     padding: 32px;
     margin-bottom: 32px;
     /* GPU acceleration для backdrop-filter */
@@ -481,10 +482,10 @@ onMounted(async () => {
     padding: 0 9px;
     background: linear-gradient(
         135deg,
-        rgba(108, 92, 231, 0.12) 0%,
-        rgba(162, 155, 254, 0.12) 100%
+        rgba(108, 92, 231, 0.15) 0%,
+        rgba(162, 155, 254, 0.15) 100%
     );
-    backdrop-filter: blur(8px);
+    backdrop-filter: none; /* Убираем блюр с мелких элементов */
     color: #6c5ce7;
     border: 1px solid rgba(108, 92, 231, 0.2);
     border-radius: 13px;
@@ -492,8 +493,10 @@ onMounted(async () => {
     font-weight: 700;
     margin-left: 8px;
     letter-spacing: 0.3px;
-    box-shadow: 0 2px 6px rgba(108, 92, 231, 0.15);
-    transition: all 0.3s ease;
+    box-shadow: 0 1px 3px rgba(108, 92, 231, 0.1); /* Упрощенная тень */
+    transition: transform 0.2s ease;
+    will-change: transform;
+    transform: translateZ(0);
 }
 
 .dark .category-count {

@@ -304,12 +304,12 @@
             </div>
         </div>
 
-        <div v-if="filteredAccounts.length > 6 && !showAll" class="text-center mt-8">
+        <div v-if="hasMore" class="text-center mt-8">
             <button
                 class="cta-button dark:border-gray-300 dark:text-white dark:hover:border-blue-900 pointer-events-auto cursor-pointer"
-                @click="showAll = true"
+                @click="loadMore"
             >
-                {{ $t('account.show_all') }}
+                {{ $t('account.show_more') || 'Показать еще' }} ({{ filteredAccounts.length - displayedAccounts.length }})
             </button>
         </div>
     </div>
@@ -347,7 +347,10 @@ const toast = useToast();
 const router = useRouter();
 const { getProductTitle, getProductDescription } = useProductTitle();
 const { locale } = useI18n();
-const showAll = ref(false);
+
+// Пагинация вместо показа всех карточек (критическая оптимизация FPS)
+const itemsPerPage = 12; // Показываем по 12 карточек за раз
+const currentPage = ref(1);
 
 // КРИТИЧЕСКАЯ ОПТИМИЗАЦИЯ: Предвычисляем title и description для всех товаров
 // Это избавляет от множественных вызовов getProductTitle/getProductDescription
@@ -416,9 +419,24 @@ const filteredAccounts = computed(() => {
     return result;
 });
 
-const displayedAccounts = computed(() =>
-    showAll.value ? filteredAccounts.value : filteredAccounts.value.slice(0, 6)
-);
+// Показываем только видимые карточки (пагинация)
+const displayedAccounts = computed(() => {
+    const endIndex = currentPage.value * itemsPerPage;
+    return filteredAccounts.value.slice(0, endIndex);
+});
+
+const hasMore = computed(() => {
+    return displayedAccounts.value.length < filteredAccounts.value.length;
+});
+
+const loadMore = () => {
+    currentPage.value++;
+};
+
+// Сбрасываем страницу при изменении фильтров
+watch(() => props.filters, () => {
+    currentPage.value = 1;
+}, { deep: true });
 
 // Quantity management
 const quantities = ref<Record<number, number>>({});
@@ -506,7 +524,7 @@ const addToCart = (account: any) => {
 
     toast.success(
         t('account.detail.product_added_to_cart', {
-            title: getProductTitle(account),
+            title: (account as any)._cachedTitle || getProductTitle(account),
             quantity: quantity
         })
     );
@@ -584,33 +602,37 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-/* Основная карточка товара */
+/* Основная карточка товара - КРИТИЧЕСКАЯ ОПТИМИЗАЦИЯ FPS */
 .product-card {
     display: grid;
     grid-template-columns: 90px 1fr auto;
     gap: 16px;
     align-items: start;
-    background: rgba(255, 255, 255, 0.85);
-    backdrop-filter: blur(12px);
+    /* УБИРАЕМ backdrop-filter в покое - это убивает FPS на слабых ПК */
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: none; /* Убираем блюр в покое */
     border: 1px solid rgba(226, 232, 240, 0.6);
     border-radius: 16px;
     padding: 16px;
-    /* Оптимизация: только transform и opacity для GPU acceleration */
-    transition: transform 0.2s ease, opacity 0.2s ease, box-shadow 0.2s ease;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    /* Упрощаем тени для производительности */
+    transition: transform 0.2s ease, box-shadow 0.2s ease, backdrop-filter 0.2s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04); /* Упрощенная тень */
     position: relative;
     overflow: hidden;
     /* GPU acceleration для backdrop-filter */
     transform: translateZ(0);
-    isolation: isolate;
-    /* Оптимизация: создаем отдельный слой для backdrop-filter */
-    contain: layout style paint;
 }
 
 .dark .product-card {
-    background: rgba(30, 41, 59, 0.85);
+    background: rgba(30, 41, 59, 0.95);
+    backdrop-filter: none; /* Убираем блюр в покое */
     border-color: rgba(51, 65, 85, 0.6);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2); /* Упрощенная тень */
+}
+
+.dark .product-card:hover {
+    backdrop-filter: blur(8px);
+    background: rgba(30, 41, 59, 0.9);
 }
 
 /* Акцентная линия слева */
@@ -634,9 +656,12 @@ onMounted(async () => {
 .product-card:hover {
     will-change: backdrop-filter, transform;
     transform: translateX(6px) translateY(-2px) translateZ(0);
-    box-shadow: 0 12px 32px rgba(108, 92, 231, 0.18);
+    /* Включаем блюр только при hover для интерактивности */
+    backdrop-filter: blur(8px);
+    background: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 8px 24px rgba(108, 92, 231, 0.15); /* Упрощенная тень */
     border-color: rgba(108, 92, 231, 0.4);
-    background: rgba(255, 255, 255, 0.95);
+    will-change: backdrop-filter, transform;
 }
 
 /* Убираем will-change после hover для экономии памяти */
@@ -742,12 +767,14 @@ onMounted(async () => {
     height: 90px;
     border-radius: 12px;
     overflow: hidden;
-    background: linear-gradient(135deg, rgba(248, 249, 250, 0.9) 0%, rgba(233, 236, 239, 0.9) 100%);
-    backdrop-filter: blur(8px);
+    background: linear-gradient(135deg, rgba(248, 249, 250, 0.95) 0%, rgba(233, 236, 239, 0.95) 100%);
+    backdrop-filter: none; /* Убираем блюр */
     border: 1px solid rgba(226, 232, 240, 0.5);
     flex-shrink: 0;
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    transition: transform 0.2s ease;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05); /* Упрощенная тень */
+    will-change: transform;
+    transform: translateZ(0);
 }
 
 .product-image-wrapper.clickable {
@@ -1045,18 +1072,18 @@ onMounted(async () => {
     color: #64748b;
 }
 
-/* Управление количеством */
+/* Управление количеством - убираем блюр */
 .quantity-control {
     display: flex;
     align-items: center;
-    background: rgba(248, 250, 252, 0.9);
-    backdrop-filter: blur(8px);
+    background: rgba(248, 250, 252, 0.95);
+    backdrop-filter: none; /* Убираем блюр */
     border: 1px solid rgba(226, 232, 240, 0.8);
     border-radius: 10px;
     overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04); /* Упрощенная тень */
     margin-left: auto;
-    transition: all 0.3s ease;
+    transition: transform 0.2s ease;
 }
 
 .quantity-control:hover {
@@ -1127,21 +1154,23 @@ onMounted(async () => {
 
 /* Вторичные кнопки */
 .btn-secondary {
-    background: rgba(248, 250, 252, 0.9);
-    backdrop-filter: blur(8px);
+    background: rgba(248, 250, 252, 0.95);
+    backdrop-filter: none; /* Убираем блюр */
     border: 1px solid rgba(226, 232, 240, 0.8);
     padding: 9px 15px;
     border-radius: 10px;
     cursor: pointer;
     color: #64748b;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: transform 0.2s ease, background 0.2s ease;
     font-weight: 600;
     font-size: 13px;
     display: flex;
     align-items: center;
     gap: 5px;
     font-family: 'SFT Schrifted Sans', sans-serif;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04); /* Упрощенная тень */
+    will-change: transform;
+    transform: translateZ(0);
 }
 
 .btn-secondary.btn-icon {
@@ -1184,19 +1213,21 @@ onMounted(async () => {
     color: #fca5a5;
 }
 
-/* Кнопка корзины */
+/* Кнопка корзины - убираем блюр */
 .btn-cart {
-    background: rgba(248, 250, 252, 0.9);
-    backdrop-filter: blur(8px);
+    background: rgba(248, 250, 252, 0.95);
+    backdrop-filter: none; /* Убираем блюр */
     border: 1px solid rgba(226, 232, 240, 0.8);
     padding: 9px;
     border-radius: 10px;
     cursor: pointer;
     color: #64748b;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: transform 0.2s ease, background 0.2s ease;
     font-weight: 600;
     font-size: 13px;
     display: flex;
+    will-change: transform;
+    transform: translateZ(0);
     align-items: center;
     justify-content: center;
     min-width: 38px;
