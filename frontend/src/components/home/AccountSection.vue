@@ -352,71 +352,112 @@ const { locale } = useI18n();
 const itemsPerPage = 12; // Показываем по 12 карточек за раз
 const currentPage = ref(1);
 
+// КРИТИЧЕСКАЯ ОПТИМИЗАЦИЯ: Мемоизация accounts computed
+// Кэш для accounts с мемоизацией по locale и списку
+const accountsCache = ref<{
+    locale: string;
+    listLength: number;
+    data: any[];
+} | null>(null);
+
 // КРИТИЧЕСКАЯ ОПТИМИЗАЦИЯ: Предвычисляем title и description для всех товаров
 // Это избавляет от множественных вызовов getProductTitle/getProductDescription
 const accounts = computed(() => {
     const currentLocale = locale.value;
-    return accountsStore.list.map(account => ({
+    const listLength = accountsStore.list.length;
+    
+    // Проверяем кэш - если локаль и длина списка не изменились, возвращаем кэш
+    if (accountsCache.value && 
+        accountsCache.value.locale === currentLocale && 
+        accountsCache.value.listLength === listLength) {
+        return accountsCache.value.data;
+    }
+    
+    // Создаем новый массив только если изменилась локаль или список
+    const data = accountsStore.list.map(account => ({
         ...account,
         // Предвычисляем title и description один раз при изменении списка или локали
         _cachedTitle: getProductTitle(account),
         _cachedDescription: getProductDescription(account)
     }));
+    
+    // Сохраняем в кэш
+    accountsCache.value = {
+        locale: currentLocale,
+        listLength,
+        data
+    };
+    
+    return data;
 });
 
+// КРИТИЧЕСКАЯ ОПТИМИЗАЦИЯ: Объединение всех фильтров в один проход
+// Вместо множественных filter операций делаем один проход
 const filteredAccounts = computed(() => {
-    let result = accounts.value;
+    const filters = props.filters;
+    const accountsList = accounts.value;
     
     // Ранний выход если нет фильтров
-    if (!props.filters || Object.keys(props.filters).length === 0) {
-        return result;
+    if (!filters || Object.keys(filters).length === 0) {
+        return accountsList;
     }
     
-    // Оптимизация: фильтруем по самому селективному фильтру первым
-    // Filter by category and subcategory
-    if (props.filters?.subcategoryId !== null && props.filters?.subcategoryId !== undefined) {
-        // Если выбрана подкатегория - показываем только товары из этой подкатегории
-        result = result.filter(account => account.category?.id === props.filters?.subcategoryId);
-    } else if (props.filters?.categoryId !== null && props.filters?.categoryId !== undefined) {
-        // Если выбрана только категория - показываем товары из категории и всех её подкатегорий
-        const category = categoriesStore.list.find(cat => cat.id === props.filters?.categoryId);
+    // Подготовка данных для фильтрации один раз
+    const categoryId = filters.categoryId;
+    const subcategoryId = filters.subcategoryId;
+    const hideOutOfStock = filters.hideOutOfStock;
+    const showFavoritesOnly = filters.showFavoritesOnly;
+    const searchQuery = filters.searchQuery?.toLowerCase().trim();
+    
+    // Подготовка категорий один раз (если нужна категория)
+    let categoryIds: Set<number> | null = null;
+    if (categoryId !== null && categoryId !== undefined && subcategoryId === null) {
+        const category = categoriesStore.list.find(cat => cat.id === categoryId);
         const subcategoryIds = category?.subcategories?.map(sub => sub.id) || [];
-        // Используем Set для быстрого поиска вместо массива
-        const categoryIds = new Set([props.filters.categoryId, ...subcategoryIds]);
-        result = result.filter(account => {
+        categoryIds = new Set([categoryId, ...subcategoryIds]);
+    }
+    
+    // Подготовка поискового запроса один раз
+    const queryWords = searchQuery 
+        ? searchQuery.split(/\s+/).filter(w => w.length > 0)
+        : null;
+    
+    // ОДИН проход по массиву вместо множественных filter
+    return accountsList.filter(account => {
+        // Фильтр по подкатегории (самый селективный - проверяем первым)
+        if (subcategoryId !== null && subcategoryId !== undefined) {
+            if (account.category?.id !== subcategoryId) return false;
+        } 
+        // Фильтр по категории (включая подкатегории)
+        else if (categoryId !== null && categoryId !== undefined && categoryIds) {
             const accountCategoryId = account.category?.id;
-            return accountCategoryId && categoryIds.has(accountCategoryId);
-        });
-    }
-
-    // Filter out of stock
-    if (props.filters?.hideOutOfStock) {
-        result = result.filter(account => account.quantity && account.quantity > 0);
-    }
-
-    // Filter favorites
-    if (props.filters?.showFavoritesOnly) {
-        result = result.filter(account => favorites.value.has(account.id));
-    }
-
-    // Search filter (поиск по названию, описанию и артикулу) - используем кэшированные значения
-    if (props.filters?.searchQuery && props.filters.searchQuery.trim()) {
-        const query = props.filters.searchQuery.toLowerCase().trim();
-        const queryWords = query.split(/\s+/).filter(w => w.length > 0); // Разбиваем на слова
+            if (!accountCategoryId || !categoryIds.has(accountCategoryId)) return false;
+        }
         
-        result = result.filter(account => {
-            // Используем предвычисленные значения вместо вызова функций
+        // Фильтр по наличию
+        if (hideOutOfStock && (!account.quantity || account.quantity <= 0)) {
+            return false;
+        }
+        
+        // Фильтр по избранному
+        if (showFavoritesOnly && !favorites.value.has(account.id)) {
+            return false;
+        }
+        
+        // Фильтр по поиску (самый тяжелый - проверяем последним)
+        if (queryWords && queryWords.length > 0) {
             const title = ((account as any)._cachedTitle || '').toLowerCase();
             const description = ((account as any)._cachedDescription || '').toLowerCase();
             const sku = (account.sku || '').toLowerCase();
             
-            // Проверяем каждое слово запроса
-            return queryWords.every(word => 
+            const matches = queryWords.every(word => 
                 title.includes(word) || description.includes(word) || sku.includes(word)
             );
-        });
-    }
-    return result;
+            if (!matches) return false;
+        }
+        
+        return true;
+    });
 });
 
 // Показываем только видимые карточки (пагинация)
@@ -433,10 +474,27 @@ const loadMore = () => {
     currentPage.value++;
 };
 
-// Сбрасываем страницу при изменении фильтров
-watch(() => props.filters, () => {
+// Оптимизация: вместо deep watch отслеживаем конкретные поля
+// Это избегает лишних пересчетов
+watch(() => props.filters?.categoryId, () => {
     currentPage.value = 1;
-}, { deep: true });
+});
+
+watch(() => props.filters?.subcategoryId, () => {
+    currentPage.value = 1;
+});
+
+watch(() => props.filters?.searchQuery, () => {
+    currentPage.value = 1;
+});
+
+watch(() => props.filters?.hideOutOfStock, () => {
+    currentPage.value = 1;
+});
+
+watch(() => props.filters?.showFavoritesOnly, () => {
+    currentPage.value = 1;
+});
 
 // Quantity management
 const quantities = ref<Record<number, number>>({});
@@ -621,6 +679,9 @@ onMounted(async () => {
     overflow: hidden;
     /* GPU acceleration для backdrop-filter */
     transform: translateZ(0);
+    /* КРИТИЧЕСКАЯ ОПТИМИЗАЦИЯ: Ленивый рендеринг для карточек вне viewport */
+    content-visibility: auto;
+    contain-intrinsic-size: 200px;
 }
 
 .dark .product-card {
