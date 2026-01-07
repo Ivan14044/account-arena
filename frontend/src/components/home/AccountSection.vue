@@ -36,7 +36,7 @@
             <div
                 v-for="(account, index) in displayedAccounts"
                 :key="account.id"
-                v-memo="[account.id, account.quantity, account.has_discount, account.discount_percent, getProductTitle(account), getProductDescription(account)]"
+                v-memo="[account.id, account.quantity, account.has_discount, account.discount_percent, (account as any)._cachedTitle]"
                 class="product-card"
                 :class="{
                     'out-of-stock-card': account.quantity <= 0,
@@ -54,12 +54,12 @@
                 <!-- Left: Product Image -->
                 <div
                     class="product-image-wrapper clickable"
-                    :title="$t('account.detail.go_to_product', { title: getProductTitle(account) })"
+                    :title="$t('account.detail.go_to_product', { title: (account as any)._cachedTitle })"
                     @click="$router.push(`/account/${account.sku || account.id}`)"
                 >
                     <img
                         :src="account.image_url || '/img/no-logo.png'"
-                        :alt="getProductTitle(account)"
+                        :alt="(account as any)._cachedTitle"
                         class="product-image"
                         :loading="index < 6 ? 'eager' : 'lazy'"
                         :fetchpriority="index < 3 ? 'high' : 'auto'"
@@ -101,10 +101,10 @@
 
                         <h3
                             class="product-title clickable-title"
-                            :title="'Перейти к ' + getProductTitle(account)"
+                            :title="'Перейти к ' + (account as any)._cachedTitle"
                             @click="$router.push(`/account/${account.sku || account.id}`)"
                         >
-                            {{ getProductTitle(account) }}
+                            {{ (account as any)._cachedTitle }}
                         </h3>
                     </div>
 
@@ -122,9 +122,9 @@
                     </div>
 
                     <p
-                        v-if="getProductDescription(account)"
+                        v-if="(account as any)._cachedDescription"
                         class="product-description"
-                        v-html="getProductDescription(account)"
+                        v-html="(account as any)._cachedDescription"
                     ></p>
                 </div>
 
@@ -346,9 +346,20 @@ const optionStore = useOptionStore();
 const toast = useToast();
 const router = useRouter();
 const { getProductTitle, getProductDescription } = useProductTitle();
+const { locale } = useI18n();
 const showAll = ref(false);
 
-const accounts = computed(() => accountsStore.list);
+// КРИТИЧЕСКАЯ ОПТИМИЗАЦИЯ: Предвычисляем title и description для всех товаров
+// Это избавляет от множественных вызовов getProductTitle/getProductDescription
+const accounts = computed(() => {
+    const currentLocale = locale.value;
+    return accountsStore.list.map(account => ({
+        ...account,
+        // Предвычисляем title и description один раз при изменении списка или локали
+        _cachedTitle: getProductTitle(account),
+        _cachedDescription: getProductDescription(account)
+    }));
+});
 
 const filteredAccounts = computed(() => {
     let result = accounts.value;
@@ -385,14 +396,15 @@ const filteredAccounts = computed(() => {
         result = result.filter(account => favorites.value.has(account.id));
     }
 
-    // Search filter (поиск по названию, описанию и артикулу) - оптимизирован
+    // Search filter (поиск по названию, описанию и артикулу) - используем кэшированные значения
     if (props.filters?.searchQuery && props.filters.searchQuery.trim()) {
         const query = props.filters.searchQuery.toLowerCase().trim();
         const queryWords = query.split(/\s+/).filter(w => w.length > 0); // Разбиваем на слова
         
         result = result.filter(account => {
-            const title = (getProductTitle(account) || '').toLowerCase();
-            const description = (getProductDescription(account) || '').toLowerCase();
+            // Используем предвычисленные значения вместо вызова функций
+            const title = ((account as any)._cachedTitle || '').toLowerCase();
+            const description = ((account as any)._cachedDescription || '').toLowerCase();
             const sku = (account.sku || '').toLowerCase();
             
             // Проверяем каждое слово запроса
@@ -588,10 +600,12 @@ onMounted(async () => {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
     position: relative;
     overflow: hidden;
-    /* GPU acceleration */
-    will-change: transform;
+    /* GPU acceleration для backdrop-filter */
+    will-change: backdrop-filter, transform;
     transform: translateZ(0);
     isolation: isolate;
+    /* Оптимизация: создаем отдельный слой для backdrop-filter */
+    contain: layout style paint;
 }
 
 .dark .product-card {

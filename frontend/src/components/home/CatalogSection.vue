@@ -106,24 +106,40 @@ const showFavoritesOnly = ref(false);
 const searchQuery = ref('');
 const debouncedSearchQuery = ref('');
 
+// Кэш для подсчетов товаров (критическая оптимизация производительности)
+const categoryCountsCache = ref<Map<number, number>>(new Map());
+const subcategoryCountsCache = ref<Map<number, number>>(new Map());
+const categoriesCache = ref<Map<string, ProductCategory[]>>(new Map());
+
+// Мемоизированные категории (кэшируются по локали)
 const categories = computed(() => {
-    // Add "Все категории" as first option
+    const currentLocale = locale.value;
+    
+    // Проверяем кэш
+    if (categoriesCache.value.has(currentLocale)) {
+        return categoriesCache.value.get(currentLocale)!;
+    }
+    
+    // Создаем категории один раз для текущей локали
     const allCategories: ProductCategory[] = [
         {
             id: 0,
             type: 'product',
             name:
-                locale.value === 'ru'
+                currentLocale === 'ru'
                     ? 'Все категории'
-                    : locale.value === 'en'
+                    : currentLocale === 'en'
                       ? 'All Categories'
                       : 'Всі категорії'
         },
         ...categoriesStore.list.map(cat => ({
             ...cat,
-            name: categoriesStore.getCategoryName(cat, locale.value)
+            name: categoriesStore.getCategoryName(cat, currentLocale)
         }))
     ];
+    
+    // Сохраняем в кэш
+    categoriesCache.value.set(currentLocale, allCategories);
     return allCategories;
 });
 
@@ -147,34 +163,56 @@ const getSubcategoryName = (subcategory: any): string => {
     return subcategory.name || '';
 };
 
-// Подсчет товаров в категории (включая подкатегории)
+// Мемоизированный подсчет товаров в категории (критическая оптимизация)
 const getCategoryProductCount = (categoryId: number): number => {
+    // Проверяем кэш
+    if (categoryCountsCache.value.has(categoryId)) {
+        return categoryCountsCache.value.get(categoryId)!;
+    }
+    
+    let count: number;
+    
     if (categoryId === 0) {
         // Для "Все категории" возвращаем общее количество всех товаров
-        return accountsStore.list.length;
+        count = accountsStore.list.length;
+    } else {
+        const category = categoriesStore.list.find(cat => cat.id === categoryId);
+        if (!category) {
+            count = 0;
+        } else {
+            // Получаем ID всех подкатегорий
+            const subcategoryIds = (category.subcategories || []).map(sub => sub.id);
+
+            // Подсчитываем товары в категории и её подкатегориях
+            count = accountsStore.list.filter(account => {
+                // Товар в самой категории
+                if (account.category?.id === categoryId) return true;
+                // Товар в подкатегории
+                if (account.category?.id && subcategoryIds.includes(account.category.id)) return true;
+                return false;
+            }).length;
+        }
     }
-
-    const category = categoriesStore.list.find(cat => cat.id === categoryId);
-    if (!category) return 0;
-
-    // Получаем ID всех подкатегорий
-    const subcategoryIds = (category.subcategories || []).map(sub => sub.id);
-
-    // Подсчитываем товары в категории и её подкатегориях
-    return accountsStore.list.filter(account => {
-        // Товар в самой категории
-        if (account.category?.id === categoryId) return true;
-        // Товар в подкатегории
-        if (account.category?.id && subcategoryIds.includes(account.category.id)) return true;
-        return false;
-    }).length;
+    
+    // Сохраняем в кэш
+    categoryCountsCache.value.set(categoryId, count);
+    return count;
 };
 
-// Подсчет товаров в подкатегории
+// Мемоизированный подсчет товаров в подкатегории
 const getSubcategoryProductCount = (subcategoryId: number): number => {
-    return accountsStore.list.filter(account => {
+    // Проверяем кэш
+    if (subcategoryCountsCache.value.has(subcategoryId)) {
+        return subcategoryCountsCache.value.get(subcategoryId)!;
+    }
+    
+    const count = accountsStore.list.filter(account => {
         return account.category?.id === subcategoryId;
     }).length;
+    
+    // Сохраняем в кэш
+    subcategoryCountsCache.value.set(subcategoryId, count);
+    return count;
 };
 
 const selectCategory = (categoryId: number | null) => {
@@ -241,6 +279,22 @@ watch([hideOutOfStock, showFavoritesOnly], () => {
         searchQuery: debouncedSearchQuery.value || searchQuery.value
     });
 }, { flush: 'post' });
+
+// Очистка кэша при изменении списка товаров или категорий
+watch(() => accountsStore.list.length, () => {
+    categoryCountsCache.value.clear();
+    subcategoryCountsCache.value.clear();
+});
+
+watch(() => categoriesStore.list.length, () => {
+    categoriesCache.value.clear();
+    categoryCountsCache.value.clear();
+    subcategoryCountsCache.value.clear();
+});
+
+watch(() => locale.value, () => {
+    categoriesCache.value.clear();
+});
 
 onMounted(async () => {
     await categoriesStore.fetchAll();
