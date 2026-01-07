@@ -347,7 +347,10 @@ const toast = useToast();
 const router = useRouter();
 const { getProductTitle, getProductDescription } = useProductTitle();
 const { locale } = useI18n();
-const showAll = ref(false);
+
+// Пагинация вместо показа всех карточек (критическая оптимизация FPS)
+const itemsPerPage = 12; // Показываем по 12 карточек за раз
+const currentPage = ref(1);
 
 // КРИТИЧЕСКАЯ ОПТИМИЗАЦИЯ: Предвычисляем title и description для всех товаров
 // Это избавляет от множественных вызовов getProductTitle/getProductDescription
@@ -764,12 +767,14 @@ onMounted(async () => {
     height: 90px;
     border-radius: 12px;
     overflow: hidden;
-    background: linear-gradient(135deg, rgba(248, 249, 250, 0.9) 0%, rgba(233, 236, 239, 0.9) 100%);
-    backdrop-filter: blur(8px);
+    background: linear-gradient(135deg, rgba(248, 249, 250, 0.95) 0%, rgba(233, 236, 239, 0.95) 100%);
+    backdrop-filter: none; /* Убираем блюр */
     border: 1px solid rgba(226, 232, 240, 0.5);
     flex-shrink: 0;
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    transition: transform 0.2s ease;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05); /* Упрощенная тень */
+    will-change: transform;
+    transform: translateZ(0);
 }
 
 .product-image-wrapper.clickable {
@@ -1067,18 +1072,18 @@ onMounted(async () => {
     color: #64748b;
 }
 
-/* Управление количеством */
+/* Управление количеством - убираем блюр */
 .quantity-control {
     display: flex;
     align-items: center;
-    background: rgba(248, 250, 252, 0.9);
-    backdrop-filter: blur(8px);
+    background: rgba(248, 250, 252, 0.95);
+    backdrop-filter: none; /* Убираем блюр */
     border: 1px solid rgba(226, 232, 240, 0.8);
     border-radius: 10px;
     overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04); /* Упрощенная тень */
     margin-left: auto;
-    transition: all 0.3s ease;
+    transition: transform 0.2s ease;
 }
 
 .quantity-control:hover {
@@ -1149,21 +1154,23 @@ onMounted(async () => {
 
 /* Вторичные кнопки */
 .btn-secondary {
-    background: rgba(248, 250, 252, 0.9);
-    backdrop-filter: blur(8px);
+    background: rgba(248, 250, 252, 0.95);
+    backdrop-filter: none; /* Убираем блюр */
     border: 1px solid rgba(226, 232, 240, 0.8);
     padding: 9px 15px;
     border-radius: 10px;
     cursor: pointer;
     color: #64748b;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: transform 0.2s ease, background 0.2s ease;
     font-weight: 600;
     font-size: 13px;
     display: flex;
     align-items: center;
     gap: 5px;
     font-family: 'SFT Schrifted Sans', sans-serif;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04); /* Упрощенная тень */
+    will-change: transform;
+    transform: translateZ(0);
 }
 
 .btn-secondary.btn-icon {
@@ -1206,19 +1213,21 @@ onMounted(async () => {
     color: #fca5a5;
 }
 
-/* Кнопка корзины */
+/* Кнопка корзины - убираем блюр */
 .btn-cart {
-    background: rgba(248, 250, 252, 0.9);
-    backdrop-filter: blur(8px);
+    background: rgba(248, 250, 252, 0.95);
+    backdrop-filter: none; /* Убираем блюр */
     border: 1px solid rgba(226, 232, 240, 0.8);
     padding: 9px;
     border-radius: 10px;
     cursor: pointer;
     color: #64748b;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: transform 0.2s ease, background 0.2s ease;
     font-weight: 600;
     font-size: 13px;
     display: flex;
+    will-change: transform;
+    transform: translateZ(0);
     align-items: center;
     justify-content: center;
     min-width: 38px;
