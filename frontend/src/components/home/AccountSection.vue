@@ -36,7 +36,7 @@
             <div
                 v-for="(account, index) in displayedAccounts"
                 :key="account.id"
-                v-memo="[account.id, account.quantity, account.has_discount, account.discount_percent, (account as any)._cachedTitle]"
+                v-memo="[account.id, account.quantity, account.has_discount, (account as any)._discountPercentRounded, (account as any)._cachedTitle, getQuantity(account.id)]"
                 class="product-card"
                 :class="{
                     'out-of-stock-card': account.quantity <= 0,
@@ -48,7 +48,7 @@
                     v-if="account.has_discount && account.discount_percent"
                     class="discount-stripe"
                 >
-                    Скидка -{{ Math.round(account.discount_percent) }}%
+                    Скидка -{{ (account as any)._discountPercentRounded }}%
                 </div>
 
                 <!-- Left: Product Image -->
@@ -360,31 +360,50 @@ const accountsCache = ref<{
     data: any[];
 } | null>(null);
 
-// КРИТИЧЕСКАЯ ОПТИМИЗАЦИЯ: Предвычисляем title и description для всех товаров
-// Это избавляет от множественных вызовов getProductTitle/getProductDescription
+// КРИТИЧЕСКАЯ ОПТИМИЗАЦИЯ: Предвычисляем ВСЕ значения для всех товаров
+// Это избавляет от множественных вызовов функций при рендеринге
 const accounts = computed(() => {
     const currentLocale = locale.value;
     const listLength = accountsStore.list.length;
+    const currency = optionStore.getOption('currency', 'USD');
     
-    // Проверяем кэш - если локаль и длина списка не изменились, возвращаем кэш
+    // Проверяем кэш - если локаль, длина списка и валюта не изменились, возвращаем кэш
     if (accountsCache.value && 
         accountsCache.value.locale === currentLocale && 
-        accountsCache.value.listLength === listLength) {
+        accountsCache.value.listLength === listLength &&
+        accountsCache.value.currency === currency) {
         return accountsCache.value.data;
     }
     
-    // Создаем новый массив только если изменилась локаль или список
-    const data = accountsStore.list.map(account => ({
-        ...account,
-        // Предвычисляем title и description один раз при изменении списка или локали
-        _cachedTitle: getProductTitle(account),
-        _cachedDescription: getProductDescription(account)
-    }));
+    // Создаем форматтер один раз для всех цен
+    const priceFormatter = new Intl.NumberFormat('ru-RU', {
+        style: 'currency',
+        currency: currency,
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
+    
+    // Создаем новый массив только если изменилась локаль, список или валюта
+    // КРИТИЧЕСКАЯ ОПТИМИЗАЦИЯ: Используем Object.assign вместо spread для лучшей производительности
+    const data = accountsStore.list.map(account => {
+        const cached = Object.assign({}, account);
+        // Предвычисляем все значения один раз
+        cached._cachedTitle = getProductTitle(account);
+        cached._cachedDescription = getProductDescription(account);
+        cached._discountPercentRounded = account.discount_percent 
+            ? Math.round(account.discount_percent) 
+            : 0;
+        // Предвычисляем форматированную цену
+        const priceToFormat = account.current_price || account.price;
+        cached._formattedPrice = priceFormatter.format(priceToFormat);
+        return cached;
+    });
     
     // Сохраняем в кэш
     accountsCache.value = {
         locale: currentLocale,
         listLength,
+        currency,
         data
     };
     
@@ -393,6 +412,9 @@ const accounts = computed(() => {
 
 // КРИТИЧЕСКАЯ ОПТИМИЗАЦИЯ: Объединение всех фильтров в один проход
 // Вместо множественных filter операций делаем один проход
+// Кэш для категорий (избегаем повторных find операций)
+const categoryCache = ref<Map<number, Set<number>>>(new Map());
+
 const filteredAccounts = computed(() => {
     const filters = props.filters;
     const accountsList = accounts.value;
@@ -409,12 +431,18 @@ const filteredAccounts = computed(() => {
     const showFavoritesOnly = filters.showFavoritesOnly;
     const searchQuery = filters.searchQuery?.toLowerCase().trim();
     
-    // Подготовка категорий один раз (если нужна категория)
+    // КРИТИЧЕСКАЯ ОПТИМИЗАЦИЯ: Кэшируем categoryIds для избежания повторных find
     let categoryIds: Set<number> | null = null;
     if (categoryId !== null && categoryId !== undefined && subcategoryId === null) {
-        const category = categoriesStore.list.find(cat => cat.id === categoryId);
-        const subcategoryIds = category?.subcategories?.map(sub => sub.id) || [];
-        categoryIds = new Set([categoryId, ...subcategoryIds]);
+        // Проверяем кэш категорий
+        if (categoryCache.value.has(categoryId)) {
+            categoryIds = categoryCache.value.get(categoryId)!;
+        } else {
+            const category = categoriesStore.list.find(cat => cat.id === categoryId);
+            const subcategoryIds = category?.subcategories?.map(sub => sub.id) || [];
+            categoryIds = new Set([categoryId, ...subcategoryIds]);
+            categoryCache.value.set(categoryId, categoryIds);
+        }
     }
     
     // Подготовка поискового запроса один раз
@@ -621,27 +649,52 @@ const buyNow = (account: any) => {
 //     return stripped.length > maxLength ? stripped.substring(0, maxLength) + '…' : stripped;
 // };
 
+// КРИТИЧЕСКАЯ ОПТИМИЗАЦИЯ: Мемоизация formatPrice
+// Кэш для форматированных цен
+const priceFormatterCache = ref<Map<string, string>>(new Map());
+
 const formatPrice = (price: number) => {
     const currency = optionStore.getOption('currency', 'USD');
+    const cacheKey = `${price}_${currency}`;
+    
+    // Проверяем кэш
+    if (priceFormatterCache.value.has(cacheKey)) {
+        return priceFormatterCache.value.get(cacheKey)!;
+    }
+    
+    // Форматируем и кэшируем
     const formatter = new Intl.NumberFormat('ru-RU', {
         style: 'currency',
         currency: currency,
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
     });
-    return formatter.format(price);
+    const formatted = formatter.format(price);
+    priceFormatterCache.value.set(cacheKey, formatted);
+    return formatted;
 };
 
+// КРИТИЧЕСКАЯ ОПТИМИЗАЦИЯ: Мемоизация formatTotalPrice
 const formatTotalPrice = (price: number, quantity: number) => {
     const total = price * quantity;
     const currency = optionStore.getOption('currency', 'USD');
+    const cacheKey = `${total}_${currency}`;
+    
+    // Проверяем кэш
+    if (priceFormatterCache.value.has(cacheKey)) {
+        return priceFormatterCache.value.get(cacheKey)!;
+    }
+    
+    // Форматируем и кэшируем
     const formatter = new Intl.NumberFormat('ru-RU', {
         style: 'currency',
         currency: currency,
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
     });
-    return formatter.format(total);
+    const formatted = formatter.format(total);
+    priceFormatterCache.value.set(cacheKey, formatted);
+    return formatted;
 };
 
 onMounted(async () => {
@@ -672,8 +725,8 @@ onMounted(async () => {
     border: 1px solid rgba(226, 232, 240, 0.6);
     border-radius: 16px;
     padding: 16px;
-    /* Упрощаем тени для производительности */
-    transition: transform 0.2s ease, box-shadow 0.2s ease, backdrop-filter 0.2s ease;
+    /* КРИТИЧЕСКАЯ ОПТИМИЗАЦИЯ: Убираем transition из базового состояния */
+    transition: none;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04); /* Упрощенная тень */
     position: relative;
     overflow: hidden;
@@ -715,6 +768,8 @@ onMounted(async () => {
 }
 
 .product-card:hover {
+    /* КРИТИЧЕСКАЯ ОПТИМИЗАЦИЯ: Включаем transition только при hover */
+    transition: transform 0.15s ease, box-shadow 0.15s ease, backdrop-filter 0.15s ease;
     will-change: backdrop-filter, transform;
     transform: translateX(6px) translateY(-2px) translateZ(0);
     /* Включаем блюр только при hover для интерактивности */
@@ -722,7 +777,6 @@ onMounted(async () => {
     background: rgba(255, 255, 255, 0.9);
     box-shadow: 0 8px 24px rgba(108, 92, 231, 0.15); /* Упрощенная тень */
     border-color: rgba(108, 92, 231, 0.4);
-    will-change: backdrop-filter, transform;
 }
 
 /* Убираем will-change после hover для экономии памяти */
@@ -862,14 +916,18 @@ onMounted(async () => {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    /* КРИТИЧЕСКАЯ ОПТИМИЗАЦИЯ: Убираем transition из базового состояния */
+    transition: none;
 }
 
 .product-card:hover .product-image {
+    /* КРИТИЧЕСКАЯ ОПТИМИЗАЦИЯ: Включаем transition только при hover */
+    transition: transform 0.3s ease;
     transform: scale(1.1);
 }
 
 .product-image-wrapper.clickable:hover .product-image {
+    transition: transform 0.3s ease;
     transform: scale(1.2);
 }
 
