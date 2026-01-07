@@ -316,7 +316,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import { useAccountsStore } from '@/stores/accounts';
 import { useProductCartStore } from '@/stores/productCart';
 import { useI18n } from 'vue-i18n';
