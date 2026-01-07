@@ -307,18 +307,14 @@ onMounted(async () => {
 
 <style scoped>
 .catalog-section {
-    background: rgba(255, 255, 255, 0.6);
-    backdrop-filter: blur(10px);
+    /* Упрощаем для производительности - убираем блюр */
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: none; /* Убираем блюр для FPS */
     border: 1px solid rgba(255, 255, 255, 0.3);
     border-radius: 20px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06); /* Упрощенная тень */
     padding: 32px;
     margin-bottom: 32px;
-    /* GPU acceleration для backdrop-filter */
-    will-change: backdrop-filter;
-    transform: translateZ(0);
-    isolation: isolate;
-    contain: layout style paint;
 }
 
 .dark .catalog-section {

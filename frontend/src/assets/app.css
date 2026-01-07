@@ -159,23 +159,29 @@ button.swal2-cancel {
 }
 
 .glass-card {
-    backdrop-filter: blur(10px);
-    background: rgba(255, 255, 255, 0.2);
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    /* Оптимизация: GPU acceleration */
-    will-change: backdrop-filter;
-    transform: translateZ(0);
-    isolation: isolate;
+    /* Упрощаем для производительности - убираем блюр в покое */
+    backdrop-filter: none;
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: backdrop-filter 0.2s ease;
+}
+
+.glass-card:hover {
+    backdrop-filter: blur(6px); /* Легкий блюр только при hover */
+    background: rgba(255, 255, 255, 0.85);
 }
 
 .glass-button {
-    backdrop-filter: blur(10px);
-    background: rgba(255, 255, 255, 0.2);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    /* Оптимизация: GPU acceleration */
-    will-change: backdrop-filter;
-    transform: translateZ(0);
-    isolation: isolate;
+    /* Упрощаем для производительности */
+    backdrop-filter: none;
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: backdrop-filter 0.2s ease;
+}
+
+.glass-button:hover {
+    backdrop-filter: blur(6px); /* Легкий блюр только при hover */
+    background: rgba(255, 255, 255, 0.85);
 }
 
 .cta-button {

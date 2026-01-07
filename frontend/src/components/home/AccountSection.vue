@@ -304,12 +304,12 @@
             </div>
         </div>
 
-        <div v-if="filteredAccounts.length > 6 && !showAll" class="text-center mt-8">
+        <div v-if="hasMore" class="text-center mt-8">
             <button
                 class="cta-button dark:border-gray-300 dark:text-white dark:hover:border-blue-900 pointer-events-auto cursor-pointer"
-                @click="showAll = true"
+                @click="loadMore"
             >
-                {{ $t('account.show_all') }}
+                {{ $t('account.show_more') || 'Показать еще' }} ({{ filteredAccounts.length - displayedAccounts.length }})
             </button>
         </div>
     </div>
@@ -416,9 +416,24 @@ const filteredAccounts = computed(() => {
     return result;
 });
 
-const displayedAccounts = computed(() =>
-    showAll.value ? filteredAccounts.value : filteredAccounts.value.slice(0, 6)
-);
+// Показываем только видимые карточки (пагинация)
+const displayedAccounts = computed(() => {
+    const endIndex = currentPage.value * itemsPerPage;
+    return filteredAccounts.value.slice(0, endIndex);
+});
+
+const hasMore = computed(() => {
+    return displayedAccounts.value.length < filteredAccounts.value.length;
+});
+
+const loadMore = () => {
+    currentPage.value++;
+};
+
+// Сбрасываем страницу при изменении фильтров
+watch(() => props.filters, () => {
+    currentPage.value = 1;
+}, { deep: true });
 
 // Quantity management
 const quantities = ref<Record<number, number>>({});
@@ -584,34 +599,38 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-/* Основная карточка товара */
+/* Основная карточка товара - КРИТИЧЕСКАЯ ОПТИМИЗАЦИЯ FPS */
 .product-card {
     display: grid;
     grid-template-columns: 90px 1fr auto;
     gap: 16px;
     align-items: start;
-    background: rgba(255, 255, 255, 0.85);
-    backdrop-filter: blur(12px);
+    /* УБИРАЕМ backdrop-filter в покое - это убивает FPS на слабых ПК */
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: none; /* Убираем блюр в покое */
     border: 1px solid rgba(226, 232, 240, 0.6);
     border-radius: 16px;
     padding: 16px;
-    /* Оптимизация: только transform и opacity для GPU acceleration */
-    transition: transform 0.2s ease, opacity 0.2s ease, box-shadow 0.2s ease;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    /* Упрощаем тени для производительности */
+    transition: transform 0.2s ease, box-shadow 0.2s ease, backdrop-filter 0.2s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04); /* Упрощенная тень */
     position: relative;
     overflow: hidden;
-    /* GPU acceleration для backdrop-filter */
-    will-change: backdrop-filter, transform;
+    /* GPU acceleration только для transform */
+    will-change: transform;
     transform: translateZ(0);
-    isolation: isolate;
-    /* Оптимизация: создаем отдельный слой для backdrop-filter */
-    contain: layout style paint;
 }
 
 .dark .product-card {
-    background: rgba(30, 41, 59, 0.85);
+    background: rgba(30, 41, 59, 0.95);
+    backdrop-filter: none; /* Убираем блюр в покое */
     border-color: rgba(51, 65, 85, 0.6);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2); /* Упрощенная тень */
+}
+
+.dark .product-card:hover {
+    backdrop-filter: blur(8px);
+    background: rgba(30, 41, 59, 0.9);
 }
 
 /* Акцентная линия слева */
@@ -634,9 +653,12 @@ onMounted(async () => {
 
 .product-card:hover {
     transform: translateX(6px) translateY(-2px) translateZ(0);
-    box-shadow: 0 12px 32px rgba(108, 92, 231, 0.18);
+    /* Включаем блюр только при hover для интерактивности */
+    backdrop-filter: blur(8px);
+    background: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 8px 24px rgba(108, 92, 231, 0.15); /* Упрощенная тень */
     border-color: rgba(108, 92, 231, 0.4);
-    background: rgba(255, 255, 255, 0.95);
+    will-change: backdrop-filter, transform;
 }
 
 /* Убираем will-change после hover для экономии памяти */
