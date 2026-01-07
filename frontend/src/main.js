@@ -13,8 +13,13 @@ import Vue3Lottie from 'vue3-lottie';
 import IntersectDirective from './directives/intersect';
 import { initPerformanceOptimizations } from './utils/performance';
 
-// Проверка производительности при загрузке
-initPerformanceOptimizations();
+// Проверка производительности при загрузке (после монтирования DOM)
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initPerformanceOptimizations);
+} else {
+    // DOM уже готов
+    initPerformanceOptimizations();
+}
 
 // Disable native scroll restoration to let Vue Router handle it
 if ('scrollRestoration' in window.history) {

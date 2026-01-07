@@ -320,21 +320,27 @@ button.swal2-cancel {
 /* Fallback для браузеров без поддержки backdrop-filter */
 @supports not (backdrop-filter: blur(1px)) {
     .glass-card,
-    .glass-button,
-    .product-card,
-    .catalog-section,
-    .category-btn {
+    .glass-button {
         backdrop-filter: none !important;
         background: rgba(255, 255, 255, 0.95) !important;
     }
 
     .dark .glass-card,
-    .dark .glass-button,
-    .dark .product-card,
-    .dark .catalog-section,
-    .dark .category-btn {
+    .dark .glass-button {
         background: rgba(31, 41, 55, 0.95) !important;
     }
+}
+
+/* Fallback через класс для браузеров без поддержки backdrop-filter */
+.no-backdrop-filter .glass-card,
+.no-backdrop-filter .glass-button {
+    backdrop-filter: none !important;
+    background: rgba(255, 255, 255, 0.95) !important;
+}
+
+.dark.no-backdrop-filter .glass-card,
+.dark.no-backdrop-filter .glass-button {
+    background: rgba(31, 41, 55, 0.95) !important;
 }
 
 /* Оптимизация для пользователей с prefers-reduced-motion */
