@@ -506,7 +506,7 @@ const addToCart = (account: any) => {
 
     toast.success(
         t('account.detail.product_added_to_cart', {
-            title: getProductTitle(account),
+            title: (account as any)._cachedTitle || getProductTitle(account),
             quantity: quantity
         })
     );
