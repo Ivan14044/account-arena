@@ -43,6 +43,7 @@
 
 <script setup lang="ts">
 import { ref, watch, onMounted, onUnmounted, computed } from 'vue';
+import { throttle } from 'lodash-es';
 import logo from '@/assets/logo.webp';
 import { useLoadingStore } from '@/stores/loading';
 import UserMenu from '@/components/layout/UserMenu.vue';
@@ -63,9 +64,10 @@ const isReady = computed(() => headerStore.isReady);
 const printedText = computed(() => headerStore.printedText);
 const fullText = 'Account Arena';
 
-const handleScroll = () => {
+// Throttle scroll handler для производительности (100ms)
+const handleScroll = throttle(() => {
     isScrolled.value = window.scrollY > 0;
-};
+}, 100, { leading: true, trailing: true });
 
 function handleClick() {
     router.push('/');

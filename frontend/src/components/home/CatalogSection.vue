@@ -260,6 +260,11 @@ onMounted(async () => {
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
     padding: 32px;
     margin-bottom: 32px;
+    /* GPU acceleration для backdrop-filter */
+    will-change: backdrop-filter;
+    transform: translateZ(0);
+    isolation: isolate;
+    contain: layout style paint;
 }
 
 .dark .catalog-section {

@@ -36,6 +36,7 @@
             <div
                 v-for="(account, index) in displayedAccounts"
                 :key="account.id"
+                v-memo="[account.id, account.quantity, account.has_discount, account.discount_percent, getProductTitle(account), getProductDescription(account)]"
                 class="product-card"
                 :class="{
                     'out-of-stock-card': account.quantity <= 0,

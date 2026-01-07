@@ -24,19 +24,21 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount } from 'vue';
+import { throttle } from 'lodash-es';
 
 const isVisible = ref(false);
 
-const handleScroll = () => {
+// Throttle scroll handler для производительности (100ms)
+const handleScroll = throttle(() => {
     isVisible.value = window.scrollY > 300;
-};
+}, 100, { leading: true, trailing: true });
 
 const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
 };
 
 onMounted(() => {
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
 });
 
 onBeforeUnmount(() => {
