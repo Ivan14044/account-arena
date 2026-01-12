@@ -43,11 +43,11 @@
     background: white;
     border: 1px solid #e3e6f0;
     border-radius: 0.5rem;
-    padding: 1.5rem;
+    padding: 1.25rem;
     margin-bottom: 1rem;
     transition: all 0.3s ease;
     border-left: 4px solid;
-    min-height: 140px; /* Единая минимальная высота для всех карточек */
+    min-height: 110px; /* Компактная минимальная высота для всех карточек */
     display: flex;
     flex-direction: column;
 }
@@ -70,13 +70,13 @@
 }
 
 .stat-icon {
-    width: 50px;
-    height: 50px;
+    width: 45px;
+    height: 45px;
     border-radius: 0.5rem;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.5rem;
+    font-size: 1.25rem;
 }
 
 .stat-card-primary .stat-icon {
@@ -109,30 +109,31 @@
 }
 
 .stat-label {
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     color: #858796;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     font-weight: 600;
-    margin-bottom: 0.25rem;
+    margin-bottom: 0.375rem;
+    line-height: 1.2;
 }
 
 .stat-value {
-    font-size: 2rem;
+    font-size: 1.75rem;
     font-weight: 700;
     color: #2c3e50;
-    line-height: 1;
-    margin-bottom: 0.5rem;
+    line-height: 1.2;
+    margin-bottom: 0.375rem;
 }
 
 /* Ссылки "Подробнее" в карточках статистики */
 .stat-card a {
-    font-size: 0.875rem;
+    font-size: 0.8rem;
     font-weight: 500;
     text-decoration: none;
     display: inline-flex;
     align-items: center;
-    margin-top: 0.5rem;
+    margin-top: 0.375rem;
     transition: all 0.2s ease;
 }
 
@@ -1240,6 +1241,43 @@ body {
 
 .d-flex.align-items-end .btn:last-child {
     margin-right: 0;
+}
+
+/* Заголовки секций dashboard */
+.dashboard-section-header {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #5a6c7d;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #e3e6f0;
+}
+
+.dashboard-section-header i {
+    color: #4e73df;
+    margin-right: 0.5rem;
+}
+
+.dashboard-section-header .badge {
+    font-size: 0.75rem;
+    font-weight: 500;
+    padding: 0.25rem 0.5rem;
+    vertical-align: middle;
+}
+
+/* Компактные отступы для dashboard */
+.dashboard-section-header + .row {
+    margin-top: 0.5rem;
+}
+
+/* Улучшенная центровка для stat-card-body */
+.stat-card-body {
+    align-items: center;
+    gap: 1rem;
+}
+
+.stat-content {
+    min-width: 0; /* Позволяет тексту сжиматься */
 }
 </style>
 

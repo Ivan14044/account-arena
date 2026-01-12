@@ -79,28 +79,29 @@ class DashboardController extends Controller
             return max(0, $totalQuantity - $soldCount);
         });
 
-        // Продано (общее количество)
-        $totalSold = $allProducts->sum(function ($product) {
-            return $product->used ?? 0;
-        });
-
         // Покупки товаров за период
         $purchasesQuery = Purchase::query();
         if ($startDate && $endDate) {
             $purchasesQuery->whereBetween('created_at', [$startDate, $endDate]);
         }
-        $purchasesToday = $purchasesQuery->count();
+        $purchasesInPeriod = $purchasesQuery->count();
 
-        // ИСПРАВЛЕНО: Сумма продаж товаров за период (из Purchase, не Transaction!)
-        $salesQuery = Purchase::where('status', 'completed');
+        // Продано за период (количество завершенных покупок)
+        $soldInPeriodQuery = Purchase::where('status', 'completed');
         if ($startDate && $endDate) {
-            $salesQuery->whereBetween('created_at', [$startDate, $endDate]);
+            $soldInPeriodQuery->whereBetween('created_at', [$startDate, $endDate]);
         }
-        $salesToday = $salesQuery->sum('total_amount');
+        $soldInPeriod = $soldInPeriodQuery->count();
 
-        // ИСПРАВЛЕНО: Общая прибыль от продажи товаров (из Purchase, не Transaction!)
-        $totalProfit = Purchase::where('status', 'completed')
-            ->sum('total_amount');
+        // Доход за период (сумма продаж товаров за период)
+        $revenueInPeriodQuery = Purchase::where('status', 'completed');
+        if ($startDate && $endDate) {
+            $revenueInPeriodQuery->whereBetween('created_at', [$startDate, $endDate]);
+        }
+        $revenueInPeriod = $revenueInPeriodQuery->sum('total_amount');
+
+        // Средний чек за период
+        $averageOrderValue = $purchasesInPeriod > 0 ? ($revenueInPeriod / $purchasesInPeriod) : 0;
 
         // Всего пользователей
         $totalUsers = User::where('is_admin', false)->where('is_main_admin', false)->count();
@@ -118,10 +119,10 @@ class DashboardController extends Controller
             'totalProducts',
             'totalProductsValue',
             'availableProducts',
-            'totalSold',
-            'purchasesToday',
-            'salesToday',
-            'totalProfit',
+            'purchasesInPeriod',
+            'soldInPeriod',
+            'revenueInPeriod',
+            'averageOrderValue',
             'totalUsers',
             'period',
             'startDate',

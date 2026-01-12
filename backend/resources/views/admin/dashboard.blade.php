@@ -55,7 +55,15 @@
         </div>
     @endif
 
-    <!-- Основные метрики -->
+    <!-- Общая статистика -->
+    <div class="row mb-3">
+        <div class="col-12">
+            <h5 class="dashboard-section-header">
+                <i class="fas fa-chart-bar"></i>Общая статистика
+            </h5>
+        </div>
+    </div>
+
     <div class="row">
         <div class="col-lg-3 col-md-6 mb-4">
             <div class="stat-card stat-card-primary">
@@ -65,7 +73,7 @@
                     </div>
                     <div class="stat-content">
                         <div class="stat-label">Всего товаров</div>
-                        <div class="stat-value">{{ $totalProducts }}</div>
+                        <div class="stat-value">{{ number_format($totalProducts, 0) }}</div>
                         <a href="{{ route('admin.service-accounts.index') }}" class="text-primary">
                             {{ __('Подробнее') }} <i class="fas fa-arrow-right"></i>
                         </a>
@@ -84,85 +92,6 @@
                         <div class="stat-label">Доступно для продажи</div>
                         <div class="stat-value">{{ number_format($availableProducts, 0) }}</div>
                         <a href="{{ route('admin.service-accounts.index') }}" class="text-success">
-                            {{ __('Подробнее') }} <i class="fas fa-arrow-right"></i>
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-lg-3 col-md-6 mb-4">
-            <div class="stat-card stat-card-danger">
-                <div class="stat-card-body">
-                    <div class="stat-icon">
-                        <i class="fas fa-shopping-cart"></i>
-                    </div>
-                    <div class="stat-content">
-                        <div class="stat-label">Продано всего</div>
-                        <div class="stat-value">{{ number_format($totalSold, 0) }}</div>
-                        <a href="{{ route('admin.purchases.index') }}" class="text-danger">
-                            {{ __('Подробнее') }} <i class="fas fa-arrow-right"></i>
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-lg-3 col-md-6 mb-4">
-            <div class="stat-card stat-card-info">
-                <div class="stat-card-body">
-                    <div class="stat-icon">
-                        <i class="fas fa-chart-line"></i>
-                    </div>
-                    <div class="stat-content">
-                        <div class="stat-label">Общий доход</div>
-                        <div class="stat-value">{{ number_format($totalProfit, 2) }}</div>
-                        <div class="text-muted small mb-2">{{ \App\Models\Option::get('currency') }}</div>
-                        <a href="{{ route('admin.purchases.index') }}" class="text-info">
-                            {{ __('Подробнее') }} <i class="fas fa-arrow-right"></i>
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Статистика за период -->
-    <div class="row mt-4">
-        <div class="col-12 mb-3">
-            <h5 class="text-muted mb-0"><i class="fas fa-calendar-day mr-2"></i>Статистика продаж</h5>
-        </div>
-    </div>
-
-    <div class="row">
-        <div class="col-lg-3 col-md-6 mb-4">
-            <div class="stat-card stat-card-success">
-                <div class="stat-card-body">
-                    <div class="stat-icon">
-                        <i class="fas fa-cart-plus"></i>
-                    </div>
-                    <div class="stat-content">
-                        <div class="stat-label">Покупки товаров</div>
-                        <div class="stat-value">{{ $purchasesToday }}</div>
-                        <a href="{{ route('admin.purchases.index') }}" class="text-success">
-                            {{ __('Подробнее') }} <i class="fas fa-arrow-right"></i>
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-lg-3 col-md-6 mb-4">
-            <div class="stat-card stat-card-warning">
-                <div class="stat-card-body">
-                    <div class="stat-icon">
-                        <i class="fas fa-dollar-sign"></i>
-                    </div>
-                    <div class="stat-content">
-                        <div class="stat-label">Сумма продаж</div>
-                        <div class="stat-value">{{ number_format($salesToday, 2) }}</div>
-                        <div class="text-muted small mb-2">{{ \App\Models\Option::get('currency') }}</div>
-                        <a href="{{ route('admin.purchases.index') }}" class="text-warning">
                             {{ __('Подробнее') }} <i class="fas fa-arrow-right"></i>
                         </a>
                     </div>
@@ -196,8 +125,102 @@
                     </div>
                     <div class="stat-content">
                         <div class="stat-label">Всего пользователей</div>
-                        <div class="stat-value">{{ $totalUsers }}</div>
+                        <div class="stat-value">{{ number_format($totalUsers, 0) }}</div>
                         <a href="{{ route('admin.users.index') }}" class="text-primary">
+                            {{ __('Подробнее') }} <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Статистика за период -->
+    <div class="row mt-4 mb-3">
+        <div class="col-12">
+            <h5 class="dashboard-section-header">
+                <i class="fas fa-calendar-day"></i>Статистика за период
+                @php
+                    $periodLabels = [
+                        'today' => 'Сегодня',
+                        'yesterday' => 'Вчера',
+                        'week' => 'На этой неделе',
+                        'month' => 'В этом месяце',
+                        'year' => 'В этом году',
+                        'all' => 'За весь период',
+                        'custom' => 'Произвольный период'
+                    ];
+                    $periodLabel = $periodLabels[$period] ?? 'Выбранный период';
+                @endphp
+                <span class="badge badge-info ml-2">{{ $periodLabel }}</span>
+            </h5>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="stat-card stat-card-success">
+                <div class="stat-card-body">
+                    <div class="stat-icon">
+                        <i class="fas fa-cart-plus"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-label">Покупки за период</div>
+                        <div class="stat-value">{{ number_format($purchasesInPeriod, 0) }}</div>
+                        <a href="{{ route('admin.purchases.index') }}" class="text-success">
+                            {{ __('Подробнее') }} <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="stat-card stat-card-danger">
+                <div class="stat-card-body">
+                    <div class="stat-icon">
+                        <i class="fas fa-shopping-cart"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-label">Продано за период</div>
+                        <div class="stat-value">{{ number_format($soldInPeriod, 0) }}</div>
+                        <a href="{{ route('admin.purchases.index') }}" class="text-danger">
+                            {{ __('Подробнее') }} <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="stat-card stat-card-warning">
+                <div class="stat-card-body">
+                    <div class="stat-icon">
+                        <i class="fas fa-dollar-sign"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-label">Доход за период</div>
+                        <div class="stat-value">{{ number_format($revenueInPeriod, 2) }}</div>
+                        <div class="text-muted small mb-2">{{ \App\Models\Option::get('currency') }}</div>
+                        <a href="{{ route('admin.purchases.index') }}" class="text-warning">
+                            {{ __('Подробнее') }} <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="stat-card stat-card-info">
+                <div class="stat-card-body">
+                    <div class="stat-icon">
+                        <i class="fas fa-receipt"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-label">Средний чек</div>
+                        <div class="stat-value">{{ number_format($averageOrderValue, 2) }}</div>
+                        <div class="text-muted small mb-2">{{ \App\Models\Option::get('currency') }}</div>
+                        <a href="{{ route('admin.purchases.index') }}" class="text-info">
                             {{ __('Подробнее') }} <i class="fas fa-arrow-right"></i>
                         </a>
                     </div>
