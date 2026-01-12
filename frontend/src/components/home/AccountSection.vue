@@ -278,25 +278,6 @@
                     </div>
                 </div>
             </div>
-
-            <div v-if="filteredAccounts.length === 0" class="text-center py-12">
-                <svg
-                    class="w-16 h-16 mx-auto text-gray-400 mb-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                >
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
-                    />
-                </svg>
-                <p class="text-gray-500 dark:text-gray-400 text-lg">
-                    {{ $t('account.no_accounts') }}
-                </p>
-            </div>
         </div>
 
         <div v-if="hasMore" class="text-center mt-8">
@@ -770,14 +751,12 @@ onMounted(async () => {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04); /* Упрощенная тень */
     position: relative;
     overflow: hidden;
-    /* Оптимизация рендеринга для больших списков */
-    content-visibility: auto;
-    contain-intrinsic-size: 250px;
     /* GPU acceleration для backdrop-filter */
     transform: translateZ(0);
     /* КРИТИЧЕСКАЯ ОПТИМИЗАЦИЯ: Ленивый рендеринг для карточек вне viewport */
+    /* Используем content-visibility только для элементов вне viewport */
     content-visibility: auto;
-    contain-intrinsic-size: 200px;
+    contain-intrinsic-size: 250px;
 }
 
 .dark .product-card {
