@@ -5,7 +5,7 @@ $ErrorActionPreference = "Stop"
 
 # Settings
 $VPS = if ($env:SSH_HOST) { $env:SSH_HOST } else { "account-arena-server" }
-$ProjectDir = "/var/www/subcloudy"
+$ProjectDir = "/var/www/account-arena"
 
 # Output functions
 function Write-Step {
