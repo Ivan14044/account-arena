@@ -179,6 +179,8 @@ class ServiceAccountController extends Controller
                 'discount_percent' => $request->input('discount_percent') ? (float) $request->input('discount_percent') : null,
                 'discount_start_date' => $request->input('discount_start_date') ? \Carbon\Carbon::parse($request->input('discount_start_date')) : null,
                 'discount_end_date' => $request->input('discount_end_date') ? \Carbon\Carbon::parse($request->input('discount_end_date')) : null,
+                'delivery_type' => $request->input('delivery_type', 'automatic'),
+                'manual_delivery_instructions' => $request->input('manual_delivery_instructions'),
             ]);
 
             $message = "Товар успешно создан! Аккаунтов в наличии: " . count($accountsList);
@@ -479,6 +481,8 @@ class ServiceAccountController extends Controller
             'discount_percent' => ['nullable', 'numeric', 'min:0', 'max:99'], // ВАЖНО: max:99 для соответствия логике в других местах
             'discount_start_date' => ['nullable', 'date'],
             'discount_end_date' => ['nullable', 'date', 'after_or_equal:discount_start_date'],
+            'delivery_type' => ['nullable', 'in:automatic,manual'],
+            'manual_delivery_instructions' => ['nullable', 'string', 'max:5000'],
         ];
     }
 
