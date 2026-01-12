@@ -20,6 +20,7 @@ export interface AccountItem {
     sold?: number;
     views?: number; // Количество просмотров
     created_at?: string;
+    delivery_type?: 'automatic' | 'manual'; // Способ выдачи товара
     category?: {
         id?: number;
         name?: string;
@@ -59,6 +60,7 @@ export const useAccountsStore = defineStore('accounts', {
                 sold: Number(raw.sold ?? 0),
                 views: Number(raw.views ?? 0), // Количество просмотров
                 created_at: raw.created_at,
+                delivery_type: raw.delivery_type || 'automatic', // Способ выдачи товара
                 category: raw.category || null
             };
         },
