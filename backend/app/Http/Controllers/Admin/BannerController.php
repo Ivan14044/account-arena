@@ -16,11 +16,6 @@ class BannerController extends Controller
     {
         $query = Banner::query();
 
-        // Filter by position
-        if ($request->filled('position')) {
-            $query->where('position', $request->position);
-        }
-
         // Filter by status
         if ($request->filled('is_active')) {
             $query->where('is_active', $request->is_active);
@@ -29,7 +24,14 @@ class BannerController extends Controller
         $banners = $query->orderBy('order')->orderByDesc('created_at')->paginate(20);
         $positions = Banner::getPositions();
 
-        return view('admin.banners.index', compact('banners', 'positions'));
+        $allBanners = Banner::all();
+        $statistics = [
+            'total' => $allBanners->count(),
+            'active' => $allBanners->filter->isCurrentlyActive()->count(),
+            'inactive' => $allBanners->where('is_active', false)->count(),
+        ];
+
+        return view('admin.banners.index', compact('banners', 'positions', 'statistics'));
     }
 
     /**
