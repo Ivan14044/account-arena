@@ -15,7 +15,13 @@ class ContentController extends Controller
             ->orderBy('id', 'desc')
             ->get();
 
-        return view('admin.contents.index', compact('contents'));
+        $statistics = [
+            'total' => $contents->count(),
+            'system' => $contents->where('is_system', true)->count(),
+            'custom' => $contents->where('is_system', false)->count(),
+        ];
+
+        return view('admin.contents.index', compact('contents', 'statistics'));
     }
 
     public function create()
