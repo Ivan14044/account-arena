@@ -320,3 +320,90 @@
         fixLogoutForm();
     }
 })();
+
+// Глобальное обновление badge "Ручная обработка" на всех страницах админ-панели
+(function () {
+    // Переменная для хранения предыдущего значения счетчика
+    let previousManualDeliveryCount = -1;
+
+    // Функция для обновления счетчика заказов на ручную обработку
+    function updateManualDeliveryBadge() {
+        // Only run on admin pages
+        if (!location.pathname.startsWith("/admin")) {
+            return;
+        }
+
+        if (typeof jQuery === 'undefined') {
+            return;
+        }
+
+        let $badgeElement = document.querySelector('#manual-delivery-count');
+        if (!$badgeElement) {
+            return;
+        }
+
+        $.ajax({
+            url: '/admin/manual-delivery/count',
+            method: 'GET',
+            dataType: 'json',
+            success: function (data) {
+                const count = data.count || 0;
+
+                // Воспроизводим звук при появлении нового заказа на обработку
+                if (count > previousManualDeliveryCount && previousManualDeliveryCount >= 0) {
+                    const newOrdersCount = count - previousManualDeliveryCount;
+                    console.log('[Sound] Playing notification sound - Manual delivery: ' + newOrdersCount + ' new order(s)', {
+                        event: 'manual_delivery_new_order',
+                        previousCount: previousManualDeliveryCount,
+                        currentCount: count,
+                        newOrders: newOrdersCount
+                    });
+
+                    try {
+                        const audio = new Audio('/assets/admin/sounds/notification.mp3');
+                        audio.volume = 0.3; // 30% громкости
+                        audio.play().catch(function (error) {
+                            // Игнорируем ошибки воспроизведения
+                            console.debug('Could not play notification sound:', error);
+                        });
+                    } catch (error) {
+                        console.debug('Failed to create audio element:', error);
+                    }
+                }
+
+                previousManualDeliveryCount = count;
+
+                if (count > 0) {
+                    $badgeElement.textContent = count > 99 ? '99+' : count;
+                    $badgeElement.className = 'badge badge-warning navbar-badge';
+                    $badgeElement.style.display = 'inline-block';
+                } else {
+                    $badgeElement.textContent = '';
+                    $badgeElement.style.display = 'none';
+                }
+            },
+            error: function (xhr, status, error) {
+                // Игнорируем ошибки
+            }
+        });
+    }
+
+    function initManualDeliveryBadge() {
+        if (!location.pathname.startsWith("/admin")) {
+            return;
+        }
+
+        if (typeof jQuery !== 'undefined') {
+            $(document).ready(function () {
+                setTimeout(function () {
+                    updateManualDeliveryBadge();
+                    setInterval(updateManualDeliveryBadge, 30000); // Обновляем каждые 30 секунд
+                }, 1000);
+            });
+        } else {
+            setTimeout(initManualDeliveryBadge, 100);
+        }
+    }
+
+    initManualDeliveryBadge();
+})();

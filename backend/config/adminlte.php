@@ -358,6 +358,16 @@ return [
             'can' => 'admin-only',
         ],
         [
+            'text' => 'Ручная обработка',
+            'url' => 'admin/manual-delivery',
+            'icon' => 'fas fa-fw mr-1 fa-hand-paper',
+            'active' => ['admin/manual-delivery*'],
+            'can' => 'main-admin',
+            'label' => '',
+            'label_color' => 'warning',
+            'id' => 'manual-delivery-count',
+        ],
+        [
             'text' => 'Товары',
             'icon' => 'fas fa-fw mr-1 fa-box',
             'can' => 'admin-only',

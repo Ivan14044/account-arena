@@ -92,11 +92,15 @@ Route::prefix('/admin')
             // Purchases (покупки товаров)
             Route::resource('purchases', PurchaseController::class)->only(['index', 'show', 'destroy']);
 
-            // Manual Delivery (ручная обработка заказов)
-            Route::get('manual-delivery', [ManualDeliveryController::class, 'index'])->name('manual-delivery.index');
-            Route::get('manual-delivery/{purchase}', [ManualDeliveryController::class, 'show'])->name('manual-delivery.show');
-            Route::post('manual-delivery/{purchase}/process', [ManualDeliveryController::class, 'process'])->name('manual-delivery.process');
-            Route::get('manual-delivery/statistics', [ManualDeliveryController::class, 'statistics'])->name('manual-delivery.statistics');
+            // Manual Delivery (ручная обработка заказов) - только для главного администратора
+            Route::middleware(['admin.main'])->group(function () {
+                Route::get('manual-delivery', [ManualDeliveryController::class, 'index'])->name('manual-delivery.index');
+                Route::get('manual-delivery/{purchase}', [ManualDeliveryController::class, 'show'])->name('manual-delivery.show');
+                Route::post('manual-delivery/{purchase}/process', [ManualDeliveryController::class, 'process'])->name('manual-delivery.process');
+                Route::get('manual-delivery/statistics', [ManualDeliveryController::class, 'statistics'])->name('manual-delivery.statistics');
+                Route::get('manual-delivery/count', [ManualDeliveryController::class, 'getPendingCount'])->name('manual-delivery.count');
+                Route::get('manual-delivery/analytics', [ManualDeliveryController::class, 'analytics'])->name('manual-delivery.analytics');
+            });
 
             // Purchase Rules (правила покупки)
             Route::get('purchase-rules', [PurchaseRulesController::class, 'index'])->name('purchase-rules.index');
