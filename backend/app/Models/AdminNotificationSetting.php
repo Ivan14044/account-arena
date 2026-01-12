@@ -46,7 +46,7 @@ class AdminNotificationSetting extends Model
      */
     public static function getOrCreateForUser(int $userId): self
     {
-        return self::firstOrCreate(
+        $settings = self::firstOrCreate(
             ['user_id' => $userId],
             [
                 'registration_enabled' => true,
@@ -59,6 +59,22 @@ class AdminNotificationSetting extends Model
                 'sound_enabled' => true,
             ]
         );
+        
+        // Обновляем NULL значения для существующих записей (если поле было добавлено позже)
+        $needsUpdate = false;
+        $updates = [];
+        
+        if ($settings->manual_delivery_enabled === null) {
+            $updates['manual_delivery_enabled'] = true;
+            $needsUpdate = true;
+        }
+        
+        if ($needsUpdate) {
+            $settings->update($updates);
+            $settings->refresh();
+        }
+        
+        return $settings;
     }
 
     /**
