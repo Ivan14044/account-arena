@@ -365,6 +365,36 @@
                             </span>
                         </div>
 
+                        <!-- Заметки администратора (если есть) -->
+                        <div
+                            v-if="purchase.processing_notes && purchase.status === 'completed'"
+                            class="mb-4 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg"
+                        >
+                            <div class="flex items-start gap-3">
+                                <svg
+                                    class="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5 shrink-0"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                                    ></path>
+                                </svg>
+                                <div class="flex-1">
+                                    <h5 class="font-semibold text-blue-900 dark:text-blue-200 mb-1">
+                                        {{ $t('profile.purchases.admin_notes') }}
+                                    </h5>
+                                    <p class="text-sm text-blue-800 dark:text-blue-300 whitespace-pre-wrap">
+                                        {{ purchase.processing_notes }}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
                         <div
                             v-for="(accountItem, index) in getVisibleAccounts(purchase)"
                             :key="index"
@@ -637,6 +667,7 @@ const expandedPurchases = ref(new Set()); // Отслеживаем раскры
 const pollingInterval = ref(null); // Интервал для опроса
 const pollingAttempts = ref(0); // Счетчик попыток
 const maxPollingAttempts = 12; // Максимум 12 попыток (60 секунд при интервале 5 сек)
+const statusPollingInterval = ref(null); // Интервал для обновления статуса заказов в обработке
 
 // Проверяем, есть ли сообщение о подготовке товара
 const isPreparingProduct = computed(() => {
@@ -715,8 +746,34 @@ const startPolling = () => {
         await fetchPurchases();
         if (purchases.value.length > 0) {
             stopPolling();
+            // Запускаем обновление статуса для заказов в обработке
+            startStatusPolling();
         }
     }, 5000); // Опрашиваем каждые 5 секунд
+};
+
+// Запуск опроса для обновления статуса заказов в обработке
+const startStatusPolling = () => {
+    // Проверяем, есть ли заказы в обработке
+    const hasProcessingOrders = purchases.value.some(p => p.status === 'processing');
+    if (!hasProcessingOrders) {
+        return; // Нет заказов в обработке, не нужно опрашивать
+    }
+
+    // Останавливаем предыдущий интервал, если он есть
+    stopStatusPolling();
+    
+    statusPollingInterval.value = setInterval(async () => {
+        // Проверяем, есть ли еще заказы в обработке
+        const hasProcessing = purchases.value.some(p => p.status === 'processing');
+        if (!hasProcessing) {
+            stopStatusPolling();
+            return;
+        }
+
+        // Обновляем статусы заказов
+        await fetchPurchases();
+    }, 10000); // Опрашиваем каждые 10 секунд
 };
 
 // Остановка опроса
@@ -727,9 +784,18 @@ const stopPolling = () => {
     }
 };
 
+// Остановка опроса статуса
+const stopStatusPolling = () => {
+    if (statusPollingInterval.value) {
+        clearInterval(statusPollingInterval.value);
+        statusPollingInterval.value = null;
+    }
+};
+
 // Очистка при размонтировании
 onBeforeUnmount(() => {
     stopPolling();
+    stopStatusPolling();
 });
 
 const fetchPurchases = async () => {
@@ -784,6 +850,23 @@ const fetchPurchases = async () => {
                 // независимо от количества activeRequests
                 loadingStore.reset();
                 console.log('✅ Preloaders hidden, purchases loaded');
+                
+                // Запускаем обновление статуса для заказов в обработке
+                startStatusPolling();
+                
+                // Проверяем, есть ли заказы, которые только что завершились
+                const completedOrders = purchases.value.filter(p => p.status === 'completed');
+                if (completedOrders.length > 0) {
+                    // Показываем уведомление о завершении обработки
+                    completedOrders.forEach(purchase => {
+                        toast.success(
+                            t('profile.purchases.order_completed_notification', {
+                                order_number: purchase.order_number
+                            })
+                        );
+                    });
+                }
+                
                 return;
             }
         } else {

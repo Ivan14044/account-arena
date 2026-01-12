@@ -24,24 +24,38 @@ class ManualDeliveryController extends Controller
     public function index(Request $request)
     {
         $deliveryType = $request->query('delivery_type', 'manual');
+        $statusFilter = $request->query('status', 'all'); // Фильтр по статусу: all, processing, completed
         $dateFrom = $request->query('date_from');
         $dateTo = $request->query('date_to');
         $customerEmail = $request->query('customer_email');
         $customerId = $request->query('customer_id');
         $orderNumber = $request->query('order_number');
         $sortBy = $request->query('sort_by', 'created_at');
-        $sortOrder = $request->query('sort_order', 'asc');
+        $sortOrder = $request->query('sort_order', 'desc'); // По умолчанию новые первые
         
         // Получаем заказы с фильтрацией по типу выдачи
-        $query = Purchase::where('status', Purchase::STATUS_PROCESSING)
-            ->with(['user:id,name,email', 'serviceAccount:id,title,title_en,title_uk,delivery_type', 'transaction:id,currency,payment_method,amount']);
+        // Показываем как заказы в обработке, так и обработанные заказы с ручной выдачей
+        $query = Purchase::with(['user:id,name,email', 'serviceAccount:id,title,title_en,title_uk,delivery_type', 'transaction:id,currency,payment_method,amount']);
         
-        // Фильтруем по типу выдачи
-        if ($deliveryType !== 'all') {
-            $query->whereHas('serviceAccount', function($q) use ($deliveryType) {
-                $q->where('delivery_type', $deliveryType);
-            });
+        // Фильтр по статусу
+        if ($statusFilter === 'processing') {
+            $query->where('status', Purchase::STATUS_PROCESSING);
+        } elseif ($statusFilter === 'completed') {
+            $query->where('status', Purchase::STATUS_COMPLETED);
+        } else {
+            // all - показываем и processing, и completed
+            $query->whereIn('status', [Purchase::STATUS_PROCESSING, Purchase::STATUS_COMPLETED]);
         }
+        
+        // Фильтруем по типу выдачи - только заказы с ручной выдачей
+        $query->whereHas('serviceAccount', function($q) use ($deliveryType) {
+            if ($deliveryType !== 'all') {
+                $q->where('delivery_type', $deliveryType);
+            } else {
+                // Если all, показываем все типы, но только те, что были с ручной выдачей
+                $q->whereIn('delivery_type', ['manual']);
+            }
+        });
         
         // Фильтр по дате создания "с"
         if ($dateFrom) {
@@ -90,6 +104,7 @@ class ManualDeliveryController extends Controller
             'pendingOrders', 
             'statistics', 
             'deliveryType',
+            'statusFilter',
             'dateFrom',
             'dateTo',
             'customerEmail',

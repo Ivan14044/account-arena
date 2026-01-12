@@ -144,6 +144,10 @@
             "order_cancelled": "Заказ успешно отменен",
             "cancel_order_error": "Ошибка при отмене заказа",
             "not_authorized": "Необходима авторизация",
+            "contact_manager": "Связаться с менеджером",
+            "contact_manager_message": "Здравствуйте! У меня вопрос по заказу #{order_number} (товар: {product_title}). Заказ находится в обработке.",
+            "contact_manager_hint": "Откройте чат поддержки и отправьте сообщение менеджеру",
+            "contact_manager_error": "Ошибка при открытии чата поддержки",
             "quantity": "Количество",
             "pcs": "шт.",
             "quantity_unit": "шт.",
@@ -168,6 +172,8 @@
                 "account": "АККАУНТ",
                 "quantity": "КОЛИЧЕСТВО"
             },
+            "order_completed_notification": "Заказ {order_number} успешно обработан!",
+            "admin_notes": "Заметки менеджера",
             "disputes": {
                 "title": "Претензии",
                 "loading": "Загрузка претензий...",

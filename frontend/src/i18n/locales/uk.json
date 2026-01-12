@@ -175,6 +175,8 @@
                 "account": "АКАУНТ",
                 "quantity": "КІЛЬКІСТЬ"
             },
+            "order_completed_notification": "Замовлення {order_number} успішно оброблено!",
+            "admin_notes": "Примітки менеджера",
             "disputes": {
                 "title": "Претензії",
                 "loading": "Завантаження претензій...",

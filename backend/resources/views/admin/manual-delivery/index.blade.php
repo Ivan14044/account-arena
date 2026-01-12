@@ -95,7 +95,7 @@
             <div class="d-flex justify-content-between align-items-center">
                 <h3 class="card-title">
                     <i class="fas fa-list mr-2"></i>
-                    Заказы на обработку ({{ $pendingOrders->count() }})
+                    Заказы с ручной выдачей ({{ $pendingOrders->count() }})
                 </h3>
                 <div class="card-tools d-flex gap-2 align-items-center">
                     <a href="{{ route('admin.manual-delivery.analytics') }}" class="btn btn-sm btn-info">
@@ -120,6 +120,16 @@
             <form method="GET" action="{{ route('admin.manual-delivery.index') }}" class="row g-3">
                 <!-- Скрытые поля для сохранения текущих фильтров -->
                 <input type="hidden" name="delivery_type" value="{{ $deliveryType }}">
+                <input type="hidden" name="status" value="{{ $statusFilter ?? 'all' }}">
+                
+                <div class="col-md-2">
+                    <label class="form-label">Статус</label>
+                    <select name="status" class="form-control form-control-sm" onchange="this.form.submit()">
+                        <option value="all" {{ ($statusFilter ?? 'all') === 'all' ? 'selected' : '' }}>Все</option>
+                        <option value="processing" {{ ($statusFilter ?? 'all') === 'processing' ? 'selected' : '' }}>В обработке</option>
+                        <option value="completed" {{ ($statusFilter ?? 'all') === 'completed' ? 'selected' : '' }}>Обработано</option>
+                    </select>
+                </div>
                 
                 <div class="col-md-3">
                     <label class="form-label">Дата создания (с)</label>
@@ -189,6 +199,7 @@
                         <thead>
                             <tr>
                                 <th>Номер заказа</th>
+                                <th>Статус</th>
                                 <th>Покупатель</th>
                                 <th>Товар</th>
                                 <th>Количество</th>
@@ -211,6 +222,18 @@
                                 <tr>
                                     <td>
                                         <strong>#{{ $order->order_number }}</strong>
+                                    </td>
+                                    <td>
+                                        @if($order->status === \App\Models\Purchase::STATUS_PROCESSING)
+                                            <span class="badge badge-warning">В обработке</span>
+                                        @elseif($order->status === \App\Models\Purchase::STATUS_COMPLETED)
+                                            <span class="badge badge-success">Обработано</span>
+                                            @if($order->processed_at)
+                                                <br><small class="text-muted">{{ $order->processed_at->format('d.m.Y H:i') }}</small>
+                                            @endif
+                                        @else
+                                            <span class="badge badge-secondary">{{ $order->status }}</span>
+                                        @endif
                                     </td>
                                     <td>
                                         @if($order->user)
@@ -248,9 +271,9 @@
                                     </td>
                                     <td>
                                         <a href="{{ route('admin.manual-delivery.show', $order) }}" 
-                                           class="btn btn-sm btn-primary">
-                                            <i class="fas fa-edit mr-1"></i>
-                                            Обработать
+                                           class="btn btn-sm {{ $order->status === \App\Models\Purchase::STATUS_PROCESSING ? 'btn-primary' : 'btn-info' }}">
+                                            <i class="fas {{ $order->status === \App\Models\Purchase::STATUS_PROCESSING ? 'fa-edit' : 'fa-eye' }} mr-1"></i>
+                                            {{ $order->status === \App\Models\Purchase::STATUS_PROCESSING ? 'Обработать' : 'Просмотр' }}
                                         </a>
                                     </td>
                                 </tr>
