@@ -4,7 +4,7 @@
             v-if="productCartStore.items.length"
             class="mx-auto grid gap-8 lg:grid-cols-[minmax(0,1fr)_24rem]"
         >
-            <div class="flex items-center justify-between gap-4 mt-6 mb-2 lg:col-span-2">
+            <div class="flex items-center justify-between gap-4 mt-6 mb-8 lg:col-span-2">
                 <h1
                     class="text-2xl font-medium md:text-4xl md:font-light text-dark dark:text-white break-words flex-1 min-w-0"
                 >
@@ -110,7 +110,7 @@
                 </form>
             </div>
 
-            <div class="w-full lg:max-w-sm text-dark dark:text-white font-normal space-y-6">
+            <div class="w-full text-dark dark:text-white font-normal space-y-6">
                 <div class="glass-card rounded-3xl p-6 relative overflow-hidden">
                     <div class="space-y-4">
                         <div class="space-y-2">
@@ -969,7 +969,6 @@ function onPrimaryPromoClick() {
 
 /* Стили для товаров в корзине */
 .product-cart-section {
-    margin-top: 2rem;
 }
 
 .product-cart-item {
