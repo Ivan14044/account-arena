@@ -13,11 +13,17 @@ class NotificationController extends Controller
 {
     public function index()
     {
-        $notifications = Notification::with('template')
+        $notifications = Notification::with(['template', 'user'])
             ->orderBy('id', 'desc')
             ->get();
 
-        return view('admin.notifications.index', compact('notifications'));
+        $statistics = [
+            'total' => $notifications->count(),
+            'read' => $notifications->whereNotNull('read_at')->count(),
+            'unread' => $notifications->whereNull('read_at')->count(),
+        ];
+
+        return view('admin.notifications.index', compact('notifications', 'statistics'));
     }
 
     public function create()
