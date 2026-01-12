@@ -17,7 +17,13 @@ class ArticleController extends Controller
             ->orderBy('id', 'desc')
             ->get();
 
-        return view('admin.articles.index', compact('articles'));
+        $statistics = [
+            'total' => $articles->count(),
+            'published' => $articles->where('status', 'published')->count(),
+            'draft' => $articles->where('status', 'draft')->count(),
+        ];
+
+        return view('admin.articles.index', compact('articles', 'statistics'));
     }
 
     public function create()
