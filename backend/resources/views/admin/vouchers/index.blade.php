@@ -89,21 +89,13 @@
 
     <!-- Таблица -->
     <div class="card card-modern">
-        <div class="card-header-modern">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <h5 class="mb-0">Список ваучеров</h5>
-                    <small class="text-muted">Всего записей: {{ $vouchers->count() }}</small>
-                </div>
-                <div class="filters-container">
-                    <div class="btn-group btn-group-filter" role="group">
-                        <button type="button" class="btn btn-filter active" id="filterAll">Все</button>
-                        <button type="button" class="btn btn-filter" id="filterActive">Активные</button>
-                        <button type="button" class="btn btn-filter" id="filterUsed">Использованные</button>
-                        <button type="button" class="btn btn-filter" id="filterInactive">Неактивные</button>
-                    </div>
-                </div>
-            </div>
+        <div class="card-header-modern p-0">
+            <ul class="nav nav-pills p-2">
+                <li class="nav-item"><a class="nav-link active" href="#all" data-toggle="tab" id="filterAll">Все</a></li>
+                <li class="nav-item"><a class="nav-link" href="#active" data-toggle="tab" id="filterActive">Активные</a></li>
+                <li class="nav-item"><a class="nav-link" href="#used" data-toggle="tab" id="filterUsed">Использованные</a></li>
+                <li class="nav-item"><a class="nav-link" href="#inactive" data-toggle="tab" id="filterInactive">Неактивные</a></li>
+            </ul>
         </div>
 
         <div class="card-body-modern">
@@ -123,38 +115,32 @@
                     </thead>
                     <tbody>
                         @foreach ($vouchers as $voucher)
-                        <tr data-status="{{ $voucher->isUsed() ? 'used' : ($voucher->is_active ? 'active' : 'inactive') }}">
+                        <tr>
                             <td class="text-center align-middle">
-                                <span class="badge badge-secondary">#{{ $voucher->id }}</span>
+                                <span class="badge badge-light font-weight-bold">#{{ $voucher->id }}</span>
                             </td>
                             <td class="align-middle">
                                 <div class="d-flex align-items-center">
-                                    <i class="fas fa-ticket-alt text-primary mr-2" style="font-size: 1.25rem;"></i>
-                                    <div>
-                                        <code style="font-size: 1rem; background: #f8f9fc; padding: 0.25rem 0.5rem; border-radius: 0.25rem; border: 1px solid #e3e6f0;">
-                                            {{ $voucher->code }}
-                                        </code>
-                                    </div>
+                                    <i class="fas fa-ticket-alt text-primary mr-2" style="font-size: 1.1rem; opacity: 0.7;"></i>
+                                    <code>{{ $voucher->code }}</code>
                                 </div>
                             </td>
-                            <td class="align-middle">
-                                <strong class="text-success" style="font-size: 1.1rem;">
-                                    ${{ number_format($voucher->amount, 2) }}
-                                </strong>
+                            <td class="align-middle font-weight-bold text-success">
+                                ${{ number_format($voucher->amount, 2) }}
                             </td>
                             <td class="align-middle">
-                                <span class="badge badge-light font-weight-bold">{{ strtoupper($voucher->currency) }}</span>
+                                <span class="badge badge-light border">{{ strtoupper($voucher->currency) }}</span>
                             </td>
                             <td class="align-middle">
                                 @if($voucher->user)
                                     <a href="{{ route('admin.users.edit', $voucher->user) }}" class="text-decoration-none">
                                         <div class="d-flex align-items-center">
-                                            <div class="avatar-circle mr-2" style="width: 30px; height: 30px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 0.75rem;">
+                                            <div class="avatar-circle-sm mr-2" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
                                                 {{ strtoupper(substr($voucher->user->name ?? $voucher->user->email, 0, 1)) }}
                                             </div>
                                             <div>
-                                                <div class="font-weight-bold text-dark" style="font-size: 0.875rem;">{{ $voucher->user->name }}</div>
-                                                <small class="text-muted">{{ $voucher->user->email }}</small>
+                                                <div class="font-weight-bold text-dark small">{{ $voucher->user->name }}</div>
+                                                <div class="text-muted" style="font-size: 0.7rem;">{{ $voucher->user->email }}</div>
                                             </div>
                                         </div>
                                     </a>
@@ -162,81 +148,44 @@
                                     <span class="text-muted">—</span>
                                 @endif
                             </td>
-                            <td class="align-middle">
+                            <td class="align-middle text-muted" data-order="{{ $voucher->used_at ? strtotime($voucher->used_at) : 0 }}">
                                 @if($voucher->used_at)
-                                    <small class="text-success">
+                                    <small>
                                         <i class="far fa-calendar-check mr-1"></i>
-                                        {{ $voucher->used_at->format('d.m.Y H:i') }}
+                                        {{ $voucher->used_at->format('d.m.Y') }}
+                                        <br>
+                                        <i class="far fa-clock mr-1"></i>
+                                        {{ $voucher->used_at->format('H:i') }}
                                     </small>
                                 @else
-                                    <span class="text-muted">—</span>
+                                    <span class="text-muted small">—</span>
                                 @endif
                             </td>
                             <td class="align-middle">
                                 @if($voucher->isUsed())
-                                    <span class="badge badge-warning badge-modern">
-                                        <i class="fas fa-check-double mr-1"></i>Использован
-                                    </span>
+                                    <span class="badge badge-warning badge-modern">Использован</span>
                                 @elseif($voucher->is_active)
-                                    <span class="badge badge-success badge-modern">
-                                        <i class="fas fa-check-circle mr-1"></i>Активен
-                                    </span>
+                                    <span class="badge badge-success badge-modern">Активен</span>
                                 @else
-                                    <span class="badge badge-danger badge-modern">
-                                        <i class="fas fa-ban mr-1"></i>Неактивен
-                                    </span>
+                                    <span class="badge badge-danger badge-modern">Неактивен</span>
                                 @endif
                             </td>
                             <td class="text-center align-middle">
-                                <div class="btn-group action-buttons" role="group">
+                                <div class="action-buttons justify-content-center">
                                     <a href="{{ route('admin.vouchers.edit', $voucher) }}" 
                                        class="btn btn-sm btn-primary" 
                                        title="Редактировать"
                                        data-toggle="tooltip">
                                         <i class="fas fa-edit"></i>
                                     </a>
-                                    <button class="btn btn-sm btn-danger" 
-                                            data-toggle="modal" 
-                                            data-target="#deleteModal{{ $voucher->id }}"
+                                    <button class="btn btn-sm btn-danger btn-delete-voucher" 
+                                            data-code="{{ $voucher->code }}"
+                                            data-amount="{{ number_format($voucher->amount, 2) }}"
+                                            data-action="{{ route('admin.vouchers.destroy', $voucher) }}"
                                             title="Удалить"
                                             data-toggle-tooltip="tooltip">
                                         <i class="fas fa-trash-alt"></i>
                                     </button>
-                                </div>
-
-                                <!-- Модальное окно удаления -->
-                                <div class="modal fade" id="deleteModal{{ $voucher->id }}" tabindex="-1" role="dialog">
-                                    <div class="modal-dialog modal-dialog-centered" role="document">
-                                        <div class="modal-content modal-modern">
-                                            <div class="modal-header-modern">
-                                                <h5 class="modal-title">
-                                                    <i class="fas fa-exclamation-triangle mr-2 text-danger"></i>
-                                                    Подтверждение удаления
-                                                </h5>
-                                                <button type="button" class="close" data-dismiss="modal">
-                                                    <span>&times;</span>
-                                                </button>
-                                            </div>
-                                            <div class="modal-body-modern text-center">
-                                                <i class="fas fa-ticket-alt fa-3x text-danger mb-3"></i>
-                                                <h6 class="font-weight-bold">Ваучер <code>{{ $voucher->code }}</code></h6>
-                                                <p class="text-muted mb-0">Сумма: <strong class="text-success">${{ number_format($voucher->amount, 2) }}</strong></p>
-                                                <small class="text-danger">Это действие нельзя отменить!</small>
-                                            </div>
-                                            <div class="modal-footer-modern justify-content-center">
-                                                <form action="{{ route('admin.vouchers.destroy', $voucher) }}" method="POST">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="btn btn-danger btn-modern">
-                                                        <i class="fas fa-trash-alt mr-2"></i>Да, удалить
-                                                    </button>
-                                                </form>
-                                                <button type="button" class="btn btn-secondary btn-modern" data-dismiss="modal">
-                                                    Отмена
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
                                 </div>
                             </td>
                         </tr>
@@ -246,59 +195,92 @@
             </div>
         </div>
     </div>
+
+    {{-- Единое модальное окно для удаления --}}
+    <div class="modal fade" id="singleDeleteModal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header bg-danger text-white border-0">
+                    <h5 class="modal-title">
+                        <i class="fas fa-exclamation-triangle mr-2"></i>
+                        Подтверждение удаления
+                    </h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body py-4 text-center">
+                    <i class="fas fa-ticket-alt fa-3x text-danger mb-3"></i>
+                    <h6 class="font-weight-bold">Ваучер <code id="delete-voucher-code"></code></h6>
+                    <p class="mb-0">Сумма: <strong class="text-success">$<span id="delete-voucher-amount"></span></strong></p>
+                    <p class="mt-3">Вы действительно хотите удалить этот ваучер?<br>
+                    <small class="text-danger">Это действие нельзя отменить!</small></p>
+                </div>
+                <div class="modal-footer border-0 justify-content-center">
+                    <form id="delete-voucher-form" method="POST">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="btn btn-danger btn-modern">
+                            <i class="fas fa-trash-alt mr-2"></i>Да, удалить
+                        </button>
+                    </form>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                        Отмена
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @section('css')
     @include('admin.layouts.modern-styles')
-@endsection
+    <style>
+        .avatar-circle-sm {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.8rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+    </style>
+@stop
 
 @section('js')
     <script>
         $(document).ready(function () {
-            // DataTable
             var table = $('#vouchers-table').DataTable({
                 "order": [[0, "desc"]],
                 "language": {
-                    "url": "//cdn.datatables.net/plug-ins/1.11.5/i18n/ru.json"
+                    "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Russian.json"
                 },
                 "pageLength": 25,
                 "columnDefs": [
                     { "orderable": false, "targets": 7 }
-                ]
+                ],
+                "dom": '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>rtip'
             });
 
-            // Tooltips
+            // Фильтры по табу
+            $('#filterAll').on('click', function() { table.column(6).search('').draw(); });
+            $('#filterActive').on('click', function() { table.column(6).search('Активен').draw(); });
+            $('#filterUsed').on('click', function() { table.column(6).search('Использован').draw(); });
+            $('#filterInactive').on('click', function() { table.column(6).search('Неактивен').draw(); });
+
             $('[data-toggle="tooltip"]').tooltip();
 
-            // Фильтры
-            $('#filterAll').on('click', function() {
-                table.column(6).search('').draw();
-                $('.btn-filter').removeClass('active');
-                $(this).addClass('active');
+            // Динамическая модалка
+            $('.btn-delete-voucher').on('click', function() {
+                $('#delete-voucher-code').text($(this).data('code'));
+                $('#delete-voucher-amount').text($(this).data('amount'));
+                $('#delete-voucher-form').attr('action', $(this).data('action'));
+                $('#singleDeleteModal').modal('show');
             });
-
-            $('#filterActive').on('click', function() {
-                table.column(6).search('Активен').draw();
-                $('.btn-filter').removeClass('active');
-                $(this).addClass('active');
-            });
-
-            $('#filterUsed').on('click', function() {
-                table.column(6).search('Использован').draw();
-                $('.btn-filter').removeClass('active');
-                $(this).addClass('active');
-            });
-
-            $('#filterInactive').on('click', function() {
-                table.column(6).search('Неактивен').draw();
-                $('.btn-filter').removeClass('active');
-                $(this).addClass('active');
-            });
-
-            // Автоскрытие алертов
-            setTimeout(function() {
-                $('.alert').fadeOut('slow');
-            }, 5000);
         });
     </script>
 @endsection

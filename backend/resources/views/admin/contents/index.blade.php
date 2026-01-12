@@ -97,7 +97,7 @@
                     @foreach ($contents as $content)
                         <tr>
                             <td class="text-center align-middle">
-                                <span class="badge badge-secondary">#{{ $content->id }}</span>
+                                <span class="badge badge-light font-weight-bold">#{{ $content->id }}</span>
                             </td>
                             <td class="align-middle font-weight-bold">
                                 {{ $content->name }}
@@ -124,36 +124,13 @@
                                     </a>
 
                                     @if(!$content->is_system)
-                                        <button class="btn btn-sm btn-danger" 
-                                                data-toggle="modal" 
-                                                data-target="#deleteModal{{ $content->id }}"
+                                        <button class="btn btn-sm btn-danger btn-delete-content" 
+                                                data-name="{{ $content->name }}"
+                                                data-action="{{ route('admin.contents.destroy', $content) }}"
                                                 title="Удалить"
                                                 data-toggle-tooltip="tooltip">
                                             <i class="fas fa-trash"></i>
                                         </button>
-
-                                        <div class="modal fade" id="deleteModal{{ $content->id }}" tabindex="-1" role="dialog" aria-hidden="true">
-                                            <div class="modal-dialog modal-dialog-centered" role="document">
-                                                <div class="modal-content modal-modern">
-                                                    <div class="modal-header modal-header-modern bg-danger text-white">
-                                                        <h5 class="modal-title">Подтверждение удаления</h5>
-                                                        <button type="button" class="close text-white" data-dismiss="modal">&times;</button>
-                                                    </div>
-                                                    <div class="modal-body modal-body-modern text-left">
-                                                        Это действие навсегда удалит блок контента <strong>{{ $content->name }}</strong>.
-                                                        Вы уверены?
-                                                    </div>
-                                                    <div class="modal-footer modal-footer-modern">
-                                                        <form action="{{ route('admin.contents.destroy', $content) }}" method="POST" class="d-inline">
-                                                            @csrf
-                                                            @method('DELETE')
-                                                            <button type="submit" class="btn btn-danger btn-modern">Да, удалить</button>
-                                                        </form>
-                                                        <button type="button" class="btn btn-secondary btn-modern" data-dismiss="modal">Отмена</button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
                                     @endif
                                 </div>
                             </td>
@@ -161,6 +138,41 @@
                     @endforeach
                     </tbody>
                 </table>
+            </div>
+        </div>
+    </div>
+
+    {{-- Единое модальное окно для удаления --}}
+    <div class="modal fade" id="singleDeleteModal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header bg-danger text-white border-0">
+                    <h5 class="modal-title">
+                        <i class="fas fa-exclamation-triangle mr-2"></i>
+                        Подтверждение удаления
+                    </h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body py-4 text-center">
+                    <i class="fas fa-trash-alt fa-3x text-danger mb-3"></i>
+                    <h6 class="font-weight-bold" id="delete-content-name"></h6>
+                    <p class="mt-3">Вы действительно хотите удалить этот блок контента?<br>
+                    <small class="text-danger">Это действие нельзя отменить!</small></p>
+                </div>
+                <div class="modal-footer border-0 justify-content-center">
+                    <form id="delete-content-form" method="POST">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="btn btn-danger btn-modern">
+                            <i class="fas fa-trash-alt mr-2"></i>Да, удалить
+                        </button>
+                    </form>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                        Отмена
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -182,24 +194,22 @@
                 "columnDefs": [
                     { "orderable": false, "targets": 4 }
                 ],
-                "dom": '<"d-flex justify-content-between align-items-center mb-3"l<"ml-auto"f>>rt<"d-flex justify-content-between align-items-center mt-3"ip>'
+                "dom": '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>rtip'
             });
 
             // Фильтры по табу
-            $('#filterAll').on('click', function() {
-                table.column(3).search('').draw();
-            });
-
-            $('#filterSystem').on('click', function() {
-                table.column(3).search('Системный').draw();
-            });
-
-            $('#filterCustom').on('click', function() {
-                table.column(3).search('Пользовательский').draw();
-            });
+            $('#filterAll').on('click', function() { table.column(3).search('').draw(); });
+            $('#filterSystem').on('click', function() { table.column(3).search('Системный').draw(); });
+            $('#filterCustom').on('click', function() { table.column(3).search('Пользовательский').draw(); });
 
             $('[data-toggle="tooltip"]').tooltip();
-            $('[data-toggle-tooltip="tooltip"]').tooltip();
+
+            // Динамическая модалка
+            $('.btn-delete-content').on('click', function() {
+                $('#delete-content-name').text($(this).data('name'));
+                $('#delete-content-form').attr('action', $(this).data('action'));
+                $('#singleDeleteModal').modal('show');
+            });
         });
     </script>
 @endsection

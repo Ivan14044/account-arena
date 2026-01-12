@@ -76,8 +76,8 @@
     <!-- Поиск -->
     <div class="card card-modern mb-4">
         <div class="card-body-modern p-3">
-            <form action="{{ route('admin.suppliers.index') }}" method="GET" class="row g-2">
-                <div class="col-md-10">
+            <form action="{{ route('admin.suppliers.index') }}" method="GET" class="row g-2 align-items-center">
+                <div class="col-md-9">
                     <div class="input-group input-group-sm">
                         <div class="input-group-prepend">
                             <span class="input-group-text bg-white border-right-0"><i class="fas fa-search text-muted"></i></span>
@@ -85,11 +85,13 @@
                         <input type="text" name="search" class="form-control border-left-0" placeholder="Поиск по имени или email поставщика..." value="{{ request('search') }}">
                     </div>
                 </div>
-                <div class="col-md-2 d-flex">
-                    <button type="submit" class="btn btn-primary btn-sm flex-grow-1 mr-2">Найти</button>
+                <div class="col-md-3 d-flex">
+                    <button type="submit" class="btn btn-primary btn-sm flex-grow-1 mr-2">
+                        <i class="fas fa-filter mr-1"></i>Найти
+                    </button>
                     @if(request('search'))
-                        <a href="{{ route('admin.suppliers.index') }}" class="btn btn-secondary btn-sm" title="Сбросить">
-                            <i class="fas fa-undo"></i>
+                        <a href="{{ route('admin.suppliers.index') }}" class="btn btn-secondary btn-sm" title="Сбросить фильтр">
+                            <i class="fas fa-undo mr-1"></i>Сброс
                         </a>
                     @endif
                 </div>
@@ -98,8 +100,8 @@
     </div>
 
     <div class="card card-modern">
-        <div class="card-header-modern border-bottom-0">
-            <h3 class="card-title">Список поставщиков ({{ $suppliers->total() }})</h3>
+        <div class="card-header-modern">
+            <h5 class="mb-0">Список поставщиков <span class="badge badge-light border ml-1">{{ $suppliers->total() }}</span></h5>
         </div>
         <div class="card-body-modern p-0">
             @if($suppliers->count() > 0)
@@ -113,7 +115,7 @@
                         <th class="text-center">Рейтинг</th>
                         <th class="text-center">Баланс</th>
                         <th class="text-center">Комиссия</th>
-                        <th class="text-center">Методы</th>
+                        <th class="text-center">Методы вывода</th>
                         <th style="width: 100px" class="text-center">Действия</th>
                     </tr>
                     </thead>
@@ -121,46 +123,46 @@
                     @foreach($suppliers as $supplier)
                         <tr>
                             <td class="text-center align-middle">
-                                <span class="badge badge-secondary">#{{ $supplier->id }}</span>
+                                <span class="badge badge-light font-weight-bold">#{{ $supplier->id }}</span>
                             </td>
                             <td class="align-middle font-weight-bold">{{ $supplier->name }}</td>
-                            <td class="align-middle text-muted">{{ $supplier->email }}</td>
+                            <td class="align-middle text-muted small">{{ $supplier->email }}</td>
                             <td class="text-center align-middle">
                                 @php
                                     $rating = $supplier->supplier_rating ?? 100;
                                     $level = $supplier->getRatingLevel();
                                 @endphp
                                 <div class="d-inline-block">
-                                    <span class="badge badge-{{ $level['class'] }} badge-modern px-3 py-1">
+                                    <span class="badge badge-{{ $level['class'] }} badge-modern px-2 py-1">
                                         {{ $level['icon'] }} {{ $rating }}%
                                     </span>
                                     <div class="mt-1" style="font-size: 0.7rem;">
                                         @for($i = 0; $i < $level['stars']; $i++)
-                                            <i class="fas fa-star text-warning"></i>
+                                            <i class="fas fa-star text-warning" style="font-size: 0.6rem;"></i>
                                         @endfor
                                     </div>
                                 </div>
                             </td>
-                            <td class="text-center align-middle font-weight-bold text-success text-lg">
+                            <td class="text-center align-middle font-weight-bold text-success">
                                 ${{ number_format($supplier->supplier_balance, 2) }}
                             </td>
                             <td class="text-center align-middle">
-                                <span class="badge badge-secondary badge-modern">{{ $supplier->supplier_commission }}%</span>
+                                <span class="badge badge-light border">{{ $supplier->supplier_commission }}%</span>
                             </td>
                             <td class="text-center align-middle">
-                                <div class="d-flex justify-content-center gap-1">
+                                <div class="d-flex justify-content-center gap-2">
                                     @if($supplier->trc20_wallet)
-                                        <span class="badge badge-info badge-modern" title="TRC-20: {{ $supplier->trc20_wallet }}" data-toggle="tooltip">
+                                        <span class="text-info" title="TRC-20: {{ $supplier->trc20_wallet }}" data-toggle="tooltip">
                                             <i class="fas fa-coins"></i>
                                         </span>
                                     @endif
                                     @if($supplier->card_number_uah)
-                                        <span class="badge badge-primary badge-modern" title="Карта: {{ $supplier->card_number_uah }}" data-toggle="tooltip">
+                                        <span class="text-primary" title="Карта: {{ $supplier->card_number_uah }}" data-toggle="tooltip">
                                             <i class="fas fa-credit-card"></i>
                                         </span>
                                     @endif
                                     @if(!$supplier->trc20_wallet && !$supplier->card_number_uah)
-                                        <span class="text-muted small italic">Не указаны</span>
+                                        <span class="text-muted small italic">—</span>
                                     @endif
                                 </div>
                             </td>
@@ -168,7 +170,7 @@
                                 <div class="action-buttons justify-content-center">
                                     <a href="{{ route('admin.suppliers.show', $supplier) }}" 
                                        class="btn btn-sm btn-primary" 
-                                       title="Просмотр"
+                                       title="Просмотр профиля"
                                        data-toggle="tooltip">
                                         <i class="fas fa-eye"></i>
                                     </a>
@@ -181,14 +183,17 @@
             </div>
             @else
             <div class="p-5 text-center text-muted">
-                <i class="fas fa-user-slash fa-3x mb-3 opacity-20"></i>
-                <p>Поставщики не найдены</p>
+                <i class="fas fa-user-tie fa-3x mb-3 opacity-20"></i>
+                <p class="font-weight-bold mb-0">Поставщики не найдены</p>
+                <small>Попробуйте изменить параметры поиска</small>
             </div>
             @endif
         </div>
         @if($suppliers->hasPages())
             <div class="card-footer-modern bg-white p-3 border-top">
-                {{ $suppliers->links() }}
+                <div class="d-flex justify-content-center">
+                    {{ $suppliers->appends(request()->query())->links() }}
+                </div>
             </div>
         @endif
     </div>
@@ -205,4 +210,3 @@
         });
     </script>
 @endsection
-

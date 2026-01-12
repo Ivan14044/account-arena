@@ -98,10 +98,10 @@
                     @foreach ($users as $user)
                         <tr>
                             <td class="text-center align-middle">
-                                <span class="badge badge-secondary">#{{ $user->id }}</span>
+                                <span class="badge badge-light font-weight-bold">#{{ $user->id }}</span>
                             </td>
                             <td class="align-middle font-weight-bold">{{ $user->name }}</td>
-                            <td class="align-middle text-muted">{{ $user->email }}</td>
+                            <td class="align-middle text-muted small">{{ $user->email }}</td>
                             <td class="text-center align-middle">
                                 @if($user->is_blocked)
                                     <span class="badge badge-danger badge-modern">Заблокирован</span>
@@ -127,73 +127,93 @@
                                         <i class="fas fa-edit"></i>
                                     </a>
 
-                                    <button class="btn btn-sm btn-warning" 
-                                            data-toggle="modal" 
-                                            data-target="#blockModal{{ $user->id }}"
+                                    <button class="btn btn-sm btn-warning btn-block-admin" 
+                                            data-name="{{ $user->name }}"
+                                            data-blocked="{{ $user->is_blocked }}"
+                                            data-action="{{ route('admin.admins.block', $user) }}"
                                             title="{{ $user->is_blocked ? 'Разблокировать' : 'Заблокировать' }}"
                                             data-toggle-tooltip="tooltip">
                                         <i class="fas fa-{{ $user->is_blocked ? 'lock-open' : 'lock' }}"></i>
                                     </button>
 
-                                    <button class="btn btn-sm btn-danger" 
-                                            data-toggle="modal" 
-                                            data-target="#deleteModal{{ $user->id }}"
+                                    <button class="btn btn-sm btn-danger btn-delete-admin" 
+                                            data-name="{{ $user->name }}"
+                                            data-action="{{ route('admin.admins.destroy', $user) }}"
                                             title="Удалить"
                                             data-toggle-tooltip="tooltip">
                                         <i class="fas fa-trash"></i>
                                     </button>
-                                </div>
-
-                                <!-- Modals remain same but with modern buttons -->
-                                <div class="modal fade" id="deleteModal{{ $user->id }}" tabindex="-1" role="dialog" aria-hidden="true">
-                                    <div class="modal-dialog modal-dialog-centered" role="document">
-                                        <div class="modal-content modal-modern">
-                                            <div class="modal-header modal-header-modern bg-danger text-white">
-                                                <h5 class="modal-title">Подтверждение удаления</h5>
-                                                <button type="button" class="close text-white" data-dismiss="modal">&times;</button>
-                                            </div>
-                                            <div class="modal-body modal-body-modern text-left">
-                                                Вы уверены, что хотите удалить администратора <strong>{{ $user->name }}</strong>? Это действие нельзя отменить.
-                                            </div>
-                                            <div class="modal-footer modal-footer-modern">
-                                                <form action="{{ route('admin.admins.destroy', $user) }}" method="POST" class="d-inline">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="btn btn-danger btn-modern">Удалить</button>
-                                                </form>
-                                                <button type="button" class="btn btn-secondary btn-modern" data-dismiss="modal">Отмена</button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="modal fade" id="blockModal{{ $user->id }}" tabindex="-1" role="dialog" aria-hidden="true">
-                                    <div class="modal-dialog modal-dialog-centered" role="document">
-                                        <div class="modal-content modal-modern">
-                                            <div class="modal-header modal-header-modern {{ $user->is_blocked ? 'bg-success' : 'bg-warning' }} text-white">
-                                                <h5 class="modal-title">{{ $user->is_blocked ? 'Разблокировать' : 'Заблокировать' }} администратора</h5>
-                                                <button type="button" class="close text-white" data-dismiss="modal">&times;</button>
-                                            </div>
-                                            <div class="modal-body modal-body-modern text-left">
-                                                Вы уверены, что хотите {{ $user->is_blocked ? 'разблокировать' : 'заблокировать' }} администратора <strong>{{ $user->name }}</strong>?
-                                            </div>
-                                            <div class="modal-footer modal-footer-modern">
-                                                <form action="{{ route('admin.admins.block', $user) }}" method="POST" class="d-inline">
-                                                    @csrf
-                                                    <button type="submit" class="btn {{ $user->is_blocked ? 'btn-success' : 'btn-warning' }} btn-modern">
-                                                        {{ $user->is_blocked ? 'Разблокировать' : 'Заблокировать' }}
-                                                    </button>
-                                                </form>
-                                                <button type="button" class="btn btn-secondary btn-modern" data-dismiss="modal">Отмена</button>
-                                            </div>
-                                        </div>
-                                    </div>
                                 </div>
                             </td>
                         </tr>
                     @endforeach
                     </tbody>
                 </table>
+            </div>
+        </div>
+    </div>
+
+    {{-- Единое модальное окно для удаления --}}
+    <div class="modal fade" id="singleDeleteModal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header bg-danger text-white border-0">
+                    <h5 class="modal-title">
+                        <i class="fas fa-exclamation-triangle mr-2"></i>
+                        Подтверждение удаления
+                    </h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body py-4 text-center">
+                    <i class="fas fa-user-times fa-3x text-danger mb-3"></i>
+                    <h6 class="font-weight-bold" id="delete-admin-name"></h6>
+                    <p class="mt-3">Вы действительно хотите удалить этого администратора?<br>
+                    <small class="text-danger">Это действие нельзя отменить!</small></p>
+                </div>
+                <div class="modal-footer border-0 justify-content-center">
+                    <form id="delete-admin-form" method="POST">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="btn btn-danger btn-modern">
+                            <i class="fas fa-trash-alt mr-2"></i>Да, удалить
+                        </button>
+                    </form>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                        Отмена
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Единое модальное окно для блокировки --}}
+    <div class="modal fade" id="singleBlockModal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content border-0 shadow-lg">
+                <div id="block-modal-header" class="modal-header text-white border-0">
+                    <h5 class="modal-title" id="block-modal-title"></h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body py-4 text-center">
+                    <i id="block-modal-icon" class="fas fa-3x mb-3"></i>
+                    <h6 class="font-weight-bold" id="block-admin-name"></h6>
+                    <p class="mt-3" id="block-modal-text"></p>
+                </div>
+                <div class="modal-footer border-0 justify-content-center">
+                    <form id="block-admin-form" method="POST">
+                        @csrf
+                        <button type="submit" id="block-modal-btn" class="btn btn-modern">
+                            <span id="block-modal-btn-text"></span>
+                        </button>
+                    </form>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                        Отмена
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -215,7 +235,7 @@
                 "columnDefs": [
                     { "orderable": false, "targets": 5 }
                 ],
-                "dom": '<"d-flex justify-content-between align-items-center mb-3"l<"ml-auto"f>>rt<"d-flex justify-content-between align-items-center mt-3"ip>'
+                "dom": '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>rtip'
             });
 
             // Фильтры по табу
@@ -232,7 +252,40 @@
             });
 
             $('[data-toggle="tooltip"]').tooltip();
-            $('[data-toggle-tooltip="tooltip"]').tooltip();
+
+            // ДИНАМИЧЕСКИЕ МОДАЛКИ
+            $('.btn-delete-admin').on('click', function() {
+                $('#delete-admin-name').text($(this).data('name'));
+                $('#delete-admin-form').attr('action', $(this).data('action'));
+                $('#singleDeleteModal').modal('show');
+            });
+
+            $('.btn-block-admin').on('click', function() {
+                const name = $(this).data('name');
+                const isBlocked = $(this).data('blocked');
+                const action = $(this).data('action');
+
+                $('#block-admin-name').text(name);
+                $('#block-admin-form').attr('action', action);
+
+                if (isBlocked) {
+                    $('#block-modal-header').removeClass('bg-warning').addClass('bg-success');
+                    $('#block-modal-title').text('Разблокировать администратора');
+                    $('#block-modal-icon').removeClass('fa-lock text-warning').addClass('fa-lock-open text-success');
+                    $('#block-modal-text').text('Вы уверены, что хотите разблокировать этого администратора?');
+                    $('#block-modal-btn').removeClass('btn-warning').addClass('btn-success');
+                    $('#block-modal-btn-text').text('Разблокировать');
+                } else {
+                    $('#block-modal-header').removeClass('bg-success').addClass('bg-warning');
+                    $('#block-modal-title').text('Заблокировать администратора');
+                    $('#block-modal-icon').removeClass('fa-lock-open text-success').addClass('fa-lock text-warning');
+                    $('#block-modal-text').text('Вы уверены, что хотите заблокировать этого администратора?');
+                    $('#block-modal-btn').removeClass('btn-success').addClass('btn-warning');
+                    $('#block-modal-btn-text').text('Заблокировать');
+                }
+
+                $('#singleBlockModal').modal('show');
+            });
         });
     </script>
 @endsection

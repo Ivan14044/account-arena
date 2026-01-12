@@ -1,13 +1,13 @@
 @extends('adminlte::page')
 
-@section('title', 'Уведомления')
+@section('title', 'Уведомления пользователям')
 
 @section('content_header')
     <div class="content-header-modern">
         <div class="d-flex justify-content-between align-items-center">
             <div>
                 <h1 class="m-0 font-weight-light">
-                    Уведомления
+                    Уведомления пользователям
                 </h1>
                 <p class="text-muted mb-0 mt-1">История отправленных уведомлений пользователям</p>
             </div>
@@ -98,10 +98,10 @@
                     @foreach ($notifications as $notification)
                         <tr>
                             <td class="text-center align-middle">
-                                <span class="badge badge-secondary">#{{ $notification->id }}</span>
+                                <span class="badge badge-light font-weight-bold">#{{ $notification->id }}</span>
                             </td>
                             <td class="align-middle">
-                                <a href="{{ route('admin.users.edit', $notification->user) }}" target="_blank" class="text-primary font-weight-bold">
+                                <a href="{{ route('admin.users.edit', $notification->user) }}" target="_blank" class="text-primary font-weight-bold text-decoration-none">
                                     {{ $notification->user->name }}
                                 </a>
                                 <div class="text-muted small">{{ $notification->user->email }}</div>
@@ -109,7 +109,7 @@
                             <td class="align-middle">
                                 @if($notification->template)
                                     <div class="font-weight-bold">{{ $notification->template->name }}</div>
-                                    <div class="text-muted small">Код: {{ $notification->template->code }}</div>
+                                    <div class="text-muted small">Код: <code>{{ $notification->template->code }}</code></div>
                                 @else
                                     <span class="text-muted small italic">Без шаблона</span>
                                 @endif
@@ -132,41 +132,54 @@
                             </td>
                             <td class="text-center align-middle">
                                 <div class="action-buttons justify-content-center">
-                                    <button class="btn btn-sm btn-danger" 
-                                            data-toggle="modal" 
-                                            data-target="#deleteModal{{ $notification->id }}" 
+                                    <button class="btn btn-sm btn-danger btn-delete-notification" 
+                                            data-user="{{ $notification->user->name }}"
+                                            data-action="{{ route('admin.notifications.destroy', $notification) }}" 
                                             title="Удалить"
                                             data-toggle-tooltip="tooltip">
                                         <i class="fas fa-trash"></i>
                                     </button>
-                                </div>
-
-                                <div class="modal fade" id="deleteModal{{ $notification->id }}" tabindex="-1" role="dialog" aria-hidden="true">
-                                    <div class="modal-dialog modal-dialog-centered" role="document">
-                                        <div class="modal-content modal-modern">
-                                            <div class="modal-header modal-header-modern bg-danger text-white">
-                                                <h5 class="modal-title">Подтверждение удаления</h5>
-                                                <button type="button" class="close text-white" data-dismiss="modal">&times;</button>
-                                            </div>
-                                            <div class="modal-body modal-body-modern text-left">
-                                                Вы уверены, что хотите удалить это уведомление?
-                                            </div>
-                                            <div class="modal-footer modal-footer-modern">
-                                                <form action="{{ route('admin.notifications.destroy', $notification) }}" method="POST" class="d-inline">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="btn btn-danger btn-modern">Удалить</button>
-                                                </form>
-                                                <button type="button" class="btn btn-secondary btn-modern" data-dismiss="modal">Отмена</button>
-                                            </div>
-                                        </div>
-                                    </div>
                                 </div>
                             </td>
                         </tr>
                     @endforeach
                     </tbody>
                 </table>
+            </div>
+        </div>
+    </div>
+
+    {{-- Единое модальное окно для удаления --}}
+    <div class="modal fade" id="singleDeleteModal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header bg-danger text-white border-0">
+                    <h5 class="modal-title">
+                        <i class="fas fa-exclamation-triangle mr-2"></i>
+                        Подтверждение удаления
+                    </h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body py-4 text-center">
+                    <i class="fas fa-bell-slash fa-3x text-danger mb-3"></i>
+                    <h6 class="font-weight-bold" id="delete-notification-user"></h6>
+                    <p class="mt-3">Вы действительно хотите удалить уведомление этого пользователя?<br>
+                    <small class="text-danger">Это действие нельзя отменить!</small></p>
+                </div>
+                <div class="modal-footer border-0 justify-content-center">
+                    <form id="delete-notification-form" method="POST">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="btn btn-danger btn-modern">
+                            <i class="fas fa-trash-alt mr-2"></i>Да, удалить
+                        </button>
+                    </form>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                        Отмена
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -188,24 +201,22 @@
                 "columnDefs": [
                     { "orderable": false, "targets": 5 }
                 ],
-                "dom": '<"d-flex justify-content-between align-items-center mb-3"l<"ml-auto"f>>rt<"d-flex justify-content-between align-items-center mt-3"ip>'
+                "dom": '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>rtip'
             });
 
             // Фильтры по табу
-            $('#filterAll').on('click', function() {
-                table.column(3).search('').draw();
-            });
-
-            $('#filterUnread').on('click', function() {
-                table.column(3).search('Не прочитано').draw();
-            });
-
-            $('#filterRead').on('click', function() {
-                table.column(3).search('Прочитано').draw();
-            });
+            $('#filterAll').on('click', function() { table.column(3).search('').draw(); });
+            $('#filterUnread').on('click', function() { table.column(3).search('Не прочитано').draw(); });
+            $('#filterRead').on('click', function() { table.column(3).search('Прочитано').draw(); });
 
             $('[data-toggle="tooltip"]').tooltip();
-            $('[data-toggle-tooltip="tooltip"]').tooltip();
+
+            // Динамическая модалка
+            $('.btn-delete-notification').on('click', function() {
+                $('#delete-notification-user').text($(this).data('user'));
+                $('#delete-notification-form').attr('action', $(this).data('action'));
+                $('#singleDeleteModal').modal('show');
+            });
         });
     </script>
 @endsection
