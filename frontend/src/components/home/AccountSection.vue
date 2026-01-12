@@ -846,7 +846,7 @@ onMounted(async () => {
     backdrop-filter: none; /* Убираем блюр в покое */
     border: 1px solid rgba(226, 232, 240, 0.6);
     border-radius: 16px;
-    padding: 16px;
+    padding: 12px 16px;
     /* КРИТИЧЕСКАЯ ОПТИМИЗАЦИЯ: Убираем transition из базового состояния */
     transition: none;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04); /* Упрощенная тень */
@@ -1196,7 +1196,7 @@ onMounted(async () => {
 .product-info {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 3px;
     min-width: 0;
     flex: 1;
     padding-top: 0;
@@ -1206,16 +1206,16 @@ onMounted(async () => {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 6px;
-    margin-bottom: 2px;
+    gap: 5px;
+    margin-bottom: 1px;
 }
 
 .product-title {
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 700;
     color: #1f2937;
     margin: 0;
-    line-height: 1.4;
+    line-height: 1.3;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     line-clamp: 2;
@@ -1306,16 +1306,16 @@ onMounted(async () => {
     flex-direction: column;
     gap: 12px;
     align-items: flex-end;
-    min-width: 180px;
+    min-width: 170px;
     flex-shrink: 0;
 }
 
 /* Верхняя строка: цена и количество */
 .top-actions-row {
     display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 8px;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
     width: 100%;
 }
 
@@ -1324,7 +1324,7 @@ onMounted(async () => {
     display: flex;
     flex-direction: column;
     align-items: flex-end;
-    gap: 2px;
+    gap: 0;
 }
 
 .price-wrapper {
@@ -1335,11 +1335,11 @@ onMounted(async () => {
 }
 
 .price-old {
-    font-size: 12px;
+    font-size: 11px;
     color: #9ca3af;
     text-decoration: line-through;
     white-space: nowrap;
-    margin-bottom: -2px;
+    margin-bottom: -1px;
 }
 
 .dark .price-old {
@@ -1347,13 +1347,13 @@ onMounted(async () => {
 }
 
 .price {
-    font-size: 22px;
+    font-size: 20px;
     font-weight: 800;
     background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    line-height: 1.1;
+    line-height: 1;
     display: block;
     font-family: 'SFT Schrifted Sans', sans-serif;
     white-space: nowrap;
@@ -1361,9 +1361,9 @@ onMounted(async () => {
 }
 
 .price-per-unit {
-    font-size: 11px;
+    font-size: 10px;
     color: #94a3b8;
-    margin-top: 2px;
+    margin-top: 1px;
     white-space: nowrap;
 }
 
