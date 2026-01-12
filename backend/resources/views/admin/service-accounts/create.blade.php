@@ -36,13 +36,19 @@
                             <!-- Language Tabs -->
                             <ul class="nav nav-tabs mb-3" role="tablist">
                                 <li class="nav-item">
-                                    <a class="nav-link active" id="ru-tab" data-toggle="tab" href="#ru" role="tab">🇷🇺 Русский</a>
+                                    <a class="nav-link active" id="ru-tab" data-toggle="tab" href="#ru" role="tab">
+                                        <span class="flag-icon flag-icon-ru mr-1"></span> Русский
+                                    </a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link" id="en-tab" data-toggle="tab" href="#en" role="tab">🇬🇧 English</a>
+                                    <a class="nav-link" id="en-tab" data-toggle="tab" href="#en" role="tab">
+                                        <span class="flag-icon flag-icon-gb mr-1"></span> English
+                                    </a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link" id="uk-tab" data-toggle="tab" href="#uk" role="tab">🇺🇦 Українська</a>
+                                    <a class="nav-link" id="uk-tab" data-toggle="tab" href="#uk" role="tab">
+                                        <span class="flag-icon flag-icon-ua mr-1"></span> Українська
+                                    </a>
                                 </li>
                             </ul>
 
@@ -352,13 +358,19 @@
                                     <!-- Language Tabs for Suffix -->
                                     <ul class="nav nav-tabs mb-2" role="tablist">
                                         <li class="nav-item">
-                                            <a class="nav-link active" id="suffix-ru-tab" data-toggle="tab" href="#suffix-ru" role="tab">🇷🇺 Русский</a>
+                                            <a class="nav-link active" id="suffix-ru-tab" data-toggle="tab" href="#suffix-ru" role="tab">
+                                                <span class="flag-icon flag-icon-ru mr-1"></span> Русский
+                                            </a>
                                         </li>
                                         <li class="nav-item">
-                                            <a class="nav-link" id="suffix-en-tab" data-toggle="tab" href="#suffix-en" role="tab">🇬🇧 English</a>
+                                            <a class="nav-link" id="suffix-en-tab" data-toggle="tab" href="#suffix-en" role="tab">
+                                                <span class="flag-icon flag-icon-gb mr-1"></span> English
+                                            </a>
                                         </li>
                                         <li class="nav-item">
-                                            <a class="nav-link" id="suffix-uk-tab" data-toggle="tab" href="#suffix-uk" role="tab">🇺🇦 Українська</a>
+                                            <a class="nav-link" id="suffix-uk-tab" data-toggle="tab" href="#suffix-uk" role="tab">
+                                                <span class="flag-icon flag-icon-ua mr-1"></span> Українська
+                                            </a>
                                         </li>
                                     </ul>
 
