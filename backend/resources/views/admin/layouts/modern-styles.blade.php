@@ -47,7 +47,8 @@
     margin-bottom: 1rem;
     transition: all 0.3s ease;
     border-left: 4px solid;
-    min-height: 110px; /* Компактная минимальная высота для всех карточек */
+    min-height: 140px; /* Фиксированная минимальная высота для выравнивания */
+    height: 100%; /* Занимать всю высоту колонки */
     display: flex;
     flex-direction: column;
 }
@@ -67,6 +68,8 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
+    flex: 1; /* Занимать все доступное пространство */
+    min-height: 0; /* Позволить flex-элементам сжиматься */
 }
 
 .stat-icon {
@@ -106,6 +109,7 @@
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+    min-height: 0; /* Позволить flex-элементам сжиматься */
 }
 
 .stat-label {

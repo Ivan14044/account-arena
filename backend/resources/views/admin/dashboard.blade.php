@@ -65,8 +65,8 @@
     </div>
 
     <div class="row">
-        <div class="col-lg-3 col-md-6 mb-4">
-            <div class="stat-card stat-card-primary">
+        <div class="col-lg-3 col-md-6 mb-4 d-flex">
+            <div class="stat-card stat-card-primary w-100">
                 <div class="stat-card-body">
                     <div class="stat-icon">
                         <i class="fas fa-box"></i>
@@ -82,8 +82,8 @@
             </div>
         </div>
 
-        <div class="col-lg-3 col-md-6 mb-4">
-            <div class="stat-card stat-card-success">
+        <div class="col-lg-3 col-md-6 mb-4 d-flex">
+            <div class="stat-card stat-card-success w-100">
                 <div class="stat-card-body">
                     <div class="stat-icon">
                         <i class="fas fa-check-circle"></i>
@@ -99,8 +99,8 @@
             </div>
         </div>
 
-        <div class="col-lg-3 col-md-6 mb-4">
-            <div class="stat-card stat-card-info">
+        <div class="col-lg-3 col-md-6 mb-4 d-flex">
+            <div class="stat-card stat-card-info w-100">
                 <div class="stat-card-body">
                     <div class="stat-icon">
                         <i class="fas fa-calculator"></i>
@@ -117,8 +117,8 @@
             </div>
         </div>
 
-        <div class="col-lg-3 col-md-6 mb-4">
-            <div class="stat-card stat-card-primary">
+        <div class="col-lg-3 col-md-6 mb-4 d-flex">
+            <div class="stat-card stat-card-primary w-100">
                 <div class="stat-card-body">
                     <div class="stat-icon">
                         <i class="fas fa-users"></i>
@@ -158,8 +158,8 @@
     </div>
 
     <div class="row">
-        <div class="col-lg-3 col-md-6 mb-4">
-            <div class="stat-card stat-card-success">
+        <div class="col-lg-3 col-md-6 mb-4 d-flex">
+            <div class="stat-card stat-card-success w-100">
                 <div class="stat-card-body">
                     <div class="stat-icon">
                         <i class="fas fa-cart-plus"></i>
@@ -175,8 +175,8 @@
             </div>
         </div>
 
-        <div class="col-lg-3 col-md-6 mb-4">
-            <div class="stat-card stat-card-danger">
+        <div class="col-lg-3 col-md-6 mb-4 d-flex">
+            <div class="stat-card stat-card-danger w-100">
                 <div class="stat-card-body">
                     <div class="stat-icon">
                         <i class="fas fa-shopping-cart"></i>
@@ -192,8 +192,8 @@
             </div>
         </div>
 
-        <div class="col-lg-3 col-md-6 mb-4">
-            <div class="stat-card stat-card-warning">
+        <div class="col-lg-3 col-md-6 mb-4 d-flex">
+            <div class="stat-card stat-card-warning w-100">
                 <div class="stat-card-body">
                     <div class="stat-icon">
                         <i class="fas fa-dollar-sign"></i>
@@ -210,8 +210,8 @@
             </div>
         </div>
 
-        <div class="col-lg-3 col-md-6 mb-4">
-            <div class="stat-card stat-card-info">
+        <div class="col-lg-3 col-md-6 mb-4 d-flex">
+            <div class="stat-card stat-card-info w-100">
                 <div class="stat-card-body">
                     <div class="stat-icon">
                         <i class="fas fa-receipt"></i>
