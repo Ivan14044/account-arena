@@ -177,6 +177,37 @@
 (function () {
     // Переменная для хранения предыдущего значения счетчика
     let previousManualDeliveryCount = -1;
+    // Переменная для хранения настроек уведомлений
+    let notificationSettings = {
+        manual_delivery_enabled: true,
+        sound_enabled: true
+    };
+
+    // Функция для загрузки настроек уведомлений
+    function loadNotificationSettings() {
+        if (typeof jQuery === 'undefined') {
+            return;
+        }
+
+        $.ajax({
+            url: '/admin/settings/notification-check',
+            method: 'GET',
+            dataType: 'json',
+            success: function (data) {
+                notificationSettings = {
+                    manual_delivery_enabled: data.manual_delivery_enabled !== false,
+                    sound_enabled: data.sound_enabled !== false
+                };
+            },
+            error: function () {
+                // При ошибке используем значения по умолчанию (включено)
+                notificationSettings = {
+                    manual_delivery_enabled: true,
+                    sound_enabled: true
+                };
+            }
+        });
+    }
 
     // Функция для обновления счетчика заказов на ручную обработку
     function updateManualDeliveryBadge() {
@@ -202,24 +233,36 @@
                 const count = data.count || 0;
 
                 // Воспроизводим звук при появлении новых заказов
+                // Только если уведомления для ручной обработки включены И звук включен
                 if (count > previousManualDeliveryCount && previousManualDeliveryCount >= 0) {
                     const newOrdersCount = count - previousManualDeliveryCount;
-                    console.log('[Sound] Playing notification sound - Manual Delivery: ' + newOrdersCount + ' new order(s)', {
-                        event: 'manual_delivery_new_order',
-                        previousCount: previousManualDeliveryCount,
-                        currentCount: count,
-                        newOrders: newOrdersCount
-                    });
-
-                    try {
-                        const audio = new Audio('/assets/admin/sounds/notification.mp3');
-                        audio.volume = 0.3; // 30% громкости
-                        audio.play().catch(function (error) {
-                            // Игнорируем ошибки воспроизведения
-                            console.debug('Could not play notification sound:', error);
+                    
+                    // Проверяем настройки перед воспроизведением звука
+                    if (notificationSettings.manual_delivery_enabled && notificationSettings.sound_enabled) {
+                        console.log('[Sound] Playing notification sound - Manual Delivery: ' + newOrdersCount + ' new order(s)', {
+                            event: 'manual_delivery_new_order',
+                            previousCount: previousManualDeliveryCount,
+                            currentCount: count,
+                            newOrders: newOrdersCount
                         });
-                    } catch (error) {
-                        console.debug('Failed to create audio element:', error);
+
+                        try {
+                            const audio = new Audio('/assets/admin/sounds/notification.mp3');
+                            audio.volume = 0.3; // 30% громкости
+                            audio.play().catch(function (error) {
+                                // Игнорируем ошибки воспроизведения
+                                console.debug('Could not play notification sound:', error);
+                            });
+                        } catch (error) {
+                            console.debug('Failed to create audio element:', error);
+                        }
+                    } else {
+                        console.log('[Sound] Skipped - Manual Delivery notifications disabled or sound disabled', {
+                            event: 'manual_delivery_new_order',
+                            manual_delivery_enabled: notificationSettings.manual_delivery_enabled,
+                            sound_enabled: notificationSettings.sound_enabled,
+                            newOrders: newOrdersCount
+                        });
                     }
                 }
 
@@ -249,6 +292,12 @@
 
         if (typeof jQuery !== 'undefined') {
             $(document).ready(function () {
+                // Загружаем настройки при инициализации
+                loadNotificationSettings();
+                
+                // Обновляем настройки каждые 60 секунд (на случай, если администратор изменил их)
+                setInterval(loadNotificationSettings, 60000);
+                
                 setTimeout(function () {
                     updateManualDeliveryBadge();
                     setInterval(updateManualDeliveryBadge, 3000);

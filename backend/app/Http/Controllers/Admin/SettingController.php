@@ -140,6 +140,21 @@ class SettingController extends Controller
             ->with('success', 'Настройки успешно сохранены.');
     }
 
+    /**
+     * Получить настройки уведомлений для текущего администратора
+     */
+    public function getNotificationSettings()
+    {
+        $settings = AdminNotificationSetting::getOrCreateForUser(auth()->id());
+        
+        return response()->json([
+            'manual_delivery_enabled' => $settings->manual_delivery_enabled ?? true,
+            'sound_enabled' => $settings->sound_enabled ?? true,
+            'dispute_created_enabled' => $settings->dispute_created_enabled ?? true,
+            'support_chat_enabled' => $settings->support_chat_enabled ?? true,
+        ]);
+    }
+
     private function getRules($form)
     {
         return match ($form) {

@@ -75,6 +75,7 @@ Route::prefix('/admin')
             Route::resource('email-templates', EmailTemplateController::class);
             Route::post('email-templates/{email_template}/send-test', [EmailTemplateController::class, 'sendTest'])->name('email-templates.send-test');
             Route::resource('settings', SettingController::class)->only(['index', 'store']);
+            Route::get('settings/notification-check', [SettingController::class, 'getNotificationSettings'])->name('settings.notification-check');
             Route::resource('service-accounts', ServiceAccountController::class)->except(['show']);
             Route::get('service-accounts/{serviceAccount}/export', [ServiceAccountController::class, 'export'])->name('service-accounts.export');
             Route::post('service-accounts/{serviceAccount}/import', [ServiceAccountController::class, 'import'])->name('service-accounts.import');
