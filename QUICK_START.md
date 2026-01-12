@@ -71,14 +71,14 @@ bash deploy-now.sh
 **Способ 1 - Автоматический:**
 ```bash
 ssh root@31.131.26.78
-cd /var/www/subcloudy
+cd /var/www/account-arena
 bash update-project.sh
 ```
 
 **Способ 2 - Ручной:**
 ```bash
 ssh root@31.131.26.78
-cd /var/www/subcloudy
+cd /var/www/account-arena
 git pull origin main
 
 # Backend
@@ -121,7 +121,7 @@ URL: http://31.131.26.78/supplier
 ### Просмотр логов:
 ```bash
 # Laravel логи
-tail -f /var/www/subcloudy/backend/storage/logs/laravel.log
+tail -f /var/www/account-arena/backend/storage/logs/laravel.log
 
 # Nginx логи
 tail -f /var/log/nginx/account-arena-error.log
@@ -141,7 +141,7 @@ systemctl restart redis-server
 
 ### Очистка кэша Laravel:
 ```bash
-cd /var/www/subcloudy/backend
+cd /var/www/account-arena/backend
 php artisan cache:clear
 php artisan config:clear
 php artisan route:clear
@@ -168,7 +168,7 @@ systemctl status nginx
 nginx -t
 
 # Проверьте права
-cd /var/www/subcloudy
+cd /var/www/account-arena
 chown -R www-data:www-data .
 chmod -R 775 backend/storage backend/bootstrap/cache
 ```
@@ -176,10 +176,10 @@ chmod -R 775 backend/storage backend/bootstrap/cache
 ### Ошибка 500:
 ```bash
 # Проверьте логи
-tail -50 /var/www/subcloudy/backend/storage/logs/laravel.log
+tail -50 /var/www/account-arena/backend/storage/logs/laravel.log
 
 # Очистите кэш
-cd /var/www/subcloudy/backend
+cd /var/www/account-arena/backend
 php artisan cache:clear
 php artisan config:cache
 ```
@@ -191,7 +191,7 @@ systemctl status php8.2-fpm
 systemctl restart php8.2-fpm
 
 # Проверьте .env файл
-cat /var/www/subcloudy/backend/.env | grep APP_URL
+cat /var/www/account-arena/backend/.env | grep APP_URL
 ```
 
 ---

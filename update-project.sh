@@ -37,7 +37,7 @@ fi
 print_header "🔄 ОБНОВЛЕНИЕ ACCOUNT ARENA"
 
 # Переход в директорию проекта
-cd /var/www/subcloudy
+cd /var/www/account-arena
 
 print_info "Получение последних изменений из GitHub..."
 git pull origin main
@@ -89,7 +89,7 @@ print_success "Frontend обновлён"
 ###############################################################################
 print_header "🔐 Установка прав доступа"
 
-cd /var/www/subcloudy
+cd /var/www/account-arena
 chown -R www-data:www-data .
 chmod -R 775 backend/storage backend/bootstrap/cache
 

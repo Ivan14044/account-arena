@@ -6,7 +6,7 @@ $ErrorActionPreference = "Stop"
 # Settings
 $VPS = "root@31.131.26.78"
 $VPS_PASSWORD = "7gEbjQZayw2R7N86F3"
-$ProjectDir = "/var/www/subcloudy"
+$ProjectDir = "/var/www/account-arena"
 
 # Output functions
 function Write-Step {

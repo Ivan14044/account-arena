@@ -1,7 +1,7 @@
 # Команды для деплоя на сервере
 # Выполните эти команды на сервере через SSH:
 
-cd /var/www/subcloudy
+cd /var/www/account-arena
 git pull origin main
 cd backend
 composer install --no-dev --optimize-autoloader --no-interaction
@@ -13,7 +13,7 @@ php artisan optimize
 cd ../frontend
 npm install --silent
 npm run build
-cd /var/www/subcloudy
+cd /var/www/account-arena
 chown -R www-data:www-data .
 chmod -R 775 backend/storage backend/bootstrap/cache
 systemctl restart php8.2-fpm

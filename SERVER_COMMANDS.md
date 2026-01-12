@@ -4,13 +4,13 @@
 
 ### Быстрое обновление (рекомендуется)
 ```bash
-cd /var/www/subcloudy
+cd /var/www/account-arena
 bash update-project.sh
 ```
 
 ### Ручное обновление
 ```bash
-cd /var/www/subcloudy
+cd /var/www/account-arena
 git pull origin main
 
 # Backend
@@ -37,13 +37,13 @@ systemctl restart php8.2-fpm nginx account-arena-worker
 ### Laravel логи (ошибки приложения)
 ```bash
 # Последние 50 строк
-tail -50 /var/www/subcloudy/backend/storage/logs/laravel.log
+tail -50 /var/www/account-arena/backend/storage/logs/laravel.log
 
 # Следить в реальном времени
-tail -f /var/www/subcloudy/backend/storage/logs/laravel.log
+tail -f /var/www/account-arena/backend/storage/logs/laravel.log
 
 # Поиск ошибок
-grep -i "error" /var/www/subcloudy/backend/storage/logs/laravel.log
+grep -i "error" /var/www/account-arena/backend/storage/logs/laravel.log
 ```
 
 ### Nginx логи (веб-сервер)
@@ -178,7 +178,7 @@ systemctl status nginx php8.2-fpm mysql redis-server account-arena-worker
 
 ### Laravel кэш
 ```bash
-cd /var/www/subcloudy/backend
+cd /var/www/account-arena/backend
 
 # Очистка всего кэша
 php artisan cache:clear
@@ -289,7 +289,7 @@ mkdir -p /root/backups
 
 ### Создание администратора через Artisan Tinker
 ```bash
-cd /var/www/subcloudy/backend
+cd /var/www/account-arena/backend
 php artisan tinker
 ```
 
@@ -343,7 +343,7 @@ UPDATE users SET is_supplier = 1 WHERE email = 'supplier@example.com';
 
 ### Исправление прав после обновления
 ```bash
-cd /var/www/subcloudy
+cd /var/www/account-arena
 
 # Владелец - www-data (пользователь веб-сервера)
 chown -R www-data:www-data .
@@ -383,7 +383,7 @@ top
 df -h
 
 # Использование диска по директориям
-du -sh /var/www/subcloudy/*
+du -sh /var/www/account-arena/*
 
 # Использование памяти
 free -h
@@ -459,13 +459,13 @@ systemctl restart nginx php8.2-fpm mysql redis-server account-arena-worker
 
 # 3. Проверить логи
 tail -50 /var/log/nginx/account-arena-error.log
-tail -50 /var/www/subcloudy/backend/storage/logs/laravel.log
+tail -50 /var/www/account-arena/backend/storage/logs/laravel.log
 
 # 4. Проверить конфигурацию Nginx
 nginx -t
 
 # 5. Исправить права
-cd /var/www/subcloudy
+cd /var/www/account-arena
 chown -R www-data:www-data .
 chmod -R 775 backend/storage backend/bootstrap/cache
 ```
@@ -473,7 +473,7 @@ chmod -R 775 backend/storage backend/bootstrap/cache
 ### Ошибка 500
 ```bash
 # 1. Включить debug режим
-cd /var/www/subcloudy/backend
+cd /var/www/account-arena/backend
 nano .env
 # Изменить: APP_DEBUG=true
 
@@ -502,7 +502,7 @@ systemctl restart mysql
 mysql -u subcloudy -p subcloudy
 
 # 4. Проверить .env
-cat /var/www/subcloudy/backend/.env | grep DB_
+cat /var/www/account-arena/backend/.env | grep DB_
 ```
 
 ---
@@ -550,13 +550,13 @@ nano ~/.bashrc
 
 ```bash
 # Account Arena aliases
-alias aa-update='cd /var/www/subcloudy && bash update-project.sh'
-alias aa-logs='tail -f /var/www/subcloudy/backend/storage/logs/laravel.log'
+alias aa-update='cd /var/www/account-arena && bash update-project.sh'
+alias aa-logs='tail -f /var/www/account-arena/backend/storage/logs/laravel.log'
 alias aa-nginx='tail -f /var/log/nginx/account-arena-error.log'
 alias aa-restart='systemctl restart nginx php8.2-fpm mysql redis-server account-arena-worker'
 alias aa-status='systemctl status nginx php8.2-fpm mysql redis-server account-arena-worker'
-alias aa-cache='cd /var/www/subcloudy/backend && php artisan cache:clear && php artisan config:cache && php artisan route:cache && php artisan view:cache'
-alias aa-cd='cd /var/www/subcloudy'
+alias aa-cache='cd /var/www/account-arena/backend && php artisan cache:clear && php artisan config:cache && php artisan route:cache && php artisan view:cache'
+alias aa-cd='cd /var/www/account-arena'
 ```
 
 Применить изменения:

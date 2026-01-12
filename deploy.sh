@@ -9,7 +9,7 @@ set -e
 
 # Настройки
 VPS="${SSH_HOST:-account-arena-server}"
-PROJECT_DIR="/var/www/subcloudy"
+PROJECT_DIR="/var/www/account-arena"
 
 # Цвета
 GREEN='\033[0;32m'

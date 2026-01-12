@@ -141,11 +141,11 @@ print_success "Node.js $(node -v) установлен"
 ###############################################################################
 print_header "📥 Клонирование проекта из GitHub"
 cd /var/www
-if [ -d "subcloudy" ]; then
-    rm -rf subcloudy
+if [ -d "account-arena" ]; then
+    rm -rf account-arena
 fi
-git clone ${REPO} subcloudy > /dev/null 2>&1
-cd subcloudy
+git clone ${REPO} account-arena > /dev/null 2>&1
+cd account-arena
 print_success "Проект склонирован"
 
 ###############################################################################
@@ -222,7 +222,7 @@ print_success "Frontend собран"
 # 11. НАСТРОЙКА ПРАВ ДОСТУПА
 ###############################################################################
 print_header "🔐 Настройка прав доступа"
-cd /var/www/subcloudy
+cd /var/www/account-arena
 chown -R www-data:www-data .
 find . -type d -exec chmod 755 {} \;
 find . -type f -exec chmod 644 {} \;
@@ -237,7 +237,7 @@ print_header "🌐 Настройка Nginx"
 cat > /etc/nginx/sites-available/account-arena << 'EOF'
 server {
     server_name account-arena.com www.account-arena.com;
-    root /var/www/subcloudy/frontend/dist;
+    root /var/www/account-arena/frontend/dist;
     index index.html;
     
     access_log /var/log/nginx/account-arena-access.log;
@@ -252,7 +252,7 @@ server {
     # Backend static files - must be before /admin, /api, /supplier
     # Use ^~ for exact match priority
     location ^~ /vendor/ {
-        alias /var/www/subcloudy/backend/public/vendor/;
+        alias /var/www/account-arena/backend/public/vendor/;
         expires 1y;
         add_header Cache-Control "public, immutable";
         access_log off;
@@ -260,7 +260,7 @@ server {
 
     # Backend admin assets (more specific path)
     location ^~ /assets/admin/ {
-        alias /var/www/subcloudy/backend/public/assets/admin/;
+        alias /var/www/account-arena/backend/public/assets/admin/;
         expires 1y;
         add_header Cache-Control "public, immutable";
         access_log off;
@@ -268,7 +268,7 @@ server {
 
     # Storage - must be before / location
     location ^~ /storage/ {
-        alias /var/www/subcloudy/backend/public/storage/;
+        alias /var/www/account-arena/backend/public/storage/;
         expires 1y;
         add_header Cache-Control "public, immutable";
         access_log off;
@@ -278,7 +278,7 @@ server {
     location /api {
         fastcgi_pass unix:/var/run/php/php8.2-fpm.sock;
         fastcgi_index index.php;
-        fastcgi_param SCRIPT_FILENAME /var/www/subcloudy/backend/public/index.php;
+        fastcgi_param SCRIPT_FILENAME /var/www/account-arena/backend/public/index.php;
         include fastcgi_params;
         fastcgi_param REQUEST_URI $request_uri;
     }
@@ -287,7 +287,7 @@ server {
     location /auth {
         fastcgi_pass unix:/var/run/php/php8.2-fpm.sock;
         fastcgi_index index.php;
-        fastcgi_param SCRIPT_FILENAME /var/www/subcloudy/backend/public/index.php;
+        fastcgi_param SCRIPT_FILENAME /var/www/account-arena/backend/public/index.php;
         include fastcgi_params;
         fastcgi_param REQUEST_URI $request_uri;
     }
@@ -296,7 +296,7 @@ server {
     location /admin {
         fastcgi_pass unix:/var/run/php/php8.2-fpm.sock;
         fastcgi_index index.php;
-        fastcgi_param SCRIPT_FILENAME /var/www/subcloudy/backend/public/index.php;
+        fastcgi_param SCRIPT_FILENAME /var/www/account-arena/backend/public/index.php;
         include fastcgi_params;
         fastcgi_param REQUEST_URI $request_uri;
     }
@@ -305,7 +305,7 @@ server {
     location /supplier {
         fastcgi_pass unix:/var/run/php/php8.2-fpm.sock;
         fastcgi_index index.php;
-        fastcgi_param SCRIPT_FILENAME /var/www/subcloudy/backend/public/index.php;
+        fastcgi_param SCRIPT_FILENAME /var/www/account-arena/backend/public/index.php;
         include fastcgi_params;
         fastcgi_param REQUEST_URI $request_uri;
     }
@@ -387,15 +387,15 @@ if [[ ! "$DOMAIN" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
     certbot --nginx -d ${DOMAIN} --non-interactive --agree-tos --email ${EMAIL} > /dev/null 2>&1
     
     # Обновление .env файлов для HTTPS
-    sed -i "s|APP_URL=http://|APP_URL=https://|g" /var/www/subcloudy/backend/.env
-    sed -i "s|VITE_API_URL=http://|VITE_API_URL=https://|g" /var/www/subcloudy/frontend/.env.production
+    sed -i "s|APP_URL=http://|APP_URL=https://|g" /var/www/account-arena/backend/.env
+    sed -i "s|VITE_API_URL=http://|VITE_API_URL=https://|g" /var/www/account-arena/frontend/.env.production
     
     # Пересборка frontend
-    cd /var/www/subcloudy/frontend
+    cd /var/www/account-arena/frontend
     npm run build > /dev/null 2>&1
     
     # Очистка кэша Laravel
-    cd /var/www/subcloudy/backend
+    cd /var/www/account-arena/backend
     php artisan config:cache > /dev/null 2>&1
     
     print_success "SSL сертификат установлен"
@@ -419,8 +419,8 @@ User=www-data
 Group=www-data
 Restart=always
 RestartSec=5
-WorkingDirectory=/var/www/subcloudy/backend
-ExecStart=/usr/bin/php /var/www/subcloudy/backend/artisan queue:work redis --sleep=3 --tries=3 --max-time=3600
+WorkingDirectory=/var/www/account-arena/backend
+ExecStart=/usr/bin/php /var/www/account-arena/backend/artisan queue:work redis --sleep=3 --tries=3 --max-time=3600
 
 [Install]
 WantedBy=multi-user.target
@@ -438,7 +438,7 @@ print_success "Queue worker запущен"
 print_header "⏰ Настройка планировщика задач"
 
 # Добавление в crontab для www-data пользователя
-(crontab -u www-data -l 2>/dev/null; echo "* * * * * cd /var/www/subcloudy/backend && php artisan schedule:run >> /dev/null 2>&1") | crontab -u www-data -
+(crontab -u www-data -l 2>/dev/null; echo "* * * * * cd /var/www/account-arena/backend && php artisan schedule:run >> /dev/null 2>&1") | crontab -u www-data -
 
 print_success "Cron задачи настроены"
 
@@ -468,7 +468,7 @@ read -p "Введите email администратора: " ADMIN_EMAIL
 read -sp "Введите пароль администратора: " ADMIN_PASSWORD
 echo
 
-cd /var/www/subcloudy/backend
+cd /var/www/account-arena/backend
 
 php artisan tinker --execute="
 use App\Models\User;
@@ -538,7 +538,7 @@ else
     echo -e "   URL: http://${DOMAIN}/supplier"
 fi
 echo ""
-echo -e "${YELLOW}📁 Путь к проекту:${NC} /var/www/subcloudy"
+echo -e "${YELLOW}📁 Путь к проекту:${NC} /var/www/account-arena"
 echo -e "${YELLOW}🗄️  База данных:${NC} MySQL (subcloudy / ${DB_PASSWORD})"
 echo ""
 echo -e "${GREEN}╔══════════════════════════════════════════════════════════════╗${NC}"
@@ -568,12 +568,12 @@ Account Arena - Информация для доступа
 - Пользователь: subcloudy
 - Пароль: ${DB_PASSWORD}
 
-Путь к проекту: /var/www/subcloudy
+Путь к проекту: /var/www/account-arena
 
 Полезные команды:
-- Просмотр логов: tail -f /var/www/subcloudy/backend/storage/logs/laravel.log
+- Просмотр логов: tail -f /var/www/account-arena/backend/storage/logs/laravel.log
 - Перезапуск сервисов: systemctl restart nginx php8.2-fpm account-arena-worker
-- Обновление проекта: cd /var/www/subcloudy && git pull && bash /root/update-project.sh
+- Обновление проекта: cd /var/www/account-arena && git pull && bash /root/update-project.sh
 EOF
 
 chmod 600 /root/account-arena-info.txt

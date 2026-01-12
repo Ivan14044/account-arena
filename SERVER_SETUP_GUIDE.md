@@ -187,7 +187,7 @@ npm install
 npm run build
 
 # Права доступа
-cd /var/www/subcloudy
+cd /var/www/account-arena
 chown -R www-data:www-data .
 find . -type d -exec chmod 755 {} \;
 find . -type f -exec chmod 644 {} \;
@@ -253,7 +253,7 @@ server {
     listen [::]:80;
     server_name 31.131.26.78;
 
-    root /var/www/subcloudy/frontend/dist;
+    root /var/www/account-arena/frontend/dist;
     index index.html;
 
     access_log /var/log/nginx/account-arena-access.log;
@@ -272,13 +272,13 @@ server {
 
     # Backend API
     location /api {
-        alias /var/www/subcloudy/backend/public;
+        alias /var/www/account-arena/backend/public;
         try_files $uri $uri/ @backend;
 
         location ~ \.php$ {
             include snippets/fastcgi-php.conf;
             fastcgi_pass unix:/var/run/php/php8.2-fpm.sock;
-            fastcgi_param SCRIPT_FILENAME /var/www/subcloudy/backend/public/index.php;
+            fastcgi_param SCRIPT_FILENAME /var/www/account-arena/backend/public/index.php;
             fastcgi_param PATH_INFO $fastcgi_path_info;
             include fastcgi_params;
         }
@@ -290,13 +290,13 @@ server {
 
     # Admin панель Laravel
     location /admin {
-        alias /var/www/subcloudy/backend/public;
+        alias /var/www/account-arena/backend/public;
         try_files $uri $uri/ @admin;
 
         location ~ \.php$ {
             include snippets/fastcgi-php.conf;
             fastcgi_pass unix:/var/run/php/php8.2-fpm.sock;
-            fastcgi_param SCRIPT_FILENAME /var/www/subcloudy/backend/public/index.php;
+            fastcgi_param SCRIPT_FILENAME /var/www/account-arena/backend/public/index.php;
             include fastcgi_params;
         }
     }
@@ -307,13 +307,13 @@ server {
 
     # Supplier панель
     location /supplier {
-        alias /var/www/subcloudy/backend/public;
+        alias /var/www/account-arena/backend/public;
         try_files $uri $uri/ @supplier;
 
         location ~ \.php$ {
             include snippets/fastcgi-php.conf;
             fastcgi_pass unix:/var/run/php/php8.2-fpm.sock;
-            fastcgi_param SCRIPT_FILENAME /var/www/subcloudy/backend/public/index.php;
+            fastcgi_param SCRIPT_FILENAME /var/www/account-arena/backend/public/index.php;
             include fastcgi_params;
         }
     }
@@ -324,7 +324,7 @@ server {
 
     # Storage (загруженные файлы)
     location /storage {
-        alias /var/www/subcloudy/backend/storage/app/public;
+        alias /var/www/account-arena/backend/storage/app/public;
     }
 
     # Безопасность
@@ -387,7 +387,7 @@ VITE_API_URL=https://yourdomain.com/api
 
 Пересоберите frontend:
 ```bash
-cd /var/www/subcloudy/frontend
+cd /var/www/account-arena/frontend
 npm run build
 ```
 
@@ -412,7 +412,7 @@ bash deploy-now.sh
 ### Ручное обновление на сервере
 
 ```bash
-cd /var/www/subcloudy
+cd /var/www/account-arena
 
 # Получение последних изменений
 git pull origin main
@@ -431,7 +431,7 @@ npm install
 npm run build
 
 # Права
-cd /var/www/subcloudy
+cd /var/www/account-arena
 chown -R www-data:www-data .
 chmod -R 775 backend/storage backend/bootstrap/cache
 
@@ -445,7 +445,7 @@ systemctl reload nginx
 ## 🎯 Создание администратора
 
 ```bash
-cd /var/www/subcloudy/backend
+cd /var/www/account-arena/backend
 php artisan tinker
 ```
 
@@ -493,8 +493,8 @@ User=www-data
 Group=www-data
 Restart=always
 RestartSec=5
-WorkingDirectory=/var/www/subcloudy/backend
-ExecStart=/usr/bin/php /var/www/subcloudy/backend/artisan queue:work redis --sleep=3 --tries=3 --max-time=3600
+WorkingDirectory=/var/www/account-arena/backend
+ExecStart=/usr/bin/php /var/www/account-arena/backend/artisan queue:work redis --sleep=3 --tries=3 --max-time=3600
 
 [Install]
 WantedBy=multi-user.target
@@ -518,7 +518,7 @@ crontab -e
 Добавьте:
 
 ```cron
-* * * * * cd /var/www/subcloudy/backend && php artisan schedule:run >> /dev/null 2>&1
+* * * * * cd /var/www/account-arena/backend && php artisan schedule:run >> /dev/null 2>&1
 ```
 
 ---
@@ -580,7 +580,7 @@ tail -f /var/log/nginx/account-arena-access.log
 tail -f /var/log/nginx/account-arena-error.log
 
 # Laravel логи
-tail -f /var/www/subcloudy/backend/storage/logs/laravel.log
+tail -f /var/www/account-arena/backend/storage/logs/laravel.log
 
 # PHP-FPM логи
 tail -f /var/log/php8.2-fpm.log
@@ -617,7 +617,7 @@ systemctl status php8.2-fpm
 systemctl restart php8.2-fpm
 
 # Проверьте права
-cd /var/www/subcloudy
+cd /var/www/account-arena
 chown -R www-data:www-data .
 chmod -R 775 backend/storage backend/bootstrap/cache
 ```
@@ -626,10 +626,10 @@ chmod -R 775 backend/storage backend/bootstrap/cache
 
 ```bash
 # Проверьте логи Laravel
-tail -100 /var/www/subcloudy/backend/storage/logs/laravel.log
+tail -100 /var/www/account-arena/backend/storage/logs/laravel.log
 
 # Очистите кэш
-cd /var/www/subcloudy/backend
+cd /var/www/account-arena/backend
 php artisan cache:clear
 php artisan config:clear
 php artisan route:clear
@@ -646,14 +646,14 @@ systemctl status mysql
 mysql -u subcloudy -p subcloudy
 
 # Проверьте .env файл
-cat /var/www/subcloudy/backend/.env | grep DB_
+cat /var/www/account-arena/backend/.env | grep DB_
 ```
 
 ### Проблема: Frontend не загружается
 
 ```bash
 # Пересоберите frontend
-cd /var/www/subcloudy/frontend
+cd /var/www/account-arena/frontend
 npm run build
 
 # Проверьте права
