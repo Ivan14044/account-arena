@@ -315,28 +315,28 @@ public function createProductPurchase(
                         'existing_amount' => $existingEarning->amount,
                         'existing_status' => $existingEarning->status,
                     ]);
-                    return; // Пропускаем создание дубликата
+                    // Пропускаем создание дубликата, но продолжаем выполнение метода
+                } else {
+                    $holdHours = (int) ($supplier->supplier_hold_hours ?? 6);
+                    $availableAt = now()->addHours($holdHours);
+
+                    SupplierEarning::create([
+                        'supplier_id' => $supplier->id,
+                        'purchase_id' => $purchase->id,
+                        'transaction_id' => $transaction->id,
+                        'amount' => $supplierAmount,
+                        'status' => 'held',
+                        'available_at' => $availableAt,
+                    ]);
+
+                    Log::info('Supplier earning created (held)', [
+                        'supplier_id' => $supplier->id,
+                        'purchase_id' => $purchase->id,
+                        'transaction_id' => $transaction->id,
+                        'amount' => $supplierAmount,
+                        'available_at' => $availableAt->toDateTimeString(),
+                    ]);
                 }
-
-                $holdHours = (int) ($supplier->supplier_hold_hours ?? 6);
-                $availableAt = now()->addHours($holdHours);
-
-                SupplierEarning::create([
-                    'supplier_id' => $supplier->id,
-                    'purchase_id' => $purchase->id,
-                    'transaction_id' => $transaction->id,
-                    'amount' => $supplierAmount,
-                    'status' => 'held',
-                    'available_at' => $availableAt,
-                ]);
-
-                Log::info('Supplier earning created (held)', [
-                    'supplier_id' => $supplier->id,
-                    'purchase_id' => $purchase->id,
-                    'transaction_id' => $transaction->id,
-                    'amount' => $supplierAmount,
-                    'available_at' => $availableAt->toDateTimeString(),
-                ]);
             }
         }
     } catch (\Throwable $e) {
