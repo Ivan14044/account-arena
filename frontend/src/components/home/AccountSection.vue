@@ -81,7 +81,7 @@
 
                 <!-- Center: Product Info -->
                 <div class="product-info">
-                    <!-- Контейнер для бейджей: Наличие + Способ выдачи -->
+                    <!-- Контейнер для бейджей: Наличие + Способ выдачи + Артикул -->
                     <div class="delivery-status-badge">
                         <!-- Stock Badge - наличие товара -->
                         <div
@@ -138,6 +138,19 @@
                                 {{ getDeliveryTypeLabel(account) }}
                             </span>
                         </div>
+
+                        <!-- Артикул товара (справа от бейджей) -->
+                        <div v-if="account.sku" class="product-sku product-sku--desktop product-sku--inline">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"
+                                />
+                            </svg>
+                            <span>{{ account.sku }}</span>
+                        </div>
                     </div>
 
                     <h3
@@ -147,19 +160,6 @@
                     >
                         {{ (account as any)._cachedTitle }}
                     </h3>
-
-                    <!-- Артикул товара -->
-                    <div v-if="account.sku" class="product-sku product-sku--desktop">
-                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="2"
-                                d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"
-                            />
-                        </svg>
-                        <span>{{ account.sku }}</span>
-                    </div>
 
                     <p
                         v-if="(account as any)._cachedDescription"
@@ -1208,6 +1208,7 @@ onMounted(async () => {
     align-items: center;
     gap: 5px;
     margin-bottom: 1px;
+    width: 100%;
 }
 
 .product-title {
@@ -1298,6 +1299,13 @@ onMounted(async () => {
 .product-sku--desktop {
   display: flex;
   justify-content: flex-start;
+}
+
+/* Артикул в строке с бейджами */
+.product-sku--inline {
+    margin-top: 0;
+    margin-left: auto;
+    flex-shrink: 0;
 }
 
 /* Блок действий */
