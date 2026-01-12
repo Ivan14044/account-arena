@@ -3,91 +3,88 @@
 @section('title', 'Категории товаров')
 
 @section('content_header')
-    <h1>Категории товаров</h1>
+    <div class="content-header-modern">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="m-0 font-weight-light">Категории товаров</h1>
+                <p class="text-muted mb-0 mt-1">Управление основными категориями каталога</p>
+            </div>
+            <div>
+                <a href="{{ route('admin.product-subcategories.index') }}" class="btn btn-info btn-modern mr-2">
+                    <i class="fas fa-list mr-2"></i>Подкатегории
+                </a>
+                <a href="{{ route('admin.product-categories.create') }}" class="btn btn-primary btn-modern">
+                    <i class="fas fa-plus mr-2"></i>Добавить
+                </a>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @section('content')
     <div class="row">
         <div class="col-12">
             @if (session('success'))
-                <div class="alert alert-success">{{ session('success') }}</div>
+                <div class="alert alert-modern alert-success alert-dismissible fade show">
+                    <i class="fas fa-check-circle mr-2"></i>{{ session('success') }}
+                    <button type="button" class="close" data-dismiss="alert">&times;</button>
+                </div>
             @endif
 
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title"></h3>
-                    <div class="float-right">
-                        <a href="{{ route('admin.product-subcategories.index') }}" class="btn btn-info mr-2">
-                            <i class="fas fa-list"></i> Подкатегории
-                        </a>
-                        <a href="{{ route('admin.product-categories.create') }}" class="btn btn-primary">+ Добавить</a>
-                    </div>
+            <div class="card card-modern">
+                <div class="card-header-modern">
+                    <h5 class="mb-0 font-weight-normal">Список основных категорий</h5>
                 </div>
-                <div class="card-body">
+                <div class="card-body-modern">
                     <div class="table-responsive">
-                        <table id="categories-table" class="table table-bordered table-striped">
+                        <table id="categories-table" class="table table-hover modern-table">
                             <thead>
                                 <tr>
-                                    <th style="width: 60px">ID</th>
+                                    <th style="width: 60px" class="text-center">ID</th>
                                     <th>Название</th>
                                     <th>Подкатегории</th>
-                                    <th style="width: 120px">Действия</th>
+                                    <th style="width: 150px" class="text-center">Действия</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach($categories as $category)
                                     <tr>
-                                        <td>{{ $category->id }}</td>
-                                        <td><strong>{{ $category->admin_name }}</strong></td>
-                                        <td>
+                                        <td class="text-center align-middle">
+                                            <span class="badge badge-light font-weight-bold">#{{ $category->id }}</span>
+                                        </td>
+                                        <td class="align-middle">
+                                            <strong class="text-dark">{{ $category->admin_name }}</strong>
+                                        </td>
+                                        <td class="align-middle">
                                             @if($category->children->count() > 0)
-                                                <ul class="list-unstyled mb-0">
+                                                <div class="d-flex flex-wrap gap-1">
                                                     @foreach($category->children as $subcategory)
-                                                        <li>
-                                                            <i class="fas fa-arrow-right text-muted mr-1"></i>
+                                                        <span class="badge badge-info badge-modern mr-1 mb-1">
+                                                            <i class="fas fa-tag mr-1 small"></i>
                                                             {{ $subcategory->admin_name }}
-                                                        </li>
+                                                        </span>
                                                     @endforeach
-                                                </ul>
+                                                </div>
                                             @else
-                                                <span class="text-muted">Нет подкатегорий</span>
+                                                <span class="text-muted small">Нет подкатегорий</span>
                                             @endif
                                         </td>
-                                        <td>
-                                            <a href="{{ route('admin.product-categories.edit', $category) }}" class="btn btn-sm btn-warning">
-                                                <i class="fas fa-edit"></i>
-                                            </a>
-                                            <button class="btn btn-sm btn-danger" data-toggle="modal" data-target="#deleteModal{{ $category->id }}">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-
-                                            <div class="modal fade" id="deleteModal{{ $category->id }}" tabindex="-1" role="dialog" aria-hidden="true">
-                                                <div class="modal-dialog" role="document">
-                                                    <div class="modal-content">
-                                                        <div class="modal-header">
-                                                            <h5 class="modal-title">Подтверждение удаления</h5>
-                                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                                                <span aria-hidden="true">&times;</span>
-                                                            </button>
-                                                        </div>
-                                                        <div class="modal-body">
-                                                            @if($category->children->count() > 0)
-                                                                <div class="alert alert-warning">
-                                                                    <strong>Внимание!</strong> У этой категории есть {{ $category->children->count() }} подкатегорий. Они также будут удалены.
-                                                                </div>
-                                                            @endif
-                                                            Вы уверены, что хотите удалить категорию "{{ $category->admin_name }}"?
-                                                        </div>
-                                                        <div class="modal-footer">
-                                                            <form action="{{ route('admin.product-categories.destroy', $category) }}" method="POST" class="d-inline">
-                                                                @csrf
-                                                                @method('DELETE')
-                                                                <button type="submit" class="btn btn-danger">Да, удалить</button>
-                                                            </form>
-                                                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Отмена</button>
-                                                        </div>
-                                                    </div>
-                                                </div>
+                                        <td class="text-center align-middle">
+                                            <div class="btn-group" role="group">
+                                                <a href="{{ route('admin.product-categories.edit', $category) }}" 
+                                                   class="btn btn-sm btn-primary"
+                                                   title="Редактировать"
+                                                   data-toggle="tooltip">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                                <button class="btn btn-sm btn-danger btn-delete-category" 
+                                                        data-name="{{ $category->admin_name }}"
+                                                        data-children-count="{{ $category->children->count() }}"
+                                                        data-action="{{ route('admin.product-categories.destroy', $category) }}"
+                                                        title="Удалить"
+                                                        data-toggle-tooltip="tooltip">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
                                             </div>
                                         </td>
                                     </tr>
@@ -99,18 +96,88 @@
             </div>
         </div>
     </div>
+
+    {{-- Единое модальное окно для удаления --}}
+    <div class="modal fade" id="singleDeleteModal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header bg-danger text-white border-0">
+                    <h5 class="modal-title">
+                        <i class="fas fa-exclamation-triangle mr-2"></i>
+                        Подтверждение удаления
+                    </h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body py-4">
+                    <div id="category-warning" class="alert alert-warning border-0 shadow-none mb-3 d-none">
+                        <i class="fas fa-exclamation-triangle mr-2"></i>
+                        <strong>Внимание!</strong> У этой категории есть <span id="children-count"></span> подкатегорий. Они также будут удалены.
+                    </div>
+                    <div class="text-center mb-3">
+                        <i class="fas fa-folder-minus fa-3x text-danger mb-3"></i>
+                        <h6 class="font-weight-bold" id="delete-category-name"></h6>
+                    </div>
+                    <p class="text-center mb-0">
+                        Вы действительно хотите удалить эту категорию?<br>
+                        <small class="text-danger">Это действие нельзя отменить!</small>
+                    </p>
+                </div>
+                <div class="modal-footer border-0 justify-content-center">
+                    <form id="delete-category-form" method="POST">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash-alt mr-2"></i>Да, удалить
+                        </button>
+                    </form>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                        <i class="fas fa-times mr-2"></i>Отмена
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+@endsection
+
+@section('css')
+    @include('admin.layouts.modern-styles')
 @endsection
 
 @section('js')
     <script>
         $(function () {
-            $('#categories-table').DataTable({
+            var table = $('#categories-table').DataTable({
                 "order": [[0, "asc"]],
+                "language": {
+                    "url": "//cdn.datatables.net/plug-ins/1.11.5/i18n/ru.json"
+                },
                 "columnDefs": [
                     { "orderable": false, "targets": 3 }
                 ]
             });
+
+            $('[data-toggle="tooltip"]').tooltip();
+
+            // ДИНАМИЧЕСКИЕ МОДАЛКИ
+            $('.btn-delete-category').on('click', function() {
+                const name = $(this).data('name');
+                const childrenCount = parseInt($(this).data('children-count'));
+                const action = $(this).data('action');
+
+                $('#delete-category-name').text(name);
+                $('#delete-category-form').attr('action', action);
+
+                if (childrenCount > 0) {
+                    $('#children-count').text(childrenCount);
+                    $('#category-warning').removeClass('d-none');
+                } else {
+                    $('#category-warning').addClass('d-none');
+                }
+
+                $('#singleDeleteModal').modal('show');
+            });
         });
     </script>
 @endsection
-

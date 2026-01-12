@@ -33,7 +33,7 @@
     <!-- Статистика -->
     <div class="row mb-4">
         <div class="col-lg-3 col-md-6 mb-3">
-            <div class="stat-card stat-card-warning">
+            <div class="stat-card stat-card-warning stat-card-compact">
                 <div class="stat-card-body">
                     <div class="stat-icon">
                         <i class="fas fa-clock"></i>
@@ -47,7 +47,7 @@
         </div>
         
         <div class="col-lg-3 col-md-6 mb-3">
-            <div class="stat-card stat-card-success">
+            <div class="stat-card stat-card-success stat-card-compact">
                 <div class="stat-card-body">
                     <div class="stat-icon">
                         <i class="fas fa-check-circle"></i>
@@ -61,7 +61,7 @@
         </div>
         
         <div class="col-lg-3 col-md-6 mb-3">
-            <div class="stat-card stat-card-info">
+            <div class="stat-card stat-card-info stat-card-compact">
                 <div class="stat-card-body">
                     <div class="stat-icon">
                         <i class="fas fa-calendar-week"></i>
@@ -75,7 +75,7 @@
         </div>
         
         <div class="col-lg-3 col-md-6 mb-3">
-            <div class="stat-card stat-card-primary">
+            <div class="stat-card stat-card-primary stat-card-compact">
                 <div class="stat-card-body">
                     <div class="stat-icon">
                         <i class="fas fa-hourglass-half"></i>
@@ -340,7 +340,7 @@
             .then(data => {
                 if (data.success) {
                     const newCount = data.data.pending;
-                    const pendingElement = document.querySelector('.small-box.bg-warning .inner h3');
+                    const pendingElement = document.querySelector('.stat-card-warning .stat-value');
                     const titleElement = document.querySelector('.card-title');
                     
                     // Обновляем счетчики

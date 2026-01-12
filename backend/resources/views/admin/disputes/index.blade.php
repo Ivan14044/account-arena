@@ -7,6 +7,7 @@
         <div class="d-flex justify-content-between align-items-center">
             <div>
                 <h1 class="m-0 font-weight-light">Претензии</h1>
+                <p class="text-muted mb-0 mt-1">Управление спорами и претензиями от покупателей</p>
             </div>
         </div>
     </div>
@@ -15,40 +16,40 @@
 @section('content')
     {{-- Статистика --}}
     <div class="row mb-4">
-        <div class="col-lg-3 col-6 mb-3">
-            <div class="stat-card stat-card-warning">
+        <div class="col-lg-3 col-6 mb-3 d-flex">
+            <div class="stat-card stat-card-warning stat-card-compact w-100">
                 <div class="stat-card-body">
                     <div class="stat-icon">
                         <i class="fas fa-exclamation-circle"></i>
                     </div>
                     <div class="stat-content">
-                        <div class="stat-label">Новые претензии</div>
+                        <div class="stat-label">Новые</div>
                         <div class="stat-value">{{ $stats['new'] }}</div>
-                        <a href="{{ route('admin.disputes.index', ['status' => 'new']) }}" class="text-warning">
-                            {{ __('Подробнее') }} <i class="fas fa-arrow-right"></i>
+                        <a href="{{ route('admin.disputes.index', ['status' => 'new']) }}" class="text-warning small font-weight-bold">
+                            {{ __('Подробнее') }} <i class="fas fa-arrow-right ml-1"></i>
                         </a>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col-lg-3 col-6 mb-3">
-            <div class="stat-card stat-card-info">
+        <div class="col-lg-3 col-6 mb-3 d-flex">
+            <div class="stat-card stat-card-info stat-card-compact w-100">
                 <div class="stat-card-body">
                     <div class="stat-icon">
                         <i class="fas fa-clock"></i>
                     </div>
                     <div class="stat-content">
-                        <div class="stat-label">На рассмотрении</div>
+                        <div class="stat-label">В работе</div>
                         <div class="stat-value">{{ $stats['in_review'] }}</div>
-                        <a href="{{ route('admin.disputes.index', ['status' => 'in_review']) }}" class="text-info">
-                            {{ __('Подробнее') }} <i class="fas fa-arrow-right"></i>
+                        <a href="{{ route('admin.disputes.index', ['status' => 'in_review']) }}" class="text-info small font-weight-bold">
+                            {{ __('Подробнее') }} <i class="fas fa-arrow-right ml-1"></i>
                         </a>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col-lg-3 col-6 mb-3">
-            <div class="stat-card stat-card-success">
+        <div class="col-lg-3 col-6 mb-3 d-flex">
+            <div class="stat-card stat-card-success stat-card-compact w-100">
                 <div class="stat-card-body">
                     <div class="stat-icon">
                         <i class="fas fa-check-circle"></i>
@@ -56,15 +57,15 @@
                     <div class="stat-content">
                         <div class="stat-label">Решенные</div>
                         <div class="stat-value">{{ $stats['resolved'] }}</div>
-                        <a href="{{ route('admin.disputes.index', ['status' => 'resolved']) }}" class="text-success">
-                            {{ __('Подробнее') }} <i class="fas fa-arrow-right"></i>
+                        <a href="{{ route('admin.disputes.index', ['status' => 'resolved']) }}" class="text-success small font-weight-bold">
+                            {{ __('Подробнее') }} <i class="fas fa-arrow-right ml-1"></i>
                         </a>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col-lg-3 col-6 mb-3">
-            <div class="stat-card stat-card-danger">
+        <div class="col-lg-3 col-6 mb-3 d-flex">
+            <div class="stat-card stat-card-danger stat-card-compact w-100">
                 <div class="stat-card-body">
                     <div class="stat-icon">
                         <i class="fas fa-times-circle"></i>
@@ -72,44 +73,8 @@
                     <div class="stat-content">
                         <div class="stat-label">Отклоненные</div>
                         <div class="stat-value">{{ $stats['rejected'] }}</div>
-                        <a href="{{ route('admin.disputes.index', ['status' => 'rejected']) }}" class="text-danger">
-                            {{ __('Подробнее') }} <i class="fas fa-arrow-right"></i>
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    {{-- Статистика по владельцам товаров --}}
-    <div class="row mb-4">
-        <div class="col-lg-6 col-12 mb-3">
-            <div class="stat-card stat-card-primary">
-                <div class="stat-card-body">
-                    <div class="stat-icon">
-                        <i class="fas fa-shield-alt"></i>
-                    </div>
-                    <div class="stat-content">
-                        <div class="stat-label">Претензии на мои товары</div>
-                        <div class="stat-value">{{ $stats['admin_products'] }}</div>
-                        <a href="{{ route('admin.disputes.index', ['owner' => 'admin']) }}" class="text-primary">
-                            Посмотреть <i class="fas fa-arrow-right"></i>
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-6 col-12 mb-3">
-            <div class="stat-card stat-card-info">
-                <div class="stat-card-body">
-                    <div class="stat-icon">
-                        <i class="fas fa-users"></i>
-                    </div>
-                    <div class="stat-content">
-                        <div class="stat-label">Претензии на товары поставщиков</div>
-                        <div class="stat-value">{{ $stats['supplier_products'] }}</div>
-                        <a href="{{ route('admin.disputes.index', ['owner' => 'suppliers']) }}" class="text-info">
-                            Посмотреть <i class="fas fa-arrow-right"></i>
+                        <a href="{{ route('admin.disputes.index', ['status' => 'rejected']) }}" class="text-danger small font-weight-bold">
+                            {{ __('Подробнее') }} <i class="fas fa-arrow-right ml-1"></i>
                         </a>
                     </div>
                 </div>
@@ -118,21 +83,16 @@
     </div>
 
     {{-- Фильтры --}}
-    <div class="card">
-        <div class="card-header">
-            <h3 class="card-title">Фильтры</h3>
-            <div class="card-tools">
-                <button type="button" class="btn btn-tool" data-card-widget="collapse">
-                    <i class="fas fa-minus"></i>
-                </button>
-            </div>
+    <div class="card card-modern mb-4">
+        <div class="card-header-modern">
+            <h5 class="mb-0 font-weight-normal"><i class="fas fa-filter mr-2 text-muted"></i>Фильтры</h5>
         </div>
-        <div class="card-body">
-            <form action="{{ route('admin.disputes.index') }}" method="GET" class="form-inline">
-                <div class="form-group mr-2 mb-2">
-                    <label class="mr-2">Статус:</label>
-                    <select name="status" class="form-control">
-                        <option value="">Все</option>
+        <div class="card-body p-4">
+            <form action="{{ route('admin.disputes.index') }}" method="GET" class="row g-3">
+                <div class="col-md-3 mb-3">
+                    <label class="form-label">Статус</label>
+                    <select name="status" class="form-control form-control-modern">
+                        <option value="">Все статусы</option>
                         <option value="new" {{ request('status') == 'new' ? 'selected' : '' }}>Новые</option>
                         <option value="in_review" {{ request('status') == 'in_review' ? 'selected' : '' }}>На рассмотрении</option>
                         <option value="resolved" {{ request('status') == 'resolved' ? 'selected' : '' }}>Решенные</option>
@@ -140,135 +100,156 @@
                     </select>
                 </div>
 
-                <div class="form-group mr-2 mb-2">
-                    <label class="mr-2">Владелец товара:</label>
-                    <select name="owner" class="form-control">
+                <div class="col-md-3 mb-3">
+                    <label class="form-label">Владелец товара</label>
+                    <select name="owner" class="form-control form-control-modern">
                         <option value="">Все товары</option>
                         <option value="admin" {{ request('owner') == 'admin' ? 'selected' : '' }}>🛡️ Мои товары</option>
                         <option value="suppliers" {{ request('owner') == 'suppliers' ? 'selected' : '' }}>Товары поставщиков</option>
                     </select>
                 </div>
 
-                <div class="form-group mr-2 mb-2">
-                    <label class="mr-2">Дата с:</label>
-                    <input type="date" name="date_from" class="form-control" value="{{ request('date_from') }}">
+                <div class="col-md-2 mb-3">
+                    <label class="form-label">С даты</label>
+                    <input type="date" name="date_from" class="form-control form-control-modern" value="{{ request('date_from') }}">
                 </div>
 
-                <div class="form-group mr-2 mb-2">
-                    <label class="mr-2">Дата по:</label>
-                    <input type="date" name="date_to" class="form-control" value="{{ request('date_to') }}">
+                <div class="col-md-2 mb-3">
+                    <label class="form-label">По дату</label>
+                    <input type="date" name="date_to" class="form-control form-control-modern" value="{{ request('date_to') }}">
                 </div>
 
-                <div class="form-group mr-2 mb-2">
-                    <input type="text" name="search" class="form-control" placeholder="Поиск по ID или email..." value="{{ request('search') }}">
+                <div class="col-md-2 mb-3">
+                    <label class="form-label">Поиск</label>
+                    <input type="text" name="search" class="form-control form-control-modern" placeholder="ID или email..." value="{{ request('search') }}">
                 </div>
 
-                <button type="submit" class="btn btn-primary mr-2 mb-2">
-                    <i class="fas fa-search"></i>Применить</button>
-                <a href="{{ route('admin.disputes.index') }}" class="btn btn-secondary mb-2">
-                    <i class="fas fa-redo"></i>Сбросить</a>
+                <div class="col-12 mt-2">
+                    <button type="submit" class="btn btn-primary btn-modern mr-2">
+                        <i class="fas fa-search mr-2"></i>Применить фильтры
+                    </button>
+                    <a href="{{ route('admin.disputes.index') }}" class="btn btn-secondary btn-modern">
+                        <i class="fas fa-redo mr-2"></i>Сбросить
+                    </a>
+                </div>
             </form>
         </div>
     </div>
 
     {{-- Таблица претензий --}}
-    <div class="card">
-        <div class="card-header">
-            <h3 class="card-title">Список претензий</h3>
+    <div class="card card-modern">
+        <div class="card-header-modern">
+            <h5 class="mb-0 font-weight-normal">Список претензий ({{ $disputes->total() }})</h5>
         </div>
-        <div class="card-body table-responsive p-0">
-            <table class="table table-hover text-nowrap">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Дата</th>
-                        <th>Покупатель</th>
-                        <th>Номер заказа</th>
-                        <th>Товар</th>
-                        <th>Поставщик</th>
-                        <th>Причина</th>
-                        <th>Сумма</th>
-                        <th>Статус</th>
-                        <th>Действия</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($disputes as $dispute)
+        <div class="card-body-modern">
+            <div class="table-responsive">
+                <table class="table table-hover modern-table">
+                    <thead>
                         <tr>
-                            <td>#{{ $dispute->id }}</td>
-                            <td>{{ $dispute->created_at->format('d.m.Y H:i') }}</td>
-                            <td>
-                                <a href="{{ route('admin.users.edit', $dispute->user) }}">
-                                    {{ $dispute->user->name }}
-                                </a>
-                                <br>
-                                <small class="text-muted">{{ $dispute->user->email }}</small>
-                            </td>
-                            <td>
-                                @if($dispute->transaction && $dispute->transaction->purchase && $dispute->transaction->purchase->order_number)
-                                    <a href="{{ route('admin.purchases.show', $dispute->transaction->purchase->id) }}" class="text-primary">
-                                        {{ $dispute->transaction->purchase->order_number }}
+                            <th style="width: 60px" class="text-center">ID</th>
+                            <th>Покупатель</th>
+                            <th>Заказ</th>
+                            <th>Товар</th>
+                            <th>Поставщик</th>
+                            <th>Причина</th>
+                            <th>Сумма</th>
+                            <th class="text-center">Статус</th>
+                            <th class="text-center">Дата</th>
+                            <th class="text-center" style="width: 100px">Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($disputes as $dispute)
+                            <tr>
+                                <td class="text-center align-middle">
+                                    <span class="badge badge-light">#{{ $dispute->id }}</span>
+                                </td>
+                                <td class="align-middle">
+                                    <div class="font-weight-bold text-dark">{{ $dispute->user->name }}</div>
+                                    <small class="text-muted">{{ $dispute->user->email }}</small>
+                                </td>
+                                <td class="align-middle">
+                                    @if($dispute->transaction && $dispute->transaction->purchase && $dispute->transaction->purchase->order_number)
+                                        <a href="{{ route('admin.purchases.show', $dispute->transaction->purchase->id) }}" class="text-primary font-weight-bold">
+                                            {{ $dispute->transaction->purchase->order_number }}
+                                        </a>
+                                    @elseif($dispute->transaction)
+                                        <code class="text-muted small">#T{{ $dispute->transaction->id }}</code>
+                                    @else
+                                        <span class="text-muted small">N/A</span>
+                                    @endif
+                                </td>
+                                <td class="align-middle">
+                                    @if($dispute->serviceAccount)
+                                        <div class="font-weight-500">{{ \Illuminate\Support\Str::limit($dispute->serviceAccount->title, 30) }}</div>
+                                        <small class="text-muted">{{ $dispute->serviceAccount->login }}</small>
+                                    @else
+                                        <span class="text-muted small">Товар удален</span>
+                                    @endif
+                                </td>
+                                <td class="align-middle">
+                                    @if($dispute->supplier_id && $dispute->supplier)
+                                        <span class="text-dark font-weight-500">{{ $dispute->supplier->name }}</span>
+                                    @else
+                                        <span class="badge badge-info badge-modern" style="font-size: 0.65rem;">АДМИН</span>
+                                    @endif
+                                </td>
+                                <td class="align-middle">
+                                    <span class="badge badge-light border" style="font-size: 0.75rem;">
+                                        {{ $dispute->getReasonText() }}
+                                    </span>
+                                </td>
+                                <td class="align-middle font-weight-bold">
+                                    ${{ number_format($dispute->transaction->amount ?? 0, 2) }}
+                                </td>
+                                <td class="text-center align-middle">
+                                    <span class="badge {{ $dispute->getStatusBadgeClass() }} badge-modern">
+                                        {{ $dispute->getStatusText() }}
+                                    </span>
+                                </td>
+                                <td class="text-center align-middle">
+                                    <small class="text-muted">
+                                        {{ $dispute->created_at->format('d.m.Y') }}
+                                        <br>
+                                        {{ $dispute->created_at->format('H:i') }}
+                                    </small>
+                                </td>
+                                <td class="text-center align-middle">
+                                    <a href="{{ route('admin.disputes.show', $dispute) }}" class="btn btn-sm btn-primary" title="Просмотр" data-toggle="tooltip">
+                                        <i class="fas fa-eye"></i>
                                     </a>
-                                @elseif($dispute->transaction)
-                                    <span class="text-muted">#{{ $dispute->transaction->id }}</span>
-                                @else
-                                    <span class="text-muted">N/A</span>
-                                @endif
-                            </td>
-                            <td>
-                                @if($dispute->serviceAccount)
-                                    {{ $dispute->serviceAccount->title }}
-                                    <br>
-                                    <small class="text-muted">{{ $dispute->serviceAccount->login }}</small>
-                                @else
-                                    <span class="text-muted">Товар удален</span>
-                                @endif
-                            </td>
-                                        <td>
-                                            @if($dispute->supplier_id && $dispute->supplier)
-                                                <a href="{{ route('admin.suppliers.show', $dispute->supplier) }}">
-                                                    {{ $dispute->supplier->name }}
-                                                </a>
-                                            @else
-                                                <span class="badge badge-info">Администратор</span>
-                                            @endif
-                                        </td>
-                            <td>
-                                <span class="badge badge-secondary">
-                                    {{ $dispute->getReasonText() }}
-                                </span>
-                            </td>
-                            <td>${{ number_format($dispute->transaction->amount, 2) }}</td>
-                            <td>
-                                <span class="badge {{ $dispute->getStatusBadgeClass() }}">
-                                    {{ $dispute->getStatusText() }}
-                                </span>
-                            </td>
-                            <td>
-                                <a href="{{ route('admin.disputes.show', $dispute) }}" class="btn btn-sm btn-primary">
-                                    <i class="fas fa-eye"></i>
-                                </a>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="10" class="text-center text-muted py-4">
-                                Претензии не найдены
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="10" class="text-center py-5">
+                                    <div class="empty-state">
+                                        <i class="fas fa-exclamation-triangle fa-3x mb-3 text-muted opacity-50"></i>
+                                        <p class="text-muted mb-0">Претензии не найдены</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
         </div>
         @if($disputes->hasPages())
-            <div class="card-footer clearfix">
-                {{ $disputes->links() }}
+            <div class="card-footer bg-white border-top d-flex justify-content-center">
+                {{ $disputes->appends(request()->all())->links('pagination::bootstrap-4') }}
             </div>
         @endif
     </div>
-@stop
+@endsection
 
 @section('css')
     @include('admin.layouts.modern-styles')
 @endsection
 
+@section('js')
+    <script>
+        $(document).ready(function() {
+            $('[data-toggle="tooltip"]').tooltip();
+        });
+    </script>
+@endsection

@@ -32,8 +32,8 @@
 
     <!-- Статистика -->
     <div class="row mb-4">
-        <div class="col-lg-3 col-6">
-            <div class="stat-card stat-card-primary stat-card-compact">
+        <div class="col-lg-3 col-6 d-flex">
+            <div class="stat-card stat-card-primary stat-card-compact w-100">
                 <div class="stat-card-body">
                     <div class="stat-icon">
                         <i class="fas fa-file-invoice-dollar"></i>
@@ -46,8 +46,8 @@
             </div>
         </div>
 
-        <div class="col-lg-3 col-6">
-            <div class="stat-card stat-card-warning stat-card-compact">
+        <div class="col-lg-3 col-6 d-flex">
+            <div class="stat-card stat-card-warning stat-card-compact w-100">
                 <div class="stat-card-body">
                     <div class="stat-icon">
                         <i class="fas fa-clock"></i>
@@ -60,8 +60,8 @@
             </div>
         </div>
 
-        <div class="col-lg-3 col-6">
-            <div class="stat-card stat-card-success stat-card-compact">
+        <div class="col-lg-3 col-6 d-flex">
+            <div class="stat-card stat-card-success stat-card-compact w-100">
                 <div class="stat-card-body">
                     <div class="stat-icon">
                         <i class="fas fa-check-double"></i>
@@ -74,8 +74,8 @@
             </div>
         </div>
 
-        <div class="col-lg-3 col-6">
-            <div class="stat-card stat-card-info stat-card-compact">
+        <div class="col-lg-3 col-6 d-flex">
+            <div class="stat-card stat-card-info stat-card-compact w-100">
                 <div class="stat-card-body">
                     <div class="stat-icon">
                         <i class="fas fa-dollar-sign"></i>
@@ -91,11 +91,14 @@
 
     <!-- Фильтры -->
     <div class="card card-modern mb-4">
-        <div class="card-body-modern p-3">
+        <div class="card-header-modern">
+            <h5 class="mb-0 font-weight-normal"><i class="fas fa-filter mr-2 text-muted"></i>Фильтры</h5>
+        </div>
+        <div class="card-body p-4">
             <form action="{{ route('admin.withdrawal-requests.index') }}" method="GET" class="row g-3">
-                <div class="col-md-3">
-                    <label class="form-label small font-weight-bold">Статус</label>
-                    <select name="status" class="form-control form-control-sm">
+                <div class="col-md-3 mb-3">
+                    <label class="form-label">Статус</label>
+                    <select name="status" class="form-control form-control-modern">
                         <option value="">Все статусы</option>
                         <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>В обработке</option>
                         <option value="approved" {{ request('status') == 'approved' ? 'selected' : '' }}>Одобрен</option>
@@ -103,9 +106,9 @@
                         <option value="rejected" {{ request('status') == 'rejected' ? 'selected' : '' }}>Отклонен</option>
                     </select>
                 </div>
-                <div class="col-md-3">
-                    <label class="form-label small font-weight-bold">Поставщик</label>
-                    <select name="supplier_id" class="form-control form-control-sm">
+                <div class="col-md-3 mb-3">
+                    <label class="form-label">Поставщик</label>
+                    <select name="supplier_id" class="form-control form-control-modern">
                         <option value="">Все поставщики</option>
                         @foreach($suppliers as $supplier)
                             <option value="{{ $supplier->id }}" {{ request('supplier_id') == $supplier->id ? 'selected' : '' }}>
@@ -114,29 +117,29 @@
                         @endforeach
                     </select>
                 </div>
-                <div class="col-md-2">
-                    <label class="form-label small font-weight-bold">С даты</label>
+                <div class="col-md-2 mb-3">
+                    <label class="form-label">С даты</label>
                     <div class="input-group input-group-sm">
                         <div class="input-group-prepend">
                             <span class="input-group-text"><i class="fas fa-calendar-alt"></i></span>
                         </div>
-                        <input type="date" name="date_from" class="form-control" value="{{ request('date_from') }}">
+                        <input type="date" name="date_from" class="form-control form-control-modern" value="{{ request('date_from') }}">
                     </div>
                 </div>
-                <div class="col-md-2">
-                    <label class="form-label small font-weight-bold">По дату</label>
+                <div class="col-md-2 mb-3">
+                    <label class="form-label">По дату</label>
                     <div class="input-group input-group-sm">
                         <div class="input-group-prepend">
                             <span class="input-group-text"><i class="fas fa-calendar-alt"></i></span>
                         </div>
-                        <input type="date" name="date_to" class="form-control" value="{{ request('date_to') }}">
+                        <input type="date" name="date_to" class="form-control form-control-modern" value="{{ request('date_to') }}">
                     </div>
                 </div>
-                <div class="col-md-2 d-flex align-items-end">
-                    <button type="submit" class="btn btn-primary btn-sm mr-2 flex-grow-1">
+                <div class="col-md-2 d-flex align-items-end mb-3">
+                    <button type="submit" class="btn btn-primary btn-modern mr-2 flex-grow-1">
                         <i class="fas fa-filter mr-1"></i>Найти
                     </button>
-                    <a href="{{ route('admin.withdrawal-requests.index') }}" class="btn btn-secondary btn-sm" title="Сбросить">
+                    <a href="{{ route('admin.withdrawal-requests.index') }}" class="btn btn-secondary btn-modern" title="Сбросить">
                         <i class="fas fa-undo"></i>
                     </a>
                 </div>
@@ -168,10 +171,10 @@
                     </tr>
                     </thead>
                     <tbody>
-                    @foreach($withdrawalRequests as $request)
+                    @forelse($withdrawalRequests as $request)
                         <tr>
                             <td class="text-center align-middle">
-                                <span class="badge badge-secondary">#{{ $request->id }}</span>
+                                <span class="badge badge-light">#{{ $request->id }}</span>
                             </td>
                             <td class="align-middle">
                                 <a href="{{ route('admin.suppliers.show', $request->supplier) }}" class="font-weight-bold text-primary">
@@ -179,18 +182,18 @@
                                 </a>
                                 <div class="text-muted small">{{ $request->supplier->email }}</div>
                             </td>
-                            <td class="text-center align-middle font-weight-bold text-lg">
+                            <td class="text-center align-middle font-weight-bold" style="font-size: 1.1rem;">
                                 ${{ number_format($request->amount, 2) }}
                             </td>
                             <td class="text-center align-middle">
                                 @if($request->payment_method == 'trc20')
                                     <span class="badge badge-info badge-modern"><i class="fas fa-coins mr-1"></i>TRC-20</span>
                                 @else
-                                    <span class="badge badge-primary badge-modern"><i class="fas fa-credit-card mr-1"></i>Карта грн</span>
+                                    <span class="badge badge-primary badge-modern"><i class="fas fa-credit-card mr-1"></i>Карта</span>
                                 @endif
                             </td>
                             <td class="align-middle">
-                                <code class="text-muted small">{{ $request->payment_details }}</code>
+                                <code class="text-muted small" style="background: #f8f9fc; padding: 2px 4px;">{{ $request->payment_details }}</code>
                             </td>
                             <td class="text-center align-middle">
                                 @if($request->status == 'pending')
@@ -203,8 +206,8 @@
                                     <span class="badge badge-danger badge-modern">Отклонен</span>
                                 @endif
                             </td>
-                            <td class="text-center align-middle text-muted">
-                                <small>
+                            <td class="text-center align-middle">
+                                <small class="text-muted">
                                     <i class="far fa-calendar-alt mr-1"></i>
                                     {{ $request->created_at->format('d.m.Y') }}
                                     <br>
@@ -213,24 +216,31 @@
                                 </small>
                             </td>
                             <td class="text-center align-middle">
-                                <div class="action-buttons justify-content-center">
-                                    <a href="{{ route('admin.withdrawal-requests.show', $request) }}" 
-                                       class="btn btn-sm btn-primary" 
-                                       title="Просмотр"
-                                       data-toggle="tooltip">
-                                        <i class="fas fa-eye"></i>
-                                    </a>
+                                <a href="{{ route('admin.withdrawal-requests.show', $request) }}" 
+                                   class="btn btn-sm btn-primary" 
+                                   title="Просмотр"
+                                   data-toggle="tooltip">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="8" class="text-center py-5">
+                                <div class="empty-state">
+                                    <i class="fas fa-file-invoice-dollar fa-3x mb-3 text-muted opacity-50"></i>
+                                    <p class="text-muted mb-0">Запросы не найдены</p>
                                 </div>
                             </td>
                         </tr>
-                    @endforeach
+                    @endforelse
                     </tbody>
                 </table>
             </div>
         </div>
         @if($withdrawalRequests->hasPages())
-            <div class="card-footer-modern bg-white p-3 border-top">
-                {{ $withdrawalRequests->links() }}
+            <div class="card-footer bg-white border-top d-flex justify-content-center">
+                {{ $withdrawalRequests->appends(request()->all())->links('pagination::bootstrap-4') }}
             </div>
         @endif
     </div>
@@ -255,7 +265,7 @@
             $('#withdrawals-table').DataTable({
                 "order": [[0, "desc"]],
                 "language": {
-                    "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Russian.json"
+                    "url": "//cdn.datatables.net/plug-ins/1.11.5/i18n/ru.json"
                 },
                 "paging": false,
                 "info": false,
@@ -270,7 +280,3 @@
         });
     </script>
 @endsection
-
-
-
-

@@ -45,7 +45,7 @@
     <!-- Статистика -->
     <div class="row mb-4">
         <div class="col-lg-3 col-6">
-            <div class="stat-card stat-card-primary">
+            <div class="stat-card stat-card-primary stat-card-compact">
                 <div class="stat-card-body">
                     <div class="stat-icon">
                         <i class="fas fa-box-open"></i>
@@ -59,7 +59,7 @@
         </div>
 
         <div class="col-lg-3 col-6">
-            <div class="stat-card stat-card-success">
+            <div class="stat-card stat-card-success stat-card-compact">
                 <div class="stat-card-body">
                     <div class="stat-icon">
                         <i class="fas fa-check-circle"></i>
@@ -73,7 +73,7 @@
         </div>
 
         <div class="col-lg-3 col-6">
-            <div class="stat-card stat-card-warning">
+            <div class="stat-card stat-card-warning stat-card-compact">
                 <div class="stat-card-body">
                     <div class="stat-icon">
                         <i class="fas fa-shopping-cart"></i>
@@ -87,7 +87,7 @@
         </div>
 
         <div class="col-lg-3 col-6">
-            <div class="stat-card stat-card-info">
+            <div class="stat-card stat-card-info stat-card-compact">
                 <div class="stat-card-body">
                     <div class="stat-icon">
                         <i class="fas fa-dollar-sign"></i>
@@ -223,6 +223,7 @@
                                 <i class="fas fa-grip-vertical text-muted" title="Перетащите для изменения порядка"></i>
                             </th>
                             <th style="width: 50px" class="text-center">ID</th>
+                            <th style="width: 120px" class="text-center">Артикул</th>
                             <th style="width: 80px" class="text-center">Изображение</th>
                             <th style="min-width: 250px">Товар</th>
                             <th class="text-center">Категория</th>
@@ -260,6 +261,11 @@
                             </td>
                             <td class="text-center align-middle">
                                 <span class="badge badge-secondary">#{{ $serviceAccount->id }}</span>
+                            </td>
+                            <td class="text-center align-middle">
+                                <code class="text-dark" style="font-size: 0.875rem; background: #f8f9fc; padding: 0.25rem 0.5rem; border-radius: 0.25rem;">
+                                    {{ $serviceAccount->sku ?? '—' }}
+                                </code>
                             </td>
                             <td class="text-center align-middle">
                                 @if($serviceAccount->image_url)
@@ -358,167 +364,153 @@
                                     </a>
 
                                     @if($totalQuantity > 0)
-                                    <button class="btn btn-sm btn-success" 
-                                            data-toggle="modal"
-                                            data-target="#exportModal{{ $serviceAccount->id }}"
+                                    <button class="btn btn-sm btn-success btn-export" 
+                                            data-id="{{ $serviceAccount->id }}"
+                                            data-title="{{ $serviceAccount->title }}"
+                                            data-count="{{ $availableCount }}"
                                             title="Экспорт товаров"
-                                            data-toggle-tooltip="tooltip">
+                                            data-toggle="tooltip">
                                         <i class="fas fa-download"></i>
                                     </button>
                                     @endif
 
-                                    <button class="btn btn-sm btn-info" 
-                                            data-toggle="modal"
-                                            data-target="#importModal{{ $serviceAccount->id }}" 
+                                    <button class="btn btn-sm btn-info btn-import" 
+                                            data-id="{{ $serviceAccount->id }}"
+                                            data-title="{{ $serviceAccount->title }}"
+                                            data-action="{{ route('admin.service-accounts.import', $serviceAccount) }}"
                                             title="Импорт товаров"
-                                            data-toggle-tooltip="tooltip">
+                                            data-toggle="tooltip">
                                         <i class="fas fa-upload"></i>
                                     </button>
 
-                                    <button class="btn btn-sm btn-danger" 
-                                            data-toggle="modal"
-                                            data-target="#deleteModal{{ $serviceAccount->id }}" 
+                                    <button class="btn btn-sm btn-danger btn-delete" 
+                                            data-id="{{ $serviceAccount->id }}"
+                                            data-title="{{ $serviceAccount->title }}"
+                                            data-count="{{ $availableCount }}"
+                                            data-action="{{ route('admin.service-accounts.destroy', $serviceAccount) }}"
                                             title="Удалить"
-                                            data-toggle-tooltip="tooltip">
+                                            data-toggle="tooltip">
                                         <i class="fas fa-trash-alt"></i>
                                     </button>
-                                </div>
-
-                                <!-- Модальное окно удаления -->
-                                <div class="modal fade" id="deleteModal{{ $serviceAccount->id }}" tabindex="-1" role="dialog">
-                                    <div class="modal-dialog modal-dialog-centered" role="document">
-                                        <div class="modal-content modal-modern">
-                                            <div class="modal-header-modern">
-                                                <h5 class="modal-title">
-                                                    <i class="fas fa-exclamation-triangle mr-2 text-danger"></i>
-                                                    Подтверждение удаления
-                                                </h5>
-                                                <button type="button" class="close" data-dismiss="modal">
-                                                    <span>&times;</span>
-                                                </button>
-                                            </div>
-                                            <div class="modal-body-modern text-center">
-                                                <i class="fas fa-box-open fa-3x text-danger mb-3"></i>
-                                                <h6 class="font-weight-bold">{{ $serviceAccount->title ?: 'Товар' }}</h6>
-                                                <p class="text-muted mb-0">В наличии: {{ $availableCount }} шт.</p>
-                                                <small class="text-danger">Это действие нельзя отменить!</small>
-                                            </div>
-                                            <div class="modal-footer-modern justify-content-center">
-                                                <form action="{{ route('admin.service-accounts.destroy', $serviceAccount) }}" method="POST">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="btn btn-danger btn-modern">
-                                                        <i class="fas fa-trash-alt mr-2"></i>Да, удалить
-                                                    </button>
-                                                </form>
-                                                <button type="button" class="btn btn-secondary btn-modern" data-dismiss="modal">
-                                                    Отмена
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Модальное окно экспорта -->
-                                <div class="modal fade" id="exportModal{{ $serviceAccount->id }}" tabindex="-1" role="dialog">
-                                    <div class="modal-dialog modal-dialog-centered" role="document">
-                                        <div class="modal-content modal-modern">
-                                            <div class="modal-header-modern">
-                                                <h5 class="modal-title">
-                                                    <i class="fas fa-download mr-2 text-success"></i>
-                                                    Экспорт товаров
-                                                </h5>
-                                                <button type="button" class="close" data-dismiss="modal">
-                                                    <span>&times;</span>
-                                                </button>
-                                            </div>
-                                            <div class="modal-body-modern">
-                                                <p class="mb-3">Сколько товаров выгрузить?</p>
-                                                <div class="form-group">
-                                                    <label for="exportCount{{ $serviceAccount->id }}">Количество (всего доступно: <strong>{{ $availableCount }}</strong>)</label>
-                                                    <input type="number" 
-                                                           class="form-control" 
-                                                           id="exportCount{{ $serviceAccount->id }}" 
-                                                           min="1" 
-                                                           max="{{ $availableCount }}" 
-                                                           value="{{ $availableCount }}"
-                                                           required>
-                                                    <small class="form-text text-muted">Введите количество товаров для экспорта</small>
-                                                </div>
-                                            </div>
-                                            <div class="modal-footer-modern justify-content-center">
-                                                <button type="button" 
-                                                        class="btn btn-success btn-modern" 
-                                                        onclick="confirmExport({{ $serviceAccount->id }}, {{ $availableCount }})">
-                                                    <i class="fas fa-download mr-2"></i>Экспортировать
-                                                </button>
-                                                <button type="button" class="btn btn-secondary btn-modern" data-dismiss="modal">
-                                                    Отмена
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Модальное окно импорта -->
-                                <div class="modal fade" id="importModal{{ $serviceAccount->id }}" tabindex="-1" role="dialog">
-                                    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
-                                        <div class="modal-content modal-modern">
-                                            <div class="modal-header-modern">
-                                                <h5 class="modal-title">
-                                                    <i class="fas fa-upload mr-2 text-info"></i>
-                                                    Импорт товаров
-                                                </h5>
-                                                <button type="button" class="close" data-dismiss="modal">
-                                                    <span>&times;</span>
-                                                </button>
-                                            </div>
-                                            <form action="{{ route('admin.service-accounts.import', $serviceAccount) }}" method="POST">
-                                                @csrf
-                                                <div class="modal-body-modern">
-                                                    <div class="form-group-modern">
-                                                        <label for="import_data{{ $serviceAccount->id }}" class="form-label-modern">
-                                                            Данные для загрузки
-                                                        </label>
-                                                        <textarea 
-                                                            name="import_data" 
-                                                            id="import_data{{ $serviceAccount->id }}" 
-                                                            class="form-control form-control-modern font-monospace" 
-                                                            rows="15" 
-                                                            placeholder="Вставьте данные товаров. Каждая строка = один товар" 
-                                                            required></textarea>
-                                                        <small class="form-text text-muted">
-                                                            <i class="fas fa-info-circle mr-1"></i>
-                                                            Каждая строка будет добавлена как один товар. Новые строки будут добавлены к существующим.
-                                                        </small>
-                                                    </div>
-                                                    <div class="form-group-modern mb-0">
-                                                        <label for="import_count{{ $serviceAccount->id }}" class="form-label-modern">
-                                                            Количество строк для загрузки:
-                                                        </label>
-                                                        <input 
-                                                            type="number" 
-                                                            id="import_count{{ $serviceAccount->id }}" 
-                                                            class="form-control form-control-modern" 
-                                                            value="0" 
-                                                            readonly>
-                                                    </div>
-                                                </div>
-                                                <div class="modal-footer-modern">
-                                                    <button type="button" class="btn btn-secondary btn-modern" data-dismiss="modal">Отмена</button>
-                                                    <button type="submit" class="btn btn-primary btn-modern">
-                                                        <i class="fas fa-save mr-2"></i>Сохранить
-                                                    </button>
-                                                </div>
-                                            </form>
-                                        </div>
-                                    </div>
                                 </div>
                             </td>
                         </tr>
                         @endforeach
                     </tbody>
                 </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ЕДИНЫЕ ДИНАМИЧЕСКИЕ МОДАЛЬНЫЕ ОКНА -->
+    
+    <!-- Модальное окно удаления -->
+    <div class="modal fade" id="singleDeleteModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content modal-modern">
+                <div class="modal-header modal-header-modern bg-danger text-white">
+                    <h5 class="modal-title">
+                        <i class="fas fa-exclamation-triangle mr-2 text-danger"></i>
+                        Подтверждение удаления
+                    </h5>
+                    <button type="button" class="close text-white" data-dismiss="modal">
+                        <span>&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body modal-body-modern text-center">
+                    <i class="fas fa-box-open fa-3x text-danger mb-3"></i>
+                    <h6 class="font-weight-bold" id="delete-item-title">Товар</h6>
+                    <p class="text-muted mb-0">В наличии: <span id="delete-item-count">0</span> шт.</p>
+                    <small class="text-danger">Это действие нельзя отменить!</small>
+                </div>
+                <div class="modal-footer modal-footer-modern justify-content-center">
+                    <form id="delete-item-form" method="POST" class="d-inline">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="btn btn-danger btn-modern">
+                            <i class="fas fa-trash-alt mr-2"></i>Да, удалить
+                        </button>
+                    </form>
+                    <button type="button" class="btn btn-secondary btn-modern" data-dismiss="modal">
+                        Отмена
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно экспорта -->
+    <div class="modal fade" id="singleExportModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content modal-modern">
+                <div class="modal-header modal-header-modern bg-success text-white">
+                    <h5 class="modal-title">
+                        <i class="fas fa-download mr-2 text-success"></i>
+                        Экспорт товаров
+                    </h5>
+                    <button type="button" class="close text-white" data-dismiss="modal">
+                        <span>&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body modal-body-modern">
+                    <p class="mb-3">Сколько товаров выгрузить из "<strong id="export-item-title"></strong>"?</p>
+                    <div class="form-group">
+                        <label>Количество (всего доступно: <strong id="export-max-count">0</strong>)</label>
+                        <input type="number" class="form-control" id="export-item-quantity" min="1" required>
+                        <small class="form-text text-muted">Введите количество товаров для экспорта</small>
+                    </div>
+                </div>
+                <div class="modal-footer modal-footer-modern justify-content-center">
+                    <button type="button" class="btn btn-success btn-modern" id="confirm-single-export">
+                        <i class="fas fa-download mr-2"></i>Экспортировать
+                    </button>
+                    <button type="button" class="btn btn-secondary btn-modern" data-dismiss="modal">
+                        Отмена
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно импорта -->
+    <div class="modal fade" id="singleImportModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+            <div class="modal-content modal-modern">
+                <div class="modal-header modal-header-modern bg-info text-white">
+                    <h5 class="modal-title">
+                        <i class="fas fa-upload mr-2 text-info"></i>
+                        Импорт товаров: <span id="import-item-title"></span>
+                    </h5>
+                    <button type="button" class="close text-white" data-dismiss="modal">
+                        <span>&times;</span>
+                    </button>
+                </div>
+                <form id="import-item-form" method="POST">
+                    @csrf
+                    <div class="modal-body modal-body-modern">
+                        <div class="form-group-modern">
+                            <label class="form-label-modern">Данные для загрузки</label>
+                            <textarea name="import_data" id="import-data-textarea" 
+                                      class="form-control form-control-modern font-monospace" 
+                                      rows="15" placeholder="Вставьте данные товаров. Каждая строка = один товар" 
+                                      required></textarea>
+                            <small class="form-text text-muted">
+                                <i class="fas fa-info-circle mr-1"></i>
+                                Каждая строка будет добавлена как один товар.
+                            </small>
+                        </div>
+                        <div class="form-group-modern mb-0">
+                            <label class="form-label-modern">Количество строк для загрузки:</label>
+                            <input type="number" id="import-lines-count" class="form-control form-control-modern" value="0" readonly>
+                        </div>
+                    </div>
+                    <div class="modal-footer-modern">
+                        <button type="button" class="btn btn-secondary btn-modern" data-dismiss="modal">Отмена</button>
+                        <button type="submit" class="btn btn-primary btn-modern">
+                            <i class="fas fa-save mr-2"></i>Сохранить
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
@@ -725,6 +717,12 @@
         .bulk-actions-panel .btn:hover {
             transform: translateY(-1px);
             box-shadow: 0 4px 8px rgba(0,0,0,0.12);
+        }
+
+        /* Стили для колонки артикула */
+        #service-accounts-table td code {
+            font-family: 'Courier New', Courier, monospace;
+            font-weight: 500;
         }
 
         /* Чекбоксы в таблице */
@@ -982,7 +980,7 @@
                     table.order([[column, direction]]).draw();
                     
                     // Определяем поле для сортировки в БД
-                    // Колонки: 0-drag, 1-ID, 2-изображение, 3-товар, 4-категория, 5-цена, 6-в наличии, 7-продано, 8-статус, 9-дата, 10-действия
+                    // Колонки: 0-drag, 1-ID, 2-артикул, 3-изображение, 4-товар, 5-категория, 6-цена, 7-в наличии, 8-продано, 9-статус, 10-дата, 11-действия
                     var sortBy = '';
                     if (column === 1) {
                         sortBy = 'id';
@@ -1122,23 +1120,23 @@
             // Tooltips
             $('[data-toggle="tooltip"]').tooltip();
 
-            // Фильтры по статусу (обновлены индексы колонок: теперь статус в колонке 8)
+            // Фильтры по статусу (обновлены индексы колонок: теперь статус в колонке 9)
             $('#filterAll').on('click', function() {
-                table.column(8).search('').draw();
+                table.column(9).search('').draw();
                 $('.btn-filter').removeClass('active');
                 $(this).addClass('active');
                 updateTotalCount();
             });
 
             $('#filterActive').on('click', function() {
-                table.column(8).search('Активен').draw();
+                table.column(9).search('Активен').draw();
                 $('.btn-filter').removeClass('active');
                 $(this).addClass('active');
                 updateTotalCount();
             });
 
             $('#filterInactive').on('click', function() {
-                table.column(8).search('Неактивен').draw();
+                table.column(9).search('Неактивен').draw();
                 $('.btn-filter').removeClass('active');
                 $(this).addClass('active');
                 updateTotalCount();
@@ -1287,7 +1285,7 @@
                 $('#filterCategoryAll').addClass('active');
                 
                 // Сброс фильтра по статусу
-                table.column(8).search('').draw();
+                table.column(9).search('').draw();
                 $('.btn-filter').not('.btn-category-sub').removeClass('active');
                 $('#filterAll').addClass('active');
                 $('#filterCategoryAll').addClass('active');
@@ -1327,18 +1325,85 @@
                 $('.btn-category-parent').removeClass('active');
             });
 
-            // Update count when typing in import modals
-            @foreach ($serviceAccounts as $serviceAccount)
-                $('#import_data{{ $serviceAccount->id }}').on('input', function() {
-                    const lines = this.value.split('\n').filter(line => line.trim() !== '');
-                    $('#import_count{{ $serviceAccount->id }}').val(lines.length);
-                });
-            @endforeach
-
             // Автоскрытие алертов
             setTimeout(function() {
                 $('.alert').fadeOut('slow');
             }, 5000);
+
+            // ============================================
+            // ОБРАБОТКА ДИНАМИЧЕСКИХ МОДАЛОК
+            // ============================================
+
+            // Удаление
+            $('.btn-delete').on('click', function() {
+                const id = $(this).data('id');
+                const title = $(this).data('title');
+                const count = $(this).data('count');
+                const action = $(this).data('action');
+
+                $('#delete-item-title').text(title);
+                $('#delete-item-count').text(count);
+                $('#delete-item-form').attr('action', action);
+                $('#singleDeleteModal').modal('show');
+            });
+
+            // Экспорт
+            let currentExportId = null;
+            $('.btn-export').on('click', function() {
+                currentExportId = $(this).data('id');
+                const title = $(this).data('title');
+                const count = $(this).data('count');
+
+                $('#export-item-title').text(title);
+                $('#export-max-count').text(count);
+                $('#export-item-quantity').val(count).attr('max', count);
+                $('#singleExportModal').modal('show');
+            });
+
+            $('#confirm-single-export').on('click', function() {
+                const count = parseInt($('#export-item-quantity').val());
+                const max = parseInt($('#export-item-quantity').attr('max'));
+
+                if (isNaN(count) || count < 1 || count > max) {
+                    alert('Введите корректное число от 1 до ' + max);
+                    return;
+                }
+
+                $('#singleExportModal').modal('hide');
+                
+                // Используем существующую логику экспорта
+                const exportBtn = $('.btn-export[data-id="' + currentExportId + '"]');
+                const originalHtml = exportBtn.html();
+                exportBtn.html('<i class="fas fa-spinner fa-spin"></i>').prop('disabled', true);
+
+                const iframe = document.createElement('iframe');
+                iframe.style.display = 'none';
+                iframe.src = '/admin/service-accounts/' + currentExportId + '/export?count=' + count;
+                document.body.appendChild(iframe);
+
+                setTimeout(function() {
+                    document.body.removeChild(iframe);
+                    exportBtn.html(originalHtml).prop('disabled', false);
+                    window.location.reload();
+                }, 2000);
+            });
+
+            // Импорт
+            $('.btn-import').on('click', function() {
+                const title = $(this).data('title');
+                const action = $(this).data('action');
+
+                $('#import-item-title').text(title);
+                $('#import-item-form').attr('action', action);
+                $('#import-data-textarea').val('');
+                $('#import-lines-count').val(0);
+                $('#singleImportModal').modal('show');
+            });
+
+            $('#import-data-textarea').on('input', function() {
+                const lines = this.value.split('\n').filter(line => line.trim() !== '');
+                $('#import-lines-count').val(lines.length);
+            });
         });
 
         // ============================================

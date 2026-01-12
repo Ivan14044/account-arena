@@ -107,7 +107,7 @@
                     @foreach ($notificationTemplates as $notificationTemplate)
                         <tr>
                             <td class="text-center align-middle">
-                                <span class="badge badge-secondary">#{{ $notificationTemplate->id }}</span>
+                                <span class="badge badge-light font-weight-bold">#{{ $notificationTemplate->id }}</span>
                             </td>
                             <td class="align-middle font-weight-bold">
                                 {{ $notificationTemplate->name }}
@@ -127,36 +127,13 @@
                                     </a>
 
                                     @if(request('type') === 'custom')
-                                        <button class="btn btn-sm btn-danger" 
-                                                data-toggle="modal" 
-                                                data-target="#deleteModal{{ $notificationTemplate->id }}"
+                                        <button class="btn btn-sm btn-danger btn-delete-template" 
+                                                data-name="{{ $notificationTemplate->name }}"
+                                                data-action="{{ route('admin.notification-templates.destroy', $notificationTemplate) }}"
                                                 title="Удалить"
                                                 data-toggle-tooltip="tooltip">
                                             <i class="fas fa-trash"></i>
                                         </button>
-
-                                        <div class="modal fade" id="deleteModal{{ $notificationTemplate->id }}" tabindex="-1" role="dialog" aria-hidden="true">
-                                            <div class="modal-dialog modal-dialog-centered" role="document">
-                                                <div class="modal-content modal-modern">
-                                                    <div class="modal-header modal-header-modern bg-danger text-white">
-                                                        <h5 class="modal-title">Подтверждение удаления</h5>
-                                                        <button type="button" class="close text-white" data-dismiss="modal">&times;</button>
-                                                    </div>
-                                                    <div class="modal-body modal-body-modern text-left">
-                                                        Это действие навсегда удалит шаблон <strong>{{ $notificationTemplate->name }}</strong> и все связанные с ним уведомления.
-                                                        Вы уверены?
-                                                    </div>
-                                                    <div class="modal-footer modal-footer-modern">
-                                                        <form action="{{ route('admin.notification-templates.destroy', $notificationTemplate) }}" method="POST" class="d-inline">
-                                                            @csrf
-                                                            @method('DELETE')
-                                                            <button type="submit" class="btn btn-danger btn-modern">Да, удалить</button>
-                                                        </form>
-                                                        <button type="button" class="btn btn-secondary btn-modern" data-dismiss="modal">Отмена</button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
                                     @endif
                                 </div>
                             </td>
@@ -164,6 +141,45 @@
                     @endforeach
                     </tbody>
                 </table>
+            </div>
+        </div>
+    </div>
+
+    {{-- Единое модальное окно для удаления --}}
+    <div class="modal fade" id="singleDeleteModal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header bg-danger text-white border-0">
+                    <h5 class="modal-title">
+                        <i class="fas fa-exclamation-triangle mr-2"></i>
+                        Подтверждение удаления
+                    </h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body py-4">
+                    <div class="text-center mb-3">
+                        <i class="fas fa-file-code fa-3x text-danger mb-3"></i>
+                        <h6 class="font-weight-bold" id="delete-template-name"></h6>
+                    </div>
+                    <p class="text-center mb-0">
+                        Вы действительно хотите удалить этот шаблон?<br>
+                        <small class="text-danger">Это действие нельзя отменить!</small>
+                    </p>
+                </div>
+                <div class="modal-footer border-0 justify-content-center">
+                    <form id="delete-template-form" method="POST">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="btn btn-danger btn-modern">
+                            <i class="fas fa-trash-alt mr-2"></i>Да, удалить
+                        </button>
+                    </form>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                        Отмена
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -179,17 +195,26 @@
             $('#notification-templates-table').DataTable({
                 "order": [[0, "desc"]],
                 "language": {
-                    "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Russian.json"
+                    "url": "//cdn.datatables.net/plug-ins/1.11.5/i18n/ru.json"
                 },
                 "pageLength": 25,
                 "columnDefs": [
                     { "orderable": false, "targets": 3 }
                 ],
-                "dom": '<"d-flex justify-content-between align-items-center mb-3"l<"ml-auto"f>>rt<"d-flex justify-content-between align-items-center mt-3"ip>'
+                "dom": '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>rtip'
             });
 
             $('[data-toggle="tooltip"]').tooltip();
-            $('[data-toggle-tooltip="tooltip"]').tooltip();
+
+            // ДИНАМИЧЕСКИЕ МОДАЛКИ
+            $('.btn-delete-template').on('click', function() {
+                const name = $(this).data('name');
+                const action = $(this).data('action');
+
+                $('#delete-template-name').text(name);
+                $('#delete-template-form').attr('action', action);
+                $('#singleDeleteModal').modal('show');
+            });
         });
     </script>
 @endsection

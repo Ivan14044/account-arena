@@ -1,19 +1,17 @@
 @extends('adminlte::page')
 
-@section('title', 'Пользователи')
+@section('title', 'Управление пользователями')
 
 @section('content_header')
     <div class="content-header-modern">
         <div class="d-flex justify-content-between align-items-center">
             <div>
-                <h1 class="m-0 font-weight-light">
-                    Управление пользователями
-                </h1>
-                <p class="text-muted mb-0 mt-1">Управление учетными записями клиентов и поставщиков</p>
+                <h1>Пользователи</h1>
+                <p class="text-muted mb-0">Управление учетными записями, балансом и статусами пользователей</p>
             </div>
             <div>
                 <a href="{{ route('admin.users.create') }}" class="btn btn-primary btn-modern">
-                    <i class="fas fa-plus mr-2"></i>Создать пользователя
+                    <i class="fas fa-plus mr-2"></i>Новый пользователь
                 </a>
             </div>
         </div>
@@ -33,7 +31,7 @@
     <!-- Статистика -->
     <div class="row mb-4">
         <div class="col-lg-3 col-6">
-            <div class="stat-card stat-card-primary">
+            <div class="stat-card stat-card-primary stat-card-compact">
                 <div class="stat-card-body">
                     <div class="stat-icon">
                         <i class="fas fa-users"></i>
@@ -47,7 +45,7 @@
         </div>
 
         <div class="col-lg-3 col-6">
-            <div class="stat-card stat-card-success">
+            <div class="stat-card stat-card-success stat-card-compact">
                 <div class="stat-card-body">
                     <div class="stat-icon">
                         <i class="fas fa-user-check"></i>
@@ -61,7 +59,7 @@
         </div>
 
         <div class="col-lg-3 col-6">
-            <div class="stat-card stat-card-info">
+            <div class="stat-card stat-card-info stat-card-compact">
                 <div class="stat-card-body">
                     <div class="stat-icon">
                         <i class="fas fa-store"></i>
@@ -75,7 +73,7 @@
         </div>
 
         <div class="col-lg-3 col-6">
-            <div class="stat-card stat-card-danger">
+            <div class="stat-card stat-card-danger stat-card-compact">
                 <div class="stat-card-body">
                     <div class="stat-icon">
                         <i class="fas fa-user-lock"></i>
@@ -208,100 +206,24 @@
                                         <i class="fas fa-edit"></i>
                                     </a>
 
-                                    <button class="btn btn-sm btn-{{ $user->is_blocked ? 'success' : 'warning' }}"
-                                            data-toggle="modal"
-                                            data-target="#blockModal{{ $user->id }}"
+                                    <button class="btn btn-sm btn-{{ $user->is_blocked ? 'success' : 'warning' }} btn-block-user"
+                                            data-name="{{ $user->name }}"
+                                            data-email="{{ $user->email }}"
+                                            data-blocked="{{ $user->is_blocked }}"
+                                            data-action="{{ route('admin.users.block', $user) }}"
                                             title="{{ $user->is_blocked ? 'Разблокировать' : 'Заблокировать' }}"
                                             data-toggle-tooltip="tooltip">
                                         <i class="fas fa-{{ $user->is_blocked ? 'unlock' : 'lock' }}"></i>
                                     </button>
 
-                                    <button class="btn btn-sm btn-danger"
-                                            data-toggle="modal"
-                                            data-target="#deleteModal{{ $user->id }}"
+                                    <button class="btn btn-sm btn-danger btn-delete-user"
+                                            data-name="{{ $user->name }}"
+                                            data-email="{{ $user->email }}"
+                                            data-action="{{ route('admin.users.destroy', $user) }}"
                                             title="Удалить"
                                             data-toggle-tooltip="tooltip">
                                         <i class="fas fa-trash-alt"></i>
                                     </button>
-                                </div>
-
-                                <!-- Модальное окно удаления -->
-                                <div class="modal fade" id="deleteModal{{ $user->id }}" tabindex="-1" role="dialog">
-                                    <div class="modal-dialog modal-dialog-centered" role="document">
-                                        <div class="modal-content border-0 shadow-lg">
-                                            <div class="modal-header bg-danger text-white border-0">
-                                                <h5 class="modal-title">
-                                                    <i class="fas fa-exclamation-triangle mr-2"></i>
-                                                    Подтверждение удаления
-                                                </h5>
-                                                <button type="button" class="close text-white" data-dismiss="modal">
-                                                    <span>&times;</span>
-                                                </button>
-                                            </div>
-                                            <div class="modal-body py-4">
-                                                <div class="text-center mb-3">
-                                                    <i class="fas fa-user-times fa-3x text-danger mb-3"></i>
-                                                    <h6 class="font-weight-bold">{{ $user->name }}</h6>
-                                                    <p class="text-muted mb-0">{{ $user->email }}</p>
-                                                </div>
-                                                <p class="text-center mb-0">
-                                                    Вы действительно хотите удалить этого пользователя?<br>
-                                                    <small class="text-danger">Это действие нельзя отменить!</small>
-                                                </p>
-                                            </div>
-                                            <div class="modal-footer border-0 justify-content-center">
-                                                <form action="{{ route('admin.users.destroy', $user) }}" method="POST">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="btn btn-danger">
-                                                        <i class="fas fa-trash-alt mr-2"></i>Да, удалить
-                                                    </button>
-                                                </form>
-                                                <button type="button" class="btn btn-secondary" data-dismiss="modal">
-                                                    <i class="fas fa-times mr-2"></i>Отмена
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Модальное окно блокировки -->
-                                <div class="modal fade" id="blockModal{{ $user->id }}" tabindex="-1" role="dialog">
-                                    <div class="modal-dialog modal-dialog-centered" role="document">
-                                        <div class="modal-content border-0 shadow-lg">
-                                            <div class="modal-header bg-{{ $user->is_blocked ? 'success' : 'warning' }} text-white border-0">
-                                                <h5 class="modal-title">
-                                                    <i class="fas fa-{{ $user->is_blocked ? 'unlock' : 'lock' }} mr-2"></i>
-                                                    {{ $user->is_blocked ? 'Разблокировать' : 'Заблокировать' }} пользователя
-                                                </h5>
-                                                <button type="button" class="close text-white" data-dismiss="modal">
-                                                    <span>&times;</span>
-                                                </button>
-                                            </div>
-                                            <div class="modal-body py-4">
-                                                <div class="text-center mb-3">
-                                                    <i class="fas fa-user-{{ $user->is_blocked ? 'check' : 'lock' }} fa-3x text-{{ $user->is_blocked ? 'success' : 'warning' }} mb-3"></i>
-                                                    <h6 class="font-weight-bold">{{ $user->name }}</h6>
-                                                    <p class="text-muted mb-0">{{ $user->email }}</p>
-                                                </div>
-                                                <p class="text-center mb-0">
-                                                    Вы уверены, что хотите {{ $user->is_blocked ? 'разблокировать' : 'заблокировать' }} этого пользователя?
-                                                </p>
-                                            </div>
-                                            <div class="modal-footer border-0 justify-content-center">
-                                                <form action="{{ route('admin.users.block', $user) }}" method="POST">
-                                                    @csrf
-                                                    <button type="submit" class="btn btn-{{ $user->is_blocked ? 'success' : 'warning' }}">
-                                                        <i class="fas fa-{{ $user->is_blocked ? 'unlock' : 'lock' }} mr-2"></i>
-                                                        {{ $user->is_blocked ? 'Разблокировать' : 'Заблокировать' }}
-                                                    </button>
-                                                </form>
-                                                <button type="button" class="btn btn-secondary" data-dismiss="modal">
-                                                    <i class="fas fa-times mr-2"></i>Отмена
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
                                 </div>
                             </td>
                         </tr>
@@ -311,340 +233,139 @@
             </div>
         </div>
     </div>
+
+    {{-- Единое модальное окно для удаления --}}
+    <div class="modal fade" id="singleDeleteModal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header bg-danger text-white border-0">
+                    <h5 class="modal-title">
+                        <i class="fas fa-exclamation-triangle mr-2"></i>
+                        Подтверждение удаления
+                    </h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body py-4">
+                    <div class="text-center mb-3">
+                        <i class="fas fa-user-times fa-3x text-danger mb-3"></i>
+                        <h6 class="font-weight-bold" id="delete-user-name"></h6>
+                        <p class="text-muted mb-0" id="delete-user-email"></p>
+                    </div>
+                    <p class="text-center mb-0">
+                        Вы действительно хотите удалить этого пользователя?<br>
+                        <small class="text-danger">Это действие нельзя отменить!</small>
+                    </p>
+                </div>
+                <div class="modal-footer border-0 justify-content-center">
+                    <form id="delete-user-form" method="POST">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash-alt mr-2"></i>Да, удалить
+                        </button>
+                    </form>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                        <i class="fas fa-times mr-2"></i>Отмена
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Единое модальное окно для блокировки/разблокировки --}}
+    <div class="modal fade" id="singleBlockModal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content border-0 shadow-lg">
+                <div id="block-modal-header" class="modal-header text-white border-0">
+                    <h5 class="modal-title">
+                        <i id="block-modal-icon-title" class="fas mr-2"></i>
+                        <span id="block-modal-title-text"></span> пользователя
+                    </h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body py-4">
+                    <div class="text-center mb-3">
+                        <i id="block-modal-icon-body" class="fas fa-3x mb-3"></i>
+                        <h6 class="font-weight-bold" id="block-user-name"></h6>
+                        <p class="text-muted mb-0" id="block-user-email"></p>
+                    </div>
+                    <p class="text-center mb-0">
+                        Вы уверены, что хотите <span id="block-action-text"></span> этого пользователя?
+                    </p>
+                </div>
+                <div class="modal-footer border-0 justify-content-center">
+                    <form id="block-user-form" method="POST">
+                        @csrf
+                        <button type="submit" id="block-modal-submit" class="btn">
+                            <i id="block-modal-submit-icon" class="fas mr-2"></i>
+                            <span id="block-modal-submit-text"></span>
+                        </button>
+                    </form>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                        <i class="fas fa-times mr-2"></i>Отмена
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @section('css')
+    @include('admin.layouts.modern-styles')
     <style>
-        /* ============================================
-           MODERN & STRICT DESIGN SYSTEM
-           ============================================ */
-
-        /* ЗАГОЛОВОК СТРАНИЦЫ */
-        .content-header-modern h1 {
-            font-size: 1.75rem;
-            color: #2c3e50;
-            letter-spacing: -0.5px;
-        }
-
-        /* КНОПКА СОЗДАНИЯ */
-        .btn-modern {
-            padding: 0.5rem 1.5rem;
-            font-weight: 500;
-            letter-spacing: 0.3px;
-            border-radius: 0.375rem;
-            border: none;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.08);
-            transition: all 0.2s ease;
-        }
-        .btn-modern:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        }
-
-        /* КАРТОЧКИ СТАТИСТИКИ */
-        .stat-card {
-            background: white;
-            border: 1px solid #e3e6f0;
-            border-radius: 0.5rem;
-            padding: 1.5rem;
-            margin-bottom: 1rem;
-            transition: all 0.3s ease;
-            border-left: 4px solid;
-        }
-
-        .stat-card-primary { border-left-color: #4e73df; }
-        .stat-card-success { border-left-color: #1cc88a; }
-        .stat-card-info { border-left-color: #36b9cc; }
-        .stat-card-danger { border-left-color: #e74a3b; }
-
-        .stat-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
-        }
-
-        .stat-card-body {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .stat-icon {
-            width: 50px;
-            height: 50px;
-            border-radius: 0.5rem;
+        /* Специфичные стили для страницы пользователей */
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #f8f9fc;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.5rem;
-        }
-
-        .stat-card-primary .stat-icon {
-            background: rgba(78, 115, 223, 0.1);
             color: #4e73df;
-        }
-        .stat-card-success .stat-icon {
-            background: rgba(28, 200, 138, 0.1);
-            color: #1cc88a;
-        }
-        .stat-card-info .stat-icon {
-            background: rgba(54, 185, 204, 0.1);
-            color: #36b9cc;
-        }
-        .stat-card-danger .stat-icon {
-            background: rgba(231, 74, 59, 0.1);
-            color: #e74a3b;
+            font-weight: 600;
+            font-size: 0.75rem;
+            border: 1px solid #e3e6f0;
         }
 
-        .stat-content {
-            text-align: right;
+        .user-info-cell {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
         }
 
-        .stat-label {
+        .user-details {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .user-name {
+            font-weight: 600;
+            color: #2c3e50;
+            line-height: 1.2;
+        }
+
+        .user-email {
             font-size: 0.75rem;
             color: #858796;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+        }
+
+        .balance-badge {
+            font-family: 'Monaco', 'Consolas', monospace;
             font-weight: 600;
-            margin-bottom: 0.25rem;
         }
 
-        .stat-value {
-            font-size: 2rem;
-            font-weight: 700;
-            color: #2c3e50;
-            line-height: 1;
-        }
-
-        /* КАРТОЧКА ТАБЛИЦЫ */
-        .card-modern {
-            border: 1px solid #e3e6f0;
-            border-radius: 0.5rem;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-            overflow: hidden;
-        }
-
-        .card-header-modern {
-            background: white;
-            border-bottom: 2px solid #e3e6f0;
-            padding: 1.25rem 1.5rem;
-        }
-
-        .card-header-modern h5 {
-            color: #2c3e50;
-            font-weight: 500;
-        }
-
-        .card-body-modern {
-            padding: 0;
-        }
-
-        /* ФИЛЬТРЫ */
-        .filters-container {
-            display: flex;
-            gap: 0.5rem;
-        }
-
-        .btn-group-filter {
-            background: #f8f9fc;
-            border-radius: 0.375rem;
-            padding: 0.25rem;
-        }
-
-        .btn-filter {
-            background: transparent;
-            border: none;
-            color: #5a6c7d;
-            padding: 0.5rem 1rem;
-            font-size: 0.875rem;
-            font-weight: 500;
-            border-radius: 0.25rem;
-            transition: all 0.2s ease;
-        }
-
-        .btn-filter:hover {
-            background: rgba(0,0,0,0.05);
-            color: #2c3e50;
-        }
-
-        .btn-filter.active {
-            background: white;
-            color: #4e73df;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.08);
-        }
-
-        /* ТАБЛИЦА */
-        .modern-table {
-            font-size: 0.875rem;
-            margin-bottom: 0;
-        }
-
-        .modern-table thead th {
-            background: #f8f9fc;
-            border-top: none;
-            border-bottom: 2px solid #e3e6f0;
-            color: #5a6c7d;
-            font-weight: 600;
-            text-transform: uppercase;
-            font-size: 0.75rem;
-            letter-spacing: 0.5px;
-            padding: 1rem 1.25rem;
-        }
-
-        .modern-table tbody td {
-            padding: 1rem 1.25rem;
-            vertical-align: middle;
-            border-bottom: 1px solid #f3f4f6;
-        }
-
-        .modern-table tbody tr {
-            transition: background-color 0.2s ease;
-        }
-
-        .modern-table tbody tr:hover {
-            background-color: #f8f9fc;
-        }
-
-        .modern-table tbody tr:last-child td {
-            border-bottom: none;
-        }
-
-        /* АВАТАРЫ */
-        .user-avatar img,
-        .avatar-placeholder {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            border: 2px solid #e3e6f0;
-        }
-
-        .avatar-placeholder {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            font-weight: 600;
-            font-size: 0.875rem;
-        }
-
-        /* БЕЙДЖИ */
-        .badge-modern {
-            padding: 0.375rem 0.75rem;
-            font-size: 0.75rem;
-            font-weight: 600;
-            border-radius: 0.25rem;
-            letter-spacing: 0.3px;
-        }
-
-        .badge-success {
-            background: #d1fae5;
-            color: #065f46;
-        }
-
-        .badge-danger {
-            background: #fee2e2;
-            color: #991b1b;
-        }
-
-        .badge-info {
-            background: #dbeafe;
-            color: #1e40af;
-        }
-
-        /* КНОПКИ ДЕЙСТВИЙ */
-        .btn-group .btn {
-            border-radius: 0.25rem !important;
-            margin: 0 2px;
-            transition: all 0.2s ease;
-        }
-
-        .btn-group .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.12);
-        }
-
-        .btn-sm {
-            padding: 0.375rem 0.75rem;
-        }
-
-        /* МОДАЛЬНЫЕ ОКНА */
-        .modal-content {
-            border: none;
-            border-radius: 0.75rem;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-        }
-
-        .modal-header {
-            border-bottom: 1px solid #e3e6f0;
-            padding: 1.5rem;
-        }
-
-        .modal-body {
-            padding: 2rem;
-        }
-
-        .modal-footer {
-            border-top: 1px solid #e3e6f0;
-            padding: 1.25rem 1.5rem;
-        }
-
-        /* ALERTS */
-        .alert {
-            border: none;
-            border-left: 4px solid;
-            border-radius: 0.375rem;
-        }
-
-        .alert-success {
-            background: #d1fae5;
-            border-left-color: #10b981;
-            color: #065f46;
-        }
-
-        .alert-danger {
-            background: #fee2e2;
-            border-left-color: #ef4444;
-            color: #991b1b;
-        }
-
-        /* АНИМАЦИИ */
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .stat-card {
-            animation: fadeIn 0.4s ease;
-        }
-
-        .stat-card:nth-child(1) { animation-delay: 0s; }
-        .stat-card:nth-child(2) { animation-delay: 0.1s; }
-        .stat-card:nth-child(3) { animation-delay: 0.2s; }
-        .stat-card:nth-child(4) { animation-delay: 0.3s; }
-
-        /* ТИПОГРАФИКА */
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            color: #2c3e50;
-        }
-
-        .font-weight-light {
-            font-weight: 300 !important;
-        }
-
-        /* ДОПОЛНИТЕЛЬНЫЕ СТИЛИ */
-        .text-muted {
-            color: #858796 !important;
-        }
-
-        .shadow-sm {
-            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important;
+        /* Дополнительная настройка для модальных окон на этой странице */
+        #singleDeleteModal .modal-body,
+        #singleBlockModal .modal-body {
+            padding: 2.5rem 2rem;
         }
     </style>
-@endsection
+@stop
 
 @section('js')
     <script>
@@ -668,33 +389,30 @@
             // Фильтры по статусу
             $('#filterAll').on('click', function() {
                 table.column(3).search('').draw();
-                $('.btn-group .btn').removeClass('active');
+                $('.btn-group-filter .btn').removeClass('active');
                 $(this).addClass('active');
             });
 
             $('#filterActive').on('click', function() {
                 table.search('').columns().search('');
-                table.column(3).search('^(?!.*Заблокирован)(?!.*Поставщик).*$', true, false).draw();
-                $('.btn-group .btn').removeClass('active');
+                table.column(3).search('Активен').draw();
+                $('.btn-group-filter .btn').removeClass('active');
                 $(this).addClass('active');
             });
 
             $('#filterBlocked').on('click', function() {
                 table.search('').columns().search('');
                 table.column(3).search('Заблокирован').draw();
-                $('.btn-group .btn').removeClass('active');
+                $('.btn-group-filter .btn').removeClass('active');
                 $(this).addClass('active');
             });
 
             $('#filterSuppliers').on('click', function() {
                 table.search('').columns().search('');
                 table.column(3).search('Поставщик').draw();
-                $('.btn-group .btn').removeClass('active');
+                $('.btn-group-filter .btn').removeClass('active');
                 $(this).addClass('active');
             });
-
-            // Активировать фильтр "Все" по умолчанию
-            $('#filterAll').addClass('active');
 
             // Автоскрытие алертов через 5 секунд
             setTimeout(function() {
@@ -707,6 +425,51 @@
             }).on('mouseleave', function() {
                 $(this).find('.stat-icon i').removeClass('fa-bounce');
             });
+
+            // ДИНАМИЧЕСКИЕ МОДАЛКИ
+            $('.btn-delete-user').on('click', function() {
+                const name = $(this).data('name');
+                const email = $(this).data('email');
+                const action = $(this).data('action');
+
+                $('#delete-user-name').text(name);
+                $('#delete-user-email').text(email);
+                $('#delete-user-form').attr('action', action);
+                $('#singleDeleteModal').modal('show');
+            });
+
+            $('.btn-block-user').on('click', function() {
+                const name = $(this).data('name');
+                const email = $(this).data('email');
+                const isBlocked = $(this).data('blocked');
+                const action = $(this).data('action');
+
+                $('#block-user-name').text(name);
+                $('#block-user-email').text(email);
+                $('#block-user-form').attr('action', action);
+
+                if (isBlocked) {
+                    $('#block-modal-header').removeClass('bg-warning').addClass('bg-success');
+                    $('#block-modal-icon-title').removeClass('fa-lock').addClass('fa-unlock');
+                    $('#block-modal-title-text').text('Разблокировать');
+                    $('#block-modal-icon-body').removeClass('fa-user-lock text-warning').addClass('fa-user-check text-success');
+                    $('#block-action-text').text('разблокировать');
+                    $('#block-modal-submit').removeClass('btn-warning').addClass('btn-success');
+                    $('#block-modal-submit-icon').removeClass('fa-lock').addClass('fa-unlock');
+                    $('#block-modal-submit-text').text('Разблокировать');
+                } else {
+                    $('#block-modal-header').removeClass('bg-success').addClass('bg-warning');
+                    $('#block-modal-icon-title').removeClass('fa-unlock').addClass('fa-lock');
+                    $('#block-modal-title-text').text('Заблокировать');
+                    $('#block-modal-icon-body').removeClass('fa-user-check text-success').addClass('fa-user-lock text-warning');
+                    $('#block-action-text').text('заблокировать');
+                    $('#block-modal-submit').removeClass('btn-success').addClass('btn-warning');
+                    $('#block-modal-submit-icon').removeClass('fa-unlock').addClass('fa-lock');
+                    $('#block-modal-submit-text').text('Заблокировать');
+                }
+
+                $('#singleBlockModal').modal('show');
+            });
         });
     </script>
-@endsection
+@stop

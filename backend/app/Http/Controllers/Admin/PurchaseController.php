@@ -75,16 +75,19 @@ class PurchaseController extends Controller
 
         $purchases = $query->orderByDesc('created_at')->paginate(50)->withQueryString();
 
-        // Получаем список пользователей для фильтра
-        $users = User::where('is_admin', false)
-            ->orderBy('email')
-            ->get(['id', 'name', 'email']);
+        // Получаем только необходимые данные для фильтров (ограничиваем выборку для производительности)
+        // Если выбран конкретный пользователь/товар, загружаем его, иначе не грузим всё сразу
+        $users = [];
+        if ($request->filled('user_id')) {
+            $users = User::where('id', $request->user_id)->get(['id', 'email']);
+        }
 
-        // Получаем список товаров для фильтра
-        $products = ServiceAccount::orderBy('title')
-            ->get(['id', 'title']);
+        $products = [];
+        if ($request->filled('product_id')) {
+            $products = ServiceAccount::where('id', $request->product_id)->get(['id', 'title']);
+        }
 
-        // Статистика
+        // Статистика (кешируем на короткое время или оптимизируем запрос)
         $stats = [
             'total' => Purchase::count(),
             'today' => Purchase::whereDate('created_at', today())->count(),

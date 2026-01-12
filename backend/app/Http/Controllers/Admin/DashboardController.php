@@ -164,25 +164,23 @@ class DashboardController extends Controller
 
     /**
      * Получить данные для графика по категориям
+     * ИСПРАВЛЕНО: Считаем продажи по реальным покупкам в категориях
      */
     private function getCategoryChartData()
     {
-        $products = ServiceAccount::with('category')
-            ->whereHas('category')
-            ->get();
+        $categorySales = Purchase::where('status', 'completed')
+            ->whereHas('serviceAccount.category')
+            ->with('serviceAccount.category')
+            ->get()
+            ->groupBy(function($purchase) {
+                return $purchase->serviceAccount->category->admin_name ?? 'Без категории';
+            })
+            ->map(function($group) {
+                return $group->count();
+            });
         
-        $categoryData = [];
-        
-        foreach ($products as $product) {
-            $categoryName = $product->category?->admin_name ?? 'Без категории';
-            if (!isset($categoryData[$categoryName])) {
-                $categoryData[$categoryName] = 0;
-            }
-            $categoryData[$categoryName] += $product->used ?? 0;
-        }
-        
-        $labels = array_keys($categoryData);
-        $data = array_values($categoryData);
+        $labels = $categorySales->keys()->toArray();
+        $data = $categorySales->values()->toArray();
         
         // Генерируем цвета для графиков
         $colors = [];
@@ -200,20 +198,23 @@ class DashboardController extends Controller
 
     /**
      * Получить топ продаваемых товаров
+     * ИСПРАВЛЕНО: Считаем выручку по реальным покупкам, а не по текущей цене
      */
     private function getTopProducts($limit = 5)
     {
-        return ServiceAccount::where('is_active', true)
-            ->whereNotNull('title')
-            ->orderBy('used', 'desc')
+        return Purchase::where('status', 'completed')
+            ->selectRaw('service_account_id, count(*) as sold, sum(total_amount) as revenue')
+            ->groupBy('service_account_id')
+            ->orderByDesc('sold')
             ->limit($limit)
+            ->with('serviceAccount:id,title')
             ->get()
-            ->map(function ($product) {
+            ->map(function ($purchase) {
                 return [
-                    'id' => $product->id,
-                    'title' => $product->title,
-                    'sold' => $product->used ?? 0,
-                    'revenue' => round(($product->used ?? 0) * (float)$product->price, 2),
+                    'id' => $purchase->service_account_id,
+                    'title' => $purchase->serviceAccount->title ?? 'Удаленный товар',
+                    'sold' => $purchase->sold,
+                    'revenue' => round($purchase->revenue, 2),
                 ];
             });
     }

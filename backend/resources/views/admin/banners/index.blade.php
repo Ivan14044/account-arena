@@ -115,7 +115,7 @@
                         <th style="width: 150px" class="text-center">Изображение</th>
                         <th>Название</th>
                         <th class="text-center">Тип</th>
-                        <th class="text-center">Позиция</th>
+                        <th class="text-center">Порядок</th>
                         <th class="text-center">Статус</th>
                         <th class="text-center">Период показа</th>
                         <th style="width: 120px" class="text-center">Действия</th>
@@ -125,7 +125,7 @@
                     @foreach($banners as $banner)
                         <tr>
                             <td class="text-center align-middle">
-                                <span class="badge badge-secondary">#{{ $banner->id }}</span>
+                                <span class="badge badge-light font-weight-bold">#{{ $banner->id }}</span>
                             </td>
                             <td class="text-center align-middle">
                                 @if($banner->image_url)
@@ -189,16 +189,13 @@
                                         <i class="fas fa-edit"></i>
                                     </a>
 
-                                    <form action="{{ route('admin.banners.destroy', $banner) }}" method="POST" class="d-inline">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn btn-sm btn-danger" 
-                                                title="Удалить"
-                                                data-toggle-tooltip="tooltip"
-                                                onclick="return confirm('Вы уверены?')">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </form>
+                                    <button type="button" class="btn btn-sm btn-danger btn-delete-banner" 
+                                            data-name="{{ $banner->title }}"
+                                            data-action="{{ route('admin.banners.destroy', $banner) }}"
+                                            title="Удалить"
+                                            data-toggle-tooltip="tooltip">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
                                 </div>
                             </td>
                         </tr>
@@ -208,10 +205,49 @@
             </div>
         </div>
         @if($banners->hasPages())
-            <div class="card-footer-modern bg-white p-3 border-top">
-                {{ $banners->links() }}
+            <div class="card-footer-modern bg-white p-3 border-top d-flex justify-content-center">
+                {{ $banners->appends(request()->all())->links('pagination::bootstrap-4') }}
             </div>
         @endif
+    </div>
+
+    {{-- Единое модальное окно для удаления --}}
+    <div class="modal fade" id="singleDeleteModal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header bg-danger text-white border-0">
+                    <h5 class="modal-title">
+                        <i class="fas fa-exclamation-triangle mr-2"></i>
+                        Подтверждение удаления
+                    </h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body py-4">
+                    <div class="text-center mb-3">
+                        <i class="fas fa-image fa-3x text-danger mb-3"></i>
+                        <h6 class="font-weight-bold" id="delete-banner-name"></h6>
+                    </div>
+                    <p class="text-center mb-0">
+                        Вы действительно хотите удалить этот баннер?<br>
+                        <small class="text-danger">Это действие нельзя отменить!</small>
+                    </p>
+                </div>
+                <div class="modal-footer border-0 justify-content-center">
+                    <form id="delete-banner-form" method="POST">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash-alt mr-2"></i>Да, удалить
+                        </button>
+                    </form>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                        <i class="fas fa-times mr-2"></i>Отмена
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
 @endsection
 
@@ -230,18 +266,10 @@
                 "paging": false,
                 "info": false,
                 "searching": true,
-                "dom": 't', // Only table, we use custom search
+                "dom": 't',
                 "columnDefs": [
                     { "orderable": false, "targets": [1, 7] }
                 ]
-            });
-
-            // Custom search logic if needed
-            $('#searchForm').on('submit', function(e) {
-                // If using server side pagination, let it submit.
-                // If using client side DataTables, prevent default and search
-                // table.search($('input[name="search"]').val()).draw();
-                // e.preventDefault();
             });
 
             // Фильтры по табу
@@ -258,8 +286,16 @@
             });
 
             $('[data-toggle="tooltip"]').tooltip();
-            $('[data-toggle-tooltip="tooltip"]').tooltip();
+
+            // ДИНАМИЧЕСКИЕ МОДАЛКИ
+            $('.btn-delete-banner').on('click', function() {
+                const name = $(this).data('name');
+                const action = $(this).data('action');
+
+                $('#delete-banner-name').text(name);
+                $('#delete-banner-form').attr('action', action);
+                $('#singleDeleteModal').modal('show');
+            });
         });
     </script>
 @endsection
-
