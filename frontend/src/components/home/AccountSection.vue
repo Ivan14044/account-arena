@@ -81,74 +81,72 @@
 
                 <!-- Center: Product Info -->
                 <div class="product-info">
-                    <div class="title-with-badge">
-                        <!-- Контейнер для бейджей: Наличие + Способ выдачи -->
-                        <div class="delivery-status-badge">
-                            <!-- Stock Badge - наличие товара -->
-                            <div
-                                class="stock-badge-inline"
-                                :class="account.quantity > 0 ? 'in-stock' : 'out-of-stock'"
-                            >
-                                <svg
-                                    v-if="account.quantity > 0"
-                                    class="w-3 h-3"
-                                    fill="currentColor"
-                                    viewBox="0 0 20 20"
-                                >
-                                    <path
-                                        fill-rule="evenodd"
-                                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                                        clip-rule="evenodd"
-                                    />
-                                </svg>
-                                <svg v-else class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                                    <path
-                                        fill-rule="evenodd"
-                                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                                        clip-rule="evenodd"
-                                    />
-                                </svg>
-                                <span>{{ account.quantity > 0 ? account.quantity : '0' }}</span>
-                            </div>
-                            
-                            <!-- Бейдж способа выдачи (только если товар в наличии) -->
-                            <div
-                                v-if="account.quantity > 0"
-                                class="delivery-type-badge"
-                                :class="(account.delivery_type || 'automatic') === 'manual' ? 'manual-delivery' : 'auto-delivery'"
-                                :title="getDeliveryTypeText(account)"
-                            >
-                                <svg
-                                    v-if="(account.delivery_type || 'automatic') === 'manual'"
-                                    class="w-3 h-3"
-                                    fill="currentColor"
-                                    viewBox="0 0 20 20"
-                                >
-                                    <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/>
-                                    <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd"/>
-                                </svg>
-                                <svg
-                                    v-else
-                                    class="w-3 h-3"
-                                    fill="currentColor"
-                                    viewBox="0 0 20 20"
-                                >
-                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                                </svg>
-                                <span class="delivery-type-text">
-                                    {{ getDeliveryTypeLabel(account) }}
-                                </span>
-                            </div>
-                        </div>
-
-                        <h3
-                            class="product-title clickable-title"
-                            :title="'Перейти к ' + (account as any)._cachedTitle"
-                            @click="$router.push(`/account/${account.sku || account.id}`)"
+                    <!-- Контейнер для бейджей: Наличие + Способ выдачи -->
+                    <div class="delivery-status-badge">
+                        <!-- Stock Badge - наличие товара -->
+                        <div
+                            class="stock-badge-inline"
+                            :class="account.quantity > 0 ? 'in-stock' : 'out-of-stock'"
                         >
-                            {{ (account as any)._cachedTitle }}
-                        </h3>
+                            <svg
+                                v-if="account.quantity > 0"
+                                class="w-3 h-3"
+                                fill="currentColor"
+                                viewBox="0 0 20 20"
+                            >
+                                <path
+                                    fill-rule="evenodd"
+                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                    clip-rule="evenodd"
+                                />
+                            </svg>
+                            <svg v-else class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                <path
+                                    fill-rule="evenodd"
+                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                                    clip-rule="evenodd"
+                                />
+                            </svg>
+                            <span>{{ account.quantity > 0 ? account.quantity : '0' }}</span>
+                        </div>
+                        
+                        <!-- Бейдж способа выдачи (только если товар в наличии) -->
+                        <div
+                            v-if="account.quantity > 0"
+                            class="delivery-type-badge"
+                            :class="(account.delivery_type || 'automatic') === 'manual' ? 'manual-delivery' : 'auto-delivery'"
+                            :title="getDeliveryTypeText(account)"
+                        >
+                            <svg
+                                v-if="(account.delivery_type || 'automatic') === 'manual'"
+                                class="w-3 h-3"
+                                fill="currentColor"
+                                viewBox="0 0 20 20"
+                            >
+                                <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/>
+                                <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd"/>
+                            </svg>
+                            <svg
+                                v-else
+                                class="w-3 h-3"
+                                fill="currentColor"
+                                viewBox="0 0 20 20"
+                            >
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                            <span class="delivery-type-text">
+                                {{ getDeliveryTypeLabel(account) }}
+                            </span>
+                        </div>
                     </div>
+
+                    <h3
+                        class="product-title clickable-title"
+                        :title="'Перейти к ' + (account as any)._cachedTitle"
+                        @click="$router.push(`/account/${account.sku || account.id}`)"
+                    >
+                        {{ (account as any)._cachedTitle }}
+                    </h3>
 
                     <!-- Артикул товара -->
                     <div v-if="account.sku" class="product-sku product-sku--desktop">
@@ -1198,18 +1196,26 @@ onMounted(async () => {
 .product-info {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 4px;
     min-width: 0;
     flex: 1;
-    padding-top: 2px;
+    padding-top: 0;
+}
+
+.delivery-status-badge {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 2px;
 }
 
 .product-title {
-    font-size: 15px;
+    font-size: 16px;
     font-weight: 700;
     color: #1f2937;
     margin: 0;
-    line-height: 1.3;
+    line-height: 1.4;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     line-clamp: 2;
@@ -1219,7 +1225,6 @@ onMounted(async () => {
     word-break: break-word;
     overflow-wrap: break-word;
     font-family: 'SFT Schrifted Sans', sans-serif;
-    max-height: calc(1.3em * 2);
 }
 
 .dark .product-title {
@@ -1229,7 +1234,7 @@ onMounted(async () => {
 /* Кликабельное название */
 .product-title.clickable-title {
     cursor: pointer;
-    transition: color 0.3s ease;
+    transition: color 0.2s ease;
 }
 
 .product-title.clickable-title:hover {
@@ -1250,8 +1255,7 @@ onMounted(async () => {
     overflow: hidden;
     word-break: break-word;
     overflow-wrap: break-word;
-    margin: 0;
-    max-height: 3em;
+    margin: 4px 0 0 0;
 }
 
 .dark .product-description {
@@ -1267,13 +1271,13 @@ onMounted(async () => {
     background: rgba(99, 102, 241, 0.08);
     backdrop-filter: blur(4px);
     border: 1px solid rgba(99, 102, 241, 0.15);
-    border-radius: 0.375rem;
-    font-size: 0.625rem;
+    border-radius: 6px;
+    font-size: 11px;
     font-weight: 600;
     color: #6366f1;
     text-transform: uppercase;
     letter-spacing: 0.025em;
-    margin-top: 4px;
+    margin-top: 2px;
     width: fit-content;
 }
 
@@ -1293,33 +1297,30 @@ onMounted(async () => {
 }
 .product-sku--desktop {
   display: flex;
-        justify-content: flex-start;
+  justify-content: flex-start;
 }
 
 /* Блок действий */
 .product-actions {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 12px;
     align-items: flex-end;
-    min-width: 200px;
+    min-width: 180px;
     flex-shrink: 0;
-    padding-top: 2px;
 }
 
 /* Верхняя строка: цена и количество */
 .top-actions-row {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
     width: 100%;
 }
 
 /* Секция цены */
 .price-section {
-    text-align: center;
-    flex: 1;
     display: flex;
     flex-direction: column;
     align-items: flex-end;
@@ -1330,7 +1331,7 @@ onMounted(async () => {
     display: flex;
     flex-direction: column;
     align-items: flex-end;
-    gap: 2px;
+    gap: 0;
 }
 
 .price-old {
@@ -1338,6 +1339,7 @@ onMounted(async () => {
     color: #9ca3af;
     text-decoration: line-through;
     white-space: nowrap;
+    margin-bottom: -2px;
 }
 
 .dark .price-old {
@@ -1345,26 +1347,21 @@ onMounted(async () => {
 }
 
 .price {
-    font-size: 20px;
+    font-size: 22px;
     font-weight: 800;
     background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    line-height: 1;
+    line-height: 1.1;
     display: block;
     font-family: 'SFT Schrifted Sans', sans-serif;
     white-space: nowrap;
-    filter: drop-shadow(0 2px 4px rgba(108, 92, 231, 0.2));
-    transition: filter 0.3s ease;
-}
-
-.product-card:hover .price {
-    filter: drop-shadow(0 4px 8px rgba(108, 92, 231, 0.3));
+    filter: drop-shadow(0 2px 4px rgba(108, 92, 231, 0.15));
 }
 
 .price-per-unit {
-    font-size: 10px;
+    font-size: 11px;
     color: #94a3b8;
     margin-top: 2px;
     white-space: nowrap;
@@ -1374,27 +1371,24 @@ onMounted(async () => {
     color: #64748b;
 }
 
-/* Управление количеством - убираем блюр */
+/* Управление количеством */
 .quantity-control {
     display: flex;
     align-items: center;
-    background: rgba(248, 250, 252, 0.95);
-    backdrop-filter: none; /* Убираем блюр */
+    background: #f8fafc;
     border: 1px solid rgba(226, 232, 240, 0.8);
     border-radius: 10px;
     overflow: hidden;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04); /* Упрощенная тень */
-    margin-left: auto;
-    transition: transform 0.2s ease;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+    transition: all 0.2s ease;
 }
 
 .quantity-control:hover {
-    box-shadow: 0 4px 12px rgba(108, 92, 231, 0.1);
     border-color: rgba(108, 92, 231, 0.3);
 }
 
 .dark .quantity-control {
-    background: rgba(30, 41, 59, 0.9);
+    background: #1e293b;
     border-color: rgba(51, 65, 85, 0.8);
 }
 
@@ -1405,16 +1399,16 @@ onMounted(async () => {
     font-weight: 600;
     color: #64748b;
     cursor: pointer;
-    padding: 4px 10px;
-    transition: background-color 0.2s ease, color 0.2s ease;
-    min-width: 32px;
+    padding: 4px 12px;
+    transition: all 0.2s ease;
+    min-width: 36px;
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
 .quantity-btn:hover:not(:disabled) {
-    background: #e2e8f0;
+    background: #f1f5f9;
     color: #6c5ce7;
 }
 
@@ -1428,17 +1422,13 @@ onMounted(async () => {
     opacity: 0.3;
 }
 
-.dark .quantity-btn {
-    color: #94a3b8;
-}
-
 .quantity-input {
-    width: 40px;
+    width: 36px;
     border: none;
     background: transparent;
     text-align: center;
-    font-weight: 600;
-    font-size: 13px;
+    font-weight: 700;
+    font-size: 14px;
     color: #1f2937;
     outline: none;
 }
@@ -1450,111 +1440,96 @@ onMounted(async () => {
 /* Ряд кнопок действий */
 .actions-row {
     display: flex;
-    gap: 6px;
+    gap: 8px;
     width: 100%;
 }
 
 /* Вторичные кнопки */
 .btn-secondary {
-    background: rgba(248, 250, 252, 0.95);
-    backdrop-filter: none; /* Убираем блюр */
+    background: #f8fafc;
     border: 1px solid rgba(226, 232, 240, 0.8);
-    padding: 9px 15px;
+    padding: 10px;
     border-radius: 10px;
     cursor: pointer;
     color: #64748b;
-    transition: transform 0.2s ease, background 0.2s ease;
-    font-weight: 600;
-    font-size: 13px;
+    transition: all 0.2s ease;
     display: flex;
     align-items: center;
-    gap: 5px;
-    font-family: 'SFT Schrifted Sans', sans-serif;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04); /* Упрощенная тень */
-    will-change: transform;
-    transform: translateZ(0);
+    justify-content: center;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
 }
 
 .btn-secondary.btn-icon {
-    padding: 8px;
-    min-width: 36px;
-    justify-content: center;
+    min-width: 40px;
 }
 
 .dark .btn-secondary {
-    background: #334155;
-    border-color: #475569;
+    background: #1e293b;
+    border-color: #334155;
     color: #cbd5e1;
 }
 
 .btn-secondary:hover {
     border-color: #6c5ce7;
     color: #6c5ce7;
-    background: rgba(108, 92, 231, 0.08);
-    transform: translateY(-2px) scale(1.05);
-    box-shadow: 0 4px 12px rgba(108, 92, 231, 0.15);
+    background: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(108, 92, 231, 0.1);
 }
 
 .dark .btn-secondary:hover {
-    background: rgba(162, 155, 254, 0.15);
+    background: #334155;
     border-color: #a29bfe;
     color: #a29bfe;
-    box-shadow: 0 4px 12px rgba(162, 155, 254, 0.2);
 }
 
 /* Активная кнопка избранного */
 .btn-secondary.active {
-    background: #fef2f2;
-    border-color: #ef4444;
+    background: #fff1f2;
+    border-color: #fecaca;
     color: #ef4444;
 }
 
 .dark .btn-secondary.active {
-    background: rgba(239, 68, 68, 0.15);
-    border-color: #ef4444;
+    background: rgba(239, 68, 68, 0.1);
+    border-color: rgba(239, 68, 68, 0.2);
     color: #fca5a5;
 }
 
-/* Кнопка корзины - убираем блюр */
+/* Кнопка корзины */
 .btn-cart {
-    background: rgba(248, 250, 252, 0.95);
-    backdrop-filter: none; /* Убираем блюр */
+    background: #f8fafc;
     border: 1px solid rgba(226, 232, 240, 0.8);
-    padding: 9px;
+    padding: 10px;
     border-radius: 10px;
     cursor: pointer;
     color: #64748b;
-    transition: transform 0.2s ease, background 0.2s ease;
-    font-weight: 600;
-    font-size: 13px;
+    transition: all 0.2s ease;
     display: flex;
-    will-change: transform;
-    transform: translateZ(0);
     align-items: center;
     justify-content: center;
-    min-width: 38px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    min-width: 44px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
 }
 
 .dark .btn-cart {
-    background: rgba(51, 65, 85, 0.9);
-    border-color: rgba(71, 85, 105, 0.8);
+    background: #1e293b;
+    border-color: #334155;
     color: #cbd5e1;
 }
 
 .btn-cart:hover:not(:disabled) {
     border-color: #6c5ce7;
     color: #6c5ce7;
-    background: rgba(108, 92, 231, 0.08);
-    transform: translateY(-2px) scale(1.05);
-    box-shadow: 0 4px 12px rgba(108, 92, 231, 0.15);
+    background: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(108, 92, 231, 0.1);
 }
 
 .dark .btn-cart:hover:not(:disabled) {
-    background: rgba(162, 155, 254, 0.15);
+    background: #334155;
     border-color: #a29bfe;
     color: #a29bfe;
-    box-shadow: 0 4px 12px rgba(162, 155, 254, 0.2);
 }
 
 .btn-cart:disabled {
@@ -1566,55 +1541,41 @@ onMounted(async () => {
 .btn-primary {
     background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%);
     border: none;
-    padding: 10px 18px;
+    padding: 10px 20px;
     border-radius: 10px;
     cursor: pointer;
-    font-weight: 600;
-    font-size: 13px;
+    font-weight: 700;
+    font-size: 14px;
     color: white;
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 4px 14px rgba(108, 92, 231, 0.3);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 12px rgba(108, 92, 231, 0.2);
     flex: 1;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 6px;
+    gap: 8px;
     font-family: 'SFT Schrifted Sans', sans-serif;
     position: relative;
     overflow: hidden;
 }
 
-.btn-primary::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-    transition: left 0.5s ease;
-}
-
-.btn-primary:hover::before {
-    left: 100%;
-}
-
 .btn-primary:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 10px 28px rgba(108, 92, 231, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(108, 92, 231, 0.35);
     background: linear-gradient(135deg, #5b4dd6 0%, #9285f0 100%);
 }
 
 .btn-primary:disabled {
-    background: #cbd5e1;
+    background: #e2e8f0;
+    color: #94a3b8;
     cursor: not-allowed;
-    opacity: 0.6;
     box-shadow: none;
     transform: none;
 }
 
 .dark .btn-primary:disabled {
-    background: #475569;
+    background: #334155;
+    color: #64748b;
 }
 
 /* Адаптивность */
