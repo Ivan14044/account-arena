@@ -296,46 +296,46 @@ public function createProductPurchase(
                         'supplier_share_percent' => $supplierSharePercent,
                         'calculated_amount' => $supplierAmount,
                     ]);
-                    return; // Пропускаем создание earning с нулевой или отрицательной суммой
-                }
-
-                // ВАЖНО: Проверяем, что для этой покупки еще не создан SupplierEarning
-                // Это предотвращает дублирование при повторных вызовах
-                $existingEarning = SupplierEarning::where('purchase_id', $purchase->id)
-                    ->where('transaction_id', $transaction->id)
-                    ->where('supplier_id', $supplier->id)
-                    ->first();
-                
-                if ($existingEarning) {
-                    Log::warning('ProductPurchaseService: SupplierEarning already exists for this purchase', [
-                        'supplier_id' => $supplier->id,
-                        'purchase_id' => $purchase->id,
-                        'transaction_id' => $transaction->id,
-                        'existing_earning_id' => $existingEarning->id,
-                        'existing_amount' => $existingEarning->amount,
-                        'existing_status' => $existingEarning->status,
-                    ]);
-                    // Пропускаем создание дубликата, но продолжаем выполнение метода
+                    // Пропускаем создание earning с нулевой или отрицательной суммой, но продолжаем выполнение метода
                 } else {
-                    $holdHours = (int) ($supplier->supplier_hold_hours ?? 6);
-                    $availableAt = now()->addHours($holdHours);
+                    // ВАЖНО: Проверяем, что для этой покупки еще не создан SupplierEarning
+                    // Это предотвращает дублирование при повторных вызовах
+                    $existingEarning = SupplierEarning::where('purchase_id', $purchase->id)
+                        ->where('transaction_id', $transaction->id)
+                        ->where('supplier_id', $supplier->id)
+                        ->first();
+                    
+                    if ($existingEarning) {
+                        Log::warning('ProductPurchaseService: SupplierEarning already exists for this purchase', [
+                            'supplier_id' => $supplier->id,
+                            'purchase_id' => $purchase->id,
+                            'transaction_id' => $transaction->id,
+                            'existing_earning_id' => $existingEarning->id,
+                            'existing_amount' => $existingEarning->amount,
+                            'existing_status' => $existingEarning->status,
+                        ]);
+                        // Пропускаем создание дубликата, но продолжаем выполнение метода
+                    } else {
+                        $holdHours = (int) ($supplier->supplier_hold_hours ?? 6);
+                        $availableAt = now()->addHours($holdHours);
 
-                    SupplierEarning::create([
-                        'supplier_id' => $supplier->id,
-                        'purchase_id' => $purchase->id,
-                        'transaction_id' => $transaction->id,
-                        'amount' => $supplierAmount,
-                        'status' => 'held',
-                        'available_at' => $availableAt,
-                    ]);
+                        SupplierEarning::create([
+                            'supplier_id' => $supplier->id,
+                            'purchase_id' => $purchase->id,
+                            'transaction_id' => $transaction->id,
+                            'amount' => $supplierAmount,
+                            'status' => 'held',
+                            'available_at' => $availableAt,
+                        ]);
 
-                    Log::info('Supplier earning created (held)', [
-                        'supplier_id' => $supplier->id,
-                        'purchase_id' => $purchase->id,
-                        'transaction_id' => $transaction->id,
-                        'amount' => $supplierAmount,
-                        'available_at' => $availableAt->toDateTimeString(),
-                    ]);
+                        Log::info('Supplier earning created (held)', [
+                            'supplier_id' => $supplier->id,
+                            'purchase_id' => $purchase->id,
+                            'transaction_id' => $transaction->id,
+                            'amount' => $supplierAmount,
+                            'available_at' => $availableAt->toDateTimeString(),
+                        ]);
+                    }
                 }
             }
         }
