@@ -41,7 +41,15 @@ class WithdrawalRequestController extends Controller
             ->orderBy('name')
             ->get(['id', 'name', 'email']);
 
-        return view('admin.withdrawal-requests.index', compact('withdrawalRequests', 'suppliers'));
+        $allRequests = WithdrawalRequest::all();
+        $statistics = [
+            'total' => $allRequests->count(),
+            'pending' => $allRequests->where('status', 'pending')->count(),
+            'paid' => $allRequests->where('status', 'paid')->count(),
+            'total_amount' => $allRequests->where('status', 'paid')->sum('amount'),
+        ];
+
+        return view('admin.withdrawal-requests.index', compact('withdrawalRequests', 'suppliers', 'statistics'));
     }
 
     /**
