@@ -526,9 +526,9 @@
     <!-- Панель массовых действий -->
     <div id="bulk-actions-panel" class="bulk-actions-panel" style="display: none;">
         <div class="container-fluid">
-            <div class="d-flex justify-content-between align-items-center py-2">
+            <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <strong class="text-white">Выбрано товаров: <span id="selected-count">0</span></strong>
+                    <strong>Выбрано товаров: <span id="selected-count">0</span></strong>
                 </div>
                 <div class="btn-group">
                     <button type="button" class="btn btn-sm btn-success" data-action="activate" title="Активировать выбранные товары">
