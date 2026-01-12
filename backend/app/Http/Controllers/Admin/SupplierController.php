@@ -27,7 +27,14 @@ class SupplierController extends Controller
 
         $suppliers = $query->orderBy('name')->paginate(20)->withQueryString();
 
-        return view('admin.suppliers.index', compact('suppliers'));
+        $allSuppliers = User::where('is_supplier', true)->get();
+        $statistics = [
+            'total' => $allSuppliers->count(),
+            'active' => $allSuppliers->where('is_blocked', false)->count(),
+            'total_balance' => $allSuppliers->sum('supplier_balance'),
+        ];
+
+        return view('admin.suppliers.index', compact('suppliers', 'statistics'));
     }
 
     /**
