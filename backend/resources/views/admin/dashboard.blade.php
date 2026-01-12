@@ -3,21 +3,27 @@
 @section('title', 'Панель управления')
 
 @section('content_header')
-    <div class="d-flex justify-content-between align-items-center">
-        <h1 class="mb-0">Панель управления</h1>
-        <form method="GET" class="mb-0" style="max-width: 300px;">
-            <div class="input-group">
-                <select name="period" class="form-control form-control-sm" onchange="this.form.submit()">
-                    <option value="today" {{ $period === 'today' ? 'selected' : '' }}>Сегодня</option>
-                    <option value="yesterday" {{ $period === 'yesterday' ? 'selected' : '' }}>Вчера</option>
-                    <option value="week" {{ $period === 'week' ? 'selected' : '' }}>На этой неделе</option>
-                    <option value="month" {{ $period === 'month' ? 'selected' : '' }}>В этом месяце</option>
-                    <option value="year" {{ $period === 'year' ? 'selected' : '' }}>В этом году</option>
-                    <option value="all" {{ $period === 'all' ? 'selected' : '' }}>За весь период</option>
-                    <option value="custom" {{ $period === 'custom' ? 'selected' : '' }}>Произвольный период</option>
-                </select>
+    <div class="content-header-modern">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="m-0 font-weight-light">Панель управления</h1>
             </div>
-        </form>
+            <div>
+                <form method="GET" class="mb-0" style="max-width: 300px;">
+                    <div class="input-group">
+                        <select name="period" class="form-control form-control-sm" onchange="this.form.submit()">
+                            <option value="today" {{ $period === 'today' ? 'selected' : '' }}>Сегодня</option>
+                            <option value="yesterday" {{ $period === 'yesterday' ? 'selected' : '' }}>Вчера</option>
+                            <option value="week" {{ $period === 'week' ? 'selected' : '' }}>На этой неделе</option>
+                            <option value="month" {{ $period === 'month' ? 'selected' : '' }}>В этом месяце</option>
+                            <option value="year" {{ $period === 'year' ? 'selected' : '' }}>В этом году</option>
+                            <option value="all" {{ $period === 'all' ? 'selected' : '' }}>За весь период</option>
+                            <option value="custom" {{ $period === 'custom' ? 'selected' : '' }}>Произвольный период</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 @stop
 
@@ -308,6 +314,7 @@
 @stop
 
 @section('css')
+    @include('admin.layouts.modern-styles')
 <style>
     .card {
         transition: transform 0.2s, box-shadow 0.2s;

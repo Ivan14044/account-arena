@@ -3,26 +3,18 @@
 @section('title', 'Редактирование товара #' . $serviceAccount->id)
 
 @section('content_header')
-    <h1>Редактирование товара #{{ $serviceAccount->id }}</h1>
-@section('js')
-<script>
-    // Показываем/скрываем поле инструкций в зависимости от способа выдачи
-    document.addEventListener('DOMContentLoaded', function() {
-        const deliveryTypeSelect = document.getElementById('delivery_type');
-        const instructionsGroup = document.getElementById('manual-delivery-instructions-group');
-        
-        if (deliveryTypeSelect && instructionsGroup) {
-            deliveryTypeSelect.addEventListener('change', function() {
-                if (this.value === 'manual') {
-                    instructionsGroup.style.display = 'block';
-                } else {
-                    instructionsGroup.style.display = 'none';
-                }
-            });
-        }
-    });
-</script>
+    <div class="content-header-modern">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="m-0 font-weight-light">Редактирование товара #{{ $serviceAccount->id }}</h1>
+            </div>
+        </div>
+    </div>
 @stop
+
+@section('css')
+    @include('admin.layouts.modern-styles')
+@endsection
 
 @section('content')
     <div class="row">

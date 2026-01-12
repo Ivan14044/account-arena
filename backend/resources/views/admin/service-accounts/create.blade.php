@@ -3,7 +3,13 @@
 @section('title', 'Создание нового товара')
 
 @section('content_header')
-    <h1>Создание нового товара</h1>
+    <div class="content-header-modern">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="m-0 font-weight-light">Создание нового товара</h1>
+            </div>
+        </div>
+    </div>
 @stop
 
 @section('content')
@@ -473,6 +479,10 @@
             </div>
         </div>
     </div>
+@endsection
+
+@section('css')
+    @include('admin.layouts.modern-styles')
 @endsection
 
 @section('js')
