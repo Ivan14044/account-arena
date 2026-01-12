@@ -17,7 +17,13 @@ class AdminController extends Controller
             ->orderBy('id', 'desc')
             ->get();
 
-        return view('admin.admins.index', compact('users'));
+        $statistics = [
+            'total' => $users->count(),
+            'active' => $users->where('is_blocked', false)->count(),
+            'blocked' => $users->where('is_blocked', true)->count(),
+        ];
+
+        return view('admin.admins.index', compact('users', 'statistics'));
     }
 
     public function create()
