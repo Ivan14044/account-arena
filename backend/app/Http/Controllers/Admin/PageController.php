@@ -12,7 +12,13 @@ class PageController extends Controller
     {
         $pages = Page::orderBy('id', 'desc')->get();
 
-        return view('admin.pages.index', compact('pages'));
+        $statistics = [
+            'total' => $pages->count(),
+            'active' => $pages->where('is_active', true)->count(),
+            'inactive' => $pages->where('is_active', false)->count(),
+        ];
+
+        return view('admin.pages.index', compact('pages', 'statistics'));
     }
 
     public function create()
