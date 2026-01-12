@@ -293,14 +293,11 @@ watch([hideOutOfStock, showFavoritesOnly], () => {
 
 // Очистка кэша при изменении списка товаров или категорий
 watch(() => accountsStore.list.length, () => {
-    categoryCountsCache.value.clear();
-    subcategoryCountsCache.value.clear();
+    // Кэш counts пересчитывается автоматически через computed productCounts
 });
 
 watch(() => categoriesStore.list.length, () => {
     categoriesCache.value.clear();
-    categoryCountsCache.value.clear();
-    subcategoryCountsCache.value.clear();
 });
 
 watch(() => locale.value, () => {
