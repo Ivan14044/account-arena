@@ -17,7 +17,14 @@ class NotificationTemplateController extends Controller
             ->orderBy('id', 'desc')
             ->get();
 
-        return view('admin.notification-templates.index', compact('notificationTemplates'));
+        $allTemplates = NotificationTemplate::all();
+        $statistics = [
+            'total' => $allTemplates->count(),
+            'system' => $allTemplates->where('is_mass', 0)->count(),
+            'custom' => $allTemplates->where('is_mass', 1)->count(),
+        ];
+
+        return view('admin.notification-templates.index', compact('notificationTemplates', 'statistics'));
     }
 
     public function create()
