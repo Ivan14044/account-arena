@@ -107,9 +107,58 @@ const searchQuery = ref('');
 const debouncedSearchQuery = ref('');
 
 // Кэш для подсчетов товаров (критическая оптимизация производительности)
-const categoryCountsCache = ref<Map<number, number>>(new Map());
-const subcategoryCountsCache = ref<Map<number, number>>(new Map());
 const categoriesCache = ref<Map<string, ProductCategory[]>>(new Map());
+
+// КРИТИЧЕСКАЯ ОПТИМИЗАЦИЯ: Предвычисляем все счетчики товаров один раз
+// Это избавляет от множественных filter операций при каждом вызове
+const productCounts = computed(() => {
+    const categoryCounts = new Map<number, number>();
+    const subcategoryCounts = new Map<number, number>();
+    
+    // Создаем Map для быстрого доступа к подкатегориям по категории
+    const categoryToSubcategories = new Map<number, Set<number>>();
+    categoriesStore.list.forEach(category => {
+        if (category.subcategories && category.subcategories.length > 0) {
+            const subIds = new Set(category.subcategories.map(sub => sub.id));
+            categoryToSubcategories.set(category.id, subIds);
+        }
+    });
+    
+    // Один проход по всем товарам для подсчета
+    accountsStore.list.forEach(account => {
+        const accountCategoryId = account.category?.id;
+        if (!accountCategoryId) return;
+        
+        // Подсчет для подкатегорий
+        if (!subcategoryCounts.has(accountCategoryId)) {
+            subcategoryCounts.set(accountCategoryId, 0);
+        }
+        subcategoryCounts.set(accountCategoryId, subcategoryCounts.get(accountCategoryId)! + 1);
+        
+        // Подсчет для категорий (включая товары в подкатегориях)
+        categoryToSubcategories.forEach((subIds, categoryId) => {
+            if (subIds.has(accountCategoryId) || accountCategoryId === categoryId) {
+                if (!categoryCounts.has(categoryId)) {
+                    categoryCounts.set(categoryId, 0);
+                }
+                categoryCounts.set(categoryId, categoryCounts.get(categoryId)! + 1);
+            }
+        });
+        
+        // Также проверяем, является ли accountCategoryId самой категорией (без подкатегорий)
+        const isDirectCategory = categoriesStore.list.some(cat => 
+            cat.id === accountCategoryId && (!cat.subcategories || cat.subcategories.length === 0)
+        );
+        if (isDirectCategory) {
+            if (!categoryCounts.has(accountCategoryId)) {
+                categoryCounts.set(accountCategoryId, 0);
+            }
+            categoryCounts.set(accountCategoryId, categoryCounts.get(accountCategoryId)! + 1);
+        }
+    });
+    
+    return { categoryCounts, subcategoryCounts };
+});
 
 // Мемоизированные категории (кэшируются по локали)
 const categories = computed(() => {
@@ -163,56 +212,18 @@ const getSubcategoryName = (subcategory: any): string => {
     return subcategory.name || '';
 };
 
-// Мемоизированный подсчет товаров в категории (критическая оптимизация)
+// КРИТИЧЕСКАЯ ОПТИМИЗАЦИЯ: Используем предвычисленные счетчики вместо filter операций
 const getCategoryProductCount = (categoryId: number): number => {
-    // Проверяем кэш
-    if (categoryCountsCache.value.has(categoryId)) {
-        return categoryCountsCache.value.get(categoryId)!;
-    }
-    
-    let count: number;
-    
     if (categoryId === 0) {
         // Для "Все категории" возвращаем общее количество всех товаров
-        count = accountsStore.list.length;
-    } else {
-        const category = categoriesStore.list.find(cat => cat.id === categoryId);
-        if (!category) {
-            count = 0;
-        } else {
-            // Получаем ID всех подкатегорий
-            const subcategoryIds = (category.subcategories || []).map(sub => sub.id);
-
-            // Подсчитываем товары в категории и её подкатегориях
-            count = accountsStore.list.filter(account => {
-                // Товар в самой категории
-                if (account.category?.id === categoryId) return true;
-                // Товар в подкатегории
-                if (account.category?.id && subcategoryIds.includes(account.category.id)) return true;
-                return false;
-            }).length;
-        }
+        return accountsStore.list.length;
     }
-    
-    // Сохраняем в кэш
-    categoryCountsCache.value.set(categoryId, count);
-    return count;
+    return productCounts.value.categoryCounts.get(categoryId) || 0;
 };
 
-// Мемоизированный подсчет товаров в подкатегории
+// КРИТИЧЕСКАЯ ОПТИМИЗАЦИЯ: Используем предвычисленные счетчики вместо filter операций
 const getSubcategoryProductCount = (subcategoryId: number): number => {
-    // Проверяем кэш
-    if (subcategoryCountsCache.value.has(subcategoryId)) {
-        return subcategoryCountsCache.value.get(subcategoryId)!;
-    }
-    
-    const count = accountsStore.list.filter(account => {
-        return account.category?.id === subcategoryId;
-    }).length;
-    
-    // Сохраняем в кэш
-    subcategoryCountsCache.value.set(subcategoryId, count);
-    return count;
+    return productCounts.value.subcategoryCounts.get(subcategoryId) || 0;
 };
 
 const selectCategory = (categoryId: number | null) => {

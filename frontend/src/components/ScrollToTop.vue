@@ -23,27 +23,22 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount } from 'vue';
-import { throttle } from 'lodash-es';
+import { ref } from 'vue';
+import { useScroll } from '@/composables/useScroll';
 
 const isVisible = ref(false);
 
-// Throttle scroll handler для производительности (100ms)
-const handleScroll = throttle(() => {
-    isVisible.value = window.scrollY > 300;
-}, 100, { leading: true, trailing: true });
+// КРИТИЧЕСКАЯ ОПТИМИЗАЦИЯ: Используем общий composable для scroll listeners
+useScroll({
+    throttleMs: 100,
+    onScroll: (scrollY) => {
+        isVisible.value = scrollY > 300;
+    }
+});
 
 const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
 };
-
-onMounted(() => {
-    window.addEventListener('scroll', handleScroll, { passive: true });
-});
-
-onBeforeUnmount(() => {
-    window.removeEventListener('scroll', handleScroll);
-});
 </script>
 
 <style scoped>

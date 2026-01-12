@@ -34,9 +34,9 @@
         <!-- Products Grid -->
         <div v-else class="space-y-5">
             <div
-                v-for="(account, index) in displayedAccounts"
+                v-for="(account, index) in enrichedDisplayedAccounts"
                 :key="account.id"
-                v-memo="[account.id, account.quantity, account.has_discount, (account as any)._discountPercentRounded, (account as any)._cachedTitle, getQuantity(account.id)]"
+                v-memo="[account.id, account.quantity, account.has_discount, (account as any)._discountPercentRounded, (account as any)._cachedTitle, (account as any)._cachedQuantity, (account as any)._isFavorite]"
                 class="product-card"
                 :class="{
                     'out-of-stock-card': account.quantity <= 0,
@@ -139,22 +139,17 @@
                                     v-if="account.has_discount && account.price"
                                     class="price-old"
                                 >
-                                    {{ formatPrice(account.price) }}
+                                    {{ (account as any)._formattedPrice }}
                                 </span>
                                 <div class="price">
-                                    {{
-                                        formatTotalPrice(
-                                            account.current_price || account.price,
-                                            getQuantity(account.id)
-                                        )
-                                    }}
+                                    {{ (account as any)._formattedTotalPrice }}
                                 </div>
                             </div>
                             <div class="price-per-unit">
                                 {{
                                     $t('account.detail.price_per_unit', {
-                                        price: formatPrice(account.current_price || account.price),
-                                        quantity: getQuantity(account.id)
+                                        price: (account as any)._formattedPrice,
+                                        quantity: (account as any)._cachedQuantity
                                     })
                                 }}
                             </div>
@@ -175,20 +170,20 @@
                         <div class="quantity-control">
                             <button
                                 class="quantity-btn"
-                                :disabled="getQuantity(account.id) <= 1"
+                                :disabled="(account as any)._cachedQuantity <= 1"
                                 @click="decreaseQuantity(account.id)"
                             >
                                 −
                             </button>
                             <input
                                 type="text"
-                                :value="getQuantity(account.id)"
+                                :value="(account as any)._cachedQuantity"
                                 readonly
                                 class="quantity-input"
                             />
                             <button
                                 class="quantity-btn"
-                                :disabled="getQuantity(account.id) >= (account.quantity || 1)"
+                                :disabled="(account as any)._cachedQuantity >= (account.quantity || 1)"
                                 @click="increaseQuantity(account.id)"
                             >
                                 +
@@ -220,13 +215,13 @@
 
                         <button
                             class="btn-secondary btn-icon"
-                            :class="{ active: isFavorite(account.id) }"
+                            :class="{ active: (account as any)._isFavorite }"
                             title="В избранное"
                             @click="toggleFavorite(account.id)"
                         >
                             <svg
                                 class="w-5 h-5"
-                                :fill="isFavorite(account.id) ? 'currentColor' : 'none'"
+                                :fill="(account as any)._isFavorite ? 'currentColor' : 'none'"
                                 stroke="currentColor"
                                 viewBox="0 0 24 24"
                             >
@@ -410,17 +405,53 @@ const accounts = computed(() => {
     return data;
 });
 
+// КРИТИЧЕСКАЯ ОПТИМИЗАЦИЯ: Обогащаем displayedAccounts предвычисленными quantity, isFavorite и ценами
+// Это избавляет от множественных вызовов getQuantity(), isFavorite(), formatPrice() и formatTotalPrice() в шаблоне
+const enrichedDisplayedAccounts = computed(() => {
+    const currency = optionStore.getOption('currency', 'USD');
+    const priceFormatter = new Intl.NumberFormat('ru-RU', {
+        style: 'currency',
+        currency: currency,
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
+    
+    return displayedAccounts.value.map(account => {
+        const enriched = Object.assign({}, account);
+        // Предвычисляем quantity для каждого товара
+        const quantity = quantities.value[account.id] || 1;
+        enriched._cachedQuantity = quantity;
+        // Предвычисляем isFavorite для каждого товара
+        enriched._isFavorite = favorites.value.has(account.id);
+        
+        // Предвычисляем форматированные цены
+        const price = account.current_price || account.price;
+        enriched._formattedPrice = priceFormatter.format(price);
+        enriched._formattedTotalPrice = priceFormatter.format(price * quantity);
+        
+        return enriched;
+    });
+});
+
 // КРИТИЧЕСКАЯ ОПТИМИЗАЦИЯ: Объединение всех фильтров в один проход
 // Вместо множественных filter операций делаем один проход
 // Кэш для категорий (избегаем повторных find операций)
 const categoryCache = ref<Map<number, Set<number>>>(new Map());
 
+// КРИТИЧЕСКАЯ ОПТИМИЗАЦИЯ: Используем Set для favorites для O(1) проверки
+const favoritesSet = computed(() => favorites.value);
+
 const filteredAccounts = computed(() => {
     const filters = props.filters;
     const accountsList = accounts.value;
     
-    // Ранний выход если нет фильтров
-    if (!filters || Object.keys(filters).length === 0) {
+    // Ранний выход если нет фильтров или все фильтры пустые
+    if (!filters || 
+        (filters.categoryId === null && 
+         filters.subcategoryId === null && 
+         !filters.hideOutOfStock && 
+         !filters.showFavoritesOnly && 
+         !filters.searchQuery)) {
         return accountsList;
     }
     
@@ -445,10 +476,13 @@ const filteredAccounts = computed(() => {
         }
     }
     
-    // Подготовка поискового запроса один раз
+    // Подготовка поискового запроса один раз (только если есть поиск)
     const queryWords = searchQuery 
         ? searchQuery.split(/\s+/).filter(w => w.length > 0)
         : null;
+    
+    // Используем Set для быстрой проверки избранного
+    const favoritesSetValue = favoritesSet.value;
     
     // ОДИН проход по массиву вместо множественных filter
     return accountsList.filter(account => {
@@ -462,13 +496,13 @@ const filteredAccounts = computed(() => {
             if (!accountCategoryId || !categoryIds.has(accountCategoryId)) return false;
         }
         
-        // Фильтр по наличию
+        // Фильтр по наличию (быстрая проверка)
         if (hideOutOfStock && (!account.quantity || account.quantity <= 0)) {
             return false;
         }
         
-        // Фильтр по избранному
-        if (showFavoritesOnly && !favorites.value.has(account.id)) {
+        // Фильтр по избранному (O(1) проверка через Set)
+        if (showFavoritesOnly && !favoritesSetValue.has(account.id)) {
             return false;
         }
         
@@ -502,27 +536,20 @@ const loadMore = () => {
     currentPage.value++;
 };
 
-// Оптимизация: вместо deep watch отслеживаем конкретные поля
-// Это избегает лишних пересчетов
-watch(() => props.filters?.categoryId, () => {
-    currentPage.value = 1;
-});
-
-watch(() => props.filters?.subcategoryId, () => {
-    currentPage.value = 1;
-});
-
-watch(() => props.filters?.searchQuery, () => {
-    currentPage.value = 1;
-});
-
-watch(() => props.filters?.hideOutOfStock, () => {
-    currentPage.value = 1;
-});
-
-watch(() => props.filters?.showFavoritesOnly, () => {
-    currentPage.value = 1;
-});
+// КРИТИЧЕСКАЯ ОПТИМИЗАЦИЯ: Объединяем все watch на фильтры в один
+// Это избегает множественных пересчетов и улучшает производительность
+watch(
+    () => [
+        props.filters?.categoryId,
+        props.filters?.subcategoryId,
+        props.filters?.searchQuery,
+        props.filters?.hideOutOfStock,
+        props.filters?.showFavoritesOnly
+    ],
+    () => {
+        currentPage.value = 1;
+    }
+);
 
 // Quantity management
 const quantities = ref<Record<number, number>>({});
@@ -534,12 +561,16 @@ const getQuantity = (accountId: number) => {
 const increaseQuantity = (accountId: number) => {
     const current = quantities.value[accountId] || 1;
     quantities.value[accountId] = current + 1;
+    // Принудительно обновляем enrichedDisplayedAccounts через изменение ref
+    quantities.value = { ...quantities.value };
 };
 
 const decreaseQuantity = (accountId: number) => {
     const current = quantities.value[accountId] || 1;
     if (current > 1) {
         quantities.value[accountId] = current - 1;
+        // Принудительно обновляем enrichedDisplayedAccounts через изменение ref
+        quantities.value = { ...quantities.value };
     }
 };
 
@@ -577,6 +608,8 @@ const toggleFavorite = (accountId: number) => {
     } else {
         favorites.value.add(accountId);
     }
+    // Создаем новый Set для реактивности
+    favorites.value = new Set(favorites.value);
     saveFavoritesToStorage(favorites.value);
 };
 
@@ -586,7 +619,8 @@ const isFavorite = (accountId: number) => {
 
 // Actions
 const addToCart = (account: any) => {
-    const quantity = getQuantity(account.id);
+    // КРИТИЧЕСКАЯ ОПТИМИЗАЦИЯ: Используем предвычисленное quantity
+    const quantity = (account as any)._cachedQuantity || getQuantity(account.id);
 
     if (!account.quantity || account.quantity === 0) {
         toast.error(t('account.out_of_stock'));
@@ -617,10 +651,13 @@ const addToCart = (account: any) => {
 
     // Сбрасываем количество после добавления
     quantities.value[account.id] = 1;
+    // Принудительно обновляем enrichedDisplayedAccounts
+    quantities.value = { ...quantities.value };
 };
 
 const buyNow = (account: any) => {
-    const quantity = getQuantity(account.id);
+    // КРИТИЧЕСКАЯ ОПТИМИЗАЦИЯ: Используем предвычисленное quantity
+    const quantity = (account as any)._cachedQuantity || getQuantity(account.id);
 
     if (!account.quantity || account.quantity === 0) {
         toast.error(t('account.out_of_stock'));
@@ -779,9 +816,14 @@ onMounted(async () => {
     border-color: rgba(108, 92, 231, 0.4);
 }
 
-/* Убираем will-change после hover для экономии памяти */
+/* КРИТИЧЕСКАЯ ОПТИМИЗАЦИЯ: Убираем will-change после hover для экономии памяти */
 .product-card:not(:hover) {
     will-change: auto;
+}
+
+/* КРИТИЧЕСКАЯ ОПТИМИЗАЦИЯ: Применяем will-change только к видимым элементам */
+.product-card.is-visible {
+    /* will-change применяется только при hover, не в базовом состоянии */
 }
 
 .dark .product-card:hover {

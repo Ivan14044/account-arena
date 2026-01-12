@@ -42,8 +42,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted, onUnmounted, computed } from 'vue';
-import { throttle } from 'lodash-es';
+import { ref, watch, computed } from 'vue';
 import logo from '@/assets/logo.webp';
 import { useLoadingStore } from '@/stores/loading';
 import UserMenu from '@/components/layout/UserMenu.vue';
@@ -54,20 +53,18 @@ import ServiceCart from '@/components/layout/ServiceCart.vue';
 import LanguageSelector from '@/components/layout/LanguageSelector.vue';
 import ThemeSwitcher from '@/components/layout/ThemeSwitcher.vue';
 import { useRouter } from 'vue-router';
+import { useScroll } from '@/composables/useScroll';
 
 const router = useRouter();
 const loadingStore = useLoadingStore();
 
-const isScrolled = ref(false);
+// КРИТИЧЕСКАЯ ОПТИМИЗАЦИЯ: Используем общий composable для scroll listeners
+const { isScrolled } = useScroll({ throttleMs: 100 });
+
 const headerStore = useHeaderStore();
 const isReady = computed(() => headerStore.isReady);
 const printedText = computed(() => headerStore.printedText);
 const fullText = 'Account Arena';
-
-// Throttle scroll handler для производительности (100ms)
-const handleScroll = throttle(() => {
-    isScrolled.value = window.scrollY > 0;
-}, 100, { leading: true, trailing: true });
 
 function handleClick() {
     router.push('/');
@@ -103,13 +100,7 @@ function startTypingEffect() {
     }, 80);
 }
 
-onMounted(() => {
-    window.addEventListener('scroll', handleScroll, { passive: true });
-});
-
-onUnmounted(() => {
-    window.removeEventListener('scroll', handleScroll);
-});
+// Scroll listener теперь управляется через useScroll composable
 </script>
 
 <style scoped>
