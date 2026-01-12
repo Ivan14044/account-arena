@@ -72,6 +72,7 @@ class AccountController extends Controller
                 'quantity' => $availableCount,
                 'total_quantity' => $totalQuantity,
                 'sold' => $soldCount,
+                'delivery_type' => $account->delivery_type ?? 'automatic',
                 'created_at' => $account->created_at->toISOString(),
             ];
         });
@@ -135,6 +136,7 @@ class AccountController extends Controller
             'quantity' => $availableCount,
             'total_quantity' => $totalQuantity,
             'sold' => $soldCount,
+            'delivery_type' => $account->delivery_type ?? 'automatic',
             'created_at' => $account->created_at->toISOString(),
         ];
 
@@ -187,6 +189,7 @@ class AccountController extends Controller
                 'quantity' => $availableCount,
                 'total_quantity' => $totalQuantity,
                 'sold' => $soldCount,
+                'delivery_type' => $item->delivery_type ?? 'automatic',
                 'created_at' => $item->created_at->toISOString(),
             ];
         });

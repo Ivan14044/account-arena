@@ -115,11 +115,46 @@
                 "cancelled": "Cancelled",
                 "refunded": "Refunded"
             },
-            "processing": {
-                "title": "Order is being processed",
-                "description": "Your order is being manually processed by a manager. The product will be delivered after processing is complete.",
-                "working_hours": "Working hours: Mon-Fri 9:00-18:00 (MSK)"
+            "processing": "In manual processing",
+            "processing_description": "A manager is processing your order. The product will be delivered after processing is complete.",
+            "working_hours": "Manager working hours: Mon-Fri, 9:00-18:00 MSK",
+            "processing_since": "Processing since {date}",
+            "average_processing_time": "Average processing time: {hours} hrs.",
+            "processing_duration": "Processing for",
+            "processing_duration_hours": "{hours} hrs. {minutes} min.",
+            "processing_duration_days": "{days} days {hours} hrs.",
+            "last_update": "Last update",
+            "last_update_seconds": "{seconds} sec. ago",
+            "last_update_minutes": "{minutes} min. ago",
+            "last_update_hours": "{hours} hrs. ago",
+            "waiting_stock_title": "Waiting for Stock",
+            "waiting_stock_description": "Product is temporarily out of stock. Your order is waiting for the product to become available.",
+            "waiting_stock_notification": "We will notify you when the product becomes available and the manager processes your order.",
+            "progress": {
+                "accepted": "Accepted",
+                "processing": "Processing",
+                "ready": "Ready"
             },
+            "cancel_order": "Cancel order",
+            "cancel_order_confirm": "Are you sure you want to cancel this order? Funds will be refunded to your balance.",
+            "cancel_reason_label": "Cancellation reason",
+            "cancel_reason_placeholder": "Please specify the reason for cancellation (minimum 10 characters)",
+            "cancel_reason_hint": "From {min} to {max} characters",
+            "cancel_modal_close": "Cancel",
+            "cancel_order_confirm_button": "Confirm Cancellation",
+            "cancel_reason_min_length": "Cancellation reason must be at least 10 characters",
+            "cancel_reason_max_length": "Cancellation reason must not exceed 500 characters",
+            "confirm_cancel": "Confirm cancellation",
+            "order_cancelled": "Order successfully cancelled",
+            "cancel_order_error": "Error cancelling order",
+            "not_authorized": "Authorization required",
+            "contact_manager": "Contact manager",
+            "contact_manager_message": "Hello! I have a question about order #{order_number} (product: {product_title}). The order is being processed.",
+            "contact_manager_hint": "Open the support chat and send a message to the manager",
+            "contact_manager_error": "Error opening support chat",
+            "chat_not_available": "Support chat is temporarily unavailable. Please contact the manager via email.",
+            "status_history": "Status change history",
+            "changed_by": "Changed by",
             "quantity": "Quantity",
             "pcs": "pcs",
             "quantity_unit": "pcs",
@@ -499,6 +534,14 @@
             "available_only": "Only {count} pcs available",
             "product_added_to_cart": "{title} ({quantity} pcs) added to cart",
             "view_details": "View Details"
+        },
+        "delivery": {
+            "automatic": "Auto-delivery",
+            "manual": "Manual delivery",
+            "not_selling": "Not for sale",
+            "automatic_description": "Product is delivered automatically immediately after payment",
+            "manual_description": "Product is delivered manually by manager after order processing",
+            "not_available": "Product is out of stock"
         }
     },
     "catalog": {
@@ -544,7 +587,10 @@
         "go_to_profile": "Go to profile",
         "back_to_home": "Back to home",
         "not_authorized": "You are not authorized. Please log in.",
-        "load_error": "Error loading purchases"
+        "load_error": "Error loading purchases",
+        "waiting_payment_confirmation": "Waiting for payment confirmation...",
+        "waiting_payment_title": "Waiting for payment confirmation",
+        "waiting_payment_description": "Your payment is being processed. Orders will appear automatically after payment confirmation. This usually takes a few seconds."
     },
     "supportChat": {
         "openChat": "Open support chat",

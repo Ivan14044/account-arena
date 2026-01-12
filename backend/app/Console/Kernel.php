@@ -23,6 +23,12 @@ class Kernel extends ConsoleKernel
         // Перевод средств поставщиков из холда в доступный баланс (каждый час)
         $schedule->command('suppliers:release-earnings')->hourly();
 
+        // Напоминания менеджерам о просроченных заказах на ручную обработку (каждый час)
+        $schedule->command('notify:overdue-manual-orders')->hourly();
+
+        // Автоматическая обработка заказов, ожидающих появления товара (каждые 30 минут)
+        $schedule->command('process:waiting-stock-orders')->everyThirtyMinutes();
+
     }
 
     /**

@@ -95,6 +95,9 @@ Route::middleware(['auth:sanctum', 'throttle:120,1'])->group(function () {
     Route::get('/purchases', [PurchaseController::class, 'index']);
     Route::get('/purchases/{id}', [PurchaseController::class, 'show']);
     Route::get('/purchases/{id}/download', [PurchaseController::class, 'download']);
+    Route::post('/purchases/{id}/cancel', [PurchaseController::class, 'cancel']);
+    Route::get('/purchases/{id}/status-history', [PurchaseController::class, 'getStatusHistory']);
+    Route::get('/purchases/stats/processing', [PurchaseController::class, 'getProcessingStats']);
     
     // Чат поддержки (для авторизованных пользователей)
     Route::get('/support-chats', [SupportChatController::class, 'getChats']);

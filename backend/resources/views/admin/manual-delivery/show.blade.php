@@ -168,29 +168,117 @@
 
 @section('js')
 <script>
-    // Валидация количества аккаунтов
-    document.querySelector('form').addEventListener('submit', function(e) {
-        const accountData = document.querySelectorAll('textarea[name="account_data[]"]');
+    (function() {
+        const form = document.querySelector('form');
+        const accountDataContainer = document.getElementById('account-data-container');
         const requiredCount = {{ $purchase->quantity }};
-        
-        if (accountData.length !== requiredCount) {
-            e.preventDefault();
-            alert('Количество полей для аккаунтов должно быть равно ' + requiredCount);
-            return false;
+        let isSubmitting = false;
+
+        // Функция подсчета заполненных полей
+        function countFilledFields() {
+            const accountData = document.querySelectorAll('textarea[name="account_data[]"]');
+            let filledCount = 0;
+            accountData.forEach(function(textarea) {
+                if (textarea.value.trim()) {
+                    filledCount++;
+                }
+            });
+            return filledCount;
         }
-        
-        let emptyCount = 0;
-        accountData.forEach(function(textarea) {
-            if (!textarea.value.trim()) {
-                emptyCount++;
+
+        // Функция обновления индикатора
+        function updateIndicator() {
+            const filledCount = countFilledFields();
+            const indicator = document.getElementById('account-count-indicator');
+            if (indicator) {
+                indicator.textContent = `Заполнено: ${filledCount} из ${requiredCount}`;
+                if (filledCount === requiredCount) {
+                    indicator.classList.remove('text-warning');
+                    indicator.classList.add('text-success');
+                } else {
+                    indicator.classList.remove('text-success');
+                    indicator.classList.add('text-warning');
+                }
+            }
+        }
+
+        // Добавляем индикатор количества заполненных полей
+        const label = document.querySelector('label[for="account_data"]');
+        if (label) {
+            const indicator = document.createElement('span');
+            indicator.id = 'account-count-indicator';
+            indicator.className = 'ml-2 text-warning font-weight-bold';
+            indicator.textContent = `Заполнено: 0 из ${requiredCount}`;
+            label.appendChild(indicator);
+        }
+
+        // Отслеживаем изменения в полях
+        accountDataContainer.addEventListener('input', function(e) {
+            if (e.target.matches('textarea[name="account_data[]"]')) {
+                updateIndicator();
+                
+                // Валидация в реальном времени
+                const textarea = e.target;
+                if (textarea.value.trim()) {
+                    textarea.classList.remove('is-invalid');
+                    textarea.classList.add('is-valid');
+                } else {
+                    textarea.classList.remove('is-valid');
+                }
             }
         });
-        
-        if (emptyCount > 0) {
-            e.preventDefault();
-            alert('Все поля должны быть заполнены. Заполнено: ' + (requiredCount - emptyCount) + ' из ' + requiredCount);
-            return false;
-        }
-    });
+
+        // Валидация при отправке формы
+        form.addEventListener('submit', function(e) {
+            if (isSubmitting) {
+                e.preventDefault();
+                return false;
+            }
+
+            const accountData = document.querySelectorAll('textarea[name="account_data[]"]');
+            
+            // Проверка количества полей
+            if (accountData.length !== requiredCount) {
+                e.preventDefault();
+                alert('Ошибка: Количество полей для аккаунтов должно быть равно ' + requiredCount);
+                return false;
+            }
+            
+            // Проверка заполненности всех полей
+            let emptyFields = [];
+            accountData.forEach(function(textarea, index) {
+                if (!textarea.value.trim()) {
+                    emptyFields.push(index + 1);
+                    textarea.classList.add('is-invalid');
+                } else {
+                    textarea.classList.remove('is-invalid');
+                }
+            });
+            
+            if (emptyFields.length > 0) {
+                e.preventDefault();
+                const fieldsList = emptyFields.join(', ');
+                alert('Пожалуйста, заполните все поля. Незаполненные поля: ' + fieldsList);
+                
+                // Прокрутка к первому незаполненному полю
+                const firstEmpty = accountData[emptyFields[0] - 1];
+                firstEmpty.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                firstEmpty.focus();
+                
+                return false;
+            }
+
+            // Блокируем повторную отправку
+            isSubmitting = true;
+            const submitButton = form.querySelector('button[type="submit"]');
+            if (submitButton) {
+                submitButton.disabled = true;
+                submitButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Обработка...';
+            }
+        });
+
+        // Инициализация индикатора
+        updateIndicator();
+    })();
 </script>
 @stop

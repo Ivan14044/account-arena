@@ -115,11 +115,35 @@
                 "cancelled": "Отменен",
                 "refunded": "Возврат средств"
             },
-            "processing": {
-                "title": "Заказ обрабатывается",
-                "description": "Ваш заказ находится на ручной обработке менеджером. Товар будет выдан после завершения обработки.",
-                "working_hours": "График работы: Пн-Пт 9:00-18:00 (МСК)"
+            "processing": "В ручной обработке",
+            "processing_description": "Менеджер обрабатывает ваш заказ. Товар будет выдан после завершения обработки.",
+            "working_hours": "График работы менеджера: Пн-Пт, 9:00-18:00 по МСК",
+            "processing_since": "В обработке с {date}",
+            "average_processing_time": "Среднее время обработки: {hours} ч.",
+            "processing_duration": "В обработке уже",
+            "processing_duration_hours": "{hours} ч. {minutes} мин.",
+            "processing_duration_days": "{days} дн. {hours} ч.",
+            "waiting_stock_title": "Ожидание товара",
+            "waiting_stock_description": "Товар временно отсутствует. Ваш заказ ожидает появления товара на складе.",
+            "waiting_stock_notification": "Мы уведомим вас, когда товар появится в наличии, и менеджер обработает ваш заказ.",
+            "progress": {
+                "accepted": "Принят",
+                "processing": "В обработке",
+                "ready": "Готов"
             },
+            "cancel_order": "Отменить заказ",
+            "cancel_order_confirm": "Вы уверены, что хотите отменить этот заказ? Средства будут возвращены на ваш баланс.",
+            "cancel_reason_label": "Причина отмены",
+            "cancel_reason_placeholder": "Укажите причину отмены заказа (минимум 10 символов)",
+            "cancel_reason_hint": "От {min} до {max} символов",
+            "cancel_modal_close": "Отмена",
+            "cancel_order_confirm_button": "Подтвердить отмену",
+            "cancel_reason_min_length": "Причина отмены должна содержать минимум 10 символов",
+            "cancel_reason_max_length": "Причина отмены не должна превышать 500 символов",
+            "confirm_cancel": "Подтвердить отмену",
+            "order_cancelled": "Заказ успешно отменен",
+            "cancel_order_error": "Ошибка при отмене заказа",
+            "not_authorized": "Необходима авторизация",
             "quantity": "Количество",
             "pcs": "шт.",
             "quantity_unit": "шт.",
@@ -499,6 +523,14 @@
             "available_only": "Доступно только {count} шт.",
             "product_added_to_cart": "{title} ({quantity} шт.) добавлен в корзину",
             "view_details": "Подробнее"
+        },
+        "delivery": {
+            "automatic": "Авто-выдача",
+            "manual": "Ручная выдача",
+            "not_selling": "Не продаётся",
+            "automatic_description": "Товар выдается автоматически сразу после оплаты",
+            "manual_description": "Товар выдается менеджером вручную после обработки заказа",
+            "not_available": "Товар отсутствует в наличии"
         }
     },
     "catalog": {
@@ -544,7 +576,10 @@
         "go_to_profile": "Перейти в профиль",
         "back_to_home": "Вернуться на главную",
         "not_authorized": "Вы не авторизованы. Войдите в систему.",
-        "load_error": "Ошибка при загрузке покупок"
+        "load_error": "Ошибка при загрузке покупок",
+        "waiting_payment_confirmation": "Ожидание подтверждения оплаты...",
+        "waiting_payment_title": "Ожидание подтверждения оплаты",
+        "waiting_payment_description": "Ваш платеж обрабатывается. Заказы появятся автоматически после подтверждения оплаты. Обычно это занимает несколько секунд."
     },
     "supportChat": {
         "openChat": "Открыть чат поддержки",

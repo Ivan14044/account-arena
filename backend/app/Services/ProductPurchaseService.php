@@ -117,57 +117,60 @@ public function createProductPurchase(
         $locale = 'en';
     }
 
-    // Получаем суффикс для текущей локали
-    $suffixText = null;
-    if ($product->account_suffix_enabled) {
-        $suffixField = 'account_suffix_text_' . $locale;
-        $suffixText = $product->$suffixField ?? null;
-    }
-
-    for ($i = 0; $i < $quantity; $i++) {
-        if (isset($accountsData[$usedCount + $i])) {
-            $account = $accountsData[$usedCount + $i];
-
-            // Если включен суффикс и есть текст, добавляем его к аккаунту
-            if ($suffixText) {
-                $account = $account . "\n" . $suffixText;
-            }
-
-            $assignedAccounts[] = $account;
-        } else {
-            // Если аккаунт не найден, выбрасываем исключение
-            throw new \Exception("Insufficient accounts in product. Requested: {$quantity}, available: " . (count($accountsData) - $usedCount));
-        }
-    }
-
-    // ВАЖНО: Проверяем, что аккаунты были успешно назначены
-    if (empty($assignedAccounts)) {
-        Log::error('ProductPurchaseService: No accounts assigned', [
-            'product_id' => $product->id,
-            'quantity' => $quantity,
-            'used_count' => $usedCount,
-            'accounts_data_count' => count($accountsData),
-        ]);
-        throw new \Exception("Failed to assign accounts. Product may be out of stock. Requested: {$quantity}, available: " . (count($accountsData) - $usedCount));
-    }
-
-    // ВАЖНО: Проверяем, что количество назначенных аккаунтов соответствует запрошенному
-    if (count($assignedAccounts) !== $quantity) {
-        Log::error('ProductPurchaseService: Mismatch in assigned accounts count', [
-            'product_id' => $product->id,
-            'requested_quantity' => $quantity,
-            'assigned_count' => count($assignedAccounts),
-        ]);
-        throw new \Exception("Failed to assign all requested accounts. Requested: {$quantity}, assigned: " . count($assignedAccounts));
-    }
-
-    // Определяем тип выдачи товара
+    // Определяем тип выдачи товара ДО выбора аккаунтов
     $deliveryType = $product->delivery_type ?? ServiceAccount::DELIVERY_AUTOMATIC;
     $requiresManualDelivery = ($deliveryType === ServiceAccount::DELIVERY_MANUAL);
 
-    // Для ручной выдачи не увеличиваем счетчик used и не выдаем аккаунты сразу
-    // Для автоматической выдачи - стандартная логика
+    // Для ручной выдачи НЕ выбираем аккаунты - менеджер выберет их сам при обработке
+    // Для автоматической выдачи - выбираем аккаунты сразу
+    $assignedAccounts = [];
+    
     if (!$requiresManualDelivery) {
+        // Получаем суффикс для текущей локали (только для автоматической выдачи)
+        $suffixText = null;
+        if ($product->account_suffix_enabled) {
+            $suffixField = 'account_suffix_text_' . $locale;
+            $suffixText = $product->$suffixField ?? null;
+        }
+
+        // Выбираем аккаунты только для автоматической выдачи
+        for ($i = 0; $i < $quantity; $i++) {
+            if (isset($accountsData[$usedCount + $i])) {
+                $account = $accountsData[$usedCount + $i];
+
+                // Если включен суффикс и есть текст, добавляем его к аккаунту
+                if ($suffixText) {
+                    $account = $account . "\n" . $suffixText;
+                }
+
+                $assignedAccounts[] = $account;
+            } else {
+                // Если аккаунт не найден, выбрасываем исключение
+                throw new \Exception("Insufficient accounts in product. Requested: {$quantity}, available: " . (count($accountsData) - $usedCount));
+            }
+        }
+
+        // ВАЖНО: Проверяем, что аккаунты были успешно назначены
+        if (empty($assignedAccounts)) {
+            Log::error('ProductPurchaseService: No accounts assigned', [
+                'product_id' => $product->id,
+                'quantity' => $quantity,
+                'used_count' => $usedCount,
+                'accounts_data_count' => count($accountsData),
+            ]);
+            throw new \Exception("Failed to assign accounts. Product may be out of stock. Requested: {$quantity}, available: " . (count($accountsData) - $usedCount));
+        }
+
+        // ВАЖНО: Проверяем, что количество назначенных аккаунтов соответствует запрошенному
+        if (count($assignedAccounts) !== $quantity) {
+            Log::error('ProductPurchaseService: Mismatch in assigned accounts count', [
+                'product_id' => $product->id,
+                'requested_quantity' => $quantity,
+                'assigned_count' => count($assignedAccounts),
+            ]);
+            throw new \Exception("Failed to assign all requested accounts. Requested: {$quantity}, assigned: " . count($assignedAccounts));
+        }
+
         // Увеличиваем счетчик использованных только для автоматической выдачи
         $product->used = $usedCount + $quantity;
         $product->save();
@@ -208,6 +211,23 @@ public function createProductPurchase(
         'status' => $initialStatus,
     ]);
 
+    // Записываем историю создания заказа
+    try {
+        \App\Models\PurchaseStatusHistory::createHistory(
+            $purchase,
+            $initialStatus,
+            null, // Старого статуса нет, так как заказ только создан
+            null, // Системное создание
+            $requiresManualDelivery ? 'Заказ создан, требуется ручная обработка' : 'Заказ создан, автоматическая выдача'
+        );
+    } catch (\Throwable $e) {
+        // Не ломаем создание заказа из-за ошибки записи истории
+        Log::warning('Failed to create purchase status history', [
+            'purchase_id' => $purchase->id,
+            'error' => $e->getMessage(),
+        ]);
+    }
+
     // Логируем номер заказа для отслеживания
     Log::info('Purchase created', [
         'order_number' => $purchase->order_number,
@@ -221,14 +241,17 @@ public function createProductPurchase(
         'status' => $initialStatus,
     ]);
 
-    // Уведомляем администратора о новом заказе на ручную обработку
+    // Уведомляем администратора и пользователя о новом заказе на ручную обработку
     if ($requiresManualDelivery) {
         try {
             $manualDeliveryService = app(ManualDeliveryService::class);
+            // Уведомляем администратора
             $manualDeliveryService->notifyAdminAboutNewOrder($purchase);
+            // Уведомляем пользователя о создании заказа
+            $manualDeliveryService->notifyUserAboutOrderCreated($purchase);
         } catch (\Throwable $e) {
             // Не ломаем основную покупку из-за ошибки уведомления
-            Log::error('Failed to notify admin about manual order', [
+            Log::error('Failed to notify about manual order', [
                 'purchase_id' => $purchase->id,
                 'error' => $e->getMessage(),
             ]);

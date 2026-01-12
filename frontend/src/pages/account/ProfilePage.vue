@@ -504,6 +504,9 @@
                             <option value="pending">
                                 {{ $t('profile.purchases.statuses.pending') }}
                             </option>
+                            <option value="processing">
+                                {{ $t('profile.purchases.statuses.processing') }}
+                            </option>
                             <option value="failed">
                                 {{ $t('profile.purchases.statuses.failed') }}
                             </option>
@@ -588,6 +591,314 @@
                             formatPaymentMethod(purchase.payment_method)
                         }}</span>
                         <span class="purchase-date">{{ formatDate(purchase.created_at) }}</span>
+                    </div>
+
+                    <!-- Блок уведомления для заказов в обработке -->
+                    <div
+                        v-if="purchase.status === 'processing'"
+                        class="mt-3 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg"
+                    >
+                        <div class="flex items-start gap-3">
+                            <svg
+                                class="w-5 h-5 text-yellow-600 dark:text-yellow-400 mt-0.5 shrink-0"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                                />
+                            </svg>
+                            <div class="flex-1">
+                                <h4 class="font-semibold text-yellow-900 dark:text-yellow-200 mb-1">
+                                    {{ $t('profile.purchases.processing') }}
+                                </h4>
+                                <p class="text-sm text-yellow-800 dark:text-yellow-300 mb-2">
+                                    {{ $t('profile.purchases.processing_description') }}
+                                </p>
+                                <p class="text-xs text-yellow-700 dark:text-yellow-400 mb-3">
+                                    {{ $t('profile.purchases.working_hours') }}
+                                </p>
+                                
+                                <!-- Блок ожидания товара -->
+                                <div
+                                    v-if="purchase.is_waiting_stock"
+                                    class="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg p-3 mb-3"
+                                >
+                                    <div class="flex items-start gap-2">
+                                        <svg
+                                            class="w-5 h-5 text-orange-600 dark:text-orange-400 mt-0.5 shrink-0"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            viewBox="0 0 24 24"
+                                        >
+                                            <path
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                                stroke-width="2"
+                                                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                                            />
+                                        </svg>
+                                        <div class="flex-1">
+                                            <h5 class="font-semibold text-orange-900 dark:text-orange-200 mb-1 text-sm">
+                                                {{ $t('profile.purchases.waiting_stock_title') }}
+                                            </h5>
+                                            <p class="text-xs text-orange-800 dark:text-orange-300 mb-1">
+                                                {{ $t('profile.purchases.waiting_stock_description') }}
+                                            </p>
+                                            <p class="text-xs text-orange-700 dark:text-orange-400">
+                                                {{ $t('profile.purchases.waiting_stock_notification') }}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Блок ошибки обработки -->
+                                <div
+                                    v-if="purchase.processing_error"
+                                    class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3 mb-3"
+                                >
+                                    <div class="flex items-start gap-2">
+                                        <svg
+                                            class="w-5 h-5 text-red-600 dark:text-red-400 mt-0.5 shrink-0"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            viewBox="0 0 24 24"
+                                        >
+                                            <path
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                                stroke-width="2"
+                                                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                                            />
+                                        </svg>
+                                        <div class="flex-1">
+                                            <h5 class="font-semibold text-red-900 dark:text-red-200 mb-1 text-sm">
+                                                {{ $t('profile.purchases.processing_error_title') }}
+                                            </h5>
+                                            <p class="text-xs text-red-800 dark:text-red-300 mb-1">
+                                                {{ purchase.processing_error }}
+                                            </p>
+                                            <p class="text-xs text-red-700 dark:text-red-400">
+                                                {{ $t('profile.purchases.processing_error_description') }}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Прогресс-бар обработки заказа -->
+                                <div class="mb-3">
+                                    <div class="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-2 mb-2">
+                                        <!-- Этап 1: Заказ принят -->
+                                        <div class="flex items-center gap-1.5 flex-1 w-full sm:w-auto">
+                                            <div 
+                                                :class="[
+                                                    'w-6 h-6 rounded-full flex items-center justify-center shrink-0',
+                                                    getProgressStage(purchase) >= 1 
+                                                        ? 'bg-yellow-500 dark:bg-yellow-600' 
+                                                        : 'bg-gray-300 dark:bg-gray-600'
+                                                ]"
+                                            >
+                                                <svg 
+                                                    :class="[
+                                                        'w-4 h-4',
+                                                        getProgressStage(purchase) >= 1 
+                                                            ? 'text-white' 
+                                                            : 'text-gray-500 dark:text-gray-400'
+                                                    ]"
+                                                    fill="none" 
+                                                    stroke="currentColor" 
+                                                    viewBox="0 0 24 24"
+                                                >
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                                </svg>
+                                            </div>
+                                            <span 
+                                                :class="[
+                                                    'text-xs truncate',
+                                                    getProgressStage(purchase) >= 1 
+                                                        ? 'text-yellow-700 dark:text-yellow-300' 
+                                                        : 'text-gray-500 dark:text-gray-400'
+                                                ]"
+                                            >
+                                                {{ $t('profile.purchases.progress.accepted') }}
+                                            </span>
+                                        </div>
+                                        <!-- Линия -->
+                                        <div 
+                                            :class="[
+                                                'hidden sm:block flex-1 h-0.5',
+                                                getProgressStage(purchase) >= 2 
+                                                    ? 'bg-yellow-300 dark:bg-yellow-700' 
+                                                    : 'bg-gray-300 dark:bg-gray-600'
+                                            ]"
+                                        ></div>
+                                        <!-- Этап 2: В обработке -->
+                                        <div class="flex items-center gap-1.5 flex-1 w-full sm:w-auto">
+                                            <div 
+                                                :class="[
+                                                    'w-6 h-6 rounded-full flex items-center justify-center shrink-0',
+                                                    getProgressStage(purchase) === 2 
+                                                        ? 'bg-yellow-500 dark:bg-yellow-600 animate-pulse' 
+                                                        : getProgressStage(purchase) >= 2
+                                                        ? 'bg-yellow-500 dark:bg-yellow-600'
+                                                        : 'bg-gray-300 dark:bg-gray-600'
+                                                ]"
+                                            >
+                                                <div 
+                                                    v-if="getProgressStage(purchase) === 2"
+                                                    class="w-2 h-2 rounded-full bg-white"
+                                                ></div>
+                                                <svg 
+                                                    v-else-if="getProgressStage(purchase) >= 2"
+                                                    class="w-4 h-4 text-white" 
+                                                    fill="none" 
+                                                    stroke="currentColor" 
+                                                    viewBox="0 0 24 24"
+                                                >
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                                </svg>
+                                            </div>
+                                            <span 
+                                                :class="[
+                                                    'text-xs truncate',
+                                                    getProgressStage(purchase) >= 2 
+                                                        ? 'text-yellow-700 dark:text-yellow-300 font-medium' 
+                                                        : 'text-gray-500 dark:text-gray-400'
+                                                ]"
+                                            >
+                                                {{ $t('profile.purchases.progress.processing') }}
+                                            </span>
+                                        </div>
+                                        <!-- Линия -->
+                                        <div 
+                                            :class="[
+                                                'hidden sm:block flex-1 h-0.5',
+                                                getProgressStage(purchase) >= 3 
+                                                    ? 'bg-yellow-300 dark:bg-yellow-700' 
+                                                    : 'bg-gray-300 dark:bg-gray-600'
+                                            ]"
+                                        ></div>
+                                        <!-- Этап 3: Готов -->
+                                        <div class="flex items-center gap-1.5 flex-1 w-full sm:w-auto">
+                                            <div 
+                                                :class="[
+                                                    'w-6 h-6 rounded-full flex items-center justify-center shrink-0',
+                                                    getProgressStage(purchase) >= 3 
+                                                        ? 'bg-green-500 dark:bg-green-600' 
+                                                        : 'bg-gray-300 dark:bg-gray-600'
+                                                ]"
+                                            >
+                                                <svg 
+                                                    :class="[
+                                                        'w-4 h-4',
+                                                        getProgressStage(purchase) >= 3 
+                                                            ? 'text-white' 
+                                                            : 'text-gray-500 dark:text-gray-400'
+                                                    ]"
+                                                    fill="none" 
+                                                    stroke="currentColor" 
+                                                    viewBox="0 0 24 24"
+                                                >
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                                </svg>
+                                            </div>
+                                            <span 
+                                                :class="[
+                                                    'text-xs truncate',
+                                                    getProgressStage(purchase) >= 3 
+                                                        ? 'text-green-700 dark:text-green-300' 
+                                                        : 'text-gray-500 dark:text-gray-400'
+                                                ]"
+                                            >
+                                                {{ $t('profile.purchases.progress.ready') }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Индикация времени обработки -->
+                                <p class="text-xs text-yellow-600 dark:text-yellow-500 mb-2">
+                                    {{ $t('profile.purchases.processing_since', { date: formatDate(purchase.created_at) }) }}
+                                </p>
+                                <!-- Среднее время обработки -->
+                                <p
+                                    v-if="averageProcessingTime !== null"
+                                    class="text-xs text-yellow-600 dark:text-yellow-500 mb-3"
+                                >
+                                    {{ $t('profile.purchases.average_processing_time', { hours: averageProcessingTime }) }}
+                                </p>
+                                <!-- Кнопки действий -->
+                                <div class="flex gap-2 flex-wrap">
+                                    <!-- Кнопка связи с менеджером -->
+                                    <button
+                                        class="px-4 py-2 text-sm bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-800 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors font-medium flex items-center gap-2"
+                                        @click="contactManagerAboutOrder(purchase)"
+                                    >
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                                        </svg>
+                                        {{ $t('profile.purchases.contact_manager') }}
+                                    </button>
+                                    <!-- Кнопка отмены заказа -->
+                                    <button
+                                        class="px-4 py-2 text-sm bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors font-medium"
+                                        @click="openCancelModal(purchase)"
+                                    >
+                                        {{ $t('profile.purchases.cancel_order') }}
+                                    </button>
+                                </div>
+                                
+                                <!-- История изменений статуса -->
+                                <div
+                                    v-if="purchase.status_history && purchase.status_history.length > 0"
+                                    class="mt-4 pt-3 border-t border-yellow-200 dark:border-yellow-800"
+                                >
+                                    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mb-2">
+                                        <h5 class="text-xs font-semibold text-yellow-800 dark:text-yellow-300">
+                                            {{ $t('profile.purchases.status_history') }}
+                                        </h5>
+                                        <button
+                                            v-if="purchase.status_history.length > 3"
+                                            class="text-xs text-yellow-600 dark:text-yellow-400 hover:text-yellow-700 dark:hover:text-yellow-300 underline whitespace-nowrap"
+                                            @click="openStatusHistoryModal(purchase)"
+                                        >
+                                            {{ $t('profile.purchases.show_full_history') }}
+                                        </button>
+                                    </div>
+                                    <div class="space-y-2">
+                                        <div
+                                            v-for="(history, idx) in purchase.status_history.slice(0, 3)"
+                                            :key="history.id"
+                                            class="text-xs text-yellow-700 dark:text-yellow-400"
+                                        >
+                                            <div class="flex flex-col sm:flex-row sm:items-start gap-1 sm:gap-2">
+                                                <span class="font-medium">
+                                                    {{ formatStatus(history.new_status) }}
+                                                </span>
+                                                <span class="text-yellow-600 dark:text-yellow-500 text-xs sm:text-xs">
+                                                    {{ formatDate(history.created_at) }}
+                                                </span>
+                                            </div>
+                                            <div
+                                                v-if="history.changed_by"
+                                                class="text-yellow-600 dark:text-yellow-500 mt-0.5 text-xs"
+                                            >
+                                                {{ $t('profile.purchases.changed_by') }}: {{ history.changed_by.name }}
+                                            </div>
+                                            <div
+                                                v-if="history.reason"
+                                                class="text-yellow-600 dark:text-yellow-500 mt-0.5 italic text-xs break-words"
+                                            >
+                                                {{ history.reason }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Данные аккаунтов (если есть) - компактная кнопка -->
@@ -1354,11 +1665,175 @@
                 </div>
             </Transition>
         </Teleport>
+
+        <!-- Cancel Order Modal -->
+        <Teleport to="body">
+            <Transition name="modal">
+                <div
+                    v-if="showCancelModal"
+                    class="fixed inset-0 z-[9998] flex items-center justify-center bg-black/30 backdrop-blur-sm p-4"
+                    @click.self="closeCancelModal"
+                >
+                    <div
+                        class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md p-6 transform transition-all"
+                    >
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-xl font-bold text-gray-900 dark:text-white">
+                                {{ $t('profile.purchases.cancel_order') }}
+                            </h3>
+                            <button
+                                @click="closeCancelModal"
+                                class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                            >
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M6 18L18 6M6 6l12 12"
+                                    />
+                                </svg>
+                            </button>
+                        </div>
+
+                        <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                            {{ $t('profile.purchases.cancel_order_confirm') }}
+                        </p>
+
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                {{ $t('profile.purchases.cancel_reason_label') }}
+                                <span class="text-red-500">*</span>
+                            </label>
+                            <textarea
+                                v-model="cancellationReason"
+                                :placeholder="$t('profile.purchases.cancel_reason_placeholder')"
+                                rows="4"
+                                minlength="10"
+                                maxlength="500"
+                                class="w-full px-4 py-3 bg-white/70 dark:bg-gray-700/70 border border-gray-300/50 dark:border-gray-600/50 rounded-xl dark:text-gray-100 focus:ring-2 focus:ring-red-500/50 focus:border-red-500/50 transition-all"
+                            ></textarea>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                {{ $t('profile.purchases.cancel_reason_hint', { min: 10, max: 500 }) }}
+                            </p>
+                        </div>
+
+                        <div class="flex gap-3">
+                            <button
+                                @click="closeCancelModal"
+                                class="flex-1 px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors font-medium"
+                            >
+                                {{ $t('profile.purchases.disputes.cancel') }}
+                            </button>
+                            <button
+                                @click="cancelProcessingOrder"
+                                :disabled="cancellationReason.trim().length < 10"
+                                class="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                {{ $t('profile.purchases.confirm_cancel') }}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </Transition>
+        </Teleport>
+
+        <!-- Status History Modal -->
+        <Teleport to="body">
+            <Transition name="modal">
+                <div
+                    v-if="showStatusHistoryModal"
+                    class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/30 backdrop-blur-sm p-4"
+                    @click.self="closeStatusHistoryModal"
+                >
+                    <div
+                        class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col"
+                    >
+                        <div class="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+                            <h3 class="text-xl font-bold text-gray-900 dark:text-white">
+                                {{ $t('profile.purchases.status_history') }}
+                            </h3>
+                            <button
+                                @click="closeStatusHistoryModal"
+                                class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                            >
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M6 18L18 6M6 6l12 12"
+                                    />
+                                </svg>
+                            </button>
+                        </div>
+
+                        <div class="flex-1 overflow-y-auto p-4 sm:p-6">
+                            <div v-if="loadingStatusHistory" class="flex justify-center py-8">
+                                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                            </div>
+                            <div v-else-if="fullStatusHistory.length === 0" class="text-center py-8 text-gray-500 dark:text-gray-400">
+                                {{ $t('profile.purchases.no_status_history') }}
+                            </div>
+                            <div v-else class="space-y-3 sm:space-y-4">
+                                <div
+                                    v-for="history in fullStatusHistory"
+                                    :key="history.id"
+                                    class="border-l-4 border-yellow-500 dark:border-yellow-600 pl-3 sm:pl-4 py-2"
+                                >
+                                    <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-4">
+                                        <div class="flex-1 min-w-0">
+                                            <div class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mb-1">
+                                                <span class="font-semibold text-sm sm:text-base text-gray-900 dark:text-white break-words">
+                                                    {{ formatStatus(history.new_status) }}
+                                                </span>
+                                                <span
+                                                    v-if="history.old_status"
+                                                    class="text-xs sm:text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap"
+                                                >
+                                                    ({{ $t('profile.purchases.from') }} {{ formatStatus(history.old_status) }})
+                                                </span>
+                                            </div>
+                                            <div class="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-1">
+                                                {{ formatDate(history.created_at) }}
+                                            </div>
+                                            <div
+                                                v-if="history.changed_by"
+                                                class="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-1 break-words"
+                                            >
+                                                {{ $t('profile.purchases.status_changed_by') }}: {{ history.changed_by.name }}
+                                            </div>
+                                            <div
+                                                v-if="history.reason"
+                                                class="text-xs sm:text-sm text-gray-700 dark:text-gray-300 italic mt-2 break-words"
+                                            >
+                                                {{ history.reason }}
+                                            </div>
+                                            <div
+                                                v-if="history.metadata"
+                                                class="text-xs text-gray-500 dark:text-gray-400 mt-2"
+                                            >
+                                                <details class="cursor-pointer">
+                                                    <summary class="hover:text-gray-700 dark:hover:text-gray-300 text-xs sm:text-sm">
+                                                        {{ $t('profile.purchases.status_metadata') }}
+                                                    </summary>
+                                                    <pre class="mt-2 p-2 bg-gray-100 dark:bg-gray-700 rounded text-xs overflow-x-auto">{{ JSON.stringify(history.metadata, null, 2) }}</pre>
+                                                </details>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </Transition>
+        </Teleport>
     </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, onBeforeUnmount } from 'vue';
 import { Lock, Mail, User } from 'lucide-vue-next';
 import { useAuthStore } from '../../stores/auth';
 import { POSITION, useToast } from 'vue-toastification';
@@ -1393,6 +1868,12 @@ const purchases = ref<any[]>([]);
 const filteredPurchases = ref<any[]>([]);
 const loadingPurchases = ref(false);
 const expandedPurchases = ref<Set<number>>(new Set());
+const averageProcessingTime = ref<number | null>(null);
+const lastUpdateTime = ref<Date | null>(null);
+
+// Polling intervals
+let processingOrdersPollingInterval: ReturnType<typeof setTimeout> | null = null;
+let processingTimerInterval: ReturnType<typeof setInterval> | null = null;
 
 // Disputes (Претензии)
 const disputes = ref<any[]>([]);
@@ -1414,6 +1895,17 @@ const screenshotFile = ref<File | null>(null);
 const screenshotPreview = ref<string | null>(null);
 const screenshotLinkError = ref(false);
 const isSubmittingDispute = ref(false);
+
+// Cancel order modal
+const showCancelModal = ref(false);
+const cancellationReason = ref('');
+const selectedPurchaseForCancel = ref<any>(null);
+
+// Status History Modal
+const showStatusHistoryModal = ref(false);
+const fullStatusHistory = ref<any[]>([]);
+const loadingStatusHistory = ref(false);
+const selectedPurchaseForHistory = ref<any>(null);
 
 const disputeForm = ref({
     reason: '',
@@ -1474,6 +1966,13 @@ const getStatusClass = (status: string) => {
     return classes[status] || 'status-completed';
 };
 
+// Определение текущего этапа прогресс-бара
+const getProgressStage = (purchase: any): number => {
+    if (purchase.status === 'completed') return 3;
+    if (purchase.status === 'processing') return 2;
+    return 1;
+};
+
 const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return new Intl.DateTimeFormat('ru-RU', {
@@ -1483,6 +1982,22 @@ const formatDate = (dateString: string) => {
         hour: '2-digit',
         minute: '2-digit'
     }).format(date);
+};
+
+// Расчет времени обработки заказа
+const getProcessingDuration = (purchase: any) => {
+    const start = new Date(purchase.created_at);
+    const now = new Date();
+    const diffMs = now.getTime() - start.getTime();
+    const hours = Math.floor(diffMs / (1000 * 60 * 60));
+    const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+    
+    if (hours >= 24) {
+        const days = Math.floor(hours / 24);
+        const remainingHours = hours % 24;
+        return t('profile.purchases.processing_duration_days', { days, hours: remainingHours });
+    }
+    return t('profile.purchases.processing_duration_hours', { hours, minutes });
 };
 
 const fetchPurchases = async () => {
@@ -1507,6 +2022,12 @@ const fetchPurchases = async () => {
         if (data.success && Array.isArray(data.purchases)) {
             purchases.value = data.purchases;
             filteredPurchases.value = data.purchases;
+            
+            // Загружаем статистику обработки, если есть заказы в processing
+            const hasProcessingOrders = purchases.value.some(p => p.status === 'processing');
+            if (hasProcessingOrders) {
+                await fetchProcessingStats();
+            }
         } else {
             purchases.value = [];
             filteredPurchases.value = [];
@@ -1517,6 +2038,101 @@ const fetchPurchases = async () => {
         filteredPurchases.value = [];
     } finally {
         loadingPurchases.value = false;
+    }
+};
+
+// Загрузка статистики обработки заказов
+const fetchProcessingStats = async () => {
+    try {
+        const token = authStore.token;
+        if (!token) {
+            return;
+        }
+
+        const { data } = await axios.get('/purchases/stats/processing', {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
+
+        if (data.success && data.average_processing_time_hours !== null && data.average_processing_time_hours !== undefined) {
+            averageProcessingTime.value = data.average_processing_time_hours;
+        } else {
+            averageProcessingTime.value = null;
+        }
+    } catch (error) {
+        console.error('Error fetching processing stats:', error);
+        averageProcessingTime.value = null;
+    }
+};
+
+// Запуск polling для заказов в статусе processing
+const startProcessingOrdersPolling = () => {
+    // Останавливаем предыдущий polling, если он был
+    stopProcessingOrdersPolling();
+
+    // Запускаем адаптивный polling
+    const poll = async () => {
+        // Проверяем, есть ли еще заказы в processing
+        const processingOrders = purchases.value.filter(p => p.status === 'processing');
+        if (processingOrders.length === 0) {
+            stopProcessingOrdersPolling();
+            return;
+        }
+
+        // Определяем интервал на основе возраста самого старого заказа
+        const oldestOrder = processingOrders.reduce((oldest, current) => {
+            const oldestDate = new Date(oldest.created_at);
+            const currentDate = new Date(current.created_at);
+            return currentDate < oldestDate ? current : oldest;
+        });
+        
+        const hoursInProcessing = (new Date().getTime() - new Date(oldestOrder.created_at).getTime()) / (1000 * 60 * 60);
+        const pollingInterval = hoursInProcessing >= 1 ? 60000 : 30000; // 60 сек для заказов старше 1 часа, 30 сек для остальных
+
+        // Обновляем список покупок
+        try {
+            lastUpdateTime.value = new Date();
+            await fetchPurchases();
+        } catch (error) {
+            console.error('Error polling processing orders:', error);
+        }
+
+        // Планируем следующий опрос с адаптивным интервалом
+        processingOrdersPollingInterval = window.setTimeout(poll, pollingInterval);
+    };
+
+    // Запускаем первый опрос сразу
+    poll();
+};
+
+// Остановка polling для заказов в статусе processing
+const stopProcessingOrdersPolling = () => {
+    if (processingOrdersPollingInterval !== null) {
+        clearTimeout(processingOrdersPollingInterval);
+        processingOrdersPollingInterval = null;
+    }
+};
+
+// Запуск таймера обработки (обновление каждую минуту)
+const startProcessingTimer = () => {
+    // Останавливаем предыдущий таймер, если он был
+    if (processingTimerInterval !== null) {
+        clearInterval(processingTimerInterval);
+    }
+
+    // Запускаем новый таймер каждую минуту для обновления отображения времени
+    processingTimerInterval = window.setInterval(() => {
+        // Просто триггерим реактивность, чтобы обновить отображение
+        // Vue автоматически пересчитает getProcessingDuration
+    }, 60000); // 60 секунд
+};
+
+// Остановка таймера обработки
+const stopProcessingTimer = () => {
+    if (processingTimerInterval !== null) {
+        clearInterval(processingTimerInterval);
+        processingTimerInterval = null;
     }
 };
 
@@ -1714,6 +2330,180 @@ const canCreateDispute = (purchase: any): boolean => {
     return true;
 };
 
+// Открытие модального окна отмены заказа
+const openCancelModal = (purchase: any) => {
+    selectedPurchaseForCancel.value = purchase;
+    cancellationReason.value = '';
+    showCancelModal.value = true;
+};
+
+// Закрытие модального окна отмены
+const closeCancelModal = () => {
+    showCancelModal.value = false;
+    selectedPurchaseForCancel.value = null;
+    cancellationReason.value = '';
+};
+
+// Открытие модального окна истории статусов
+const openStatusHistoryModal = async (purchase: any) => {
+    selectedPurchaseForHistory.value = purchase;
+    showStatusHistoryModal.value = true;
+    loadingStatusHistory.value = true;
+    fullStatusHistory.value = [];
+    
+    try {
+        const token = authStore.token;
+        if (!token) {
+            toast.error(t('profile.purchases.not_authorized'));
+            return;
+        }
+        
+        const response = await axios.get(`/purchases/${purchase.id}/status-history`, {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
+        
+        if (response.data.success && response.data.status_history) {
+            fullStatusHistory.value = response.data.status_history;
+        } else {
+            toast.error(t('profile.purchases.status_history_error'));
+        }
+    } catch (error: any) {
+        console.error('Error fetching status history:', error);
+        toast.error(error.response?.data?.message || t('profile.purchases.status_history_error'));
+    } finally {
+        loadingStatusHistory.value = false;
+    }
+};
+
+// Закрытие модального окна истории статусов
+const closeStatusHistoryModal = () => {
+    showStatusHistoryModal.value = false;
+    selectedPurchaseForHistory.value = null;
+    fullStatusHistory.value = [];
+    loadingStatusHistory.value = false;
+};
+
+// Отмена заказа в статусе processing
+const cancelProcessingOrder = async () => {
+    const { t } = useI18n();
+    
+    if (!selectedPurchaseForCancel.value) {
+        return;
+    }
+
+    const purchase = selectedPurchaseForCancel.value;
+
+    // Валидация причины отмены
+    const reason = cancellationReason.value.trim();
+    if (reason.length < 10) {
+        toast.error(t('profile.purchases.cancel_reason_min_length'));
+        return;
+    }
+    if (reason.length > 500) {
+        toast.error(t('profile.purchases.cancel_reason_max_length'));
+        return;
+    }
+
+    try {
+        const token = authStore.token;
+        
+        if (!token) {
+            toast.error(t('profile.purchases.not_authorized'));
+            return;
+        }
+
+        const config: any = {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        };
+
+        // Для гостевых покупок добавляем email в query параметры
+        if (!purchase.user_id && purchase.guest_email) {
+            config.params = { guest_email: purchase.guest_email };
+        }
+
+        const response = await axios.post(
+            `/purchases/${purchase.id}/cancel`,
+            {
+                cancellation_reason: reason
+            },
+            config
+        );
+
+        if (response.data.success) {
+            toast.success(t('profile.purchases.order_cancelled'));
+            closeCancelModal();
+            // Обновляем список покупок
+            await fetchPurchases();
+        }
+    } catch (error: any) {
+        toast.error(error.response?.data?.error || t('profile.purchases.cancel_order_error'));
+    }
+};
+
+// Связаться с менеджером по заказу
+const contactManagerAboutOrder = async (purchase: any) => {
+    const { t } = useI18n();
+    
+    try {
+        const productTitle = getProductTitle(purchase.service_name || purchase.product?.title || {});
+        const orderNumber = purchase.order_number || purchase.id;
+        
+        // Формируем сообщение с контекстом заказа
+        const initialMessage = t('profile.purchases.contact_manager_message', {
+            order_number: orderNumber,
+            product_title: productTitle
+        });
+
+        // Проверяем, что чат поддержки доступен
+        const chatWidget = document.querySelector('.support-chat-widget');
+        if (!chatWidget) {
+            toast.info(t('profile.purchases.chat_not_available'), {
+                timeout: 5000
+            });
+            return;
+        }
+
+        // Открываем чат поддержки через событие
+        const event = new CustomEvent('openSupportChat', {
+            detail: {
+                initialMessage: initialMessage
+            }
+        });
+        window.dispatchEvent(event);
+
+        // Проверяем, что событие обработалось (fallback через 1 секунду)
+        let eventHandled = false;
+        const checkInterval = setTimeout(() => {
+            if (!eventHandled) {
+                toast.info(t('profile.purchases.contact_manager_hint'), {
+                    timeout: 5000
+                });
+            }
+        }, 1000);
+
+        // Слушаем событие об успешном открытии чата (если есть)
+        const handleChatOpened = () => {
+            eventHandled = true;
+            clearTimeout(checkInterval);
+            window.removeEventListener('supportChatOpened', handleChatOpened);
+        };
+        window.addEventListener('supportChatOpened', handleChatOpened);
+        
+        // Очищаем слушатель через 2 секунды
+        setTimeout(() => {
+            window.removeEventListener('supportChatOpened', handleChatOpened);
+            clearTimeout(checkInterval);
+        }, 2000);
+    } catch (error: any) {
+        console.error('Error opening support chat:', error);
+        toast.error(t('profile.purchases.contact_manager_error'));
+    }
+};
+
 const openDisputeModal = (purchase: any) => {
     selectedPurchase.value = purchase;
     showDisputeModal.value = true;
@@ -1890,6 +2680,16 @@ onMounted(async () => {
         // Останавливаем прелоадер после загрузки
         loadingStore.stop();
     }
+});
+
+// Останавливаем polling при размонтировании
+onBeforeUnmount(() => {
+    stopProcessingOrdersPolling();
+});
+
+// Останавливаем polling при размонтировании
+onBeforeUnmount(() => {
+    stopProcessingOrdersPolling();
 });
 </script>
 

@@ -702,18 +702,30 @@ const buyNow = (account: any) => {
 // Функции для отображения способа выдачи товара
 const getDeliveryTypeLabel = (account: any): string => {
     const deliveryType = account.delivery_type || 'automatic';
-    if (deliveryType === 'manual') {
-        return t('account.delivery.manual');
+    try {
+        if (deliveryType === 'manual') {
+            return t('account.delivery.manual') || 'Ручная выдача';
+        }
+        return t('account.delivery.automatic') || 'Авто-выдача';
+    } catch (e) {
+        // Fallback если переводы не загружены
+        return deliveryType === 'manual' ? 'Ручная выдача' : 'Авто-выдача';
     }
-    return t('account.delivery.automatic');
 };
 
 const getDeliveryTypeText = (account: any): string => {
     const deliveryType = account.delivery_type || 'automatic';
-    if (deliveryType === 'manual') {
-        return t('account.delivery.manual_description');
+    try {
+        if (deliveryType === 'manual') {
+            return t('account.delivery.manual_description') || 'Товар выдается менеджером вручную после обработки заказа';
+        }
+        return t('account.delivery.automatic_description') || 'Товар выдается автоматически сразу после оплаты';
+    } catch (e) {
+        // Fallback если переводы не загружены
+        return deliveryType === 'manual' 
+            ? 'Товар выдается менеджером вручную после обработки заказа'
+            : 'Товар выдается автоматически сразу после оплаты';
     }
-    return t('account.delivery.automatic_description');
 };
 
 // const truncateText = (text: string, maxLength: number) => {
@@ -775,12 +787,31 @@ onMounted(async () => {
     await categoriesStore.fetchAll();
     try {
         // Загружаем только если еще не загружены (предзагрузка в App.vue)
+        const wasLoaded = accountsStore.loaded;
+        console.log('[AccountSection] Состояние загрузки товаров перед проверкой:', { loaded: wasLoaded, count: accountsStore.list.length });
+        
         if (!accountsStore.loaded) {
             await optionStore.fetchData();
             await accountsStore.fetchAll();
         }
-    } catch (err) {
-        console.error('Error fetching accounts:', err);
+        
+        // Логируем успешную загрузку с количеством товаров
+        console.log('[AccountSection] Товары загружены:', {
+            count: accountsStore.list.length,
+            loaded: accountsStore.loaded,
+            wasPreloaded: wasLoaded
+        });
+    } catch (err: any) {
+        // Улучшенное логирование ошибок с деталями
+        const errorDetails = {
+            status: err?.response?.status,
+            statusText: err?.response?.statusText,
+            message: err?.message,
+            url: err?.config?.url,
+            responseData: err?.response?.data
+        };
+        console.error('[AccountSection] Ошибка загрузки товаров:', errorDetails);
+        console.error('[AccountSection] Полная ошибка:', err);
     }
 });
 </script>

@@ -120,6 +120,60 @@ class NotificationTemplateSeeder extends Seeder
                 'uk' => 'Нова покупка (:method), email: :email, ім\'я: :name, товарів: :products, сума: :amount',
             ],
         ]);
+
+        // Шаблон 5: Уведомление о создании заказа на ручную обработку
+        $manualOrderCreatedTemplate = NotificationTemplate::firstOrCreate(
+            ['code' => 'manual_delivery_order_created'],
+            [
+                'name' => 'Заказ принят в обработку',
+                'is_mass' => 0,
+            ]
+        );
+        
+        $manualOrderCreatedTemplate->update([
+            'name' => 'Заказ принят в обработку',
+            'is_mass' => 0,
+        ]);
+
+        $this->saveTranslations($manualOrderCreatedTemplate, [
+            'title' => [
+                'ru' => 'Ваш заказ принят в обработку',
+                'en' => 'Your order is being processed',
+                'uk' => 'Ваше замовлення прийнято в обробку',
+            ],
+            'message' => [
+                'ru' => 'Ваш заказ :order_number на товар ":product_title" принят в обработку. Товар будет выдан менеджером вручную в течение рабочего времени (Пн-Пт, 9:00-18:00 по МСК). Вы получите уведомление, когда товар будет готов.',
+                'en' => 'Your order :order_number for ":product_title" has been accepted for processing. The product will be delivered manually by a manager during business hours (Mon-Fri, 9:00-18:00 MSK). You will receive a notification when the product is ready.',
+                'uk' => 'Ваше замовлення :order_number на товар ":product_title" прийнято в обробку. Товар буде видано менеджером вручну протягом робочого часу (Пн-Пт, 9:00-18:00 за МСК). Ви отримаєте сповіщення, коли товар буде готовий.',
+            ],
+        ]);
+
+        // Шаблон 6: Уведомление о завершении ручной обработки
+        $manualDeliveryCompletedTemplate = NotificationTemplate::firstOrCreate(
+            ['code' => 'manual_delivery_completed'],
+            [
+                'name' => 'Заказ готов',
+                'is_mass' => 0,
+            ]
+        );
+        
+        $manualDeliveryCompletedTemplate->update([
+            'name' => 'Заказ готов',
+            'is_mass' => 0,
+        ]);
+
+        $this->saveTranslations($manualDeliveryCompletedTemplate, [
+            'title' => [
+                'ru' => 'Ваш заказ готов!',
+                'en' => 'Your order is ready!',
+                'uk' => 'Ваше замовлення готове!',
+            ],
+            'message' => [
+                'ru' => 'Ваш заказ :order_number на товар ":product_title" успешно обработан. Товар готов к использованию! Данные для доступа доступны в разделе "Мои покупки" в вашем профиле.',
+                'en' => 'Your order :order_number for ":product_title" has been successfully processed. The product is ready to use! Access data is available in the "My Purchases" section in your profile.',
+                'uk' => 'Ваше замовлення :order_number на товар ":product_title" успішно оброблено. Товар готовий до використання! Дані для доступу доступні в розділі "Мої покупки" у вашому профілі.',
+            ],
+        ]);
     }
 
     private function saveTranslations(NotificationTemplate $template, array $translations): void

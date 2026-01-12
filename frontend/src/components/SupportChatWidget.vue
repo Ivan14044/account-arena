@@ -1421,12 +1421,32 @@ const newLine = () => {
     // Shift+Enter добавляет новую строку
 };
 
+// Обработчик события для открытия чата с начальным сообщением
+const handleOpenSupportChatEvent = async (event: CustomEvent) => {
+    if (event.detail?.initialMessage) {
+        // Открываем чат
+        await openChat();
+        // Устанавливаем начальное сообщение
+        await nextTick();
+        if (newMessage.value === '') {
+            newMessage.value = event.detail.initialMessage;
+        }
+    } else {
+        // Просто открываем чат без сообщения
+        await openChat();
+    }
+};
+
 onMounted(() => {
     loadSettings();
+    // Добавляем обработчик события для открытия чата
+    window.addEventListener('openSupportChat', handleOpenSupportChatEvent as EventListener);
 });
 
 onUnmounted(() => {
     stopPolling();
+    // Удаляем обработчик события
+    window.removeEventListener('openSupportChat', handleOpenSupportChatEvent as EventListener);
 });
 
 watch(isChatOpen, newVal => {

@@ -24,7 +24,12 @@ class NotificationTemplateService
             ->first();
 
         if (!$template) {
-            Log::warning("Notification template not found: {$templateCode}");
+            Log::warning("Notification template not found", [
+                'template_code' => $templateCode,
+                'user_id' => $user->id ?? null,
+                'user_email' => $user->email ?? null,
+                'variables' => $variables,
+            ]);
             return null;
         }
 

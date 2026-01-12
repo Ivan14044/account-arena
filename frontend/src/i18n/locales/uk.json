@@ -115,11 +115,42 @@
                 "cancelled": "Скасовано",
                 "refunded": "Повернення коштів"
             },
-            "processing": {
-                "title": "Замовлення обробляється",
-                "description": "Ваше замовлення знаходиться на ручній обробці менеджером. Товар буде видано після завершення обробки.",
-                "working_hours": "Графік роботи: Пн-Пт 9:00-18:00 (МСК)"
+            "processing": "В ручній обробці",
+            "processing_description": "Менеджер обробляє ваше замовлення. Товар буде видано після завершення обробки.",
+            "working_hours": "Графік роботи менеджера: Пн-Пт, 9:00-18:00 за МСК",
+            "processing_since": "В обробці з {date}",
+            "average_processing_time": "Середній час обробки: {hours} год.",
+            "processing_duration": "В обробці вже",
+            "processing_duration_hours": "{hours} год. {minutes} хв.",
+            "processing_duration_days": "{days} дн. {hours} год.",
+            "waiting_stock_title": "Очікування товару",
+            "waiting_stock_description": "Товар тимчасово відсутній. Ваше замовлення очікує появи товару на складі.",
+            "waiting_stock_notification": "Ми повідомимо вас, коли товар з'явиться в наявності, і менеджер обробить ваше замовлення.",
+            "progress": {
+                "accepted": "Прийнято",
+                "processing": "В обробці",
+                "ready": "Готово"
             },
+            "cancel_order": "Скасувати замовлення",
+            "cancel_order_confirm": "Ви впевнені, що хочете скасувати це замовлення? Кошти будуть повернуті на ваш баланс.",
+            "cancel_reason_label": "Причина скасування",
+            "cancel_reason_placeholder": "Вкажіть причину скасування замовлення (мінімум 10 символів)",
+            "cancel_reason_hint": "Від {min} до {max} символів",
+            "cancel_modal_close": "Скасувати",
+            "cancel_order_confirm_button": "Підтвердити скасування",
+            "cancel_reason_min_length": "Причина скасування повинна містити мінімум 10 символів",
+            "cancel_reason_max_length": "Причина скасування не повинна перевищувати 500 символів",
+            "confirm_cancel": "Підтвердити скасування",
+            "order_cancelled": "Замовлення успішно скасовано",
+            "cancel_order_error": "Помилка при скасуванні замовлення",
+            "not_authorized": "Необхідна авторизація",
+            "contact_manager": "Зв'язатися з менеджером",
+            "contact_manager_message": "Добрий день! У мене питання щодо замовлення #{order_number} (товар: {product_title}). Замовлення знаходиться в обробці.",
+            "contact_manager_hint": "Відкрийте чат підтримки та надішліть повідомлення менеджеру",
+            "contact_manager_error": "Помилка при відкритті чату підтримки",
+            "chat_not_available": "Чат підтримки тимчасово недоступний. Будь ласка, зв'яжіться з менеджером через email.",
+            "status_history": "Історія змін статусу",
+            "changed_by": "Змінено",
             "quantity": "Кількість",
             "pcs": "шт.",
             "quantity_unit": "шт.",
@@ -516,6 +547,14 @@
             "available_only": "Доступно лише {count} шт.",
             "product_added_to_cart": "{title} ({quantity} шт.) додано в кошик",
             "view_details": "Детальніше"
+        },
+        "delivery": {
+            "automatic": "Авто-видача",
+            "manual": "Ручна видача",
+            "not_selling": "Не продається",
+            "automatic_description": "Товар видається автоматично одразу після оплати",
+            "manual_description": "Товар видається менеджером вручну після обробки замовлення",
+            "not_available": "Товар відсутній в наявності"
         }
     },
     "catalog": {
@@ -544,7 +583,10 @@
         "go_to_profile": "Перейти в профіль",
         "back_to_home": "Повернутися на головну",
         "not_authorized": "Ви не авторизовані. Будь ласка, увійдіть в систему.",
-        "load_error": "Помилка при завантаженні покупок"
+        "load_error": "Помилка при завантаженні покупок",
+        "waiting_payment_confirmation": "Очікування підтвердження оплати...",
+        "waiting_payment_title": "Очікування підтвердження оплати",
+        "waiting_payment_description": "Ваш платіж обробляється. Замовлення з'являться автоматично після підтвердження оплати. Зазвичай це займає кілька секунд."
     },
     "supportChat": {
         "openChat": "Відкрити чат підтримки",

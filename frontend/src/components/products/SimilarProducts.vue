@@ -33,31 +33,63 @@
                 <!-- Center: Product Info -->
                 <div class="product-info">
                     <div class="title-with-badge">
-                        <!-- Stock Badge -->
-                        <div
-                            class="stock-badge-inline"
-                            :class="product.quantity > 0 ? 'in-stock' : 'out-of-stock'"
-                        >
-                            <svg
-                                v-if="product.quantity > 0"
-                                class="w-3 h-3"
-                                fill="currentColor"
-                                viewBox="0 0 20 20"
+                        <!-- Контейнер для бейджей: Наличие + Способ выдачи -->
+                        <div class="delivery-status-badge">
+                            <!-- Stock Badge - наличие товара -->
+                            <div
+                                class="stock-badge-inline"
+                                :class="product.quantity > 0 ? 'in-stock' : 'out-of-stock'"
                             >
-                                <path
-                                    fill-rule="evenodd"
-                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                                    clip-rule="evenodd"
-                                />
-                            </svg>
-                            <svg v-else class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                                <path
-                                    fill-rule="evenodd"
-                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                                    clip-rule="evenodd"
-                                />
-                            </svg>
-                            <span>{{ product.quantity > 0 ? product.quantity : '0' }}</span>
+                                <svg
+                                    v-if="product.quantity > 0"
+                                    class="w-3 h-3"
+                                    fill="currentColor"
+                                    viewBox="0 0 20 20"
+                                >
+                                    <path
+                                        fill-rule="evenodd"
+                                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                        clip-rule="evenodd"
+                                    />
+                                </svg>
+                                <svg v-else class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                    <path
+                                        fill-rule="evenodd"
+                                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                                        clip-rule="evenodd"
+                                    />
+                                </svg>
+                                <span>{{ product.quantity > 0 ? product.quantity : '0' }}</span>
+                            </div>
+                            
+                            <!-- Бейдж способа выдачи (только если товар в наличии) -->
+                            <div
+                                v-if="product.quantity > 0"
+                                class="delivery-type-badge"
+                                :class="(product.delivery_type || 'automatic') === 'manual' ? 'manual-delivery' : 'auto-delivery'"
+                                :title="getDeliveryTypeText(product)"
+                            >
+                                <svg
+                                    v-if="(product.delivery_type || 'automatic') === 'manual'"
+                                    class="w-3 h-3"
+                                    fill="currentColor"
+                                    viewBox="0 0 20 20"
+                                >
+                                    <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/>
+                                    <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd"/>
+                                </svg>
+                                <svg
+                                    v-else
+                                    class="w-3 h-3"
+                                    fill="currentColor"
+                                    viewBox="0 0 20 20"
+                                >
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                </svg>
+                                <span class="delivery-type-text">
+                                    {{ getDeliveryTypeLabel(product) }}
+                                </span>
+                            </div>
                         </div>
 
                         <h3
@@ -122,6 +154,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import { useAccountsStore, type AccountItem } from '@/stores/accounts';
 import { useProductTitle } from '@/composables/useProductTitle';
 import { useOptionStore } from '@/stores/options';
@@ -133,6 +166,7 @@ const router = useRouter();
 const accountsStore = useAccountsStore();
 const optionStore = useOptionStore();
 const { getProductTitle, getProductDescription } = useProductTitle();
+const { t } = useI18n();
 const products = ref<AccountItem[]>([]);
 
 const formatPrice = (price: number) => {
@@ -147,6 +181,23 @@ const formatPrice = (price: number) => {
 
 const goToProduct = (product: AccountItem) => {
     router.push(`/account/${product.sku || product.id}`);
+};
+
+// Функции для отображения способа выдачи товара
+const getDeliveryTypeLabel = (product: AccountItem): string => {
+    const deliveryType = product.delivery_type || 'automatic';
+    if (deliveryType === 'manual') {
+        return t('account.delivery.manual');
+    }
+    return t('account.delivery.automatic');
+};
+
+const getDeliveryTypeText = (product: AccountItem): string => {
+    const deliveryType = product.delivery_type || 'automatic';
+    if (deliveryType === 'manual') {
+        return t('account.delivery.manual_description');
+    }
+    return t('account.delivery.automatic_description');
 };
 
 onMounted(async () => {
@@ -391,6 +442,59 @@ onMounted(async () => {
     background: rgba(239, 68, 68, 0.15);
     color: #f87171;
     border-color: rgba(239, 68, 68, 0.4);
+}
+
+/* Контейнер для бейджей: Наличие + Способ выдачи */
+.delivery-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+/* Бейдж способа выдачи товара */
+.delivery-type-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 3px 8px;
+    border-radius: 10px;
+    font-size: 10px;
+    font-weight: 600;
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+    line-height: 1;
+    cursor: help;
+}
+
+.delivery-type-badge .delivery-type-text {
+    white-space: nowrap;
+}
+
+/* Синий бейдж - автоматическая выдача */
+.delivery-type-badge.auto-delivery {
+    background: rgba(37, 99, 235, 0.12);
+    color: #2563eb;
+    border: 1px solid rgba(37, 99, 235, 0.3);
+}
+
+/* Оранжевый бейдж - ручная выдача */
+.delivery-type-badge.manual-delivery {
+    background: rgba(217, 119, 6, 0.12);
+    color: #d97706;
+    border: 1px solid rgba(217, 119, 6, 0.3);
+}
+
+/* Dark theme для бейджей способа выдачи */
+.dark .delivery-type-badge.auto-delivery {
+    background: rgba(59, 130, 246, 0.15);
+    color: #60a5fa;
+    border-color: rgba(59, 130, 246, 0.4);
+}
+
+.dark .delivery-type-badge.manual-delivery {
+    background: rgba(245, 158, 11, 0.15);
+    color: #fbbf24;
+    border-color: rgba(245, 158, 11, 0.4);
 }
 
 .product-title {

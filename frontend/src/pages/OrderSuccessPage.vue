@@ -54,6 +54,44 @@
                 </div>
             </div>
 
+            <!-- Сообщение об ожидании подтверждения оплаты (если нет заказов после таймаута) -->
+            <div
+                v-else-if="!loading && recentPurchases.length === 0 && pollingAttempts >= maxPollingAttempts"
+                class="flex justify-center py-12"
+            >
+                <div class="flex flex-col items-center max-w-md text-center">
+                    <div
+                        class="inline-flex items-center justify-center w-16 h-16 bg-yellow-100 dark:bg-yellow-900/30 rounded-full mb-4"
+                    >
+                        <svg
+                            class="w-8 h-8 text-yellow-600 dark:text-yellow-400"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                            />
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                        {{ $t('order_success.waiting_payment_title') }}
+                    </h3>
+                    <p class="text-gray-600 dark:text-gray-300 mb-4">
+                        {{ $t('order_success.waiting_payment_description') }}
+                    </p>
+                    <button
+                        class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors font-medium"
+                        @click="fetchPurchases(); startPolling();"
+                    >
+                        {{ $t('order_success.refresh') }}
+                    </button>
+                </div>
+            </div>
+
             <!-- Список купленных товаров -->
             <div v-else-if="recentPurchases.length > 0" class="space-y-4">
                 <div v-for="purchase in recentPurchases" :key="purchase.id" class="purchase-card">
@@ -93,6 +131,201 @@
                                     })
                                 }}
                             </p>
+                        </div>
+                    </div>
+
+                    <!-- Статус обработки для ручной выдачи -->
+                    <div
+                        v-if="purchase.status === 'processing'"
+                        class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 mb-4"
+                    >
+                        <div class="flex items-start gap-3">
+                            <svg
+                                class="w-5 h-5 text-yellow-600 dark:text-yellow-400 mt-0.5 shrink-0"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                                ></path>
+                            </svg>
+                            <div class="flex-1">
+                                <h4 class="font-semibold text-yellow-900 dark:text-yellow-200 mb-1">
+                                    {{ $t('profile.purchases.processing') }}
+                                </h4>
+                                <p class="text-sm text-yellow-800 dark:text-yellow-300 mb-2">
+                                    {{ $t('profile.purchases.processing_description') }}
+                                </p>
+                                <p class="text-xs text-yellow-700 dark:text-yellow-400 mb-3">
+                                    {{ $t('profile.purchases.working_hours') }}
+                                </p>
+                                
+                                <!-- Прогресс-бар обработки заказа -->
+                                <div class="mb-3">
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <!-- Этап 1: Заказ принят -->
+                                        <div class="flex items-center gap-1.5 flex-1">
+                                            <div 
+                                                :class="[
+                                                    'w-6 h-6 rounded-full flex items-center justify-center shrink-0',
+                                                    getProgressStage(purchase) >= 1 
+                                                        ? 'bg-yellow-500 dark:bg-yellow-600' 
+                                                        : 'bg-gray-300 dark:bg-gray-600'
+                                                ]"
+                                            >
+                                                <svg 
+                                                    :class="[
+                                                        'w-4 h-4',
+                                                        getProgressStage(purchase) >= 1 
+                                                            ? 'text-white' 
+                                                            : 'text-gray-500 dark:text-gray-400'
+                                                    ]"
+                                                    fill="none" 
+                                                    stroke="currentColor" 
+                                                    viewBox="0 0 24 24"
+                                                >
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                                </svg>
+                                            </div>
+                                            <span 
+                                                :class="[
+                                                    'text-xs',
+                                                    getProgressStage(purchase) >= 1 
+                                                        ? 'text-yellow-700 dark:text-yellow-300' 
+                                                        : 'text-gray-500 dark:text-gray-400'
+                                                ]"
+                                            >
+                                                {{ $t('profile.purchases.progress.accepted') }}
+                                            </span>
+                                        </div>
+                                        <!-- Линия -->
+                                        <div 
+                                            :class="[
+                                                'flex-1 h-0.5',
+                                                getProgressStage(purchase) >= 2 
+                                                    ? 'bg-yellow-300 dark:bg-yellow-700' 
+                                                    : 'bg-gray-300 dark:bg-gray-600'
+                                            ]"
+                                        ></div>
+                                        <!-- Этап 2: В обработке -->
+                                        <div class="flex items-center gap-1.5 flex-1">
+                                            <div 
+                                                :class="[
+                                                    'w-6 h-6 rounded-full flex items-center justify-center shrink-0',
+                                                    getProgressStage(purchase) === 2 
+                                                        ? 'bg-yellow-500 dark:bg-yellow-600 animate-pulse' 
+                                                        : getProgressStage(purchase) >= 2
+                                                        ? 'bg-yellow-500 dark:bg-yellow-600'
+                                                        : 'bg-gray-300 dark:bg-gray-600'
+                                                ]"
+                                            >
+                                                <div 
+                                                    v-if="getProgressStage(purchase) === 2"
+                                                    class="w-2 h-2 rounded-full bg-white"
+                                                ></div>
+                                                <svg 
+                                                    v-else-if="getProgressStage(purchase) >= 2"
+                                                    class="w-4 h-4 text-white" 
+                                                    fill="none" 
+                                                    stroke="currentColor" 
+                                                    viewBox="0 0 24 24"
+                                                >
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                                </svg>
+                                            </div>
+                                            <span 
+                                                :class="[
+                                                    'text-xs',
+                                                    getProgressStage(purchase) >= 2 
+                                                        ? 'text-yellow-700 dark:text-yellow-300 font-medium' 
+                                                        : 'text-gray-500 dark:text-gray-400'
+                                                ]"
+                                            >
+                                                {{ $t('profile.purchases.progress.processing') }}
+                                            </span>
+                                        </div>
+                                        <!-- Линия -->
+                                        <div 
+                                            :class="[
+                                                'flex-1 h-0.5',
+                                                getProgressStage(purchase) >= 3 
+                                                    ? 'bg-yellow-300 dark:bg-yellow-700' 
+                                                    : 'bg-gray-300 dark:bg-gray-600'
+                                            ]"
+                                        ></div>
+                                        <!-- Этап 3: Готов -->
+                                        <div class="flex items-center gap-1.5 flex-1">
+                                            <div 
+                                                :class="[
+                                                    'w-6 h-6 rounded-full flex items-center justify-center shrink-0',
+                                                    getProgressStage(purchase) >= 3 
+                                                        ? 'bg-green-500 dark:bg-green-600' 
+                                                        : 'bg-gray-300 dark:bg-gray-600'
+                                                ]"
+                                            >
+                                                <svg 
+                                                    :class="[
+                                                        'w-4 h-4',
+                                                        getProgressStage(purchase) >= 3 
+                                                            ? 'text-white' 
+                                                            : 'text-gray-500 dark:text-gray-400'
+                                                    ]"
+                                                    fill="none" 
+                                                    stroke="currentColor" 
+                                                    viewBox="0 0 24 24"
+                                                >
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                                </svg>
+                                            </div>
+                                            <span 
+                                                :class="[
+                                                    'text-xs',
+                                                    getProgressStage(purchase) >= 3 
+                                                        ? 'text-green-700 dark:text-green-300' 
+                                                        : 'text-gray-500 dark:text-gray-400'
+                                                ]"
+                                            >
+                                                {{ $t('profile.purchases.progress.ready') }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Индикация времени обработки -->
+                                <p class="text-xs text-yellow-600 dark:text-yellow-500 mb-2">
+                                    {{ $t('profile.purchases.processing_since', { date: formatDate(purchase.created_at) }) }}
+                                </p>
+                                
+                                <!-- Таймер обработки -->
+                                <p class="text-xs text-yellow-600 dark:text-yellow-500 mb-3">
+                                    {{ getProcessingDuration(purchase) }}
+                                </p>
+                                
+                                <!-- Кнопки действий -->
+                                <div class="flex gap-2 flex-wrap">
+                                    <!-- Кнопка связи с менеджером -->
+                                    <button
+                                        class="px-4 py-2 text-sm bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-800 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors font-medium flex items-center gap-2"
+                                        @click="contactManagerAboutOrder(purchase)"
+                                    >
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                                        </svg>
+                                        {{ $t('profile.purchases.contact_manager') }}
+                                    </button>
+                                    <!-- Кнопка отмены заказа -->
+                                    <button
+                                        class="px-4 py-2 text-sm bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors font-medium"
+                                        @click="openCancelModal(purchase)"
+                                    >
+                                        {{ $t('profile.purchases.cancel_order') }}
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -326,11 +559,65 @@
                 </router-link>
             </div>
         </div>
+        
+        <!-- Модальное окно отмены заказа -->
+        <Teleport to="body">
+            <Transition name="modal">
+                <div
+                    v-if="showCancelModal"
+                    class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/30 backdrop-blur-sm p-4"
+                    @click.self="closeCancelModal"
+                >
+                    <div
+                        class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-md w-full p-6 relative"
+                    >
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                            {{ $t('profile.purchases.cancel_order') }}
+                        </h3>
+                        <p class="text-sm text-gray-700 dark:text-gray-300 mb-4">
+                            {{ $t('profile.purchases.cancel_order_confirm') }}
+                        </p>
+                        <div class="mb-4">
+                            <label for="cancellationReason" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                {{ $t('profile.purchases.cancel_reason_label') }}
+                            </label>
+                            <textarea
+                                id="cancellationReason"
+                                v-model="cancellationReason"
+                                rows="4"
+                                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                                :placeholder="$t('profile.purchases.cancel_reason_placeholder')"
+                                minlength="10"
+                                maxlength="500"
+                            ></textarea>
+                            <p v-if="cancellationReasonError" class="text-red-500 text-xs mt-1">{{ cancellationReasonError }}</p>
+                        </div>
+                        <div class="flex justify-end gap-3">
+                            <button
+                                type="button"
+                                class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                                @click="closeCancelModal"
+                            >
+                                {{ $t('profile.purchases.cancel_modal_close') }}
+                            </button>
+                            <button
+                                type="button"
+                                class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                :disabled="!cancellationReason || cancellationReason.length < 10"
+                                @click="confirmCancelOrder"
+                            >
+                                {{ $t('profile.purchases.cancel_order_confirm_button') }}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </Transition>
+        </Teleport>
     </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, onBeforeUnmount, Teleport, Transition } from 'vue';
 import { useRouter } from 'vue-router';
 import { useToast } from 'vue-toastification';
 import { useI18n } from 'vue-i18n';
@@ -347,6 +634,9 @@ const loadingStore = useLoadingStore();
 const purchases = ref([]);
 const loading = ref(true);
 const expandedPurchases = ref(new Set()); // Отслеживаем раскрытые покупки
+const pollingInterval = ref(null); // Интервал для опроса
+const pollingAttempts = ref(0); // Счетчик попыток
+const maxPollingAttempts = 12; // Максимум 12 попыток (60 секунд при интервале 5 сек)
 
 // Проверяем, есть ли сообщение о подготовке товара
 const isPreparingProduct = computed(() => {
@@ -400,12 +690,46 @@ onMounted(async () => {
     
     await fetchPurchases();
 
-    // Автоматически перезагружаем через 2 секунды, если покупок нет
-    setTimeout(() => {
-        if (purchases.value.length === 0) {
-            fetchPurchases();
+    // Запускаем опрос, если покупок нет (webhook может задержаться)
+    startPolling();
+});
+
+// Запуск опроса для ожидания заказов
+const startPolling = () => {
+    if (purchases.value.length > 0) {
+        return; // Уже есть покупки, не нужно опрашивать
+    }
+
+    pollingAttempts.value = 0;
+    
+    pollingInterval.value = setInterval(async () => {
+        pollingAttempts.value++;
+        
+        // Если превышен лимит попыток, останавливаем опрос
+        if (pollingAttempts.value >= maxPollingAttempts) {
+            stopPolling();
+            return;
         }
-    }, 2000);
+
+        // Если появились покупки, останавливаем опрос
+        await fetchPurchases();
+        if (purchases.value.length > 0) {
+            stopPolling();
+        }
+    }, 5000); // Опрашиваем каждые 5 секунд
+};
+
+// Остановка опроса
+const stopPolling = () => {
+    if (pollingInterval.value) {
+        clearInterval(pollingInterval.value);
+        pollingInterval.value = null;
+    }
+};
+
+// Очистка при размонтировании
+onBeforeUnmount(() => {
+    stopPolling();
 });
 
 const fetchPurchases = async () => {
@@ -565,6 +889,129 @@ ${t('profile.purchases.download_labels.quantity')}: ${purchase.account_data.leng
         .join('\n\n');
 
     downloadAsText(header + allData, `ORDER_${orderNumber}_${productTitle}.txt`);
+};
+
+// Получить этап прогресса заказа
+const getProgressStage = (purchase) => {
+    if (purchase.status === 'completed') return 3;
+    if (purchase.status === 'processing') return 2;
+    return 1;
+};
+
+// Получить длительность обработки заказа
+const getProcessingDuration = (purchase) => {
+    if (purchase.status !== 'processing') return '';
+    
+    const now = new Date();
+    const created = new Date(purchase.created_at);
+    const diffMs = now - created;
+    const hours = Math.floor(diffMs / (1000 * 60 * 60));
+    const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+    
+    if (hours >= 24) {
+        const days = Math.floor(hours / 24);
+        const remainingHours = hours % 24;
+        return t('profile.purchases.processing_duration_days', { days, hours: remainingHours });
+    }
+    return t('profile.purchases.processing_duration_hours', { hours, minutes });
+};
+
+// Модальное окно отмены заказа
+const showCancelModal = ref(false);
+const selectedPurchaseForCancel = ref(null);
+const cancellationReason = ref('');
+const cancellationReasonError = ref('');
+
+// Открытие модального окна отмены заказа
+const openCancelModal = (purchase) => {
+    selectedPurchaseForCancel.value = purchase;
+    cancellationReason.value = '';
+    cancellationReasonError.value = '';
+    showCancelModal.value = true;
+};
+
+// Закрытие модального окна отмены
+const closeCancelModal = () => {
+    showCancelModal.value = false;
+    selectedPurchaseForCancel.value = null;
+    cancellationReason.value = '';
+    cancellationReasonError.value = '';
+};
+
+// Подтверждение отмены заказа
+const confirmCancelOrder = async () => {
+    if (!selectedPurchaseForCancel.value) return;
+    
+    // Валидация причины отмены
+    if (!cancellationReason.value || cancellationReason.value.trim().length < 10) {
+        cancellationReasonError.value = t('profile.purchases.cancel_reason_min_length');
+        return;
+    }
+    
+    if (cancellationReason.value.length > 500) {
+        cancellationReasonError.value = t('profile.purchases.cancel_reason_max_length');
+        return;
+    }
+    
+    cancellationReasonError.value = '';
+    
+    try {
+        const { useAuthStore } = await import('@/stores/auth');
+        const authStore = useAuthStore();
+        const token = authStore.token;
+        
+        if (!token) {
+            toast.error(t('profile.purchases.not_authorized'));
+            await router.push('/login');
+            return;
+        }
+        
+        const response = await axios.post(
+            `/purchases/${selectedPurchaseForCancel.value.id}/cancel`,
+            {
+                cancellation_reason: cancellationReason.value.trim()
+            },
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            }
+        );
+        
+        if (response.data.success) {
+            toast.success(t('profile.purchases.order_cancelled'));
+            closeCancelModal();
+            // Обновляем список покупок
+            await fetchPurchases();
+        } else {
+            toast.error(response.data.message || t('profile.purchases.cancel_order_error'));
+        }
+    } catch (error) {
+        console.error('Error cancelling order:', error);
+        toast.error(error.response?.data?.message || t('profile.purchases.cancel_order_error'));
+    }
+};
+
+// Связаться с менеджером о заказе
+const contactManagerAboutOrder = async (purchase) => {
+    try {
+        // Пытаемся открыть чат поддержки
+        const event = new CustomEvent('openSupportChat', {
+            detail: {
+                subject: `Вопрос по заказу #${purchase.order_number}`,
+                message: `Здравствуйте! У меня вопрос по заказу #${purchase.order_number} на товар "${getProductTitle(purchase.product?.title || {})}".`
+            }
+        });
+        window.dispatchEvent(event);
+        
+        // Если чат не открылся, показываем сообщение
+        setTimeout(() => {
+            toast.info(t('profile.purchases.contact_manager_hint'));
+        }, 500);
+    } catch (error) {
+        console.error('Error opening support chat:', error);
+        toast.error(t('profile.purchases.contact_manager_error'));
+    }
 };
 </script>
 

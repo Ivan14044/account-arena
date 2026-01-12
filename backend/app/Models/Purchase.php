@@ -20,10 +20,13 @@ class Purchase extends Model
         'total_amount',
         'account_data',
         'status',
+        'is_waiting_stock', // Флаг ожидания товара
         'processed_by', // ID администратора, который обработал заказ
         'processed_at', // Дата и время обработки
+        'last_reminder_at', // Дата и время последнего напоминания
         'processing_notes', // Заметки менеджера
         'admin_notes', // Внутренние заметки администратора
+        'processing_error', // Ошибка обработки заказа
     ];
 
     protected $casts = [
@@ -31,6 +34,8 @@ class Purchase extends Model
         'price' => 'decimal:2',
         'total_amount' => 'decimal:2',
         'processed_at' => 'datetime',
+        'last_reminder_at' => 'datetime',
+        'is_waiting_stock' => 'boolean',
     ];
 
     // Связь с пользователем
@@ -55,6 +60,12 @@ class Purchase extends Model
     public function processor()
     {
         return $this->belongsTo(User::class, 'processed_by');
+    }
+
+    // Связь с историей изменений статуса
+    public function statusHistory()
+    {
+        return $this->hasMany(PurchaseStatusHistory::class)->orderBy('created_at', 'desc');
     }
 
     /**
@@ -107,6 +118,14 @@ class Purchase extends Model
         return $this->status === self::STATUS_PROCESSING 
             && $this->serviceAccount 
             && $this->serviceAccount->requiresManualDelivery();
+    }
+
+    /**
+     * Проверить, ожидает ли заказ появления товара
+     */
+    public function isWaitingStock(): bool
+    {
+        return (bool) $this->is_waiting_stock;
     }
 
     /**

@@ -80,7 +80,19 @@ onMounted(async () => {
             optionStore.fetchData().catch(e => console.error('[APP] Ошибка загрузки options:', e)),
             accountsStore
                 .fetchAll()
-                .catch(e => console.error('[APP] Ошибка загрузки accounts:', e)), // Предзагрузка товаров
+                .catch(e => {
+                    // Улучшенное логирование ошибок с деталями
+                    const errorDetails = {
+                        status: e?.response?.status,
+                        statusText: e?.response?.statusText,
+                        message: e?.message,
+                        url: e?.config?.url || '/api/accounts',
+                        responseData: e?.response?.data
+                    };
+                    console.error('[APP] Ошибка загрузки accounts:', errorDetails);
+                    console.error('[APP] Полная ошибка accounts:', e);
+                    // Ошибка не блокирует загрузку других данных благодаря Promise.allSettled
+                }), // Предзагрузка товаров
             bannersStore
                 .fetchBanners('home_top')
                 .catch(e => console.error('[APP] Ошибка загрузки banners home_top:', e)), // Предзагрузка обычных баннеров с изображениями

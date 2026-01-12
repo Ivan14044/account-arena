@@ -67,18 +67,38 @@ export const useAccountsStore = defineStore('accounts', {
 
         async fetchAll(force = false) {
             if (this.loaded && !force) return;
-            const { data } = await axios.get('/accounts');
-            const items = Array.isArray(data) ? data : Array.isArray(data?.items) ? data.items : [];
-            const list: AccountItem[] = [];
-            for (const raw of items) {
-                const t = this.transform(raw);
-                if (t && Number.isFinite(t.id)) {
-                    list.push(t);
-                    this.byId[t.id] = t;
+            try {
+                const { data } = await axios.get('/accounts');
+                const items = Array.isArray(data) ? data : Array.isArray(data?.items) ? data.items : [];
+                const list: AccountItem[] = [];
+                for (const raw of items) {
+                    const t = this.transform(raw);
+                    if (t && Number.isFinite(t.id)) {
+                        list.push(t);
+                        this.byId[t.id] = t;
+                    }
                 }
+                this.list = list;
+                this.loaded = true;
+            } catch (error: any) {
+                // Логируем ошибку с деталями
+                const errorDetails = {
+                    status: error?.response?.status,
+                    statusText: error?.response?.statusText,
+                    message: error?.message,
+                    url: error?.config?.url || '/accounts',
+                    responseData: error?.response?.data
+                };
+                console.error('[AccountsStore] Ошибка загрузки товаров:', errorDetails);
+                
+                // Устанавливаем loaded = true, чтобы не блокировать UI бесконечной загрузкой
+                this.loaded = true;
+                // Сохраняем пустой список при ошибке
+                this.list = [];
+                
+                // Пробрасываем ошибку дальше для обработки в компонентах
+                throw error;
             }
-            this.list = list;
-            this.loaded = true;
         },
 
         async fetchById(idOrSku: string | number, force = false): Promise<AccountItem | null> {
@@ -91,17 +111,33 @@ export const useAccountsStore = defineStore('accounts', {
                 return this.byId[cacheKey];
             }
 
-            // Делаем запрос к API (поддерживает и ID, и артикул)
-            const { data } = await axios.get(`/accounts/${idOrSku}`);
-            const t = this.transform(data);
+            try {
+                // Делаем запрос к API (поддерживает и ID, и артикул)
+                const { data } = await axios.get(`/accounts/${idOrSku}`);
+                const t = this.transform(data);
 
-            if (t && Number.isFinite(t.id)) {
-                // Кэшируем по числовому ID
-                this.byId[t.id] = t;
-                return t;
+                if (t && Number.isFinite(t.id)) {
+                    // Кэшируем по числовому ID
+                    this.byId[t.id] = t;
+                    return t;
+                }
+
+                return null;
+            } catch (error: any) {
+                // Логируем ошибку с деталями
+                const errorDetails = {
+                    status: error?.response?.status,
+                    statusText: error?.response?.statusText,
+                    message: error?.message,
+                    url: error?.config?.url || `/accounts/${idOrSku}`,
+                    idOrSku: idOrSku,
+                    responseData: error?.response?.data
+                };
+                console.error('[AccountsStore] Ошибка загрузки товара по ID/SKU:', errorDetails);
+                
+                // Возвращаем null при ошибке
+                return null;
             }
-
-            return null;
         },
 
         async fetchSimilar(idOrSku: string | number): Promise<AccountItem[]> {
