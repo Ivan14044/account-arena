@@ -23,7 +23,7 @@ class AuthController extends Controller
     {
         // Для локальной разработки используем null в качестве домена
         $isLocal = app()->environment('local') || request()->getHost() === 'localhost' || str_starts_with(request()->getHost(), '127.0.0.1');
-        $domain = $isLocal ? null : config('session.domain', env('APP_COOKIE_DOMAIN', '.subcloudy.com'));
+        $domain = $isLocal ? null : config('session.domain', env('APP_COOKIE_DOMAIN', '.account-arena.com'));
 
         return cookie(
             'sc_auth',

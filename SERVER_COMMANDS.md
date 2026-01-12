@@ -129,7 +129,7 @@ systemctl restart mysql
 mysql -u root -p
 
 # Вход в БД проекта
-mysql -u subcloudy -p subcloudy
+mysql -u account_arena -p account_arena
 ```
 
 ### Redis
@@ -231,7 +231,7 @@ systemctl reload nginx
 mysql -u root -p
 
 # От имени пользователя проекта
-mysql -u subcloudy -p subcloudy
+mysql -u account_arena -p account_arena
 ```
 
 ### Полезные SQL команды
@@ -259,16 +259,16 @@ UPDATE users SET password = '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.
 ### Бэкап базы данных
 ```bash
 # Создание бэкапа
-mysqldump -u subcloudy -p subcloudy > /root/backup_$(date +%Y%m%d_%H%M%S).sql
+mysqldump -u account_arena -p account_arena > /root/backup_$(date +%Y%m%d_%H%M%S).sql
 
 # Создание сжатого бэкапа
-mysqldump -u subcloudy -p subcloudy | gzip > /root/backup_$(date +%Y%m%d_%H%M%S).sql.gz
+mysqldump -u account_arena -p account_arena | gzip > /root/backup_$(date +%Y%m%d_%H%M%S).sql.gz
 
 # Восстановление из бэкапа
-mysql -u subcloudy -p subcloudy < /root/backup_20241106_120000.sql
+mysql -u account_arena -p account_arena < /root/backup_20241106_120000.sql
 
 # Восстановление из сжатого бэкапа
-gunzip < /root/backup_20241106_120000.sql.gz | mysql -u subcloudy -p subcloudy
+gunzip < /root/backup_20241106_120000.sql.gz | mysql -u account_arena -p account_arena
 ```
 
 ### Автоматический бэкап (cron)
@@ -277,7 +277,7 @@ gunzip < /root/backup_20241106_120000.sql.gz | mysql -u subcloudy -p subcloudy
 crontab -e
 
 # Добавить строку для ежедневного бэкапа в 3:00
-0 3 * * * mysqldump -u subcloudy -p'ВАШ_ПАРОЛЬ' subcloudy | gzip > /root/backups/subcloudy_$(date +\%Y\%m\%d).sql.gz
+0 3 * * * mysqldump -u account_arena -p'ВАШ_ПАРОЛЬ' account_arena | gzip > /root/backups/account_arena_$(date +\%Y\%m\%d).sql.gz
 
 # Создать директорию для бэкапов
 mkdir -p /root/backups
@@ -321,7 +321,7 @@ $user->save();
 
 ### Через SQL
 ```bash
-mysql -u subcloudy -p subcloudy
+mysql -u account_arena -p account_arena
 ```
 
 ```sql
@@ -409,7 +409,7 @@ netstat -an | grep 3306
 
 ### Размер базы данных
 ```bash
-mysql -u subcloudy -p -e "SELECT table_schema AS 'Database', ROUND(SUM(data_length + index_length) / 1024 / 1024, 2) AS 'Size (MB)' FROM information_schema.TABLES WHERE table_schema = 'subcloudy' GROUP BY table_schema;"
+mysql -u account_arena -p -e "SELECT table_schema AS 'Database', ROUND(SUM(data_length + index_length) / 1024 / 1024, 2) AS 'Size (MB)' FROM information_schema.TABLES WHERE table_schema = 'account_arena' GROUP BY table_schema;"
 ```
 
 ---
@@ -499,7 +499,7 @@ systemctl status mysql
 systemctl restart mysql
 
 # 3. Проверить подключение
-mysql -u subcloudy -p subcloudy
+mysql -u account_arena -p account_arena
 
 # 4. Проверить .env
 cat /var/www/account-arena/backend/.env | grep DB_

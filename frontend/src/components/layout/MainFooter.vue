@@ -13,10 +13,10 @@
 
                 <p class="email text-gray-500 text-[16px] font-normal mb-3">
                     <a
-                        href="mailto:support@subcloudy.com"
+                        href="mailto:support@account-arena.com"
                         class="hover:text-white transition-colors duration-300 hover:underline"
                     >
-                        support@subcloudy.com
+                        support@account-arena.com
                     </a>
                 </p>
             </div>

@@ -92,9 +92,9 @@ mysql_secure_installation
 mysql -u root -p
 
 # В MySQL консоли:
-CREATE DATABASE subcloudy CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-CREATE USER 'subcloudy'@'localhost' IDENTIFIED BY 'ВАШ_СЛОЖНЫЙ_ПАРОЛЬ';
-GRANT ALL PRIVILEGES ON subcloudy.* TO 'subcloudy'@'localhost';
+CREATE DATABASE account_arena CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE USER 'account_arena'@'localhost' IDENTIFIED BY 'ВАШ_СЛОЖНЫЙ_ПАРОЛЬ';
+GRANT ALL PRIVILEGES ON account_arena.* TO 'account_arena'@'localhost';
 FLUSH PRIVILEGES;
 EXIT;
 
@@ -157,8 +157,8 @@ bash deploy.sh
 cd /var/www
 
 # Клонировать репозиторий
-git clone https://github.com/Ivan14044/account-arena.git subcloudy
-cd subcloudy
+git clone https://github.com/Ivan14044/account-arena.git account-arena
+cd account-arena
 
 # Backend
 cd backend
@@ -206,8 +206,8 @@ APP_URL=http://31.131.26.78
 DB_CONNECTION=mysql
 DB_HOST=127.0.0.1
 DB_PORT=3306
-DB_DATABASE=subcloudy
-DB_USERNAME=subcloudy
+DB_DATABASE=account_arena
+DB_USERNAME=account_arena
 DB_PASSWORD=ВАШ_ПАРОЛЬ_ОТ_БД
 
 REDIS_HOST=127.0.0.1

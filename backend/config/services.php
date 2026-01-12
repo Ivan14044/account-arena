@@ -44,7 +44,7 @@ return [
     ],
 
     'browser_api' => [
-        'url' => env('BROWSER_API_URL', 'https://workspace.subcloudy.com/api/'),
+        'url' => env('BROWSER_API_URL', 'https://workspace.account-arena.com/api/'),
     ],
 
 ];

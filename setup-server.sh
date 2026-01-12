@@ -108,9 +108,9 @@ apt install -y -qq mysql-server
 
 # Создание базы данных и пользователя
 # Используем sudo для доступа к MySQL (для случаев, когда root уже имеет пароль или использует auth_socket)
-sudo mysql -e "CREATE DATABASE IF NOT EXISTS subcloudy CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
-sudo mysql -e "CREATE USER IF NOT EXISTS 'subcloudy'@'localhost' IDENTIFIED BY '${DB_PASSWORD}';"
-sudo mysql -e "GRANT ALL PRIVILEGES ON subcloudy.* TO 'subcloudy'@'localhost';"
+sudo mysql -e "CREATE DATABASE IF NOT EXISTS account_arena CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+sudo mysql -e "CREATE USER IF NOT EXISTS 'account_arena'@'localhost' IDENTIFIED BY '${DB_PASSWORD}';"
+sudo mysql -e "GRANT ALL PRIVILEGES ON account_arena.* TO 'account_arena'@'localhost';"
 sudo mysql -e "FLUSH PRIVILEGES;"
 
 # Сохранение пароля
@@ -176,8 +176,8 @@ APP_DEBUG=false
 APP_URL=http://${DOMAIN}
 DB_CONNECTION=mysql
 DB_HOST=localhost
-DB_DATABASE=subcloudy
-DB_USERNAME=subcloudy
+DB_DATABASE=account_arena
+DB_USERNAME=account_arena
 DB_PASSWORD=${DB_PASSWORD}
 REDIS_HOST=127.0.0.1
 SESSION_DRIVER=redis
@@ -539,7 +539,7 @@ else
 fi
 echo ""
 echo -e "${YELLOW}📁 Путь к проекту:${NC} /var/www/account-arena"
-echo -e "${YELLOW}🗄️  База данных:${NC} MySQL (subcloudy / ${DB_PASSWORD})"
+echo -e "${YELLOW}🗄️  База данных:${NC} MySQL (account_arena / ${DB_PASSWORD})"
 echo ""
 echo -e "${GREEN}╔══════════════════════════════════════════════════════════════╗${NC}"
 echo -e "${GREEN}║            Сохраните эти данные в надёжном месте!           ║${NC}"
@@ -564,8 +564,8 @@ Account Arena - Информация для доступа
 - URL: $(if [[ ! "$DOMAIN" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then echo "https://${DOMAIN}/supplier"; else echo "http://${DOMAIN}/supplier"; fi)
 
 База данных:
-- Имя БД: subcloudy
-- Пользователь: subcloudy
+- Имя БД: account_arena
+- Пользователь: account_arena
 - Пароль: ${DB_PASSWORD}
 
 Путь к проекту: /var/www/account-arena
