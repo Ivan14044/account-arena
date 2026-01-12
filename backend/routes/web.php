@@ -79,6 +79,7 @@ Route::prefix('/admin')
             Route::resource('service-accounts', ServiceAccountController::class)->except(['show']);
             Route::get('service-accounts/{serviceAccount}/export', [ServiceAccountController::class, 'export'])->name('service-accounts.export');
             Route::post('service-accounts/{serviceAccount}/import', [ServiceAccountController::class, 'import'])->name('service-accounts.import');
+            Route::post('service-accounts/bulk-action', [ServiceAccountController::class, 'bulkAction'])->name('service-accounts.bulk-action');
             
             // Модерация товаров поставщика
             Route::get('product-moderation', [\App\Http\Controllers\Admin\ProductModerationController::class, 'index'])->name('product-moderation.index');

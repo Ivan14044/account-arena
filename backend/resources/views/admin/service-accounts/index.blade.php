@@ -217,6 +217,9 @@
                     <thead>
                         <tr>
                             <th style="width: 40px" class="text-center">
+                                <input type="checkbox" id="select-all-products" title="Выбрать все">
+                            </th>
+                            <th style="width: 40px" class="text-center">
                                 <i class="fas fa-grip-vertical text-muted" title="Перетащите для изменения порядка"></i>
                             </th>
                             <th style="width: 50px" class="text-center">ID</th>
@@ -249,6 +252,9 @@
                             data-category-id="{{ $categoryId ?? '' }}" 
                             data-category-parent-id="{{ $categoryParentId ?? '' }}"
                             class="sortable-row">
+                            <td class="text-center align-middle">
+                                <input type="checkbox" class="product-checkbox" value="{{ $serviceAccount->id }}" data-product-id="{{ $serviceAccount->id }}">
+                            </td>
                             <td class="text-center align-middle drag-handle" style="cursor: move;">
                                 <i class="fas fa-grip-vertical text-muted"></i>
                             </td>
@@ -516,11 +522,208 @@
             </div>
         </div>
     </div>
+
+    <!-- Панель массовых действий -->
+    <div id="bulk-actions-panel" class="bulk-actions-panel" style="display: none;">
+        <div class="container-fluid">
+            <div class="d-flex justify-content-between align-items-center py-2">
+                <div>
+                    <strong class="text-white">Выбрано товаров: <span id="selected-count">0</span></strong>
+                </div>
+                <div class="btn-group">
+                    <button type="button" class="btn btn-sm btn-success" data-action="activate" title="Активировать выбранные товары">
+                        <i class="fas fa-check-circle mr-1"></i>Активировать
+                    </button>
+                    <button type="button" class="btn btn-sm btn-warning" data-action="deactivate" title="Скрыть выбранные товары">
+                        <i class="fas fa-ban mr-1"></i>Скрыть
+                    </button>
+                    <button type="button" class="btn btn-sm btn-primary" data-action="change-price" title="Изменить цену">
+                        <i class="fas fa-dollar-sign mr-1"></i>Изменить цену
+                    </button>
+                    <button type="button" class="btn btn-sm btn-info" data-action="change-category" title="Изменить категорию">
+                        <i class="fas fa-folder mr-1"></i>Категория
+                    </button>
+                    <button type="button" class="btn btn-sm btn-secondary" data-action="change-delivery-type" title="Изменить тип выдачи">
+                        <i class="fas fa-hand-paper mr-1"></i>Тип выдачи
+                    </button>
+                    <button type="button" class="btn btn-sm btn-danger" data-action="delete" title="Удалить выбранные товары">
+                        <i class="fas fa-trash mr-1"></i>Удалить
+                    </button>
+                    <button type="button" class="btn btn-sm btn-light" id="clear-selection" title="Снять выделение">
+                        <i class="fas fa-times mr-1"></i>Отменить
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно для изменения цены -->
+    <div class="modal fade" id="changePriceModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Изменить цену товаров</h5>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span>&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="change-price-form">
+                        <div class="form-group">
+                            <label>Действие</label>
+                            <select class="form-control" id="price-action" required>
+                                <option value="increase">Увеличить на процент</option>
+                                <option value="decrease">Уменьшить на процент</option>
+                                <option value="set">Установить фиксированную цену</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label id="price-label">Процент изменения (%)</label>
+                            <input type="number" class="form-control" id="price-value" min="0" max="1000" step="0.01" required>
+                            <small class="form-text text-muted" id="price-hint">Введите процент для изменения цены</small>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Отмена</button>
+                    <button type="button" class="btn btn-primary" id="confirm-change-price">Применить</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно для изменения категории -->
+    <div class="modal fade" id="changeCategoryModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Изменить категорию товаров</h5>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span>&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="change-category-form">
+                        <div class="form-group">
+                            <label>Родительская категория</label>
+                            <select class="form-control" id="parent-category-select">
+                                <option value="">Без категории</option>
+                                @foreach($parentCategories as $category)
+                                    <option value="{{ $category->id }}">{{ $category->admin_name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Подкатегория</label>
+                            <select class="form-control" id="subcategory-select" name="category_id">
+                                <option value="">Без категории</option>
+                            </select>
+                            <small class="form-text text-muted">Выберите подкатегорию или оставьте только родительскую категорию</small>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Отмена</button>
+                    <button type="button" class="btn btn-primary" id="confirm-change-category">Применить</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно для изменения типа выдачи -->
+    <div class="modal fade" id="changeDeliveryTypeModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Изменить тип выдачи товаров</h5>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span>&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="change-delivery-type-form">
+                        <div class="form-group">
+                            <label>Тип выдачи</label>
+                            <select class="form-control" id="delivery-type-select" required>
+                                <option value="automatic">Автоматическая выдача</option>
+                                <option value="manual">Ручная выдача</option>
+                            </select>
+                            <small class="form-text text-muted">При автоматической выдаче товар выдается сразу после оплаты. При ручной выдаче товар выдается менеджером вручную.</small>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Отмена</button>
+                    <button type="button" class="btn btn-primary" id="confirm-change-delivery-type">Применить</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно подтверждения удаления -->
+    <div class="modal fade" id="deleteConfirmModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title">
+                        <i class="fas fa-exclamation-triangle mr-2"></i>Подтверждение удаления
+                    </h5>
+                    <button type="button" class="close text-white" data-dismiss="modal">
+                        <span>&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>Вы уверены, что хотите удалить <strong id="delete-count">0</strong> выбранных товаров?</p>
+                    <p class="text-danger"><strong>Это действие нельзя отменить!</strong></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Отмена</button>
+                    <button type="button" class="btn btn-danger" id="confirm-delete">Удалить</button>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @section('css')
     @include('admin.layouts.modern-styles')
     <style>
+        /* Панель массовых действий */
+        .bulk-actions-panel {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            box-shadow: 0 -4px 12px rgba(0,0,0,0.15);
+            z-index: 1050;
+            border-top: 3px solid rgba(255,255,255,0.2);
+        }
+
+        .bulk-actions-panel .btn {
+            margin-left: 0.25rem;
+        }
+
+        /* Чекбоксы в таблице */
+        .product-checkbox {
+            cursor: pointer;
+            width: 18px;
+            height: 18px;
+        }
+
+        .product-checkbox:checked {
+            background-color: #4e73df;
+            border-color: #4e73df;
+        }
+
+        /* Выделение выбранных строк */
+        tr.selected {
+            background-color: #f0f7ff !important;
+        }
+
+        tr.selected:hover {
+            background-color: #e0efff !important;
+        }
         /* Стили для drag-and-drop */
         .sortable-row {
             transition: background-color 0.2s;
@@ -1115,6 +1318,325 @@
             }, 5000);
         });
 
+        // ============================================
+        // МАССОВОЕ УПРАВЛЕНИЕ ТОВАРАМИ
+        // ============================================
+        
+        let selectedProducts = new Set();
+        const bulkPanel = $('#bulk-actions-panel');
+        const selectedCountSpan = $('#selected-count');
+        
+        // Обработчик "Выбрать все"
+        $('#select-all-products').on('change', function() {
+            const isChecked = $(this).is(':checked');
+            $('.product-checkbox').prop('checked', isChecked);
+            
+            if (isChecked) {
+                $('.product-checkbox').each(function() {
+                    selectedProducts.add(parseInt($(this).val()));
+                    $(this).closest('tr').addClass('selected');
+                });
+            } else {
+                selectedProducts.clear();
+                $('tr').removeClass('selected');
+            }
+            
+            updateBulkPanel();
+        });
+        
+        // Обработчик выбора отдельного товара
+        $(document).on('change', '.product-checkbox', function() {
+            const productId = parseInt($(this).val());
+            const isChecked = $(this).is(':checked');
+            
+            if (isChecked) {
+                selectedProducts.add(productId);
+                $(this).closest('tr').addClass('selected');
+            } else {
+                selectedProducts.delete(productId);
+                $(this).closest('tr').removeClass('selected');
+                $('#select-all-products').prop('checked', false);
+            }
+            
+            updateBulkPanel();
+        });
+        
+        // Обновление панели массовых действий
+        function updateBulkPanel() {
+            const count = selectedProducts.size;
+            selectedCountSpan.text(count);
+            
+            if (count > 0) {
+                bulkPanel.fadeIn(200);
+                // Добавляем отступ снизу для контента, чтобы панель не перекрывала
+                $('body').css('padding-bottom', '60px');
+            } else {
+                bulkPanel.fadeOut(200);
+                $('body').css('padding-bottom', '0');
+            }
+        }
+        
+        // Кнопка "Отменить выбор"
+        $('#clear-selection').on('click', function() {
+            selectedProducts.clear();
+            $('.product-checkbox').prop('checked', false);
+            $('#select-all-products').prop('checked', false);
+            $('tr').removeClass('selected');
+            updateBulkPanel();
+        });
+        
+        // Обработчики массовых действий
+        $('[data-action="activate"]').on('click', function() {
+            if (selectedProducts.size === 0) {
+                alert('Выберите товары для активации');
+                return;
+            }
+            performBulkAction('activate', {});
+        });
+        
+        $('[data-action="deactivate"]').on('click', function() {
+            if (selectedProducts.size === 0) {
+                alert('Выберите товары для скрытия');
+                return;
+            }
+            performBulkAction('deactivate', {});
+        });
+        
+        $('[data-action="change-price"]').on('click', function() {
+            if (selectedProducts.size === 0) {
+                alert('Выберите товары для изменения цены');
+                return;
+            }
+            $('#changePriceModal').modal('show');
+        });
+        
+        $('[data-action="change-category"]').on('click', function() {
+            if (selectedProducts.size === 0) {
+                alert('Выберите товары для изменения категории');
+                return;
+            }
+            $('#changeCategoryModal').modal('show');
+        });
+        
+        $('[data-action="change-delivery-type"]').on('click', function() {
+            if (selectedProducts.size === 0) {
+                alert('Выберите товары для изменения типа выдачи');
+                return;
+            }
+            $('#changeDeliveryTypeModal').modal('show');
+        });
+        
+        $('[data-action="delete"]').on('click', function() {
+            if (selectedProducts.size === 0) {
+                alert('Выберите товары для удаления');
+                return;
+            }
+            $('#delete-count').text(selectedProducts.size);
+            $('#deleteConfirmModal').modal('show');
+        });
+        
+        // Обработчик изменения типа действия для цены
+        $('#price-action').on('change', function() {
+            const action = $(this).val();
+            const label = $('#price-label');
+            const input = $('#price-value');
+            const hint = $('#price-hint');
+            
+            if (action === 'set') {
+                label.text('Новая цена (USD)');
+                input.attr('min', '0.01');
+                input.attr('step', '0.01');
+                hint.text('Введите новую фиксированную цену');
+            } else {
+                label.text('Процент изменения (%)');
+                input.attr('min', '0');
+                input.attr('max', '1000');
+                input.attr('step', '0.01');
+                hint.text(action === 'increase' ? 'Введите процент увеличения цены' : 'Введите процент уменьшения цены');
+            }
+        });
+        
+        // Загрузка подкатегорий при выборе родительской категории
+        $('#parent-category-select').on('change', function() {
+            const parentId = $(this).val();
+            const subcategorySelect = $('#subcategory-select');
+            subcategorySelect.html('<option value="">Без категории</option>');
+            
+            if (parentId) {
+                // Загружаем подкатегории через AJAX или используем данные из Blade
+                @php
+                    $subcategoriesByParent = [];
+                    foreach($subcategories as $sub) {
+                        $subcategoriesByParent[$sub->parent_id][] = $sub;
+                    }
+                @endphp
+                
+                const subcategories = @json($subcategoriesByParent);
+                
+                if (subcategories[parentId]) {
+                    subcategories[parentId].forEach(function(sub) {
+                        subcategorySelect.append(`<option value="${sub.id}">${sub.admin_name}</option>`);
+                    });
+                }
+            }
+        });
+        
+        // Подтверждение изменения цены
+        $('#confirm-change-price').on('click', function() {
+            const action = $('#price-action').val();
+            const value = parseFloat($('#price-value').val());
+            
+            if (!value || value < 0) {
+                alert('Введите корректное значение');
+                return;
+            }
+            
+            if (action !== 'set' && value > 1000) {
+                alert('Процент не может быть больше 1000%');
+                return;
+            }
+            
+            if (action === 'set' && value < 0.01) {
+                alert('Минимальная цена: 0.01 USD');
+                return;
+            }
+            
+            performBulkAction('change_price', {
+                action_type: action,
+                value: value
+            });
+            
+            $('#changePriceModal').modal('hide');
+            $('#change-price-form')[0].reset();
+        });
+        
+        // Подтверждение изменения категории
+        $('#confirm-change-category').on('click', function() {
+            const categoryId = $('#subcategory-select').val() || $('#parent-category-select').val() || null;
+            
+            performBulkAction('change_category', {
+                category_id: categoryId
+            });
+            
+            $('#changeCategoryModal').modal('hide');
+            $('#change-category-form')[0].reset();
+        });
+        
+        // Подтверждение изменения типа выдачи
+        $('#confirm-change-delivery-type').on('click', function() {
+            const deliveryType = $('#delivery-type-select').val();
+            
+            performBulkAction('change_delivery_type', {
+                delivery_type: deliveryType
+            });
+            
+            $('#changeDeliveryTypeModal').modal('hide');
+        });
+        
+        // Подтверждение удаления
+        $('#confirm-delete').on('click', function() {
+            performBulkAction('delete', {});
+            $('#deleteConfirmModal').modal('hide');
+        });
+        
+        // Основная функция выполнения массовых действий
+        function performBulkAction(action, params) {
+            if (selectedProducts.size === 0) {
+                alert('Выберите товары для выполнения действия');
+                return;
+            }
+            
+            const ids = Array.from(selectedProducts);
+            
+            // Сохраняем оригинальный HTML всех кнопок
+            const actionButtons = {};
+            $('[data-action]').each(function() {
+                const actionName = $(this).data('action');
+                actionButtons[actionName] = $(this).html();
+            });
+            
+            // Показываем индикатор загрузки
+            const loadingHtml = '<i class="fas fa-spinner fa-spin mr-2"></i>Обработка...';
+            $('[data-action]').prop('disabled', true);
+            $('[data-action="' + action + '"]').html(loadingHtml);
+            
+            $.ajax({
+                url: '{{ route("admin.service-accounts.bulk-action") }}',
+                method: 'POST',
+                data: {
+                    _token: '{{ csrf_token() }}',
+                    action: action,
+                    ids: ids,
+                    ...params
+                },
+                success: function(response) {
+                    if (response.success) {
+                        // Показываем уведомление
+                        const message = response.message || 'Операция выполнена успешно';
+                        showNotification('success', message);
+                        
+                        // Очищаем выбор
+                        selectedProducts.clear();
+                        $('.product-checkbox').prop('checked', false);
+                        $('#select-all-products').prop('checked', false);
+                        $('tr').removeClass('selected');
+                        updateBulkPanel();
+                        
+                        // Обновляем страницу через 1 секунду
+                        setTimeout(function() {
+                            location.reload();
+                        }, 1000);
+                    } else {
+                        showNotification('error', response.message || 'Произошла ошибка');
+                        // Восстанавливаем кнопки
+                        $('[data-action]').prop('disabled', false);
+                        for (const [actionName, html] of Object.entries(actionButtons)) {
+                            $('[data-action="' + actionName + '"]').html(html);
+                        }
+                    }
+                },
+                error: function(xhr) {
+                    let errorMessage = 'Произошла ошибка при выполнении операции';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        errorMessage = xhr.responseJSON.message;
+                    } else if (xhr.responseJSON && xhr.responseJSON.errors) {
+                        // Обработка ошибок валидации
+                        const errors = xhr.responseJSON.errors;
+                        errorMessage = Object.values(errors).flat().join(', ');
+                    }
+                    showNotification('error', errorMessage);
+                    // Восстанавливаем кнопки
+                    $('[data-action]').prop('disabled', false);
+                    for (const [actionName, html] of Object.entries(actionButtons)) {
+                        $('[data-action="' + actionName + '"]').html(html);
+                    }
+                }
+            });
+        }
+        
+        // Функция показа уведомлений
+        function showNotification(type, message) {
+            const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
+            const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
+            
+            const alertHtml = `
+                <div class="alert ${alertClass} alert-dismissible fade show" role="alert" style="position: fixed; top: 20px; right: 20px; z-index: 9999; min-width: 300px;">
+                    <i class="fas ${icon} mr-2"></i>${message}
+                    <button type="button" class="close" data-dismiss="alert">
+                        <span>&times;</span>
+                    </button>
+                </div>
+            `;
+            
+            $('body').append(alertHtml);
+            
+            setTimeout(function() {
+                $('.alert').fadeOut(function() {
+                    $(this).remove();
+                });
+            }, 5000);
+        }
+        
         // Export function for index page
         function confirmExport(productId, totalQuantity) {
             const countInput = document.getElementById('exportCount' + productId);

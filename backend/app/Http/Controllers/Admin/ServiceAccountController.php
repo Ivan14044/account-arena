@@ -445,6 +445,160 @@ class ServiceAccountController extends Controller
         return redirect()->route('admin.service-accounts.index')->with('success', 'Service account successfully deleted.');
     }
 
+    /**
+     * Массовые операции с товарами
+     */
+    public function bulkAction(Request $request)
+    {
+        $request->validate([
+            'action' => 'required|in:activate,deactivate,change_price,change_category,change_delivery_type,delete',
+            'ids' => 'required|array|min:1',
+            'ids.*' => 'required|integer|exists:service_accounts,id',
+        ]);
+
+        $ids = $request->input('ids');
+        $action = $request->input('action');
+        $updatedCount = 0;
+
+        DB::beginTransaction();
+        try {
+            switch ($action) {
+                case 'activate':
+                    $updatedCount = ServiceAccount::whereIn('id', $ids)
+                        ->update(['is_active' => true]);
+                    $message = "Активировано товаров: {$updatedCount}";
+                    break;
+
+                case 'deactivate':
+                    $updatedCount = ServiceAccount::whereIn('id', $ids)
+                        ->update(['is_active' => false]);
+                    $message = "Скрыто товаров: {$updatedCount}";
+                    break;
+
+                case 'change_price':
+                    $actionType = $request->input('action_type');
+                    
+                    // Валидация в зависимости от типа действия
+                    if ($actionType === 'set') {
+                        $request->validate([
+                            'action_type' => 'required|in:increase,decrease,set',
+                            'value' => 'required|numeric|min:0.01',
+                        ]);
+                    } else {
+                        $request->validate([
+                            'action_type' => 'required|in:increase,decrease,set',
+                            'value' => 'required|numeric|min:0|max:1000',
+                        ]);
+                    }
+
+                    $value = $request->input('value');
+                    $products = ServiceAccount::whereIn('id', $ids)->get();
+
+                    foreach ($products as $product) {
+                        $oldPrice = (float)$product->price;
+                        $newPrice = $oldPrice;
+
+                        if ($actionType === 'increase') {
+                            $newPrice = $oldPrice * (1 + $value / 100);
+                        } elseif ($actionType === 'decrease') {
+                            $newPrice = $oldPrice * (1 - $value / 100);
+                            if ($newPrice < 0.01) {
+                                $newPrice = 0.01; // Минимальная цена
+                            }
+                        } elseif ($actionType === 'set') {
+                            $newPrice = $value;
+                            if ($newPrice < 0.01) {
+                                $newPrice = 0.01; // Минимальная цена
+                            }
+                        }
+
+                        $product->price = round($newPrice, 2);
+                        $product->save();
+                        $updatedCount++;
+                    }
+
+                    $message = "Цена изменена для {$updatedCount} товаров";
+                    break;
+
+                case 'change_category':
+                    $request->validate([
+                        'category_id' => 'nullable|integer|exists:categories,id',
+                    ]);
+
+                    $categoryId = $request->input('category_id');
+
+                    // Проверяем, что категория существует и является категорией товаров
+                    if ($categoryId) {
+                        $category = \App\Models\Category::find($categoryId);
+                        if (!$category || $category->type !== \App\Models\Category::TYPE_PRODUCT) {
+                            DB::rollBack();
+                            return response()->json([
+                                'success' => false,
+                                'message' => 'Категория не найдена или неверного типа'
+                            ], 422);
+                        }
+                    }
+
+                    $updatedCount = ServiceAccount::whereIn('id', $ids)
+                        ->update(['category_id' => $categoryId]);
+                    $message = "Категория изменена для {$updatedCount} товаров";
+                    break;
+
+                case 'change_delivery_type':
+                    $request->validate([
+                        'delivery_type' => 'required|in:automatic,manual',
+                    ]);
+
+                    $deliveryType = $request->input('delivery_type');
+                    $updatedCount = ServiceAccount::whereIn('id', $ids)
+                        ->update(['delivery_type' => $deliveryType]);
+                    $message = "Тип выдачи изменен для {$updatedCount} товаров";
+                    break;
+
+                case 'delete':
+                    $updatedCount = ServiceAccount::whereIn('id', $ids)->delete();
+                    $message = "Удалено товаров: {$updatedCount}";
+                    break;
+
+                default:
+                    DB::rollBack();
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Неизвестное действие'
+                    ], 422);
+            }
+
+            DB::commit();
+
+            // Логируем действие
+            \Log::info('Bulk action performed', [
+                'admin_id' => auth()->id(),
+                'action' => $action,
+                'count' => $updatedCount,
+                'ids' => $ids
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => $message,
+                'count' => $updatedCount
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('Bulk action error', [
+                'action' => $action,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Произошла ошибка: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
     private function getRules($id = null): array
     {
         return [
