@@ -23,17 +23,31 @@
     <div class="card mb-4">
         <div class="card-body">
             <form method="GET" action="{{ route('admin.manual-delivery.analytics') }}" class="row">
-                <div class="col-md-4">
-                    <label>Дата начала</label>
-                    <input type="date" name="date_from" class="form-control" value="{{ $dateFrom }}">
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">Дата начала</label>
+                    <div class="input-group input-group-sm">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text">
+                                <i class="fas fa-calendar-alt"></i>
+                            </span>
+                        </div>
+                        <input type="date" name="date_from" class="form-control" value="{{ $dateFrom }}">
+                    </div>
                 </div>
-                <div class="col-md-4">
-                    <label>Дата окончания</label>
-                    <input type="date" name="date_to" class="form-control" value="{{ $dateTo }}">
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">Дата окончания</label>
+                    <div class="input-group input-group-sm">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text">
+                                <i class="fas fa-calendar-alt"></i>
+                            </span>
+                        </div>
+                        <input type="date" name="date_to" class="form-control" value="{{ $dateTo }}">
+                    </div>
                 </div>
-                <div class="col-md-4 d-flex align-items-end">
-                    <button type="submit" class="btn btn-primary w-100">
-                        <i class="fas fa-filter mr-2"></i>Применить фильтр
+                <div class="col-md-4 d-flex align-items-end mb-3">
+                    <button type="submit" class="btn btn-primary btn-sm">
+                        <i class="fas fa-filter mr-1"></i>Применить фильтр
                     </button>
                 </div>
             </form>
@@ -125,11 +139,11 @@
                             </tr>
                             <tr>
                                 <td>Минимальное время</td>
-                                <td><strong>{{ $minProcessingTime ?? 0 }} ч.</strong></td>
+                                <td><strong>{{ number_format($minProcessingTime ?? 0, 2) }} ч.</strong></td>
                             </tr>
                             <tr>
                                 <td>Максимальное время</td>
-                                <td><strong>{{ $maxProcessingTime ?? 0 }} ч.</strong></td>
+                                <td><strong>{{ number_format($maxProcessingTime ?? 0, 2) }} ч.</strong></td>
                             </tr>
                         </tbody>
                     </table>

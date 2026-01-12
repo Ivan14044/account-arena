@@ -245,9 +245,9 @@ class ManualDeliveryController extends Controller
                 return $purchase->created_at->diffInHours($purchase->processed_at);
             });
         
-        $avgProcessingTime = $processingTimes->avg();
-        $minProcessingTime = $processingTimes->min();
-        $maxProcessingTime = $processingTimes->max();
+        $avgProcessingTime = $processingTimes->isNotEmpty() ? $processingTimes->avg() : 0;
+        $minProcessingTime = $processingTimes->isNotEmpty() ? $processingTimes->min() : 0;
+        $maxProcessingTime = $processingTimes->isNotEmpty() ? $processingTimes->max() : 0;
         
         // Статистика по дням недели
         $ordersByDay = Purchase::where('status', Purchase::STATUS_COMPLETED)

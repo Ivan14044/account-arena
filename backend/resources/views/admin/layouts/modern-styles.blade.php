@@ -1169,6 +1169,78 @@ body {
         transform: scale(0.98);
     }
 }
+
+/* ============================================
+   УЛУЧШЕНИЯ ДЛЯ ФОРМ И ФИЛЬТРОВ
+   ============================================ */
+
+/* Input Group с иконками для date picker */
+.input-group-sm .input-group-prepend .input-group-text {
+    background-color: #f8f9fc;
+    border-color: #d1d3e2;
+    color: #5a6c7d;
+    padding: 0.375rem 0.75rem;
+}
+
+.input-group-sm .input-group-prepend .input-group-text i {
+    font-size: 0.875rem;
+}
+
+.input-group-sm .form-control {
+    border-left: none;
+}
+
+.input-group-sm .input-group-prepend + .form-control {
+    border-left: 1px solid #d1d3e2;
+}
+
+.input-group-sm .form-control:focus {
+    border-color: #4e73df;
+    box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.1);
+}
+
+/* Улучшение spacing для форм с фильтрами */
+.form-label {
+    font-weight: 500;
+    color: #5a6c7d;
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+}
+
+/* Отступы между элементами формы в row */
+.row > [class*="col-"].mb-3 {
+    margin-bottom: 1rem !important;
+}
+
+/* Улучшение внешнего вида кнопок в формах */
+.btn-sm {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.875rem;
+    border-radius: 0.375rem;
+}
+
+.btn-sm i {
+    font-size: 0.75rem;
+}
+
+/* Улучшение spacing для card-body с формами */
+.card-body.border-bottom {
+    padding: 1.25rem;
+    border-bottom: 1px solid #e3e6f0 !important;
+}
+
+/* Улучшение spacing для элементов в d-flex */
+.d-flex.align-items-end {
+    gap: 0.5rem;
+}
+
+.d-flex.align-items-end .btn {
+    margin-right: 0.5rem;
+}
+
+.d-flex.align-items-end .btn:last-child {
+    margin-right: 0;
+}
 </style>
 
 

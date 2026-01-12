@@ -97,20 +97,10 @@
                     <i class="fas fa-list mr-2"></i>
                     Заказы с ручной выдачей ({{ $pendingOrders->count() }})
                 </h3>
-                <div class="card-tools d-flex gap-2 align-items-center">
+                <div class="card-tools">
                     <a href="{{ route('admin.manual-delivery.analytics') }}" class="btn btn-sm btn-info">
                         <i class="fas fa-chart-bar mr-1"></i>Аналитика
                     </a>
-                    <form method="GET" action="{{ route('admin.manual-delivery.index') }}" class="d-inline">
-                        <select name="delivery_type" 
-                                class="form-control form-control-sm" 
-                                onchange="this.form.submit()"
-                                style="width: auto; display: inline-block;">
-                            <option value="all" {{ $deliveryType === 'all' ? 'selected' : '' }}>Все типы выдачи</option>
-                            <option value="automatic" {{ $deliveryType === 'automatic' ? 'selected' : '' }}>Автоматическая выдача</option>
-                            <option value="manual" {{ $deliveryType === 'manual' ? 'selected' : '' }}>Ручная выдача</option>
-                        </select>
-                    </form>
                 </div>
             </div>
         </div>
@@ -122,7 +112,7 @@
                 <input type="hidden" name="delivery_type" value="{{ $deliveryType }}">
                 <input type="hidden" name="status" value="{{ $statusFilter ?? 'all' }}">
                 
-                <div class="col-md-2">
+                <div class="col-md-2 mb-3">
                     <label class="form-label">Статус</label>
                     <select name="status" class="form-control form-control-sm" onchange="this.form.submit()">
                         <option value="all" {{ ($statusFilter ?? 'all') === 'all' ? 'selected' : '' }}>Все</option>
@@ -131,35 +121,49 @@
                     </select>
                 </div>
                 
-                <div class="col-md-3">
+                <div class="col-md-3 mb-3">
                     <label class="form-label">Дата создания (с)</label>
-                    <input type="date" name="date_from" class="form-control form-control-sm" value="{{ $dateFrom }}">
+                    <div class="input-group input-group-sm">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text">
+                                <i class="fas fa-calendar-alt"></i>
+                            </span>
+                        </div>
+                        <input type="date" name="date_from" class="form-control" value="{{ $dateFrom }}">
+                    </div>
                 </div>
                 
-                <div class="col-md-3">
+                <div class="col-md-3 mb-3">
                     <label class="form-label">Дата создания (по)</label>
-                    <input type="date" name="date_to" class="form-control form-control-sm" value="{{ $dateTo }}">
+                    <div class="input-group input-group-sm">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text">
+                                <i class="fas fa-calendar-alt"></i>
+                            </span>
+                        </div>
+                        <input type="date" name="date_to" class="form-control" value="{{ $dateTo }}">
+                    </div>
                 </div>
                 
-                <div class="col-md-2">
+                <div class="col-md-2 mb-3">
                     <label class="form-label">Email покупателя</label>
                     <input type="text" name="customer_email" class="form-control form-control-sm" 
                            placeholder="email@example.com" value="{{ $customerEmail }}">
                 </div>
                 
-                <div class="col-md-2">
+                <div class="col-md-2 mb-3">
                     <label class="form-label">ID покупателя</label>
                     <input type="number" name="customer_id" class="form-control form-control-sm" 
                            placeholder="ID" value="{{ $customerId }}">
                 </div>
                 
-                <div class="col-md-2">
+                <div class="col-md-2 mb-3">
                     <label class="form-label">Номер заказа</label>
                     <input type="text" name="order_number" class="form-control form-control-sm" 
                            placeholder="ORD-..." value="{{ $orderNumber }}">
                 </div>
                 
-                <div class="col-md-3">
+                <div class="col-md-3 mb-3">
                     <label class="form-label">Сортировать по</label>
                     <select name="sort_by" class="form-control form-control-sm">
                         <option value="created_at" {{ $sortBy === 'created_at' ? 'selected' : '' }}>Дата создания</option>
@@ -168,7 +172,7 @@
                     </select>
                 </div>
                 
-                <div class="col-md-2">
+                <div class="col-md-2 mb-3">
                     <label class="form-label">Порядок</label>
                     <select name="sort_order" class="form-control form-control-sm">
                         <option value="asc" {{ $sortOrder === 'asc' ? 'selected' : '' }}>По возрастанию</option>
@@ -176,8 +180,8 @@
                     </select>
                 </div>
                 
-                <div class="col-md-7 d-flex align-items-end gap-2">
-                    <button type="submit" class="btn btn-primary btn-sm">
+                <div class="col-md-7 d-flex align-items-end mb-3">
+                    <button type="submit" class="btn btn-primary btn-sm mr-2">
                         <i class="fas fa-filter mr-1"></i>Применить фильтры
                     </button>
                     <a href="{{ route('admin.manual-delivery.index', ['delivery_type' => $deliveryType]) }}" 
