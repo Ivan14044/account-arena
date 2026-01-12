@@ -30,16 +30,26 @@ class AccountController extends Controller
         });
 
         $data = $accounts->map(function ($account) {
-            // Handle accounts_data - normalize NULL to empty array
-            $accountsData = $account->accounts_data;
-            if (!is_array($accountsData)) {
-                // If NULL or not an array, treat as empty
-                $accountsData = [];
-            }
+            // Используем метод getAvailableStock() из модели, который уже учитывает ручную выдачу
+            $availableCount = $account->getAvailableStock();
             
-            $totalQuantity = count($accountsData);
-            $soldCount = $account->used ?? 0;
-            $availableCount = max(0, $totalQuantity - $soldCount);
+            // Для total_quantity и sold - только для автоматической выдачи
+            $deliveryType = $account->delivery_type ?? 'automatic';
+            $isManualDelivery = ($deliveryType === 'manual');
+            
+            if ($isManualDelivery) {
+                // Для товаров с ручной выдачей total_quantity и sold не имеют смысла
+                $totalQuantity = 0;
+                $soldCount = 0;
+            } else {
+                // Для автоматической выдачи - стандартная логика
+                $accountsData = $account->accounts_data;
+                if (!is_array($accountsData)) {
+                    $accountsData = [];
+                }
+                $totalQuantity = count($accountsData);
+                $soldCount = $account->used ?? 0;
+            }
             
             return [
                 'id' => $account->id,
@@ -72,7 +82,7 @@ class AccountController extends Controller
                 'quantity' => $availableCount,
                 'total_quantity' => $totalQuantity,
                 'sold' => $soldCount,
-                'delivery_type' => $account->delivery_type ?? 'automatic',
+                'delivery_type' => $deliveryType,
                 'created_at' => $account->created_at->toISOString(),
             ];
         });
@@ -101,9 +111,22 @@ class AccountController extends Controller
             })
             ->firstOrFail();
 
-        $totalQuantity = is_array($account->accounts_data) ? count($account->accounts_data) : 0;
-        $soldCount = $account->used ?? 0;
-        $availableCount = max(0, $totalQuantity - $soldCount);
+        // Используем метод getAvailableStock() из модели, который уже учитывает ручную выдачу
+        $availableCount = $account->getAvailableStock();
+        
+        // Для total_quantity и sold - только для автоматической выдачи
+        $deliveryType = $account->delivery_type ?? 'automatic';
+        $isManualDelivery = ($deliveryType === 'manual');
+        
+        if ($isManualDelivery) {
+            // Для товаров с ручной выдачей total_quantity и sold не имеют смысла
+            $totalQuantity = 0;
+            $soldCount = 0;
+        } else {
+            // Для автоматической выдачи - стандартная логика
+            $totalQuantity = is_array($account->accounts_data) ? count($account->accounts_data) : 0;
+            $soldCount = $account->used ?? 0;
+        }
 
         $data = [
             'id' => $account->id,
@@ -136,7 +159,7 @@ class AccountController extends Controller
             'quantity' => $availableCount,
             'total_quantity' => $totalQuantity,
             'sold' => $soldCount,
-            'delivery_type' => $account->delivery_type ?? 'automatic',
+            'delivery_type' => $deliveryType,
             'created_at' => $account->created_at->toISOString(),
         ];
 
@@ -163,10 +186,23 @@ class AccountController extends Controller
         $similar = $account->getSimilarProducts(6);
 
         $data = $similar->map(function ($item) {
-            $accountsData = $item->accounts_data ?? [];
-            $totalQuantity = is_array($accountsData) ? count($accountsData) : 0;
-            $soldCount = $item->used ?? 0;
-            $availableCount = max(0, $totalQuantity - $soldCount);
+            // Используем метод getAvailableStock() из модели, который уже учитывает ручную выдачу
+            $availableCount = $item->getAvailableStock();
+            
+            // Для total_quantity и sold - только для автоматической выдачи
+            $deliveryType = $item->delivery_type ?? 'automatic';
+            $isManualDelivery = ($deliveryType === 'manual');
+            
+            if ($isManualDelivery) {
+                // Для товаров с ручной выдачей total_quantity и sold не имеют смысла
+                $totalQuantity = 0;
+                $soldCount = 0;
+            } else {
+                // Для автоматической выдачи - стандартная логика
+                $accountsData = $item->accounts_data ?? [];
+                $totalQuantity = is_array($accountsData) ? count($accountsData) : 0;
+                $soldCount = $item->used ?? 0;
+            }
 
             return [
                 'id' => $item->id,
@@ -189,7 +225,7 @@ class AccountController extends Controller
                 'quantity' => $availableCount,
                 'total_quantity' => $totalQuantity,
                 'sold' => $soldCount,
-                'delivery_type' => $item->delivery_type ?? 'automatic',
+                'delivery_type' => $deliveryType,
                 'created_at' => $item->created_at->toISOString(),
             ];
         });

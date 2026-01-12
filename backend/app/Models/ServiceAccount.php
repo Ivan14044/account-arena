@@ -245,6 +245,14 @@ class ServiceAccount extends Model
      */
     public function getAvailableStock()
     {
+        // Для товаров с ручной выдачей наличие определяется по is_active, а не по accounts_data
+        if ($this->requiresManualDelivery()) {
+            // Если товар активен, возвращаем специальное значение, означающее "в наличии"
+            // 999 используется как индикатор "неограниченное количество" для ручной выдачи
+            return $this->is_active ? 999 : 0;
+        }
+        
+        // Для автоматической выдачи - стандартная логика подсчета из accounts_data
         $accountsData = $this->accounts_data ?? [];
         
         // ВАЖНО: Проверяем, что accounts_data является массивом

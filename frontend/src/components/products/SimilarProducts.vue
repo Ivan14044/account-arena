@@ -7,7 +7,7 @@
                 :key="product.id"
                 class="product-card"
                 :class="{
-                    'out-of-stock-card': product.quantity <= 0,
+                    'out-of-stock-card': !isInStock(product),
                     'with-discount': product.has_discount && product.discount_percent
                 }"
             >
@@ -38,10 +38,10 @@
                             <!-- Stock Badge - наличие товара -->
                             <div
                                 class="stock-badge-inline"
-                                :class="product.quantity > 0 ? 'in-stock' : 'out-of-stock'"
+                                :class="isInStock(product) ? 'in-stock' : 'out-of-stock'"
                             >
                                 <svg
-                                    v-if="product.quantity > 0"
+                                    v-if="isInStock(product)"
                                     class="w-3 h-3"
                                     fill="currentColor"
                                     viewBox="0 0 20 20"
@@ -59,12 +59,12 @@
                                         clip-rule="evenodd"
                                     />
                                 </svg>
-                                <span>{{ product.quantity > 0 ? product.quantity : '0' }}</span>
+                                <span>{{ formatStockQuantity(product) }}</span>
                             </div>
                             
                             <!-- Бейдж способа выдачи (только если товар в наличии) -->
                             <div
-                                v-if="product.quantity > 0"
+                                v-if="isInStock(product)"
                                 class="delivery-type-badge"
                                 :class="(product.delivery_type || 'automatic') === 'manual' ? 'manual-delivery' : 'auto-delivery'"
                                 :title="getDeliveryTypeText(product)"
@@ -181,6 +181,21 @@ const formatPrice = (price: number) => {
 
 const goToProduct = (product: AccountItem) => {
     router.push(`/account/${product.sku || product.id}`);
+};
+
+// Функции для отображения наличия товара
+const isInStock = (product: AccountItem): boolean => {
+    // Для товаров с ручной выдачей (quantity = 999) считаем, что товар в наличии
+    return product.quantity > 0;
+};
+
+const formatStockQuantity = (product: AccountItem): string => {
+    // Для товаров с ручной выдачей, когда quantity = 999, показываем "В наличии"
+    if (product.quantity >= 999) {
+        return 'В наличии';
+    }
+    // Для обычных товаров показываем количество
+    return product.quantity > 0 ? product.quantity.toString() : '0';
 };
 
 // Функции для отображения способа выдачи товара

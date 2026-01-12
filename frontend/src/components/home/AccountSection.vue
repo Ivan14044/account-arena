@@ -49,7 +49,7 @@
                 v-memo="[account.id, account.quantity, account.has_discount, (account as any)._discountPercentRounded, (account as any)._cachedTitle, (account as any)._cachedQuantity, (account as any)._isFavorite]"
                 class="product-card"
                 :class="{
-                    'out-of-stock-card': account.quantity <= 0,
+                    'out-of-stock-card': !isInStock(account),
                     'with-discount': account.has_discount && account.discount_percent
                 }"
             >
@@ -107,12 +107,12 @@
                                     clip-rule="evenodd"
                                 />
                             </svg>
-                            <span>{{ account.quantity > 0 ? account.quantity : '0' }}</span>
+                            <span>{{ formatStockQuantity(account) }}</span>
                         </div>
                         
                         <!-- Бейдж способа выдачи (только если товар в наличии) -->
                         <div
-                            v-if="account.quantity > 0"
+                            v-if="isInStock(account)"
                             class="delivery-type-badge"
                             :class="(account.delivery_type || 'automatic') === 'manual' ? 'manual-delivery' : 'auto-delivery'"
                             :title="getDeliveryTypeText(account)"
@@ -223,7 +223,7 @@
                             />
                             <button
                                 class="quantity-btn"
-                                :disabled="(account as any)._cachedQuantity >= (account.quantity || 1)"
+                                :disabled="account.quantity < 999 && (account as any)._cachedQuantity >= (account.quantity || 1)"
                                 @click="increaseQuantity(account.id)"
                             >
                                 +
@@ -276,7 +276,7 @@
 
                         <button
                             class="btn-cart"
-                            :disabled="!account.quantity || account.quantity === 0"
+                            :disabled="!isInStock(account)"
                             title="Добавить в корзину"
                             @click="addToCart(account)"
                         >
@@ -297,7 +297,7 @@
 
                         <button
                             class="btn-primary"
-                            :disabled="!account.quantity || account.quantity === 0"
+                            :disabled="!isInStock(account)"
                             @click="buyNow(account)"
                         >
                             <svg
@@ -521,7 +521,7 @@ const filteredAccounts = computed(() => {
         }
         
         // Фильтр по наличию (быстрая проверка)
-        if (hideOutOfStock && (!account.quantity || account.quantity <= 0)) {
+        if (hideOutOfStock && !isInStock(account)) {
             return false;
         }
         
@@ -659,12 +659,13 @@ const addToCart = (account: any) => {
     // КРИТИЧЕСКАЯ ОПТИМИЗАЦИЯ: Используем предвычисленное quantity
     const quantity = (account as any)._cachedQuantity || getQuantity(account.id);
 
-    if (!account.quantity || account.quantity === 0) {
+    if (!isInStock(account)) {
         toast.error(t('account.out_of_stock'));
         return;
     }
 
-    if (quantity > account.quantity) {
+    // Для товаров с ручной выдачей (quantity >= 999) нет ограничения на количество
+    if (account.quantity < 999 && quantity > account.quantity) {
         toast.error(t('account.detail.available_only', { count: account.quantity }));
         return;
     }
@@ -696,7 +697,7 @@ const buyNow = (account: any) => {
     // КРИТИЧЕСКАЯ ОПТИМИЗАЦИЯ: Используем предвычисленное quantity
     const quantity = (account as any)._cachedQuantity || getQuantity(account.id);
 
-    if (!account.quantity || account.quantity === 0) {
+    if (!isInStock(account)) {
         toast.error(t('account.out_of_stock'));
         return;
     }
@@ -715,6 +716,22 @@ const buyNow = (account: any) => {
 
     // Переходим на страницу оформления заказа
     router.push('/checkout');
+};
+
+// Функции для отображения наличия товара
+const isInStock = (account: any): boolean => {
+    // Для товаров с ручной выдачей (quantity = 999) считаем, что товар в наличии
+    // если он активен (is_active) или quantity > 0
+    return account.quantity > 0;
+};
+
+const formatStockQuantity = (account: any): string => {
+    // Для товаров с ручной выдачей, когда quantity = 999, показываем "В наличии"
+    if (account.quantity >= 999) {
+        return 'В наличии';
+    }
+    // Для обычных товаров показываем количество
+    return account.quantity > 0 ? account.quantity.toString() : '0';
 };
 
 // Функции для отображения способа выдачи товара
