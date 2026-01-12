@@ -1206,9 +1206,8 @@ onMounted(async () => {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 5px;
-    margin-bottom: 1px;
-    width: 100%;
+    gap: 8px;
+    margin-bottom: 2px;
 }
 
 .product-title {
@@ -1304,7 +1303,6 @@ onMounted(async () => {
 /* Артикул в строке с бейджами */
 .product-sku--inline {
     margin-top: 0;
-    margin-left: auto;
     flex-shrink: 0;
 }
 
