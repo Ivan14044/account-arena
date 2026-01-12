@@ -181,8 +181,6 @@
             },
             "order_completed_notification": "Order {order_number} has been successfully processed!",
             "admin_notes": "Manager notes",
-                "quantity": "QUANTITY"
-            },
             "disputes": {
                 "title": "Disputes",
                 "loading": "Loading disputes...",
