@@ -33,49 +33,57 @@
     <!-- Статистика -->
     <div class="row mb-4">
         <div class="col-lg-3 col-md-6 mb-3">
-            <div class="small-box bg-warning">
-                <div class="inner">
-                    <h3>{{ $statistics['pending'] }}</h3>
-                    <p>Ожидают обработки</p>
-                </div>
-                <div class="icon">
-                    <i class="fas fa-clock"></i>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-lg-3 col-md-6 mb-3">
-            <div class="small-box bg-success">
-                <div class="inner">
-                    <h3>{{ $statistics['processed_today'] }}</h3>
-                    <p>Обработано сегодня</p>
-                </div>
-                <div class="icon">
-                    <i class="fas fa-check-circle"></i>
+            <div class="stat-card stat-card-warning">
+                <div class="stat-card-body">
+                    <div class="stat-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-label">Ожидают обработки</div>
+                        <div class="stat-value">{{ $statistics['pending'] }}</div>
+                    </div>
                 </div>
             </div>
         </div>
         
         <div class="col-lg-3 col-md-6 mb-3">
-            <div class="small-box bg-info">
-                <div class="inner">
-                    <h3>{{ $statistics['processed_this_week'] }}</h3>
-                    <p>Обработано на этой неделе</p>
-                </div>
-                <div class="icon">
-                    <i class="fas fa-calendar-week"></i>
+            <div class="stat-card stat-card-success">
+                <div class="stat-card-body">
+                    <div class="stat-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-label">Обработано сегодня</div>
+                        <div class="stat-value">{{ $statistics['processed_today'] }}</div>
+                    </div>
                 </div>
             </div>
         </div>
         
         <div class="col-lg-3 col-md-6 mb-3">
-            <div class="small-box bg-primary">
-                <div class="inner">
-                    <h3>{{ $statistics['average_processing_time'] ?? 'N/A' }}</h3>
-                    <p>Среднее время (часов)</p>
+            <div class="stat-card stat-card-info">
+                <div class="stat-card-body">
+                    <div class="stat-icon">
+                        <i class="fas fa-calendar-week"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-label">Обработано на этой неделе</div>
+                        <div class="stat-value">{{ $statistics['processed_this_week'] }}</div>
+                    </div>
                 </div>
-                <div class="icon">
-                    <i class="fas fa-hourglass-half"></i>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stat-card stat-card-primary">
+                <div class="stat-card-body">
+                    <div class="stat-icon">
+                        <i class="fas fa-hourglass-half"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-label">Среднее время (часов)</div>
+                        <div class="stat-value">{{ $statistics['average_processing_time'] ?? 'N/A' }}</div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -254,6 +262,10 @@
         </div>
     </div>
 @stop
+
+@section('css')
+    @include('admin.layouts.modern-styles')
+@endsection
 
 @section('js')
 <script>

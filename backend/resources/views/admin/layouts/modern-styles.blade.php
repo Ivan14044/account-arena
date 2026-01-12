@@ -47,6 +47,9 @@
     margin-bottom: 1rem;
     transition: all 0.3s ease;
     border-left: 4px solid;
+    min-height: 140px; /* Единая минимальная высота для всех карточек */
+    display: flex;
+    flex-direction: column;
 }
 
 .stat-card-primary { border-left-color: #4e73df; }
@@ -99,6 +102,10 @@
 
 .stat-content {
     text-align: right;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
 }
 
 .stat-label {
@@ -115,6 +122,32 @@
     font-weight: 700;
     color: #2c3e50;
     line-height: 1;
+    margin-bottom: 0.5rem;
+}
+
+/* Ссылки "Подробнее" в карточках статистики */
+.stat-card a {
+    font-size: 0.875rem;
+    font-weight: 500;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    margin-top: 0.5rem;
+    transition: all 0.2s ease;
+}
+
+.stat-card a:hover {
+    text-decoration: underline;
+}
+
+.stat-card a i {
+    margin-left: 0.5rem;
+    font-size: 0.75rem;
+    transition: transform 0.2s ease;
+}
+
+.stat-card a:hover i {
+    transform: translateX(3px);
 }
 
 /* КАРТОЧКИ */

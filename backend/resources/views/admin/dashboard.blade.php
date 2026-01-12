@@ -58,19 +58,16 @@
     <!-- Основные метрики -->
     <div class="row">
         <div class="col-lg-3 col-md-6 mb-4">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <div class="text-muted text-uppercase small font-weight-bold">Всего товаров</div>
-                            <div class="h3 mb-0 font-weight-bold text-primary">{{ $totalProducts }}</div>
-                        </div>
-                        <div class="p-3 rounded" style="background-color: rgba(0,123,255,0.1);">
-                            <i class="fas fa-box fa-2x text-primary"></i>
-                        </div>
+            <div class="stat-card stat-card-primary">
+                <div class="stat-card-body">
+                    <div class="stat-icon">
+                        <i class="fas fa-box"></i>
                     </div>
-                    <div class="mt-3">
-                        <a href="{{ route('admin.service-accounts.index') }}" class="text-primary text-decoration-none">{{ __('Подробнее') }}<i class="fas fa-arrow-right"></i>
+                    <div class="stat-content">
+                        <div class="stat-label">Всего товаров</div>
+                        <div class="stat-value">{{ $totalProducts }}</div>
+                        <a href="{{ route('admin.service-accounts.index') }}" class="text-primary">
+                            {{ __('Подробнее') }} <i class="fas fa-arrow-right"></i>
                         </a>
                     </div>
                 </div>
@@ -78,19 +75,16 @@
         </div>
 
         <div class="col-lg-3 col-md-6 mb-4">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <div class="text-muted text-uppercase small font-weight-bold">Доступно для продажи</div>
-                            <div class="h3 mb-0 font-weight-bold text-success">{{ number_format($availableProducts, 0) }}</div>
-                        </div>
-                        <div class="p-3 rounded" style="background-color: rgba(40,167,69,0.1);">
-                            <i class="fas fa-check-circle fa-2x text-success"></i>
-                        </div>
+            <div class="stat-card stat-card-success">
+                <div class="stat-card-body">
+                    <div class="stat-icon">
+                        <i class="fas fa-check-circle"></i>
                     </div>
-                    <div class="mt-3">
-                        <a href="{{ route('admin.service-accounts.index') }}" class="text-success text-decoration-none">{{ __('Подробнее') }}<i class="fas fa-arrow-right"></i>
+                    <div class="stat-content">
+                        <div class="stat-label">Доступно для продажи</div>
+                        <div class="stat-value">{{ number_format($availableProducts, 0) }}</div>
+                        <a href="{{ route('admin.service-accounts.index') }}" class="text-success">
+                            {{ __('Подробнее') }} <i class="fas fa-arrow-right"></i>
                         </a>
                     </div>
                 </div>
@@ -98,19 +92,16 @@
         </div>
 
         <div class="col-lg-3 col-md-6 mb-4">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <div class="text-muted text-uppercase small font-weight-bold">Продано всего</div>
-                            <div class="h3 mb-0 font-weight-bold text-danger">{{ number_format($totalSold, 0) }}</div>
-                        </div>
-                        <div class="p-3 rounded" style="background-color: rgba(220,53,69,0.1);">
-                            <i class="fas fa-shopping-cart fa-2x text-danger"></i>
-                        </div>
+            <div class="stat-card stat-card-danger">
+                <div class="stat-card-body">
+                    <div class="stat-icon">
+                        <i class="fas fa-shopping-cart"></i>
                     </div>
-                    <div class="mt-3">
-                        <a href="{{ route('admin.purchases.index') }}" class="text-danger text-decoration-none">{{ __('Подробнее') }}<i class="fas fa-arrow-right"></i>
+                    <div class="stat-content">
+                        <div class="stat-label">Продано всего</div>
+                        <div class="stat-value">{{ number_format($totalSold, 0) }}</div>
+                        <a href="{{ route('admin.purchases.index') }}" class="text-danger">
+                            {{ __('Подробнее') }} <i class="fas fa-arrow-right"></i>
                         </a>
                     </div>
                 </div>
@@ -118,20 +109,17 @@
         </div>
 
         <div class="col-lg-3 col-md-6 mb-4">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <div class="text-muted text-uppercase small font-weight-bold">Общий доход</div>
-                            <div class="h3 mb-0 font-weight-bold text-info">{{ number_format($totalProfit, 2) }}</div>
-                            <div class="text-muted small">{{ \App\Models\Option::get('currency') }}</div>
-                        </div>
-                        <div class="p-3 rounded" style="background-color: rgba(23,162,184,0.1);">
-                            <i class="fas fa-chart-line fa-2x text-info"></i>
-                        </div>
+            <div class="stat-card stat-card-info">
+                <div class="stat-card-body">
+                    <div class="stat-icon">
+                        <i class="fas fa-chart-line"></i>
                     </div>
-                    <div class="mt-3">
-                        <a href="{{ route('admin.purchases.index') }}" class="text-info text-decoration-none">{{ __('Подробнее') }}<i class="fas fa-arrow-right"></i>
+                    <div class="stat-content">
+                        <div class="stat-label">Общий доход</div>
+                        <div class="stat-value">{{ number_format($totalProfit, 2) }}</div>
+                        <div class="text-muted small mb-2">{{ \App\Models\Option::get('currency') }}</div>
+                        <a href="{{ route('admin.purchases.index') }}" class="text-info">
+                            {{ __('Подробнее') }} <i class="fas fa-arrow-right"></i>
                         </a>
                     </div>
                 </div>
@@ -148,19 +136,16 @@
 
     <div class="row">
         <div class="col-lg-3 col-md-6 mb-4">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <div class="text-muted text-uppercase small font-weight-bold">Покупки товаров</div>
-                            <div class="h4 mb-0 font-weight-bold text-success">{{ $purchasesToday }}</div>
-                        </div>
-                        <div class="p-3 rounded" style="background-color: rgba(40,167,69,0.1);">
-                            <i class="fas fa-cart-plus fa-2x text-success"></i>
-                        </div>
+            <div class="stat-card stat-card-success">
+                <div class="stat-card-body">
+                    <div class="stat-icon">
+                        <i class="fas fa-cart-plus"></i>
                     </div>
-                    <div class="mt-3">
-                        <a href="{{ route('admin.purchases.index') }}" class="text-success text-decoration-none">{{ __('Подробнее') }}<i class="fas fa-arrow-right"></i>
+                    <div class="stat-content">
+                        <div class="stat-label">Покупки товаров</div>
+                        <div class="stat-value">{{ $purchasesToday }}</div>
+                        <a href="{{ route('admin.purchases.index') }}" class="text-success">
+                            {{ __('Подробнее') }} <i class="fas fa-arrow-right"></i>
                         </a>
                     </div>
                 </div>
@@ -168,20 +153,17 @@
         </div>
 
         <div class="col-lg-3 col-md-6 mb-4">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <div class="text-muted text-uppercase small font-weight-bold">Сумма продаж</div>
-                            <div class="h4 mb-0 font-weight-bold text-warning">{{ number_format($salesToday, 2) }}</div>
-                            <div class="text-muted small">{{ \App\Models\Option::get('currency') }}</div>
-                        </div>
-                        <div class="p-3 rounded" style="background-color: rgba(255,193,7,0.1);">
-                            <i class="fas fa-dollar-sign fa-2x text-warning"></i>
-                        </div>
+            <div class="stat-card stat-card-warning">
+                <div class="stat-card-body">
+                    <div class="stat-icon">
+                        <i class="fas fa-dollar-sign"></i>
                     </div>
-                    <div class="mt-3">
-                        <a href="{{ route('admin.purchases.index') }}" class="text-warning text-decoration-none">{{ __('Подробнее') }}<i class="fas fa-arrow-right"></i>
+                    <div class="stat-content">
+                        <div class="stat-label">Сумма продаж</div>
+                        <div class="stat-value">{{ number_format($salesToday, 2) }}</div>
+                        <div class="text-muted small mb-2">{{ \App\Models\Option::get('currency') }}</div>
+                        <a href="{{ route('admin.purchases.index') }}" class="text-warning">
+                            {{ __('Подробнее') }} <i class="fas fa-arrow-right"></i>
                         </a>
                     </div>
                 </div>
@@ -189,20 +171,17 @@
         </div>
 
         <div class="col-lg-3 col-md-6 mb-4">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <div class="text-muted text-uppercase small font-weight-bold">Товаров на сумму</div>
-                            <div class="h4 mb-0 font-weight-bold text-secondary">{{ number_format($totalProductsValue, 2) }}</div>
-                            <div class="text-muted small">{{ \App\Models\Option::get('currency') }}</div>
-                        </div>
-                        <div class="p-3 rounded" style="background-color: rgba(108,117,125,0.1);">
-                            <i class="fas fa-calculator fa-2x text-secondary"></i>
-                        </div>
+            <div class="stat-card stat-card-info">
+                <div class="stat-card-body">
+                    <div class="stat-icon">
+                        <i class="fas fa-calculator"></i>
                     </div>
-                    <div class="mt-3">
-                        <a href="{{ route('admin.service-accounts.index') }}" class="text-secondary text-decoration-none">{{ __('Подробнее') }}<i class="fas fa-arrow-right"></i>
+                    <div class="stat-content">
+                        <div class="stat-label">Товаров на сумму</div>
+                        <div class="stat-value">{{ number_format($totalProductsValue, 2) }}</div>
+                        <div class="text-muted small mb-2">{{ \App\Models\Option::get('currency') }}</div>
+                        <a href="{{ route('admin.service-accounts.index') }}" class="text-info">
+                            {{ __('Подробнее') }} <i class="fas fa-arrow-right"></i>
                         </a>
                     </div>
                 </div>
@@ -210,19 +189,16 @@
         </div>
 
         <div class="col-lg-3 col-md-6 mb-4">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <div class="text-muted text-uppercase small font-weight-bold">Всего пользователей</div>
-                            <div class="h4 mb-0 font-weight-bold text-primary">{{ $totalUsers }}</div>
-                        </div>
-                        <div class="p-3 rounded" style="background-color: rgba(0,123,255,0.1);">
-                            <i class="fas fa-users fa-2x text-primary"></i>
-                        </div>
+            <div class="stat-card stat-card-primary">
+                <div class="stat-card-body">
+                    <div class="stat-icon">
+                        <i class="fas fa-users"></i>
                     </div>
-                    <div class="mt-3">
-                        <a href="{{ route('admin.users.index') }}" class="text-primary text-decoration-none">{{ __('Подробнее') }}<i class="fas fa-arrow-right"></i>
+                    <div class="stat-content">
+                        <div class="stat-label">Всего пользователей</div>
+                        <div class="stat-value">{{ $totalUsers }}</div>
+                        <a href="{{ route('admin.users.index') }}" class="text-primary">
+                            {{ __('Подробнее') }} <i class="fas fa-arrow-right"></i>
                         </a>
                     </div>
                 </div>

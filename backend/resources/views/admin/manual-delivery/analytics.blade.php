@@ -43,49 +43,57 @@
     <!-- Общая статистика -->
     <div class="row mb-4">
         <div class="col-lg-3 col-md-6 mb-3">
-            <div class="small-box bg-info">
-                <div class="inner">
-                    <h3>{{ $totalOrders }}</h3>
-                    <p>Заказов в обработке</p>
-                </div>
-                <div class="icon">
-                    <i class="fas fa-clock"></i>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-lg-3 col-md-6 mb-3">
-            <div class="small-box bg-success">
-                <div class="inner">
-                    <h3>{{ $completedOrders }}</h3>
-                    <p>Обработано за период</p>
-                </div>
-                <div class="icon">
-                    <i class="fas fa-check-circle"></i>
+            <div class="stat-card stat-card-info">
+                <div class="stat-card-body">
+                    <div class="stat-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-label">Заказов в обработке</div>
+                        <div class="stat-value">{{ $totalOrders }}</div>
+                    </div>
                 </div>
             </div>
         </div>
         
         <div class="col-lg-3 col-md-6 mb-3">
-            <div class="small-box bg-warning">
-                <div class="inner">
-                    <h3>{{ number_format($avgProcessingTime ?? 0, 1) }}</h3>
-                    <p>Среднее время (часов)</p>
-                </div>
-                <div class="icon">
-                    <i class="fas fa-hourglass-half"></i>
+            <div class="stat-card stat-card-success">
+                <div class="stat-card-body">
+                    <div class="stat-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-label">Обработано за период</div>
+                        <div class="stat-value">{{ $completedOrders }}</div>
+                    </div>
                 </div>
             </div>
         </div>
         
         <div class="col-lg-3 col-md-6 mb-3">
-            <div class="small-box bg-danger">
-                <div class="inner">
-                    <h3>{{ $waitingStockCount }}</h3>
-                    <p>Ожидают товара</p>
+            <div class="stat-card stat-card-warning">
+                <div class="stat-card-body">
+                    <div class="stat-icon">
+                        <i class="fas fa-hourglass-half"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-label">Среднее время (часов)</div>
+                        <div class="stat-value">{{ number_format($avgProcessingTime ?? 0, 1) }}</div>
+                    </div>
                 </div>
-                <div class="icon">
-                    <i class="fas fa-box-open"></i>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stat-card stat-card-danger">
+                <div class="stat-card-body">
+                    <div class="stat-icon">
+                        <i class="fas fa-box-open"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-label">Ожидают товара</div>
+                        <div class="stat-value">{{ $waitingStockCount }}</div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -285,3 +293,7 @@
         </div>
     </div>
 @stop
+
+@section('css')
+    @include('admin.layouts.modern-styles')
+@endsection

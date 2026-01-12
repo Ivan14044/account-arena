@@ -3,94 +3,116 @@
 @section('title', 'Претензии')
 
 @section('content_header')
-    <h1>Претензии</h1>
+    <div class="content-header-modern">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="m-0 font-weight-light">Претензии</h1>
+            </div>
+        </div>
+    </div>
 @stop
 
 @section('content')
     {{-- Статистика --}}
-    <div class="row mb-3">
-        <div class="col-lg-3 col-6">
-            <div class="small-box bg-warning">
-                <div class="inner">
-                    <h3>{{ $stats['new'] }}</h3>
-                    <p>Новые претензии</p>
+    <div class="row mb-4">
+        <div class="col-lg-3 col-6 mb-3">
+            <div class="stat-card stat-card-warning">
+                <div class="stat-card-body">
+                    <div class="stat-icon">
+                        <i class="fas fa-exclamation-circle"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-label">Новые претензии</div>
+                        <div class="stat-value">{{ $stats['new'] }}</div>
+                        <a href="{{ route('admin.disputes.index', ['status' => 'new']) }}" class="text-warning">
+                            {{ __('Подробнее') }} <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
                 </div>
-                <div class="icon">
-                    <i class="fas fa-exclamation-circle"></i>
-                </div>
-                <a href="{{ route('admin.disputes.index', ['status' => 'new']) }}" class="small-box-footer">Подробнее <i class="fas fa-arrow-circle-right"></i>
-                </a>
             </div>
         </div>
-        <div class="col-lg-3 col-6">
-            <div class="small-box bg-info">
-                <div class="inner">
-                    <h3>{{ $stats['in_review'] }}</h3>
-                    <p>На рассмотрении</p>
+        <div class="col-lg-3 col-6 mb-3">
+            <div class="stat-card stat-card-info">
+                <div class="stat-card-body">
+                    <div class="stat-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-label">На рассмотрении</div>
+                        <div class="stat-value">{{ $stats['in_review'] }}</div>
+                        <a href="{{ route('admin.disputes.index', ['status' => 'in_review']) }}" class="text-info">
+                            {{ __('Подробнее') }} <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
                 </div>
-                <div class="icon">
-                    <i class="fas fa-clock"></i>
-                </div>
-                <a href="{{ route('admin.disputes.index', ['status' => 'in_review']) }}" class="small-box-footer">Подробнее <i class="fas fa-arrow-circle-right"></i>
-                </a>
             </div>
         </div>
-        <div class="col-lg-3 col-6">
-            <div class="small-box bg-success">
-                <div class="inner">
-                    <h3>{{ $stats['resolved'] }}</h3>
-                    <p>Решенные</p>
+        <div class="col-lg-3 col-6 mb-3">
+            <div class="stat-card stat-card-success">
+                <div class="stat-card-body">
+                    <div class="stat-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-label">Решенные</div>
+                        <div class="stat-value">{{ $stats['resolved'] }}</div>
+                        <a href="{{ route('admin.disputes.index', ['status' => 'resolved']) }}" class="text-success">
+                            {{ __('Подробнее') }} <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
                 </div>
-                <div class="icon">
-                    <i class="fas fa-check-circle"></i>
-                </div>
-                <a href="{{ route('admin.disputes.index', ['status' => 'resolved']) }}" class="small-box-footer">Подробнее <i class="fas fa-arrow-circle-right"></i>
-                </a>
             </div>
         </div>
-        <div class="col-lg-3 col-6">
-            <div class="small-box bg-danger">
-                <div class="inner">
-                    <h3>{{ $stats['rejected'] }}</h3>
-                    <p>Отклоненные</p>
+        <div class="col-lg-3 col-6 mb-3">
+            <div class="stat-card stat-card-danger">
+                <div class="stat-card-body">
+                    <div class="stat-icon">
+                        <i class="fas fa-times-circle"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-label">Отклоненные</div>
+                        <div class="stat-value">{{ $stats['rejected'] }}</div>
+                        <a href="{{ route('admin.disputes.index', ['status' => 'rejected']) }}" class="text-danger">
+                            {{ __('Подробнее') }} <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
                 </div>
-                <div class="icon">
-                    <i class="fas fa-times-circle"></i>
-                </div>
-                <a href="{{ route('admin.disputes.index', ['status' => 'rejected']) }}" class="small-box-footer">{{ __('Подробнее') }}<i class="fas fa-arrow-circle-right"></i>
-                </a>
             </div>
         </div>
     </div>
 
     {{-- Статистика по владельцам товаров --}}
-    <div class="row">
-        <div class="col-lg-6 col-12">
-            <div class="small-box bg-primary">
-                <div class="inner">
-                    <h3>{{ $stats['admin_products'] }}</h3>
-                    <p>🛡️ Претензии на мои товары</p>
+    <div class="row mb-4">
+        <div class="col-lg-6 col-12 mb-3">
+            <div class="stat-card stat-card-primary">
+                <div class="stat-card-body">
+                    <div class="stat-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-label">Претензии на мои товары</div>
+                        <div class="stat-value">{{ $stats['admin_products'] }}</div>
+                        <a href="{{ route('admin.disputes.index', ['owner' => 'admin']) }}" class="text-primary">
+                            Посмотреть <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
                 </div>
-                <div class="icon">
-                    <i class="fas fa-shield-alt"></i>
-                </div>
-                <a href="{{ route('admin.disputes.index', ['owner' => 'admin']) }}" class="small-box-footer">
-                    Посмотреть <i class="fas fa-arrow-circle-right"></i>
-                </a>
             </div>
         </div>
-        <div class="col-lg-6 col-12">
-            <div class="small-box bg-secondary">
-                <div class="inner">
-                    <h3>{{ $stats['supplier_products'] }}</h3>
-                    <p>Претензии на товары поставщиков</p>
+        <div class="col-lg-6 col-12 mb-3">
+            <div class="stat-card stat-card-info">
+                <div class="stat-card-body">
+                    <div class="stat-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-label">Претензии на товары поставщиков</div>
+                        <div class="stat-value">{{ $stats['supplier_products'] }}</div>
+                        <a href="{{ route('admin.disputes.index', ['owner' => 'suppliers']) }}" class="text-info">
+                            Посмотреть <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
                 </div>
-                <div class="icon">
-                    <i class="fas fa-users"></i>
-                </div>
-                <a href="{{ route('admin.disputes.index', ['owner' => 'suppliers']) }}" class="small-box-footer">
-                    Посмотреть <i class="fas fa-arrow-circle-right"></i>
-                </a>
             </div>
         </div>
     </div>
@@ -247,10 +269,6 @@
 @stop
 
 @section('css')
-    <style>
-        .small-box .icon {
-            font-size: 70px;
-        }
-    </style>
-@stop
+    @include('admin.layouts.modern-styles')
+@endsection
 

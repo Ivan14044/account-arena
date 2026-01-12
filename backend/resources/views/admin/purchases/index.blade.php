@@ -33,49 +33,57 @@
     <!-- Статистика -->
     <div class="row mb-4">
         <div class="col-lg-3 col-md-6 mb-3">
-            <div class="small-box bg-info">
-                <div class="inner">
-                    <h3>{{ $stats['total'] }}</h3>
-                    <p>Всего покупок</p>
-                </div>
-                <div class="icon">
-                    <i class="fas fa-shopping-cart"></i>
+            <div class="stat-card stat-card-info">
+                <div class="stat-card-body">
+                    <div class="stat-icon">
+                        <i class="fas fa-shopping-cart"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-label">Всего покупок</div>
+                        <div class="stat-value">{{ $stats['total'] }}</div>
+                    </div>
                 </div>
             </div>
         </div>
         
         <div class="col-lg-3 col-md-6 mb-3">
-            <div class="small-box bg-success">
-                <div class="inner">
-                    <h3>{{ $stats['today'] }}</h3>
-                    <p>Покупок сегодня</p>
-                </div>
-                <div class="icon">
-                    <i class="fas fa-calendar-day"></i>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-lg-3 col-md-6 mb-3">
-            <div class="small-box bg-warning">
-                <div class="inner">
-                    <h3>{{ $stats['this_month'] }}</h3>
-                    <p>Покупок в этом месяце</p>
-                </div>
-                <div class="icon">
-                    <i class="fas fa-calendar-alt"></i>
+            <div class="stat-card stat-card-success">
+                <div class="stat-card-body">
+                    <div class="stat-icon">
+                        <i class="fas fa-calendar-day"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-label">Покупок сегодня</div>
+                        <div class="stat-value">{{ $stats['today'] }}</div>
+                    </div>
                 </div>
             </div>
         </div>
 
         <div class="col-lg-3 col-md-6 mb-3">
-            <div class="small-box bg-primary">
-                <div class="inner">
-                    <h3>${{ number_format($stats['total_revenue'], 2) }}</h3>
-                    <p>Общий доход</p>
+            <div class="stat-card stat-card-warning">
+                <div class="stat-card-body">
+                    <div class="stat-icon">
+                        <i class="fas fa-calendar-alt"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-label">Покупок в этом месяце</div>
+                        <div class="stat-value">{{ $stats['this_month'] }}</div>
+                    </div>
                 </div>
-                <div class="icon">
-                    <i class="fas fa-dollar-sign"></i>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stat-card stat-card-primary">
+                <div class="stat-card-body">
+                    <div class="stat-icon">
+                        <i class="fas fa-dollar-sign"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-label">Общий доход</div>
+                        <div class="stat-value">${{ number_format($stats['total_revenue'], 2) }}</div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -301,14 +309,7 @@
 @endsection
 
 @section('css')
-    <style>
-        .small-box {
-            border-radius: 10px;
-        }
-        .small-box .icon {
-            font-size: 60px;
-        }
-    </style>
+    @include('admin.layouts.modern-styles')
 @endsection
 
 

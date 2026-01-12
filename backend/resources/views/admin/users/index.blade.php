@@ -702,10 +702,10 @@
             }, 5000);
 
             // Анимация при наведении на статистику
-            $('.small-box').on('mouseenter', function() {
-                $(this).find('.icon i').addClass('fa-bounce');
+            $('.stat-card').on('mouseenter', function() {
+                $(this).find('.stat-icon i').addClass('fa-bounce');
             }).on('mouseleave', function() {
-                $(this).find('.icon i').removeClass('fa-bounce');
+                $(this).find('.stat-icon i').removeClass('fa-bounce');
             });
         });
     </script>
