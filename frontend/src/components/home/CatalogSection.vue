@@ -563,7 +563,7 @@ onMounted(async () => {
     height: 26px;
     background: #d1d5db;
     border-radius: 13px;
-    transition: all 0.3s ease;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
     box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
@@ -580,7 +580,7 @@ onMounted(async () => {
     background: #ffffff;
     top: 3px;
     left: 3px;
-    transition: all 0.3s ease;
+    transition: transform 0.3s ease, left 0.3s ease;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
@@ -630,7 +630,7 @@ onMounted(async () => {
     border-radius: 12px;
     font-size: 14px;
     color: #1f2937;
-    transition: all 0.3s ease;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
     font-family: 'SFT Schrifted Sans', sans-serif;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
@@ -773,7 +773,7 @@ onMounted(async () => {
     margin-left: 7px;
     letter-spacing: 0.2px;
     box-shadow: 0 1px 4px rgba(108, 92, 231, 0.15);
-    transition: all 0.3s ease;
+    transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, color 0.3s ease;
 }
 
 .dark .subcategory-count {

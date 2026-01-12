@@ -1,31 +1,32 @@
 <template>
-    <swiper
-        :modules="[Navigation, Pagination, Autoplay]"
-        :slides-per-view="1"
-        :space-between="30"
-        :autoplay="{
-            delay: 5000,
-            disableOnInteraction: false
-        }"
-        :breakpoints="{
-            640: {
-                slidesPerView: 1,
-                spaceBetween: 20
-            },
-            768: {
-                slidesPerView: 2,
-                spaceBetween: 20
-            },
-            1024: {
-                slidesPerView: 3,
-                spaceBetween: 30
-            }
-        }"
-        :navigation="true"
-        :pagination="{ clickable: true }"
-        class="mt-8 px-6"
-        @slide-change="onSlideChange"
-    >
+    <div ref="swiperContainerRef" class="mt-8 px-6">
+        <swiper
+            ref="swiperRef"
+            :modules="[Navigation, Pagination, Autoplay]"
+            :slides-per-view="1"
+            :space-between="30"
+            :autoplay="isVisible ? {
+                delay: 5000,
+                disableOnInteraction: false
+            } : false"
+            :breakpoints="{
+                640: {
+                    slidesPerView: 1,
+                    spaceBetween: 20
+                },
+                768: {
+                    slidesPerView: 2,
+                    spaceBetween: 20
+                },
+                1024: {
+                    slidesPerView: 3,
+                    spaceBetween: 30
+                }
+            }"
+            :navigation="true"
+            :pagination="{ clickable: true }"
+            @slide-change="onSlideChange"
+        >
         <swiper-slide v-for="(review, index) in reviews" :key="index" class="pb-12">
             <div
                 class="bg-white dark:!bg-gray-800 rounded-xl border border-gray-200 p-5 h-[214px] max-h-[214px] flex flex-col mt-1"
@@ -73,6 +74,7 @@
             </div>
         </swiper-slide>
     </swiper>
+    </div>
 </template>
 
 <script setup lang="ts">
@@ -82,12 +84,30 @@ import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 
-import { computed, onMounted } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import { useContentsStore } from '@/stores/contents';
 import { useI18n } from 'vue-i18n';
+import { useIntersectionObserver } from '@/composables/useIntersectionObserver';
 
 const { locale } = useI18n();
 const contentStore = useContentsStore();
+
+const swiperRef = ref<any>(null);
+const swiperContainerRef = ref<HTMLElement | null>(null);
+const { isVisible } = useIntersectionObserver(swiperContainerRef, {
+    rootMargin: '50px' // начинать загрузку за 50px до появления
+});
+
+// Управление autoplay в зависимости от видимости
+watch(isVisible, (visible) => {
+    if (swiperRef.value?.swiper) {
+        if (visible) {
+            swiperRef.value.swiper.autoplay.start();
+        } else {
+            swiperRef.value.swiper.autoplay.stop();
+        }
+    }
+});
 
 onMounted(() => {
     contentStore.fetchContent('homepage_reviews', locale.value);
@@ -103,8 +123,9 @@ const onSlideChange = () => {};
 <style scoped>
 :deep(.swiper-button-next),
 :deep(.swiper-button-prev) {
-    @apply text-gray-800 bg-white/50 dark:bg-gray-600 dark:text-white hover:bg-[#0047ff] hover:text-white dark:hover:bg-gray-700 transition-all duration-300 w-10 h-10 rounded-full flex items-center justify-center top-[45%];
+    @apply text-gray-800 bg-white/50 dark:bg-gray-600 dark:text-white hover:bg-[#0047ff] hover:text-white dark:hover:bg-gray-700 w-10 h-10 rounded-full flex items-center justify-center top-[45%];
     backdrop-filter: blur(4px);
+    transition: background-color 0.3s ease, color 0.3s ease, transform 0.3s ease;
 }
 
 :deep(.swiper-button-prev) {

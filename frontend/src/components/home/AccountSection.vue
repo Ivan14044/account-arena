@@ -536,6 +536,11 @@ const loadMore = () => {
     currentPage.value++;
 };
 
+// Виртуализация для больших списков (> 20 элементов)
+// Используем content-visibility CSS для оптимизации рендеринга
+// вместо полной виртуализации, чтобы сохранить существующую структуру
+const shouldVirtualize = computed(() => displayedAccounts.value.length > 20);
+
 // КРИТИЧЕСКАЯ ОПТИМИЗАЦИЯ: Объединяем все watch на фильтры в один
 // Это избегает множественных пересчетов и улучшает производительность
 watch(
@@ -767,6 +772,9 @@ onMounted(async () => {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04); /* Упрощенная тень */
     position: relative;
     overflow: hidden;
+    /* Оптимизация рендеринга для больших списков */
+    content-visibility: auto;
+    contain-intrinsic-size: 250px;
     /* GPU acceleration для backdrop-filter */
     transform: translateZ(0);
     /* КРИТИЧЕСКАЯ ОПТИМИЗАЦИЯ: Ленивый рендеринг для карточек вне viewport */
@@ -1022,7 +1030,7 @@ onMounted(async () => {
     font-size: 11px;
     font-weight: 600;
     flex-shrink: 0;
-    transition: all 0.2s ease;
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
     line-height: 1;
 }
 
@@ -1215,7 +1223,7 @@ onMounted(async () => {
     font-family: 'SFT Schrifted Sans', sans-serif;
     white-space: nowrap;
     filter: drop-shadow(0 2px 4px rgba(108, 92, 231, 0.2));
-    transition: all 0.3s ease;
+    transition: filter 0.3s ease;
 }
 
 .product-card:hover .price {
@@ -1265,7 +1273,7 @@ onMounted(async () => {
     color: #64748b;
     cursor: pointer;
     padding: 4px 10px;
-    transition: all 0.2s ease;
+    transition: background-color 0.2s ease, color 0.2s ease;
     min-width: 32px;
     display: flex;
     align-items: center;
@@ -1431,7 +1439,7 @@ onMounted(async () => {
     font-weight: 600;
     font-size: 13px;
     color: white;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     box-shadow: 0 4px 14px rgba(108, 92, 231, 0.3);
     flex: 1;
     display: flex;

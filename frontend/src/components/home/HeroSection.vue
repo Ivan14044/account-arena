@@ -253,7 +253,7 @@ onMounted(async () => {
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.3s ease;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
     border: 1px solid #e5e7eb;
     overflow: hidden; /* Важно для правильного отображения изображений */
     position: relative;
@@ -266,8 +266,13 @@ onMounted(async () => {
 }
 
 .ad-banner:hover {
+    will-change: transform;
     transform: translateY(-6px);
     box-shadow: 0 10px 35px rgba(0, 0, 0, 0.15);
+}
+
+.ad-banner:not(:hover) {
+    will-change: auto;
 }
 
 .dark .ad-banner:hover {
@@ -297,7 +302,7 @@ onMounted(async () => {
     font-weight: 600;
     text-align: center;
     font-family: 'SFT Schrifted Sans', sans-serif;
-    transition: all 0.3s ease;
+    transition: border-color 0.3s ease, color 0.3s ease;
 }
 
 .dark .banner-text {
@@ -328,17 +333,13 @@ onMounted(async () => {
     height: 100%;
     object-fit: cover; /* Изображение заполнит контейнер с сохранением пропорций */
     border-radius: 20px;
-    transition: transform 0.3s ease;
+    transition: opacity 0.3s ease;
 }
 
 /* Альтернативный вариант: object-fit: contain для полного отображения */
 .banner-image.contain {
     object-fit: contain;
     padding: 10px;
-}
-
-.ad-banner:hover .banner-image {
-    transform: scale(1.05);
 }
 
 /* Стили для широкого баннера */
@@ -349,7 +350,7 @@ onMounted(async () => {
     display: block;
     height: 200px;
     width: 100%;
-    transition: all 0.3s ease;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
     border: 1px solid #e5e7eb;
     overflow: hidden;
     position: relative;
@@ -362,8 +363,13 @@ onMounted(async () => {
 }
 
 .ad-banner-wide:hover {
+    will-change: transform;
     transform: translateY(-6px);
     box-shadow: 0 10px 35px rgba(0, 0, 0, 0.15);
+}
+
+.ad-banner-wide:not(:hover) {
+    will-change: auto;
 }
 
 .dark .ad-banner-wide:hover {
@@ -398,11 +404,7 @@ onMounted(async () => {
     height: 100%;
     object-fit: cover;
     border-radius: 20px;
-    transition: transform 0.3s ease;
-}
-
-.ad-banner-wide:hover .banner-image {
-    transform: scale(1.05);
+    transition: opacity 0.3s ease;
 }
 
 /* Tablet: 2 columns */
