@@ -155,6 +155,28 @@
     transform: translateX(3px);
 }
 
+/* Компактные карточки статистики (для страниц без ссылок "Подробнее") */
+.stat-card-compact {
+    min-height: 90px !important; /* Вместо 140px */
+    padding: 0.875rem 1rem !important; /* Вместо 1.25rem */
+}
+
+.stat-card-compact .stat-icon {
+    width: 38px !important; /* Вместо 45px */
+    height: 38px !important; /* Вместо 45px */
+    font-size: 1.1rem !important; /* Вместо 1.25rem */
+}
+
+.stat-card-compact .stat-value {
+    font-size: 1.5rem !important; /* Вместо 1.75rem */
+    line-height: 1.1 !important;
+}
+
+.stat-card-compact .stat-label {
+    font-size: 0.65rem !important; /* Вместо 0.7rem */
+    margin-bottom: 0.25rem !important; /* Вместо 0.375rem */
+}
+
 /* КАРТОЧКИ */
 .card-modern {
     border: 1px solid #e3e6f0;
