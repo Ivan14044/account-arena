@@ -31,7 +31,7 @@
     <!-- Статистика -->
     <div class="row mb-4">
         <div class="col-lg-3 col-6">
-            <div class="stat-card stat-card-primary">
+            <div class="stat-card stat-card-primary stat-card-compact">
                 <div class="stat-card-body">
                     <div class="stat-icon">
                         <i class="fas fa-ticket-alt"></i>
@@ -45,7 +45,7 @@
         </div>
 
         <div class="col-lg-3 col-6">
-            <div class="stat-card stat-card-success">
+            <div class="stat-card stat-card-success stat-card-compact">
                 <div class="stat-card-body">
                     <div class="stat-icon">
                         <i class="fas fa-check-circle"></i>
@@ -59,7 +59,7 @@
         </div>
 
         <div class="col-lg-3 col-6">
-            <div class="stat-card stat-card-warning">
+            <div class="stat-card stat-card-warning stat-card-compact">
                 <div class="stat-card-body">
                     <div class="stat-icon">
                         <i class="fas fa-check-double"></i>
@@ -73,7 +73,7 @@
         </div>
 
         <div class="col-lg-3 col-6">
-            <div class="stat-card stat-card-info">
+            <div class="stat-card stat-card-info stat-card-compact">
                 <div class="stat-card-body">
                     <div class="stat-icon">
                         <i class="fas fa-dollar-sign"></i>
