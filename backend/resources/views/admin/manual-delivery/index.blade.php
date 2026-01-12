@@ -259,15 +259,20 @@
                                     </td>
                                     <td>
                                         @php
-                                            $hoursInProcessing = $order->created_at->diffInHours(now());
-                                            $daysInProcessing = $order->created_at->diffInDays(now());
+                                            $minutesInProcessing = $order->created_at->diffInMinutes(now());
+                                            $hoursInProcessing = floor($minutesInProcessing / 60);
+                                            $remainingMinutes = $minutesInProcessing % 60;
+                                            $daysInProcessing = floor($hoursInProcessing / 24);
+                                            $remainingHours = $hoursInProcessing % 24;
                                         @endphp
                                         @if($daysInProcessing > 0)
                                             <span class="badge badge-{{ $daysInProcessing >= 3 ? 'danger' : ($daysInProcessing >= 2 ? 'warning' : 'info') }}">
-                                                {{ $daysInProcessing }} дн. {{ $hoursInProcessing % 24 }} ч.
+                                                {{ $daysInProcessing }} дн. {{ $remainingHours }} ч. {{ $remainingMinutes }} мин.
                                             </span>
+                                        @elseif($hoursInProcessing > 0)
+                                            <span class="badge badge-info">{{ $hoursInProcessing }} ч. {{ $remainingMinutes }} мин.</span>
                                         @else
-                                            <span class="badge badge-info">{{ $hoursInProcessing }} ч.</span>
+                                            <span class="badge badge-info">{{ $remainingMinutes }} мин.</span>
                                         @endif
                                     </td>
                                     <td>
