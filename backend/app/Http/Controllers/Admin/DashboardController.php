@@ -100,8 +100,8 @@ class DashboardController extends Controller
         }
         $revenueInPeriod = $revenueInPeriodQuery->sum('total_amount');
 
-        // Средний чек за период
-        $averageOrderValue = $purchasesInPeriod > 0 ? ($revenueInPeriod / $purchasesInPeriod) : 0;
+        // Средний чек за период (только по завершенным покупкам)
+        $averageOrderValue = $soldInPeriod > 0 ? ($revenueInPeriod / $soldInPeriod) : 0;
 
         // Всего пользователей
         $totalUsers = User::where('is_admin', false)->where('is_main_admin', false)->count();
