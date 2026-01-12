@@ -4,6 +4,24 @@
 
 @section('content_header')
     <h1>Редактирование товара #{{ $serviceAccount->id }}</h1>
+@section('js')
+<script>
+    // Показываем/скрываем поле инструкций в зависимости от способа выдачи
+    document.addEventListener('DOMContentLoaded', function() {
+        const deliveryTypeSelect = document.getElementById('delivery_type');
+        const instructionsGroup = document.getElementById('manual-delivery-instructions-group');
+        
+        if (deliveryTypeSelect && instructionsGroup) {
+            deliveryTypeSelect.addEventListener('change', function() {
+                if (this.value === 'manual') {
+                    instructionsGroup.style.display = 'block';
+                } else {
+                    instructionsGroup.style.display = 'none';
+                }
+            });
+        }
+    });
+</script>
 @stop
 
 @section('content')
@@ -482,6 +500,35 @@
                                         @enderror
                                     </div>
                                 </div>
+                                <div class="col-md-4">
+                                    <div class="form-group mb-2">
+                                        <label for="delivery_type">Способ выдачи товара</label>
+                                        <select name="delivery_type" id="delivery_type"
+                                                class="form-control @error('delivery_type') is-invalid @enderror">
+                                            <option value="automatic" {{ old('delivery_type', $serviceAccount->delivery_type ?? 'automatic') == 'automatic' ? 'selected' : '' }}>Автоматическая</option>
+                                            <option value="manual" {{ old('delivery_type', $serviceAccount->delivery_type ?? 'automatic') == 'manual' ? 'selected' : '' }}>Ручная</option>
+                                        </select>
+                                        <small class="form-text text-muted">Автоматическая - товар выдается сразу после оплаты. Ручная - товар выдается менеджером вручную.</small>
+                                        @error('delivery_type')
+                                        <div class="invalid-feedback d-block">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="form-group mb-2" id="manual-delivery-instructions-group" style="{{ old('delivery_type', $serviceAccount->delivery_type ?? 'automatic') == 'manual' ? '' : 'display: none;' }}">
+                                        <label for="manual_delivery_instructions">Инструкции для менеджера при ручной выдаче</label>
+                                        <textarea name="manual_delivery_instructions" id="manual_delivery_instructions" rows="5"
+                                                  class="form-control @error('manual_delivery_instructions') is-invalid @enderror"
+                                                  placeholder="Опишите процесс выдачи товара, какие данные нужно подготовить и т.д.">{{ old('manual_delivery_instructions', $serviceAccount->manual_delivery_instructions) }}</textarea>
+                                        <small class="form-text text-muted">Эти инструкции будут видны менеджеру при обработке заказа</small>
+                                        @error('manual_delivery_instructions')
+                                        <div class="invalid-feedback d-block">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                </div>
                             </div>
 
                             <button type="submit" class="btn btn-primary">
@@ -830,5 +877,29 @@
                 wrapper.style.display = checkbox.checked ? 'block' : 'none';
             }
         }
+
+        // Показываем/скрываем поле инструкций в зависимости от способа выдачи
+        document.addEventListener('DOMContentLoaded', function() {
+            const deliveryTypeSelect = document.getElementById('delivery_type');
+            const instructionsGroup = document.getElementById('manual-delivery-instructions-group');
+            
+            if (deliveryTypeSelect && instructionsGroup) {
+                // Инициализация при загрузке
+                if (deliveryTypeSelect.value === 'manual') {
+                    instructionsGroup.style.display = 'block';
+                } else {
+                    instructionsGroup.style.display = 'none';
+                }
+                
+                // Обработчик изменения
+                deliveryTypeSelect.addEventListener('change', function() {
+                    if (this.value === 'manual') {
+                        instructionsGroup.style.display = 'block';
+                    } else {
+                        instructionsGroup.style.display = 'none';
+                    }
+                });
+            }
+        });
     </script>
 @endsection

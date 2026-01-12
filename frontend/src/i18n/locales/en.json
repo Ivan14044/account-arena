@@ -110,8 +110,15 @@
             "statuses": {
                 "completed": "Completed",
                 "pending": "Pending",
+                "processing": "Processing",
                 "failed": "Failed",
+                "cancelled": "Cancelled",
                 "refunded": "Refunded"
+            },
+            "processing": {
+                "title": "Order is being processed",
+                "description": "Your order is being manually processed by a manager. The product will be delivered after processing is complete.",
+                "working_hours": "Working hours: Mon-Fri 9:00-18:00 (MSK)"
             },
             "quantity": "Quantity",
             "pcs": "pcs",

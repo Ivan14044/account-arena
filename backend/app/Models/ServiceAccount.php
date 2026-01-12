@@ -43,6 +43,8 @@ class ServiceAccount extends Model
         'expiring_at',
         'last_used_at',
         'is_active',
+        'delivery_type', // Способ выдачи: automatic, manual
+        'manual_delivery_instructions', // Инструкции для менеджера
         'price',
         'discount_percent',
         'discount_start_date',
@@ -313,6 +315,28 @@ class ServiceAccount extends Model
             return true;
         }
         return $this->moderation_status === 'approved';
+    }
+
+    /**
+     * Константы для способов выдачи
+     */
+    const DELIVERY_AUTOMATIC = 'automatic';
+    const DELIVERY_MANUAL = 'manual';
+
+    /**
+     * Проверить, требует ли товар ручной выдачи
+     */
+    public function requiresManualDelivery(): bool
+    {
+        return ($this->delivery_type ?? self::DELIVERY_AUTOMATIC) === self::DELIVERY_MANUAL;
+    }
+
+    /**
+     * Проверить, является ли товар автоматическим
+     */
+    public function isAutomaticDelivery(): bool
+    {
+        return !$this->requiresManualDelivery();
     }
 
     /**

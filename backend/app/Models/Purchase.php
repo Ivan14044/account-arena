@@ -20,12 +20,17 @@ class Purchase extends Model
         'total_amount',
         'account_data',
         'status',
+        'processed_by', // ID администратора, который обработал заказ
+        'processed_at', // Дата и время обработки
+        'processing_notes', // Заметки менеджера
+        'admin_notes', // Внутренние заметки администратора
     ];
 
     protected $casts = [
         'account_data' => 'array',
         'price' => 'decimal:2',
         'total_amount' => 'decimal:2',
+        'processed_at' => 'datetime',
     ];
 
     // Связь с пользователем
@@ -46,6 +51,12 @@ class Purchase extends Model
         return $this->belongsTo(Transaction::class);
     }
 
+    // Связь с администратором, который обработал заказ
+    public function processor()
+    {
+        return $this->belongsTo(User::class, 'processed_by');
+    }
+
     /**
      * Генерация уникального номера заказа
      * Формат: ORD-YYYYMMDD-XXXXX (например: ORD-20251104-12345)
@@ -61,5 +72,51 @@ class Purchase extends Model
         } while ($exists);
 
         return $orderNumber;
+    }
+
+    /**
+     * Константы для статусов заказа
+     */
+    const STATUS_PENDING = 'pending';
+    const STATUS_PROCESSING = 'processing';
+    const STATUS_COMPLETED = 'completed';
+    const STATUS_FAILED = 'failed';
+    const STATUS_CANCELLED = 'cancelled';
+
+    /**
+     * Проверить, находится ли заказ в обработке
+     */
+    public function isProcessing(): bool
+    {
+        return $this->status === self::STATUS_PROCESSING;
+    }
+
+    /**
+     * Проверить, завершен ли заказ
+     */
+    public function isCompleted(): bool
+    {
+        return $this->status === self::STATUS_COMPLETED;
+    }
+
+    /**
+     * Проверить, требует ли заказ ручной обработки
+     */
+    public function requiresManualProcessing(): bool
+    {
+        return $this->status === self::STATUS_PROCESSING 
+            && $this->serviceAccount 
+            && $this->serviceAccount->requiresManualDelivery();
+    }
+
+    /**
+     * Scope: заказы, ожидающие ручной обработки
+     */
+    public function scopePendingManualProcessing($query)
+    {
+        return $query->where('status', self::STATUS_PROCESSING)
+            ->whereHas('serviceAccount', function($q) {
+                $q->where('delivery_type', \App\Models\ServiceAccount::DELIVERY_MANUAL);
+            });
     }
 }

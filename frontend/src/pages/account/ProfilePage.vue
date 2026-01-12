@@ -1454,7 +1454,9 @@ const formatStatus = (status: string) => {
     const statuses: Record<string, string> = {
         completed: t('profile.purchases.statuses.completed'),
         pending: t('profile.purchases.statuses.pending'),
+        processing: t('profile.purchases.statuses.processing'),
         failed: t('profile.purchases.statuses.failed'),
+        cancelled: t('profile.purchases.statuses.cancelled'),
         refunded: t('profile.purchases.statuses.refunded')
     };
     return statuses[status] || status;
@@ -1464,7 +1466,9 @@ const getStatusClass = (status: string) => {
     const classes: Record<string, string> = {
         completed: 'status-completed',
         pending: 'status-pending',
+        processing: 'status-processing',
         failed: 'status-failed',
+        cancelled: 'status-cancelled',
         refunded: 'status-refunded'
     };
     return classes[status] || 'status-completed';
@@ -1689,7 +1693,7 @@ const handleSubmit = async () => {
 
 // Функции для работы с претензиями
 const canCreateDispute = (purchase: any): boolean => {
-    // Только для completed транзакций
+    // Только для completed транзакций (не для processing и других статусов)
     if (purchase.status !== 'completed') return false;
 
     // Проверяем наличие transaction_id
@@ -2291,6 +2295,27 @@ onMounted(async () => {
 .dark .status-pending {
     background: rgba(251, 191, 36, 0.2);
     color: #fcd34d;
+}
+
+.status-processing {
+    background: #dbeafe;
+    color: #1e40af;
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.dark .status-processing {
+    background: rgba(59, 130, 246, 0.2);
+    color: #93c5fd;
+}
+
+.status-cancelled {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.dark .status-cancelled {
+    background: rgba(239, 68, 68, 0.2);
+    color: #fca5a5;
 }
 
 .status-failed {

@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\{ServiceAccount, Purchase, Transaction, Option, SupplierEarning, User};
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use App\Services\ManualDeliveryService;
 
 /**
  * Сервис для обработки покупок товаров
@@ -160,9 +161,17 @@ public function createProductPurchase(
         throw new \Exception("Failed to assign all requested accounts. Requested: {$quantity}, assigned: " . count($assignedAccounts));
     }
 
-    // Увеличиваем счетчик использованных
-    $product->used = $usedCount + $quantity;
-    $product->save();
+    // Определяем тип выдачи товара
+    $deliveryType = $product->delivery_type ?? ServiceAccount::DELIVERY_AUTOMATIC;
+    $requiresManualDelivery = ($deliveryType === ServiceAccount::DELIVERY_MANUAL);
+
+    // Для ручной выдачи не увеличиваем счетчик used и не выдаем аккаунты сразу
+    // Для автоматической выдачи - стандартная логика
+    if (!$requiresManualDelivery) {
+        // Увеличиваем счетчик использованных только для автоматической выдачи
+        $product->used = $usedCount + $quantity;
+        $product->save();
+    }
 
     // Создаем транзакцию для покупки
     $transaction = Transaction::create([
@@ -175,6 +184,16 @@ public function createProductPurchase(
         'status' => 'completed',
     ]);
 
+    // Определяем начальный статус и данные аккаунтов
+    $initialStatus = $requiresManualDelivery 
+        ? Purchase::STATUS_PROCESSING 
+        : Purchase::STATUS_COMPLETED;
+    
+    // Для ручной выдачи account_data пока пустой (заполнится при обработке менеджером)
+    $purchaseAccountData = $requiresManualDelivery 
+        ? [] 
+        : $assignedAccounts;
+
     // Создаем запись о покупке с уникальным номером заказа
     $purchase = Purchase::create([
         'order_number' => Purchase::generateOrderNumber(),
@@ -185,8 +204,8 @@ public function createProductPurchase(
         'quantity' => $quantity,
         'price' => $price,
         'total_amount' => $total,
-        'account_data' => $assignedAccounts,
-        'status' => 'completed',
+        'account_data' => $purchaseAccountData,
+        'status' => $initialStatus,
     ]);
 
     // Логируем номер заказа для отслеживания
@@ -198,7 +217,23 @@ public function createProductPurchase(
         'product_title' => $product->title,
         'quantity' => $quantity,
         'total' => $total,
+        'delivery_type' => $deliveryType,
+        'status' => $initialStatus,
     ]);
+
+    // Уведомляем администратора о новом заказе на ручную обработку
+    if ($requiresManualDelivery) {
+        try {
+            $manualDeliveryService = app(ManualDeliveryService::class);
+            $manualDeliveryService->notifyAdminAboutNewOrder($purchase);
+        } catch (\Throwable $e) {
+            // Не ломаем основную покупку из-за ошибки уведомления
+            Log::error('Failed to notify admin about manual order', [
+                'purchase_id' => $purchase->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
 
     /*
      * NEW: Создаём запись SupplierEarning вместо немедленного увеличения supplier_balance.

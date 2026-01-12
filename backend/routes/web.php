@@ -31,6 +31,7 @@ use App\Http\Controllers\Admin\SupplierController;
 use App\Http\Controllers\Admin\BannerController;
 use App\Http\Controllers\Admin\ProductDisputeController;
 use App\Http\Controllers\Admin\PurchaseRulesController;
+use App\Http\Controllers\Admin\ManualDeliveryController;
 use App\Http\Controllers\Supplier\WithdrawalController;
 use App\Http\Controllers\Supplier\DisputeController as SupplierDisputeController;
 use Illuminate\Support\Facades\Route;
@@ -90,6 +91,12 @@ Route::prefix('/admin')
 
             // Purchases (покупки товаров)
             Route::resource('purchases', PurchaseController::class)->only(['index', 'show', 'destroy']);
+
+            // Manual Delivery (ручная обработка заказов)
+            Route::get('manual-delivery', [ManualDeliveryController::class, 'index'])->name('manual-delivery.index');
+            Route::get('manual-delivery/{purchase}', [ManualDeliveryController::class, 'show'])->name('manual-delivery.show');
+            Route::post('manual-delivery/{purchase}/process', [ManualDeliveryController::class, 'process'])->name('manual-delivery.process');
+            Route::get('manual-delivery/statistics', [ManualDeliveryController::class, 'statistics'])->name('manual-delivery.statistics');
 
             // Purchase Rules (правила покупки)
             Route::get('purchase-rules', [PurchaseRulesController::class, 'index'])->name('purchase-rules.index');
