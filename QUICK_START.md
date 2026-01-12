@@ -43,8 +43,8 @@ chmod +x setup-server.sh
 
 **2. На локальном компьютере запустите деплой:**
 ```bash
-cd D:\project\Subcloudy
-bash deploy-now.sh
+cd "D:\project\Account Arena"
+bash deploy.sh
 ```
 
 ---
@@ -55,7 +55,7 @@ bash deploy-now.sh
 
 **1. Закоммитьте изменения:**
 ```bash
-cd D:\project\Subcloudy
+cd "D:\project\Account Arena"
 git add .
 git commit -m "Update features"
 git push origin main
@@ -63,7 +63,7 @@ git push origin main
 
 **2. Запустите деплой:**
 ```bash
-bash deploy-now.sh
+bash deploy.sh
 ```
 
 ### На сервере:

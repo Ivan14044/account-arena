@@ -1,66 +1,269 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Account Arena - Backend (Laravel)
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Backend часть проекта Account Arena на базе Laravel 10.
 
-## About Laravel
+## 🛠 Технологии
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- **Laravel 10.10** - PHP Framework
+- **PHP 8.1+** - Язык программирования
+- **MySQL** - База данных (SQLite для разработки)
+- **Redis** - Кэширование и очереди
+- **Laravel Sanctum** - API аутентификация
+- **Laravel Socialite** - OAuth провайдеры (Google, Telegram)
+- **AdminLTE 3** - Админ-панель
+- **GeoIP2** - Геолокация пользователей
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## 📁 Структура проекта
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+```
+backend/
+├── app/
+│   ├── Console/Commands/        # Artisan команды
+│   ├── Exceptions/               # Обработчики исключений
+│   ├── Helpers/                  # Вспомогательные функции
+│   ├── Http/
+│   │   ├── Controllers/
+│   │   │   ├── Admin/           # Админ-панель (30 контроллеров)
+│   │   │   ├── Api/             # REST API (12 контроллеров)
+│   │   │   ├── Auth/            # Аутентификация (8 контроллеров)
+│   │   │   ├── Seo/             # SEO страницы (SSR)
+│   │   │   └── Supplier/        # Кабинет поставщика (8 контроллеров)
+│   │   ├── Middleware/          # Middleware (19 файлов)
+│   │   ├── Requests/            # Form Request валидация (17 файлов)
+│   │   └── Responses/            # Кастомные ответы
+│   ├── Models/                   # Eloquent модели (35 моделей)
+│   ├── Notifications/            # Уведомления
+│   ├── Observers/                # Model observers
+│   ├── Providers/                # Service providers
+│   ├── Services/                 # Бизнес-логика (10 сервисов)
+│   └── Traits/                   # Переиспользуемые трейты
+├── config/                       # Конфигурационные файлы
+├── database/
+│   ├── migrations/               # Миграции БД (125+ файлов)
+│   ├── seeders/                  # Сидеры (8 файлов)
+│   └── factories/                # Фабрики для тестов
+├── public/                       # Публичная директория
+├── resources/
+│   ├── lang/                     # Локализация (17 файлов)
+│   └── views/                    # Blade шаблоны (94 файла)
+├── routes/
+│   ├── api.php                   # API маршруты
+│   ├── web.php                   # Web маршруты
+│   ├── channels.php               # Broadcast каналы
+│   └── console.php                # Console команды
+└── storage/                      # Хранилище файлов
+```
 
-## Learning Laravel
+## 🚀 Установка
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+### Требования
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+- PHP >= 8.1
+- Composer >= 2.0
+- MySQL 5.7+ или SQLite 3
+- Redis (опционально, но рекомендуется)
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### Шаги установки
 
-## Laravel Sponsors
+```bash
+# Установка зависимостей
+composer install
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+# Копирование конфигурации
+cp .env.example .env
 
-### Premium Partners
+# Генерация ключа приложения
+php artisan key:generate
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+# Настройка базы данных в .env
+# Для разработки (SQLite):
+DB_CONNECTION=sqlite
+# Создать файл БД:
+touch database/database.sqlite
 
-## Contributing
+# Для продакшена (MySQL):
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=account_arena
+DB_USERNAME=root
+DB_PASSWORD=your_password
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+# Выполнение миграций
+php artisan migrate --seed
 
-## Code of Conduct
+# Создание символической ссылки для хранилища
+php artisan storage:link
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+# Запуск сервера разработки
+php artisan serve
+```
 
-## Security Vulnerabilities
+Backend будет доступен на `http://localhost:8000`
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+## ⚙️ Конфигурация
 
-## License
+### Основные переменные окружения (.env)
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+```env
+APP_NAME="Account Arena"
+APP_ENV=local
+APP_DEBUG=true
+APP_URL=http://localhost:8000
+
+# База данных
+DB_CONNECTION=sqlite
+# или для MySQL:
+# DB_CONNECTION=mysql
+# DB_HOST=127.0.0.1
+# DB_PORT=3306
+# DB_DATABASE=account_arena
+# DB_USERNAME=root
+# DB_PASSWORD=
+
+# Redis
+REDIS_HOST=127.0.0.1
+REDIS_PASSWORD=null
+REDIS_PORT=6379
+
+# Кэш и сессии
+CACHE_DRIVER=redis
+SESSION_DRIVER=redis
+QUEUE_CONNECTION=redis
+
+# OAuth провайдеры
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+TELEGRAM_BOT_TOKEN=
+
+# Платежные системы
+CRYPTOMUS_API_KEY=
+CRYPTOMUS_MERCHANT_ID=
+MONO_API_KEY=
+
+# CORS
+SANCTUM_STATEFUL_DOMAINS=localhost,127.0.0.1
+FRONTEND_URL=http://localhost:3000
+```
+
+## 🔧 Основные команды Artisan
+
+```bash
+# Миграции
+php artisan migrate                # Выполнить миграции
+php artisan migrate:fresh --seed   # Пересоздать БД с сидерами
+php artisan migrate:rollback      # Откатить последнюю миграцию
+
+# Кэш
+php artisan cache:clear            # Очистить кэш
+php artisan config:cache          # Кэшировать конфигурацию
+php artisan route:cache           # Кэшировать маршруты
+php artisan view:cache            # Кэшировать шаблоны
+php artisan optimize               # Оптимизация (все кэши)
+
+# Очереди
+php artisan queue:work            # Запустить worker очереди
+php artisan queue:restart         # Перезапустить workers
+
+# Планировщик
+php artisan schedule:run          # Запустить планировщик (для cron)
+
+# Tinker (интерактивная консоль)
+php artisan tinker                # Открыть консоль Laravel
+```
+
+## 📊 Основные модели
+
+- **User** - Пользователи системы
+- **ServiceAccount** - Товары/аккаунты
+- **Category** - Категории товаров
+- **Purchase** - Покупки
+- **Transaction** - Транзакции
+- **BalanceTransaction** - Операции с балансом
+- **ProductDispute** - Споры по товарам
+- **SupportChat** - Чат поддержки
+- **Promocode** - Промокоды
+- **Voucher** - Ваучеры
+- **Article** - Статьи
+- **Banner** - Баннеры
+
+## 🔌 API Endpoints
+
+См. главный [README.md](../README.md#-api-endpoints) для полного списка API endpoints.
+
+Основные группы:
+- `/api/auth/*` - Аутентификация
+- `/api/accounts/*` - Каталог товаров
+- `/api/purchases/*` - Покупки
+- `/api/balance/*` - Управление балансом
+- `/api/disputes/*` - Споры
+- `/api/support-chat/*` - Чат поддержки
+
+## 🎯 Основные сервисы
+
+- **BalanceService** - Управление балансом пользователей
+- **ProductPurchaseService** - Логика покупки товаров
+- **MonoPaymentService** - Интеграция с Monobank
+- **EmailService** - Отправка email
+- **NotifierService** - Система уведомлений
+- **TelegramBotService** - Интеграция с Telegram
+- **PromocodeValidationService** - Валидация промокодов
+
+## 🧪 Тестирование
+
+```bash
+# Запуск всех тестов
+php artisan test
+
+# Запуск конкретного теста
+php artisan test --filter TestName
+
+# С покрытием кода
+php artisan test --coverage
+```
+
+## 📝 Разработка
+
+### Создание миграции
+
+```bash
+php artisan make:migration create_table_name
+```
+
+### Создание модели
+
+```bash
+php artisan make:model ModelName
+php artisan make:model ModelName -m  # С миграцией
+```
+
+### Создание контроллера
+
+```bash
+php artisan make:controller ControllerName
+php artisan make:controller ControllerName --resource  # Resource controller
+```
+
+### Создание сервиса
+
+```bash
+# Вручную создайте файл в app/Services/
+```
+
+## 🔐 Безопасность
+
+- Все пароли хешируются через `bcrypt`
+- API защищено через Laravel Sanctum
+- Rate limiting на всех endpoints
+- CSRF защита для web роутов
+- Валидация всех входных данных через Form Requests
+
+## 📚 Дополнительная документация
+
+- [Laravel Documentation](https://laravel.com/docs/10.x)
+- [Laravel Sanctum](https://laravel.com/docs/10.x/sanctum)
+- [Laravel Socialite](https://laravel.com/docs/10.x/socialite)
+
+## 👨‍💻 Автор
+
+**Ivan Knysh** - [GitHub](https://github.com/Ivan14044)

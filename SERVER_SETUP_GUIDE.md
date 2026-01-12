@@ -136,8 +136,8 @@ npm -v
 
 ```bash
 # Windows PowerShell
-cd D:\project\Subcloudy
-bash deploy-now.sh
+cd "D:\project\Account Arena"
+bash deploy.sh
 ```
 
 Скрипт автоматически:
@@ -406,7 +406,7 @@ git commit -m "Update features"
 git push origin main
 
 # 2. Запустите деплой
-bash deploy-now.sh
+bash deploy.sh
 ```
 
 ### Ручное обновление на сервере

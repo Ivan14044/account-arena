@@ -32,7 +32,7 @@
 
 ```bash
 # Ubuntu 20.04/22.04
-wget https://raw.githubusercontent.com/YOUR_USERNAME/account-arena/main/setup-server.sh
+wget https://raw.githubusercontent.com/Ivan14044/account-arena/main/setup-server.sh
 chmod +x setup-server.sh
 ./setup-server.sh
 ```
@@ -41,7 +41,10 @@ chmod +x setup-server.sh
 
 📖 **Детальная документация:**
 - [QUICK_START.md](QUICK_START.md) - Быстрое руководство
-- [SERVER_SETUP_GUIDE.md](SERVER_SETUP_GUIDE.md) - Полная инструкция по настройке
+- [SERVER_SETUP_GUIDE.md](SERVER_SETUP_GUIDE.md) - Полная инструкция по настройке сервера
+- [DEPLOY.md](DEPLOY.md) - Инструкции по деплою
+- [SERVER_COMMANDS.md](SERVER_COMMANDS.md) - Команды для работы с сервером
+- [SSH_SETUP.md](SSH_SETUP.md) - Настройка SSH ключей
 
 ---
 
@@ -85,7 +88,7 @@ chmod +x setup-server.sh
 - **[Laravel 10](https://laravel.com)** - Enterprise PHP framework
 - **[Laravel Sanctum](https://laravel.com/docs/10.x/sanctum)** - SPA аутентификация
 - **[AdminLTE 3](https://adminlte.io)** - Панель администрирования
-- **SQLite** - Легковесная база данных (опционально MySQL/PostgreSQL)
+- **MySQL** - База данных (SQLite для разработки)
 - **[GeoIP2](https://github.com/maxmind/GeoIP2-php)** - Геолокация пользователей
 
 ### Frontend
@@ -97,7 +100,8 @@ chmod +x setup-server.sh
 - **[Tailwind CSS](https://tailwindcss.com)** - Utility-first CSS
 - **[Vuetify 3](https://vuetifyjs.com)** - Material Design компоненты
 - **[Vue I18n](https://vue-i18n.intlify.dev)** - Интернационализация
-- **[Chart.js](https://www.chartjs.org)** - Интерактивные графики
+- **[Swiper](https://swiperjs.com)** - Слайдеры и карусели
+- **[Lottie](https://lottiefiles.com)** - Анимации
 
 ### Платежные системы
 - **[Cryptomus](https://cryptomus.com)** - Криптовалютные платежи
@@ -105,7 +109,7 @@ chmod +x setup-server.sh
 
 ### DevOps
 - **Nginx** - Web сервер
-- **PM2** - Process manager
+- **Systemd** - Process manager для queue workers
 - **Git** - Контроль версий
 
 ---
@@ -134,8 +138,10 @@ cp .env.example .env
 # Генерация ключа приложения
 php artisan key:generate
 
-# Создание базы данных
+# Создание базы данных (для SQLite)
 touch database/database.sqlite
+
+# Или настройте MySQL в .env файле (см. выше)
 
 # Выполнение миграций
 php artisan migrate --seed
@@ -185,7 +191,7 @@ User::create([
 ]);
 ```
 
-Вход в админ-панель: `http://localhost:8000/login`
+Вход в админ-панель: `http://localhost:8000/admin/login`
 
 ---
 
@@ -201,8 +207,15 @@ APP_NAME="Account Arena"
 APP_URL=http://localhost:8000
 FRONTEND_URL=http://localhost:3000
 
-# База данных
+# База данных (для разработки используйте SQLite, для продакшена - MySQL)
 DB_CONNECTION=sqlite
+# Для MySQL раскомментируйте:
+# DB_CONNECTION=mysql
+# DB_HOST=127.0.0.1
+# DB_PORT=3306
+# DB_DATABASE=account_arena
+# DB_USERNAME=root
+# DB_PASSWORD=
 
 # OAuth провайдеры
 GOOGLE_CLIENT_ID=your_client_id
@@ -210,9 +223,9 @@ GOOGLE_CLIENT_SECRET=your_client_secret
 TELEGRAM_BOT_TOKEN=your_bot_token
 
 # Платежные системы
+CRYPTOMUS_API_KEY=your_cryptomus_api_key
 CRYPTOMUS_MERCHANT_ID=your_merchant_id
-CRYPTOMUS_PAYMENT_KEY=your_payment_key
-MONOBANK_API_TOKEN=your_token
+MONO_API_KEY=your_monobank_api_key
 
 # CORS
 SANCTUM_STATEFUL_DOMAINS=localhost,127.0.0.1
@@ -245,37 +258,71 @@ account-arena/
 │
 ├── backend/                      # Laravel Backend
 │   ├── app/
-│   │   ├── Http/Controllers/
-│   │   │   ├── Admin/           # Контроллеры админки
-│   │   │   ├── Api/             # REST API endpoints
-│   │   │   ├── Auth/            # Аутентификация
-│   │   │   └── Supplier/        # Кабинет поставщика
-│   │   ├── Models/              # Eloquent модели
-│   │   ├── Services/            # Бизнес-логика
-│   │   └── Observers/           # Model observers
+│   │   ├── Console/Commands/     # Artisan команды
+│   │   ├── Exceptions/           # Обработчики исключений
+│   │   ├── Helpers/              # Вспомогательные функции
+│   │   ├── Http/
+│   │   │   ├── Controllers/
+│   │   │   │   ├── Admin/        # Контроллеры админ-панели
+│   │   │   │   ├── Api/          # REST API endpoints
+│   │   │   │   ├── Auth/         # Аутентификация
+│   │   │   │   ├── Seo/          # SEO контроллеры (SSR)
+│   │   │   │   └── Supplier/     # Кабинет поставщика
+│   │   │   ├── Middleware/       # Middleware
+│   │   │   ├── Requests/         # Form Request валидация
+│   │   │   └── Responses/        # Кастомные ответы
+│   │   ├── Models/               # Eloquent модели
+│   │   ├── Notifications/        # Уведомления
+│   │   ├── Observers/            # Model observers
+│   │   ├── Providers/            # Service providers
+│   │   ├── Services/             # Бизнес-логика
+│   │   └── Traits/               # Переиспользуемые трейты
+│   ├── config/                    # Конфигурационные файлы
 │   ├── database/
-│   │   ├── migrations/          # Миграции БД
-│   │   └── seeders/             # Тестовые данные
+│   │   ├── migrations/           # Миграции БД
+│   │   ├── seeders/              # Сидеры
+│   │   └── factories/            # Фабрики для тестов
+│   ├── public/                   # Публичная директория
+│   ├── resources/
+│   │   ├── lang/                 # Локализация
+│   │   └── views/                # Blade шаблоны
 │   ├── routes/
-│   │   ├── api.php              # API маршруты
-│   │   └── web.php              # Web маршруты
-│   └── resources/views/         # Blade шаблоны
+│   │   ├── api.php               # API маршруты
+│   │   ├── web.php               # Web маршруты
+│   │   ├── channels.php          # Broadcast каналы
+│   │   └── console.php           # Console команды
+│   ├── storage/                   # Хранилище файлов
+│   ├── tests/                     # Тесты
+│   ├── artisan                   # Artisan CLI
+│   └── composer.json             # PHP зависимости
 │
-├── frontend/                     # Vue.js SPA
+├── frontend/                      # Vue.js SPA
 │   ├── src/
-│   │   ├── components/          # Vue компоненты
-│   │   ├── pages/               # Страницы приложения
-│   │   ├── stores/              # Pinia state stores
-│   │   ├── composables/         # Переиспользуемая логика
-│   │   ├── types/               # TypeScript типы
-│   │   ├── router.js            # Vue Router конфигурация
-│   │   └── i18n/                # Переводы
-│   └── public/                  # Статические ресурсы
+│   │   ├── assets/               # Статические ресурсы
+│   │   ├── components/           # Vue компоненты
+│   │   ├── composables/          # Composition API функции
+│   │   ├── directives/           # Кастомные директивы
+│   │   ├── i18n/                 # Переводы (Vue I18n)
+│   │   ├── pages/                # Страницы приложения
+│   │   ├── plugins/              # Vue плагины
+│   │   ├── router.js             # Vue Router конфигурация
+│   │   ├── stores/               # Pinia stores
+│   │   ├── types/                # TypeScript типы
+│   │   └── utils/                # Утилиты
+│   ├── public/                   # Статические файлы
+│   ├── dist/                     # Собранные файлы (после build)
+│   ├── package.json              # Node.js зависимости
+│   ├── vite.config.js            # Vite конфигурация
+│   ├── tailwind.config.js        # Tailwind CSS конфигурация
+│   └── tsconfig.json             # TypeScript конфигурация
 │
-├── .env.example                  # Примеры конфигурации
-├── deploy-now.sh                 # Скрипт деплоя
-├── setup-server.sh               # Скрипт установки
-└── README.md                     # Документация
+├── deploy.sh                      # Скрипт деплоя (Bash)
+├── deploy.ps1                     # Скрипт деплоя (PowerShell)
+├── deploy-with-password.ps1       # Деплой с паролем (PowerShell)
+├── update-project.sh              # Обновление на сервере
+├── setup-server.sh                # Автоматическая установка
+├── .gitignore                     # Git ignore правила
+└── README.md                      # Документация
 ```
 
 ---
@@ -295,8 +342,9 @@ GOOGLE_CLIENT_SECRET=your_google_client_secret
 
 TELEGRAM_BOT_TOKEN=your_telegram_bot_token
 
-CRYPTOMUS_API_KEY=your_cryptomus_key
-MONO_API_KEY=your_mono_key
+CRYPTOMUS_API_KEY=your_cryptomus_api_key
+CRYPTOMUS_MERCHANT_ID=your_merchant_id
+MONO_API_KEY=your_monobank_api_key
 ```
 
 ### Frontend (.env):
@@ -309,30 +357,153 @@ VITE_API_URL=http://localhost:8000/api
 
 ## 🔌 API Endpoints
 
-### Публичные
+### Публичные (без аутентификации)
 
+**Аутентификация:**
 ```http
-GET  /api/accounts         # Каталог товаров
-GET  /api/articles         # Статьи
-GET  /api/categories       # Категории
-POST /api/register         # Регистрация
-POST /api/login            # Вход
+POST /api/register              # Регистрация
+POST /api/login                 # Вход
+POST /api/forgot-password       # Восстановление пароля
+POST /api/reset-password        # Сброс пароля
+```
+
+**Каталог и контент:**
+```http
+GET  /api/accounts                      # Каталог товаров
+GET  /api/accounts/{id}                 # Детали товара
+GET  /api/accounts/{id}/similar         # Похожие товары
+GET  /api/articles                      # Список статей
+GET  /api/articles/{id}                 # Детали статьи
+GET  /api/categories                    # Список категорий
+GET  /api/categories/{id}/subcategories  # Подкатегории
+GET  /api/pages                         # Статические страницы
+GET  /api/banners                       # Баннеры
+GET  /api/site-content                  # Контент сайта
+GET  /api/purchase-rules                # Правила покупки
+GET  /api/support-chat-settings         # Настройки чата поддержки
+```
+
+**Промокоды:**
+```http
+POST /api/promocodes/validate           # Проверка промокода
+```
+
+**Чат поддержки (публичный):**
+```http
+POST /api/support-chat/create           # Создание/получение чата
+GET  /api/support-chat/{id}/messages    # Сообщения чата
+POST /api/support-chat/{id}/messages     # Отправка сообщения
+POST /api/support-chat/{id}/typing       # Индикатор печати
+POST /api/support-chat/{id}/typing/stop  # Остановка индикатора
+GET  /api/support-chat/{id}/typing/status # Статус печати
+POST /api/support-chat/{id}/rating       # Оценка чата
+```
+
+**Гостевые покупки:**
+```http
+POST /api/guest/cart                    # Создание гостевой корзины
+POST /api/guest/mono/create-payment     # Создание платежа Monobank (гость)
+POST /api/guest/cryptomus/create-payment # Создание платежа Cryptomus (гость)
+```
+
+**Health check:**
+```http
+GET  /api/health                        # Проверка здоровья сервиса
+GET  /api/ping                          # Ping endpoint
 ```
 
 ### Защищенные (требуют Bearer токен)
 
+**Профиль пользователя:**
 ```http
-GET    /api/user                      # Профиль пользователя
-POST   /api/user                      # Обновление профиля
-GET    /api/transactions              # История покупок
-GET    /api/notifications             # Уведомления
-POST   /api/cart                      # Оформление заказа
-GET    /api/purchases                 # Купленные товары
-POST   /api/disputes                  # Создание спора
-GET    /api/balance/history           # История баланса
+GET  /api/user                          # Профиль пользователя
+POST /api/user                          # Обновление профиля
+GET  /api/logout                        # Выход
 ```
 
-Подробная документация API доступна после установки по адресу `/api/documentation` (требуется установить пакет `l5-swagger`).
+**Уведомления:**
+```http
+GET  /api/notifications                 # Список уведомлений
+POST /api/notifications/read            # Отметить как прочитанное
+POST /api/notifications/read-all        # Отметить все как прочитанные
+```
+
+**Корзина и покупки:**
+```http
+POST /api/cart                          # Оформление заказа
+GET  /api/purchases                     # Список покупок
+GET  /api/purchases/{id}                # Детали покупки
+GET  /api/purchases/{id}/download       # Скачать товар
+```
+
+**Транзакции:**
+```http
+GET  /api/transactions                  # История транзакций
+```
+
+**Баланс:**
+```http
+GET  /api/balance                       # Текущий баланс
+GET  /api/balance/history               # История баланса
+POST /api/balance/check-funds           # Проверка достаточности средств
+GET  /api/balance/statistics            # Статистика баланса
+```
+
+**Платежи:**
+```http
+POST /api/mono/create-payment          # Создание платежа Monobank
+POST /api/cryptomus/create-payment     # Создание платежа Cryptomus
+POST /api/mono/topup                    # Пополнение баланса Monobank
+POST /api/cryptomus/topup               # Пополнение баланса Cryptomus
+```
+
+**Споры:**
+```http
+GET  /api/disputes                      # Список споров
+POST /api/disputes                      # Создание спора
+GET  /api/disputes/{id}                 # Детали спора
+GET  /api/transactions/{id}/can-dispute # Проверка возможности спора
+```
+
+**Ваучеры:**
+```http
+POST /api/vouchers/activate             # Активация ваучера
+```
+
+**Чат поддержки (авторизованный):**
+```http
+GET  /api/support-chats                 # Список чатов пользователя
+```
+
+**Расширение браузера:**
+```http
+POST /api/extension/settings            # Сохранение настроек расширения
+GET  /api/extension/auth                # Статус авторизации расширения
+```
+
+**Браузер API:**
+```http
+GET  /api/browser/new                   # Создание нового браузера
+POST /api/browser/stop                  # Остановка браузера
+POST /api/browser/stop_all              # Остановка всех браузеров
+GET  /api/browser/list                  # Список браузеров
+```
+
+### Webhooks
+
+```http
+POST /api/cryptomus/webhook             # Webhook Cryptomus
+POST /api/mono/webhook                  # Webhook Monobank
+POST /api/telegram/webhook              # Webhook Telegram
+```
+
+### Дополнительные endpoints
+
+```http
+GET  /api/contents/{code}               # Получение контента по коду
+GET  /api/options                       # Опции системы
+GET  /api/cookie/check                  # Проверка согласия на cookies
+```
 
 ---
 
@@ -349,14 +520,15 @@ GET    /api/balance/history           # История баланса
 **Автоматическая установка:**
 
 ```bash
-wget https://raw.githubusercontent.com/YOUR_USERNAME/account-arena/main/setup-server.sh
+wget https://raw.githubusercontent.com/Ivan14044/account-arena/main/setup-server.sh
 chmod +x setup-server.sh
 ./setup-server.sh
 ```
 
 **Скрипты деплоя:**
 - `setup-server.sh` - Первоначальная установка
-- `deploy-now.sh` - Обновление с локального ПК
+- `deploy.sh` - Обновление с локального ПК (Bash)
+- `deploy.ps1` - Обновление с локального ПК (PowerShell)
 - `update-project.sh` - Обновление на сервере
 
 ### Production сборка
@@ -416,7 +588,7 @@ npm run build
 
 ## 📞 Поддержка
 
-Возникли вопросы или проблемы? Создайте [Issue](https://github.com/YOUR_USERNAME/account-arena/issues) в репозитории.
+Возникли вопросы или проблемы? Создайте [Issue](https://github.com/Ivan14044/account-arena/issues) в репозитории.
 
 ---
 
@@ -424,6 +596,6 @@ npm run build
 
 **Сделано с ❤️ и ☕**
 
-[![Star History](https://img.shields.io/github/stars/YOUR_USERNAME/account-arena?style=social)](https://github.com/YOUR_USERNAME/account-arena/stargazers)
+[![Star History](https://img.shields.io/github/stars/Ivan14044/account-arena?style=social)](https://github.com/Ivan14044/account-arena/stargazers)
 
 </div>
