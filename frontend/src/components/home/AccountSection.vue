@@ -840,7 +840,7 @@ onMounted(async () => {
     display: grid;
     grid-template-columns: 90px 1fr auto;
     gap: 16px;
-    align-items: start;
+    align-items: center;
     /* УБИРАЕМ backdrop-filter в покое - это убивает FPS на слабых ПК */
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: none; /* Убираем блюр в покое */
