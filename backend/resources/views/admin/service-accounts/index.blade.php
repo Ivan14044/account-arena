@@ -694,14 +694,37 @@
             bottom: 0;
             left: 0;
             right: 0;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            box-shadow: 0 -4px 12px rgba(0,0,0,0.15);
+            background: #ffffff;
+            border-top: 2px solid #e3e6f0;
+            box-shadow: 0 -2px 8px rgba(0,0,0,0.08);
             z-index: 1050;
-            border-top: 3px solid rgba(255,255,255,0.2);
+        }
+
+        .bulk-actions-panel .container-fluid {
+            padding: 1rem 1.5rem;
+        }
+
+        .bulk-actions-panel strong {
+            color: #2c3e50;
+            font-weight: 600;
+            font-size: 0.9375rem;
+        }
+
+        .bulk-actions-panel #selected-count {
+            color: #4e73df;
+            font-weight: 700;
         }
 
         .bulk-actions-panel .btn {
             margin-left: 0.25rem;
+            border-radius: 0.375rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .bulk-actions-panel .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.12);
         }
 
         /* Чекбоксы в таблице */
