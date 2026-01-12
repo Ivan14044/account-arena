@@ -98,9 +98,6 @@
                     Заказы с ручной выдачей ({{ $pendingOrders->count() }})
                 </h3>
                 <div class="card-tools">
-                    <a href="{{ route('admin.manual-delivery.analytics') }}" class="btn btn-sm btn-info">
-                        <i class="fas fa-chart-bar mr-1"></i>Аналитика
-                    </a>
                 </div>
             </div>
         </div>

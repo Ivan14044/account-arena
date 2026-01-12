@@ -99,7 +99,6 @@ Route::prefix('/admin')
                 Route::post('manual-delivery/{purchase}/process', [ManualDeliveryController::class, 'process'])->name('manual-delivery.process');
                 Route::get('manual-delivery/statistics', [ManualDeliveryController::class, 'statistics'])->name('manual-delivery.statistics');
                 Route::get('manual-delivery/count', [ManualDeliveryController::class, 'getPendingCount'])->name('manual-delivery.count');
-                Route::get('manual-delivery/analytics', [ManualDeliveryController::class, 'analytics'])->name('manual-delivery.analytics');
             });
 
             // Purchase Rules (правила покупки)
