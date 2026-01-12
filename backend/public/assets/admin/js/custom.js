@@ -173,6 +173,95 @@
     initDisputesBadge();
 })();
 
+// Счетчик заказов на ручную обработку
+(function () {
+    // Переменная для хранения предыдущего значения счетчика
+    let previousManualDeliveryCount = -1;
+
+    // Функция для обновления счетчика заказов на ручную обработку
+    function updateManualDeliveryBadge() {
+        // Only run on admin pages
+        if (!location.pathname.startsWith("/admin")) {
+            return;
+        }
+
+        if (typeof jQuery === 'undefined') {
+            return;
+        }
+
+        let $badgeElement = document.querySelector('#manual-delivery-count .badge');
+        if (!$badgeElement) {
+            return;
+        }
+
+        $.ajax({
+            url: '/admin/manual-delivery/count',
+            method: 'GET',
+            dataType: 'json',
+            success: function (data) {
+                const count = data.count || 0;
+
+                // Воспроизводим звук при появлении новых заказов
+                if (count > previousManualDeliveryCount && previousManualDeliveryCount >= 0) {
+                    const newOrdersCount = count - previousManualDeliveryCount;
+                    console.log('[Sound] Playing notification sound - Manual Delivery: ' + newOrdersCount + ' new order(s)', {
+                        event: 'manual_delivery_new_order',
+                        previousCount: previousManualDeliveryCount,
+                        currentCount: count,
+                        newOrders: newOrdersCount
+                    });
+
+                    try {
+                        const audio = new Audio('/assets/admin/sounds/notification.mp3');
+                        audio.volume = 0.3; // 30% громкости
+                        audio.play().catch(function (error) {
+                            // Игнорируем ошибки воспроизведения
+                            console.debug('Could not play notification sound:', error);
+                        });
+                    } catch (error) {
+                        console.debug('Failed to create audio element:', error);
+                    }
+                }
+
+                previousManualDeliveryCount = count;
+
+                if (count > 0) {
+                    $badgeElement.innerText = count;
+                    $badgeElement.classList.remove('badge-secondary');
+                    $badgeElement.classList.add('badge-warning');
+                } else {
+                    $badgeElement.innerText = '';
+                    $badgeElement.classList.remove('badge-warning');
+                    $badgeElement.classList.add('badge-secondary');
+                }
+            },
+            error: function (xhr, status, error) {
+                // Игнорируем ошибки
+            }
+        });
+    }
+
+    function initManualDeliveryBadge() {
+        // Only initialize on admin pages
+        if (!location.pathname.startsWith("/admin")) {
+            return;
+        }
+
+        if (typeof jQuery !== 'undefined') {
+            $(document).ready(function () {
+                setTimeout(function () {
+                    updateManualDeliveryBadge();
+                    setInterval(updateManualDeliveryBadge, 3000);
+                }, 1000);
+            });
+        } else {
+            setTimeout(initManualDeliveryBadge, 100);
+        }
+    }
+
+    initManualDeliveryBadge();
+})();
+
 // Звуковое оповещение для уведомлений администратора
 (function () {
     let lastNotificationCount = -1; // -1 означает, что еще не инициализировано

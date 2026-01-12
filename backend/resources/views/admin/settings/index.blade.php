@@ -349,6 +349,16 @@
                                         поддержки</small>
                                 </label>
                             </div>
+
+                            <div class="form-check mb-3">
+                                <input type="checkbox" class="form-check-input" id="manual_delivery_enabled"
+                                    name="manual_delivery_enabled" value="1" {{ ($notificationSettings->manual_delivery_enabled ?? true) ? 'checked' : '' }}>
+                                <label class="form-check-label" for="manual_delivery_enabled">
+                                    <strong>Ручная обработка заказов</strong>
+                                    <br>
+                                    <small class="text-muted">Уведомления о новых заказах, требующих ручной обработки</small>
+                                </label>
+                            </div>
                         </div>
 
                         <hr>

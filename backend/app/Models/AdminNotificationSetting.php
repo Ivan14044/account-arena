@@ -18,6 +18,7 @@ class AdminNotificationSetting extends Model
         'payment_enabled',
         'topup_enabled',
         'support_chat_enabled',
+        'manual_delivery_enabled',
         'sound_enabled',
     ];
 
@@ -28,6 +29,7 @@ class AdminNotificationSetting extends Model
         'payment_enabled' => 'boolean',
         'topup_enabled' => 'boolean',
         'support_chat_enabled' => 'boolean',
+        'manual_delivery_enabled' => 'boolean',
         'sound_enabled' => 'boolean',
     ];
 
@@ -53,6 +55,7 @@ class AdminNotificationSetting extends Model
                 'payment_enabled' => true,
                 'topup_enabled' => true,
                 'support_chat_enabled' => true,
+                'manual_delivery_enabled' => true,
                 'sound_enabled' => true,
             ]
         );
@@ -79,6 +82,7 @@ class AdminNotificationSetting extends Model
             'payment' => 'payment_enabled',
             'topup' => 'topup_enabled',
             'support_chat' => 'support_chat_enabled',
+            'manual_delivery' => 'manual_delivery_enabled',
         ];
 
         return $mapping[$type] ?? 'product_purchase_enabled';

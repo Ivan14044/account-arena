@@ -78,6 +78,7 @@ class SettingController extends Controller
                 'payment_enabled' => $request->has('payment_enabled'),
                 'topup_enabled' => $request->has('topup_enabled'),
                 'support_chat_enabled' => $request->has('support_chat_enabled'),
+                'manual_delivery_enabled' => $request->has('manual_delivery_enabled'),
                 'sound_enabled' => $request->has('sound_enabled'),
             ]);
         }
@@ -166,6 +167,7 @@ class SettingController extends Controller
                 'payment_enabled' => ['nullable', 'boolean'],
                 'topup_enabled' => ['nullable', 'boolean'],
                 'support_chat_enabled' => ['nullable', 'boolean'],
+                'manual_delivery_enabled' => ['nullable', 'boolean'],
                 'sound_enabled' => ['nullable', 'boolean'],
             ],
             'telegram' => [
