@@ -592,7 +592,9 @@
         "load_error": "Error loading purchases",
         "waiting_payment_confirmation": "Waiting for payment confirmation...",
         "waiting_payment_title": "Waiting for payment confirmation",
-        "waiting_payment_description": "Your payment is being processed. Orders will appear automatically after payment confirmation. This usually takes a few seconds."
+        "waiting_payment_description": "Your payment is being processed. Orders will appear automatically after payment confirmation. This usually takes a few seconds.",
+        "data_preparing": "Data is being prepared",
+        "manager_processing": "Order is being processed by manager"
     },
     "supportChat": {
         "openChat": "Open support chat",

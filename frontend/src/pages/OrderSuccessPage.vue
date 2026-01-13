@@ -513,6 +513,18 @@
                         </button>
                     </div>
 
+                    <!-- Если заказ в обработке, показываем сообщение -->
+                    <div v-else-if="purchase.status === 'processing'" class="text-center py-6">
+                        <div class="flex flex-col items-center">
+                            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-600 mb-4"></div>
+                            <p class="text-gray-700 dark:text-gray-300 font-medium mb-2">
+                                {{ $t('order_success.data_preparing') }}
+                            </p>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">
+                                {{ $t('order_success.manager_processing') }}
+                            </p>
+                        </div>
+                    </div>
                     <!-- Если нет данных -->
                     <div v-else class="text-center py-6 text-gray-500 dark:text-gray-400">
                         <svg
@@ -648,7 +660,7 @@
 
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount, Teleport, Transition } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRouter, onBeforeRouteLeave } from 'vue-router';
 import { useToast } from 'vue-toastification';
 import { useI18n } from 'vue-i18n';
 import axios from '@/bootstrap'; // Используем настроенный axios из bootstrap
@@ -668,6 +680,10 @@ const pollingInterval = ref(null); // Интервал для опроса
 const pollingAttempts = ref(0); // Счетчик попыток
 const maxPollingAttempts = 12; // Максимум 12 попыток (60 секунд при интервале 5 сек)
 const statusPollingInterval = ref(null); // Интервал для обновления статуса заказов в обработке
+const isStatusPollingActive = ref(false); // Флаг активности polling статусов
+const shownNotifications = ref(new Set()); // Отслеживаем показанные уведомления
+const previousPurchasesState = ref(new Map()); // Предыдущее состояние заказов
+const isInitialLoad = ref(true); // Флаг первой загрузки страницы
 
 // Проверяем, есть ли сообщение о подготовке товара
 const isPreparingProduct = computed(() => {
@@ -743,11 +759,16 @@ const startPolling = () => {
         }
 
         // Если появились покупки, останавливаем опрос
-        await fetchPurchases();
-        if (purchases.value.length > 0) {
-            stopPolling();
-            // Запускаем обновление статуса для заказов в обработке
-            startStatusPolling();
+        try {
+            await fetchPurchases();
+            if (purchases.value.length > 0) {
+                stopPolling();
+                // Запускаем обновление статуса для заказов в обработке
+                startStatusPolling();
+            }
+        } catch (error) {
+            console.error('Error in polling:', error);
+            // Не останавливаем интервал при ошибке для автоматического восстановления
         }
     }, 5000); // Опрашиваем каждые 5 секунд
 };
@@ -760,19 +781,30 @@ const startStatusPolling = () => {
         return; // Нет заказов в обработке, не нужно опрашивать
     }
 
+    // Если polling уже активен, не запускаем еще один
+    if (isStatusPollingActive.value) {
+        return;
+    }
+
     // Останавливаем предыдущий интервал, если он есть
     stopStatusPolling();
     
+    isStatusPollingActive.value = true;
     statusPollingInterval.value = setInterval(async () => {
-        // Проверяем, есть ли еще заказы в обработке
+        // Проверяем, есть ли еще заказы в обработке перед каждым опросом
         const hasProcessing = purchases.value.some(p => p.status === 'processing');
         if (!hasProcessing) {
             stopStatusPolling();
             return;
         }
 
-        // Обновляем статусы заказов
-        await fetchPurchases();
+        // Обновляем статусы заказов с обработкой ошибок
+        try {
+            await fetchPurchases();
+        } catch (error) {
+            console.error('Error in status polling:', error);
+            // Не останавливаем интервал при ошибке для автоматического восстановления
+        }
     }, 10000); // Опрашиваем каждые 10 секунд
 };
 
@@ -790,10 +822,20 @@ const stopStatusPolling = () => {
         clearInterval(statusPollingInterval.value);
         statusPollingInterval.value = null;
     }
+    isStatusPollingActive.value = false;
 };
 
 // Очистка при размонтировании
 onBeforeUnmount(() => {
+    stopPolling();
+    stopStatusPolling();
+    // Очищаем все refs
+    shownNotifications.value.clear();
+    previousPurchasesState.value.clear();
+});
+
+// Очистка при навигации
+onBeforeRouteLeave(() => {
     stopPolling();
     stopStatusPolling();
 });
@@ -806,6 +848,19 @@ const fetchPurchases = async () => {
         // Это более понятно для пользователя, чем просто "Загрузка..."
         if (!isPreparingProduct.value) {
             loadingStore.start(t('checkout.preparing_product'));
+        }
+
+        // Сохраняем предыдущее состояние заказов перед обновлением
+        // Только если это НЕ первая загрузка (при первой загрузке сохраним после получения данных)
+        const previousState = new Map();
+        if (!isInitialLoad.value) {
+            purchases.value.forEach(purchase => {
+                previousState.set(purchase.id, {
+                    status: purchase.status,
+                    order_number: purchase.order_number || purchase.id
+                });
+            });
+            previousPurchasesState.value = previousState;
         }
 
         // ИСПРАВЛЕНИЕ: Используем authStore вместо прямого доступа к localStorage
@@ -840,7 +895,8 @@ const fetchPurchases = async () => {
         });
 
         if (response.data.success) {
-            purchases.value = response.data.purchases;
+            const newPurchases = response.data.purchases;
+            purchases.value = newPurchases;
             console.log('✅ Purchases set:', purchases.value.length);
             
             // Если товар выдан (есть покупки), скрываем ВСЕ прелоадеры немедленно
@@ -854,16 +910,57 @@ const fetchPurchases = async () => {
                 // Запускаем обновление статуса для заказов в обработке
                 startStatusPolling();
                 
-                // Проверяем, есть ли заказы, которые только что завершились
-                const completedOrders = purchases.value.filter(p => p.status === 'completed');
-                if (completedOrders.length > 0) {
-                    // Показываем уведомление о завершении обработки
-                    completedOrders.forEach(purchase => {
-                        toast.success(
-                            t('profile.purchases.order_completed_notification', {
-                                order_number: purchase.order_number
-                            })
-                        );
+                // Если это первая загрузка, сохраняем состояние и не показываем уведомления
+                if (isInitialLoad.value) {
+                    // Сохраняем текущее состояние как "предыдущее" для последующих сравнений
+                    const initialState = new Map();
+                    newPurchases.forEach(purchase => {
+                        initialState.set(purchase.id, {
+                            status: purchase.status,
+                            order_number: purchase.order_number || purchase.id
+                        });
+                    });
+                    previousPurchasesState.value = initialState;
+                    // Помечаем все завершенные заказы как "показанные", чтобы не показывать уведомления при первой загрузке
+                    newPurchases.forEach(purchase => {
+                        if (purchase.status === 'completed') {
+                            shownNotifications.value.add(purchase.id);
+                        }
+                    });
+                    // Сбрасываем флаг первой загрузки
+                    isInitialLoad.value = false;
+                } else {
+                    // При последующих обновлениях сравниваем состояния и показываем уведомления
+                    const notificationsToShow = [];
+                    
+                    newPurchases.forEach(purchase => {
+                        const previousPurchase = previousState.get(purchase.id);
+                        const purchaseId = purchase.id;
+                        
+                        // Проверяем, перешел ли заказ из processing в completed
+                        if (
+                            previousPurchase &&
+                            previousPurchase.status === 'processing' &&
+                            purchase.status === 'completed' &&
+                            !shownNotifications.value.has(purchaseId)
+                        ) {
+                            notificationsToShow.push({
+                                id: purchaseId,
+                                order_number: purchase.order_number || purchase.id
+                            });
+                            shownNotifications.value.add(purchaseId);
+                        }
+                    });
+                    
+                    // Показываем уведомления с дебаунсом (300ms между каждым)
+                    notificationsToShow.forEach((notification, index) => {
+                        setTimeout(() => {
+                            toast.success(
+                                t('profile.purchases.order_completed_notification', {
+                                    order_number: notification.order_number
+                                })
+                            );
+                        }, index * 300);
                     });
                 }
                 
