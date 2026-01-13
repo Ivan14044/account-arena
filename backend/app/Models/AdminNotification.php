@@ -54,6 +54,7 @@ class AdminNotification extends Model
                 $keyMapping = [
                     'New purchase' => 'notifier.new_product_purchase_title',
                     'New Purchase' => 'notifier.new_product_purchase_title',
+                    'New purcha e' => 'notifier.new_product_purchase_title', // Опечатка в старых записях
                     'New user' => 'notifier.new_user_title',
                     'New User' => 'notifier.new_user_title',
                     'New payment' => 'notifier.new_payment_title',
@@ -74,10 +75,14 @@ class AdminNotification extends Model
             }
         }
         
-        // Убираем плейсхолдеры типа (:method)
-        $title = preg_replace('/\s*\(:method\)/', '', $title);
+        // Убираем плейсхолдеры типа (:method), (:Balance), (Balance) и т.д.
+        $title = preg_replace('/\s*\(:?\w+\)/', '', $title);
         // Убираем другие плейсхолдеры типа :email, :name и т.д.
         $title = preg_replace('/:\w+/', '', $title);
+        // Убираем пустые скобки
+        $title = preg_replace('/\s*\(\)/', '', $title);
+        // Убираем дублирование текста (если заголовок повторяется)
+        $title = preg_replace('/^(.+?)\s+\1$/u', '$1', $title);
         
         return trim($title);
     }
@@ -110,6 +115,7 @@ class AdminNotification extends Model
                 $keyMapping = [
                     'New purchase' => 'notifier.new_product_purchase_message',
                     'New Purchase' => 'notifier.new_product_purchase_message',
+                    'New purcha e' => 'notifier.new_product_purchase_message', // Опечатка в старых записях
                     'New user registered' => 'notifier.new_user_message',
                     'New user' => 'notifier.new_user_message',
                     'New payment' => 'notifier.new_payment_message',
@@ -131,6 +137,10 @@ class AdminNotification extends Model
         
         // Убираем все плейсхолдеры
         $message = preg_replace('/:\w+/', '', $message);
+        // Убираем плейсхолдеры в скобках типа (Balance), (Monobank) и т.д.
+        $message = preg_replace('/\s*\(:?\w+\)/', '', $message);
+        // Убираем пустые скобки
+        $message = preg_replace('/\s*\(\)/', '', $message);
         // Очищаем лишние знаки препинания (двойные запятые, пробелы)
         $message = preg_replace('/,\s*,/', ',', $message);
         $message = preg_replace('/\s+/', ' ', $message);

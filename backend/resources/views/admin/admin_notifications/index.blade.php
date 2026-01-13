@@ -55,11 +55,25 @@
                                 <span class="badge badge-info badge-modern px-2 py-1">
                                     <i class="fas fa-info-circle mr-1"></i>
                                     @php
-                                        $typeKey = 'notifier.types.' . $notification->type;
+                                        $type = $notification->type;
+                                        // Если тип содержит пробелы (например, "Product Purchase"), пробуем найти в маппинге
+                                        if (strpos($type, ' ') !== false) {
+                                            $typeMapping = [
+                                                'Product Purchase' => 'product_purchase',
+                                                'Balance Top-up' => 'balance_topup',
+                                                'New User' => 'new_user',
+                                                'Registration' => 'registration',
+                                                'Payment' => 'payment',
+                                            ];
+                                            if (isset($typeMapping[$type])) {
+                                                $type = $typeMapping[$type];
+                                            }
+                                        }
+                                        $typeKey = 'notifier.types.' . $type;
                                         $translatedType = __($typeKey);
                                         if ($translatedType === $typeKey) {
                                             // Если перевод не найден, форматируем сам тип
-                                            $translatedType = ucfirst(str_replace('_', ' ', $notification->type));
+                                            $translatedType = ucfirst(str_replace('_', ' ', $type));
                                         }
                                     @endphp
                                     {{ $translatedType }}
