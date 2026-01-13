@@ -28,7 +28,7 @@ class AdminNotificationController extends Controller
                 return [
                     'id' => $n->id,
                     'icon' => 'fas fa-info-circle',
-                    'text' => __($n->title),
+                    'text' => $n->formatted_title,
                     'time' => $time,
                     'url' => route('admin.admin_notifications.read', $n->id),
                     'read' => (bool)$n->read,

@@ -57,8 +57,8 @@
                                 </span>
                             </td>
                             <td class="align-middle">
-                                <div class="font-weight-bold text-dark">{{ __($notification->title) }}</div>
-                                <div class="text-muted small mt-1">{{ __($notification->message) }}</div>
+                                <div class="font-weight-bold text-dark">{{ $notification->formatted_title }}</div>
+                                <div class="text-muted small mt-1">{{ $notification->formatted_message }}</div>
                             </td>
                             <td class="text-center align-middle">
                                 @if($notification->read)
