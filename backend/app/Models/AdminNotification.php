@@ -49,24 +49,25 @@ class AdminNotification extends Model
             if ($translated !== $title) {
                 $title = $translated;
             } else {
-                // Если перевод не найден и это похоже на английский текст,
-                // пытаемся найти соответствующий ключ
-                if (preg_match('/^(New|Product|Balance|Registration|Payment)/i', $title)) {
-                    // Маппинг английских текстов на ключи переводов
-                    $keyMapping = [
-                        'New purchase' => 'notifier.new_product_purchase_title',
-                        'New user' => 'notifier.new_user_title',
-                        'New payment' => 'notifier.new_payment_title',
-                        'Product Purchase' => 'notifier.types.product_purchase',
-                    ];
-                    // Попытка найти по точному совпадению или частичному
-                    foreach ($keyMapping as $english => $key) {
-                        if (stripos($title, $english) !== false) {
-                            $translated = __($key);
-                            if ($translated !== $key) {
-                                $title = $translated;
-                                break;
-                            }
+                // Если перевод не найден, пытаемся найти соответствующий ключ
+                // Расширенный маппинг английских текстов на ключи переводов
+                $keyMapping = [
+                    'New purchase' => 'notifier.new_product_purchase_title',
+                    'New Purchase' => 'notifier.new_product_purchase_title',
+                    'New user' => 'notifier.new_user_title',
+                    'New User' => 'notifier.new_user_title',
+                    'New payment' => 'notifier.new_payment_title',
+                    'New Payment' => 'notifier.new_payment_title',
+                    'Product Purchase' => 'notifier.types.product_purchase',
+                ];
+                
+                // Попытка найти по частичному совпадению (без учета регистра)
+                foreach ($keyMapping as $english => $key) {
+                    if (stripos($title, $english) !== false) {
+                        $translated = __($key);
+                        if ($translated !== $key) {
+                            $title = $translated;
+                            break;
                         }
                     }
                 }
@@ -104,6 +105,27 @@ class AdminNotification extends Model
             $translated = __($message);
             if ($translated !== $message) {
                 $message = $translated;
+            } else {
+                // Если перевод не найден, пытаемся найти соответствующий ключ для сообщений
+                $keyMapping = [
+                    'New purchase' => 'notifier.new_product_purchase_message',
+                    'New Purchase' => 'notifier.new_product_purchase_message',
+                    'New user registered' => 'notifier.new_user_message',
+                    'New user' => 'notifier.new_user_message',
+                    'New payment' => 'notifier.new_payment_message',
+                    'New Payment' => 'notifier.new_payment_message',
+                ];
+                
+                // Попытка найти по частичному совпадению
+                foreach ($keyMapping as $english => $key) {
+                    if (stripos($message, $english) !== false) {
+                        $translated = __($key);
+                        if ($translated !== $key) {
+                            $message = $translated;
+                            break;
+                        }
+                    }
+                }
             }
         }
         
