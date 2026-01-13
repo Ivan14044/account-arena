@@ -840,6 +840,37 @@ onBeforeRouteLeave(() => {
     stopStatusPolling();
 });
 
+// Умное обновление данных без полной перерисовки
+const updatePurchasesSmart = (newPurchases) => {
+    // Создаем Map для быстрого поиска существующих заказов
+    const existingMap = new Map();
+    purchases.value.forEach(p => existingMap.set(p.id, p));
+    
+    // Обновляем массив, сохраняя ссылки на неизмененные объекты
+    const updated = newPurchases.map(newPurchase => {
+        const existing = existingMap.get(newPurchase.id);
+        
+        // Если заказ существует и данные не изменились, возвращаем старую ссылку
+        if (existing) {
+            // Проверяем, изменились ли ключевые поля
+            const hasChanged = 
+                existing.status !== newPurchase.status ||
+                existing.account_data?.length !== newPurchase.account_data?.length ||
+                existing.processing_notes !== newPurchase.processing_notes ||
+                JSON.stringify(existing.account_data) !== JSON.stringify(newPurchase.account_data);
+            
+            if (!hasChanged) {
+                return existing; // Возвращаем старую ссылку
+            }
+        }
+        
+        // Если заказ новый или изменился, возвращаем новый объект
+        return newPurchase;
+    });
+    
+    purchases.value = updated;
+};
+
 const fetchPurchases = async () => {
     try {
         loading.value = true;
@@ -896,7 +927,7 @@ const fetchPurchases = async () => {
 
         if (response.data.success) {
             const newPurchases = response.data.purchases;
-            purchases.value = newPurchases;
+            updatePurchasesSmart(newPurchases);
             console.log('✅ Purchases set:', purchases.value.length);
             
             // Если товар выдан (есть покупки), скрываем ВСЕ прелоадеры немедленно
@@ -1202,7 +1233,7 @@ const contactManagerAboutOrder = async (purchase) => {
     border: 1px solid #d1d5db;
     border-radius: 16px;
     padding: 24px;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
@@ -1213,14 +1244,15 @@ const contactManagerAboutOrder = async (purchase) => {
 }
 
 .purchase-card:hover {
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-    transform: translateY(-2px);
-    border-color: #9ca3af;
+    background: #fafbfc;
+    box-shadow: 0 5px 16px rgba(0, 0, 0, 0.1);
+    border-color: #cbd5e1;
 }
 
 .dark .purchase-card:hover {
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-    border-color: #6b7280;
+    background: #21242a;
+    box-shadow: 0 5px 16px rgba(0, 0, 0, 0.35);
+    border-color: #556270;
 }
 
 /* Empty State Card Styles */
