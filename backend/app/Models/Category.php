@@ -109,8 +109,26 @@ class Category extends Model
             $value = substr($value, 8);
         }
 
+        // Проверяем существование файла перед формированием URL
+        $storage = \Illuminate\Support\Facades\Storage::disk('public');
+        if (!$storage->exists($value)) {
+            // Если файл не существует, возвращаем null вместо неработающего URL
+            return null;
+        }
+
         // Формируем полный URL через Storage
-        return \Illuminate\Support\Facades\Storage::disk('public')->url($value);
+        return $storage->url($value);
+    }
+
+    /**
+     * Получить оригинальное значение image_url без аксессора
+     */
+    public function getRawOriginal($key = null)
+    {
+        if ($key === null) {
+            return $this->getOriginal();
+        }
+        return $this->getOriginal($key);
     }
 
     public function translations()

@@ -33,6 +33,14 @@ class CategoryService
     public function deleteCategory(Category $category): bool
     {
         return DB::transaction(function () use ($category) {
+            // Удаляем изображение категории, если оно существует
+            if ($category->image_url) {
+                $imagePath = $category->getRawOriginal('image_url');
+                if ($imagePath && \Illuminate\Support\Facades\Storage::disk('public')->exists($imagePath)) {
+                    \Illuminate\Support\Facades\Storage::disk('public')->delete($imagePath);
+                }
+            }
+            
             // Unlink products
             $category->products()->update(['category_id' => null]);
             

@@ -67,6 +67,13 @@ class ProductCategoryController extends Controller
 
         $data = [];
         if ($request->hasFile('image')) {
+            // Удаляем старое изображение, если оно существует
+            if ($category->image_url) {
+                $oldImagePath = $category->getRawOriginal('image_url');
+                if ($oldImagePath && Storage::disk('public')->exists($oldImagePath)) {
+                    Storage::disk('public')->delete($oldImagePath);
+                }
+            }
             $data['image_url'] = $request->file('image')->store('categories', 'public');
         }
 

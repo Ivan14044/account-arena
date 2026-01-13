@@ -18,10 +18,22 @@
                     <img
                         v-if="category.image_url"
                         :src="category.image_url"
-                        :alt="category.name"
+                        :alt="category.name || 'Category'"
                         class="category-icon"
+                        loading="lazy"
                         @error="handleImageError($event)"
                     />
+                    <div
+                        v-else
+                        class="category-icon category-icon-placeholder"
+                        :title="category.name || 'Category'"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                            <polyline points="21 15 16 10 5 21"></polyline>
+                        </svg>
+                    </div>
                     <span class="category-name">{{ category.name }}</span>
                     <span v-if="getCategoryProductCount(category.id) > 0" class="category-count">
                         {{ getCategoryProductCount(category.id) }}
@@ -255,9 +267,20 @@ const selectSubcategory = (subcategoryId: number | null) => {
 // Обработчик ошибок загрузки изображений категорий
 const handleImageError = (event: Event) => {
     const img = event.target as HTMLImageElement;
-    // Скрываем изображение при ошибке загрузки
     if (img) {
-        img.style.display = 'none';
+        // Пытаемся загрузить fallback изображение
+        const fallbackSrc = '/img/placeholder-category.png';
+        if (img.src !== fallbackSrc && !img.src.includes('placeholder')) {
+            // Если это не fallback, пытаемся загрузить его
+            img.src = fallbackSrc;
+            img.onerror = () => {
+                // Если fallback тоже не загрузился, скрываем изображение
+                img.style.display = 'none';
+            };
+        } else {
+            // Если fallback не загрузился, скрываем изображение
+            img.style.display = 'none';
+        }
     }
 };
 
@@ -482,6 +505,22 @@ onMounted(async () => {
     object-fit: cover;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
     transition: transform 0.3s ease;
+    flex-shrink: 0;
+}
+
+.category-icon-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.05);
+    color: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.dark .category-icon-placeholder {
+    background: rgba(255, 255, 255, 0.05);
+    color: rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.1);
 }
 
 .category-btn:hover .category-icon {
