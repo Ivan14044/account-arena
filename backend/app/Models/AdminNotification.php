@@ -71,7 +71,12 @@ class AdminNotification extends Model
             }
         } elseif (strpos($title, 'notifier.') === 0) {
             // Если это ключ перевода вида "notifier.xxx", переводим его
-            $translated = __($title, [], 'ru'); // Принудительно используем русскую локаль
+            // Сначала пробуем с текущей локалью
+            $translated = __($title);
+            // Если результат на английском (старые записи), принудительно переводим на русский
+            if (preg_match('/^[A-Za-z\s,:\-]+$/', $translated) && $translated !== $title) {
+                $translated = __($title, [], 'ru');
+            }
             if ($translated !== $title) {
                 $title = $translated;
                 $wasTranslated = true;
@@ -84,7 +89,7 @@ class AdminNotification extends Model
                 $wasTranslated = true;
             }
             // Если перевод вернул английский текст (старые записи), пытаемся перевести на русский
-            if ($wasTranslated && preg_match('/^[A-Za-z\s]+$/', $title) && strpos($originalTitle, 'notifier.') === 0) {
+            if ($wasTranslated && preg_match('/^[A-Za-z\s,:\-]+$/', $title) && strpos($originalTitle, 'notifier.') === 0) {
                 $translated = __($originalTitle, [], 'ru');
                 if ($translated !== $originalTitle) {
                     $title = $translated;
