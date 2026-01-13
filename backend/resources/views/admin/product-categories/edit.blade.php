@@ -155,18 +155,23 @@
             }
         });
 
-        document.querySelectorAll('.ckeditor').forEach(function (textarea) {
-            ClassicEditor
-                .create(textarea)
-                .then(editor => {
-                    editor.editing.view.change(writer => {
-                        writer.setStyle('height', '120px', editor.editing.view.document.getRoot());
+        // Initialize CKEditor with image upload
+        if (typeof ClassicEditor !== 'undefined') {
+            document.querySelectorAll('.ckeditor').forEach(function (textarea) {
+                ClassicEditor
+                    .create(textarea)
+                    .then(editor => {
+                        editor.editing.view.change(writer => {
+                            writer.setStyle('height', '120px', editor.editing.view.document.getRoot());
+                        });
+                    })
+                    .catch(error => {
+                        console.error(error);
                     });
-                })
-                .catch(error => {
-                    console.error(error);
-                });
-        });
+            });
+        } else {
+            console.warn('ClassicEditor is not defined. CKEditor script may not be loaded.');
+        }
     </script>
 @endsection
 
