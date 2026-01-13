@@ -182,6 +182,8 @@
         manual_delivery_enabled: true,
         sound_enabled: true
     };
+    // Флаг для предотвращения множественных интервалов
+    let updateInterval = null;
 
     // Функция для загрузки настроек уведомлений
     function loadNotificationSettings() {
@@ -220,8 +222,14 @@
             return;
         }
 
-        let $badgeElement = document.querySelector('#manual-delivery-count .badge');
+        // Пробуем несколько вариантов селектора, так как AdminLTE может рендерить badge по-разному
+        let $badgeElement = document.querySelector('#manual-delivery-count .badge') 
+                        || document.querySelector('#manual-delivery-count span.badge')
+                        || document.querySelector('#manual-delivery-count');
+        
         if (!$badgeElement) {
+            // Если элемент не найден, пробуем еще раз через небольшую задержку
+            console.debug('[Manual Delivery Badge] Element not found, will retry');
             return;
         }
 
@@ -268,18 +276,43 @@
 
                 previousManualDeliveryCount = count;
 
-                if (count > 0) {
-                    $badgeElement.innerText = count;
-                    $badgeElement.classList.remove('badge-secondary');
-                    $badgeElement.classList.add('badge-warning');
+                // Обновляем badge - проверяем, является ли элемент самим badge или содержит его
+                if ($badgeElement.classList && $badgeElement.classList.contains('badge')) {
+                    // Это сам badge элемент
+                    if (count > 0) {
+                        $badgeElement.innerText = count;
+                        $badgeElement.classList.remove('badge-secondary');
+                        $badgeElement.classList.add('badge-warning');
+                        $badgeElement.style.display = '';
+                    } else {
+                        $badgeElement.innerText = '';
+                        $badgeElement.classList.remove('badge-warning');
+                        $badgeElement.classList.add('badge-secondary');
+                    }
                 } else {
-                    $badgeElement.innerText = '';
-                    $badgeElement.classList.remove('badge-warning');
-                    $badgeElement.classList.add('badge-secondary');
+                    // Это родительский элемент, ищем или создаем badge внутри
+                    let badge = $badgeElement.querySelector('.badge');
+                    if (!badge) {
+                        // Создаем badge, если его нет
+                        badge = document.createElement('span');
+                        badge.className = 'badge';
+                        $badgeElement.appendChild(badge);
+                    }
+                    
+                    if (count > 0) {
+                        badge.innerText = count;
+                        badge.classList.remove('badge-secondary');
+                        badge.classList.add('badge-warning');
+                        badge.style.display = '';
+                    } else {
+                        badge.innerText = '';
+                        badge.classList.remove('badge-warning');
+                        badge.classList.add('badge-secondary');
+                    }
                 }
             },
             error: function (xhr, status, error) {
-                // Игнорируем ошибки
+                console.debug('[Manual Delivery Badge] Error updating badge:', error);
             }
         });
     }
@@ -292,42 +325,39 @@
 
         if (typeof jQuery !== 'undefined') {
             $(document).ready(function () {
-                // Загружаем настройки при инициализации и ждем их загрузки перед первым обновлением badge
+                // Загружаем настройки синхронно перед началом обновлений
                 loadNotificationSettings();
                 
                 // Обновляем настройки каждые 60 секунд (на случай, если администратор изменил их)
                 setInterval(loadNotificationSettings, 60000);
                 
-                // Ждем загрузки настроек перед первым обновлением badge (предотвращаем race condition)
-                $.ajax({
-                    url: '/admin/settings/notification-check',
-                    method: 'GET',
-                    dataType: 'json',
-                    success: function (data) {
-                        notificationSettings = {
-                            manual_delivery_enabled: data.manual_delivery_enabled !== false,
-                            sound_enabled: data.sound_enabled !== false
-                        };
+                // Ждем полной загрузки DOM и меню перед началом обновлений
+                // Увеличиваем задержку, чтобы убедиться, что AdminLTE полностью загрузил меню
+                setTimeout(function () {
+                    // Проверяем, что элемент существует перед началом обновлений
+                    let $badgeElement = document.querySelector('#manual-delivery-count .badge') 
+                                     || document.querySelector('#manual-delivery-count span.badge')
+                                     || document.querySelector('#manual-delivery-count');
+                    
+                    if ($badgeElement) {
+                        // Элемент найден, начинаем обновления
+                        updateManualDeliveryBadge();
                         
-                        // После загрузки настроек начинаем обновлять badge
+                        // Создаем интервал только один раз
+                        if (!updateInterval) {
+                            updateInterval = setInterval(updateManualDeliveryBadge, 3000);
+                        }
+                    } else {
+                        // Элемент не найден, пробуем еще раз через 2 секунды
+                        console.warn('[Manual Delivery Badge] Element not found on first try, retrying...');
                         setTimeout(function () {
                             updateManualDeliveryBadge();
-                            setInterval(updateManualDeliveryBadge, 3000);
-                        }, 500);
-                    },
-                    error: function () {
-                        // При ошибке используем значения по умолчанию и все равно начинаем обновление
-                        notificationSettings = {
-                            manual_delivery_enabled: true,
-                            sound_enabled: true
-                        };
-                        
-                        setTimeout(function () {
-                            updateManualDeliveryBadge();
-                            setInterval(updateManualDeliveryBadge, 3000);
-                        }, 500);
+                            if (!updateInterval) {
+                                updateInterval = setInterval(updateManualDeliveryBadge, 3000);
+                            }
+                        }, 2000);
                     }
-                });
+                }, 1000);
             });
         } else {
             setTimeout(initManualDeliveryBadge, 100);
