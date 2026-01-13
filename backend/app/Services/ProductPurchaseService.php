@@ -242,28 +242,6 @@ public function createProductPurchase(
         'status' => $initialStatus,
     ]);
 
-    // Уведомляем администратора и пользователя о новом заказе на ручную обработку
-    if ($requiresManualDelivery) {
-        // ВАЖНО: Инвалидируем кеш СРАЗУ после создания заказа, чтобы счетчик обновился немедленно
-        // Делаем это до отправки уведомлений, чтобы избежать race condition
-        Cache::forget('manual_delivery_pending_count');
-        
-        try {
-            $manualDeliveryService = app(ManualDeliveryService::class);
-            // Уведомляем администратора
-            $manualDeliveryService->notifyAdminAboutNewOrder($purchase);
-            // Уведомляем пользователя о создании заказа
-            $manualDeliveryService->notifyUserAboutOrderCreated($purchase);
-        } catch (\Throwable $e) {
-            // Не ломаем основную покупку из-за ошибки уведомления
-            // Кеш уже инвалидирован выше, поэтому счетчик обновится даже при ошибке
-            Log::error('Failed to notify about manual order', [
-                'purchase_id' => $purchase->id,
-                'error' => $e->getMessage(),
-            ]);
-        }
-    }
-
     /*
      * NEW: Создаём запись SupplierEarning вместо немедленного увеличения supplier_balance.
      * Логика:
@@ -428,6 +406,29 @@ public function createProductPurchase(
                 $purchases[] = $result['purchase'];
             }
         });
+
+        // ВАЖНО: Уведомления и инвалидация кеша вынесены ЗА ПРЕДЕЛЫ транзакции.
+        // Это гарантирует, что к моменту очистки кеша транзакция завершена, 
+        // и новые заказы видны в базе данных для всех запросов (в том числе AJAX счетчика).
+        foreach ($purchases as $purchase) {
+            if ($purchase->serviceAccount && $purchase->serviceAccount->requiresManualDelivery()) {
+                // Инвалидируем кеш счетчика
+                Cache::forget('manual_delivery_pending_count');
+                
+                try {
+                    $manualDeliveryService = app(ManualDeliveryService::class);
+                    // Уведомляем администратора
+                    $manualDeliveryService->notifyAdminAboutNewOrder($purchase);
+                    // Уведомляем пользователя
+                    $manualDeliveryService->notifyUserAboutOrderCreated($purchase);
+                } catch (\Throwable $e) {
+                    Log::error('Failed to notify about manual order (after transaction)', [
+                        'purchase_id' => $purchase->id,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+            }
+        }
 
         return $purchases;
     }

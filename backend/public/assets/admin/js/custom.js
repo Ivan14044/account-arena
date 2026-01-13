@@ -230,26 +230,12 @@
             return;
         }
 
-        // Пробуем несколько вариантов селектора, так как AdminLTE может рендерить badge по-разному
-        let $badgeElement = document.querySelector('#manual-delivery-count .badge') 
-                        || document.querySelector('#manual-delivery-count span.badge')
-                        || document.querySelector('#manual-delivery-count');
-        
-        if (!$badgeElement) {
-            // Если элемент не найден, пробуем еще раз через небольшую задержку
-            console.debug('[Manual Delivery Badge] Element not found, will retry');
-            return;
-        }
-        
-        // Логируем для отладки (только в development режиме)
-        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-            console.debug('[Manual Delivery Badge] Updating badge count...');
-        }
-
         $.ajax({
             url: '/admin/manual-delivery/count',
             method: 'GET',
             dataType: 'json',
+            cache: false, // ВАЖНО: Отключаем кеширование для актуальности данных
+            data: { _t: new Date().getTime() }, // Обход кеша через timestamp
             success: function (data) {
                 const count = data.count || 0;
 
@@ -289,39 +275,34 @@
 
                 previousManualDeliveryCount = count;
 
-                // Обновляем badge - проверяем, является ли элемент самим badge или содержит его
-                if ($badgeElement.classList && $badgeElement.classList.contains('badge')) {
-                    // Это сам badge элемент
-                    if (count > 0) {
-                        $badgeElement.innerText = count;
-                        $badgeElement.classList.remove('badge-secondary');
-                        $badgeElement.classList.add('badge-warning');
-                        $badgeElement.style.display = '';
-                    } else {
-                        $badgeElement.innerText = '';
-                        $badgeElement.classList.remove('badge-warning');
-                        $badgeElement.classList.add('badge-secondary');
+                // ОБНОВЛЕННАЯ ЛОГИКА DOM: Ищем тег <p> внутри ссылки, чтобы badge отображался корректно в AdminLTE
+                const $li = document.getElementById('manual-delivery-count');
+                if (!$li) {
+                    return;
+                }
+
+                const $p = $li.querySelector('a.nav-link p');
+                if (!$p) {
+                    return;
+                }
+
+                let $badge = $li.querySelector('.badge');
+
+                if (count > 0) {
+                    if (!$badge) {
+                        // Создаем badge, если его нет (с классами AdminLTE/Bootstrap)
+                        $badge = document.createElement('span');
+                        $badge.className = 'badge badge-warning right'; // 'right' прижимает к правому краю в AdminLTE
+                        $p.appendChild($badge);
                     }
-                } else {
-                    // Это родительский элемент, ищем или создаем badge внутри
-                    let badge = $badgeElement.querySelector('.badge');
-                    if (!badge) {
-                        // Создаем badge, если его нет
-                        badge = document.createElement('span');
-                        badge.className = 'badge';
-                        $badgeElement.appendChild(badge);
-                    }
-                    
-                    if (count > 0) {
-                        badge.innerText = count;
-                        badge.classList.remove('badge-secondary');
-                        badge.classList.add('badge-warning');
-                        badge.style.display = '';
-                    } else {
-                        badge.innerText = '';
-                        badge.classList.remove('badge-warning');
-                        badge.classList.add('badge-secondary');
-                    }
+                    $badge.innerText = count;
+                    $badge.style.display = 'inline-block';
+                    $badge.classList.remove('badge-secondary');
+                    $badge.classList.add('badge-warning');
+                } else if ($badge) {
+                    // Если заказов нет, скрываем badge
+                    $badge.style.display = 'none';
+                    $badge.innerText = '';
                 }
             },
             error: function (xhr, status, error) {
