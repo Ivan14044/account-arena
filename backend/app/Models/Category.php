@@ -101,7 +101,15 @@ class Category extends Model
             return $value;
         }
 
-        // В противном случае формируем полный URL через Storage
+        // Убираем начальный слеш, если есть
+        $value = ltrim($value, '/');
+        
+        // Если путь начинается с 'storage/', убираем его (Storage::url уже добавляет storage/)
+        if (str_starts_with($value, 'storage/')) {
+            $value = substr($value, 8);
+        }
+
+        // Формируем полный URL через Storage
         return \Illuminate\Support\Facades\Storage::disk('public')->url($value);
     }
 
