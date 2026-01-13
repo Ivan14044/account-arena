@@ -20,6 +20,7 @@
                         :src="category.image_url"
                         :alt="category.name"
                         class="category-icon"
+                        @error="handleImageError($event)"
                     />
                     <span class="category-name">{{ category.name }}</span>
                     <span v-if="getCategoryProductCount(category.id) > 0" class="category-count">
@@ -249,6 +250,15 @@ const selectSubcategory = (subcategoryId: number | null) => {
         showFavoritesOnly: showFavoritesOnly.value,
         searchQuery: debouncedSearchQuery.value || searchQuery.value
     });
+};
+
+// Обработчик ошибок загрузки изображений категорий
+const handleImageError = (event: Event) => {
+    const img = event.target as HTMLImageElement;
+    // Скрываем изображение при ошибке загрузки
+    if (img) {
+        img.style.display = 'none';
+    }
 };
 
 const emit = defineEmits<{
