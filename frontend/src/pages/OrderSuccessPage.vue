@@ -94,7 +94,12 @@
 
             <!-- Список купленных товаров -->
             <div v-else-if="recentPurchases.length > 0" class="space-y-4">
-                <div v-for="purchase in recentPurchases" :key="purchase.id" class="purchase-card">
+                <div 
+                    v-for="purchase in recentPurchases" 
+                    :key="purchase.id" 
+                    v-memo="[purchase.id, purchase.status]"
+                    class="purchase-card"
+                >
                     <!-- Заголовок товара -->
                     <div class="flex items-center gap-4 mb-4">
                         <img
@@ -659,7 +664,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount, Teleport, Transition } from 'vue';
+import { ref, computed, onMounted, onBeforeUnmount, Teleport, Transition, nextTick } from 'vue';
 import { useRouter, onBeforeRouteLeave } from 'vue-router';
 import { useToast } from 'vue-toastification';
 import { useI18n } from 'vue-i18n';
@@ -695,10 +700,29 @@ const isPreparingProduct = computed(() => {
     );
 });
 
+// Кэш для recentPurchases для предотвращения пересчета
+const recentPurchasesCache = ref(null);
+
 // Вычисляемое свойство для покупок (убран фильтр времени)
 const recentPurchases = computed(() => {
-    // Возвращаем все покупки, отсортированные по дате (новые первые)
-    return purchases.value;
+    // Если массив не изменился, возвращаем кэш
+    if (recentPurchasesCache.value && 
+        recentPurchasesCache.value.length === purchases.value.length &&
+        recentPurchasesCache.value.every((p, i) => 
+            purchases.value[i]?.id === p.id &&
+            purchases.value[i]?.status === p.status &&
+            purchases.value[i]?.account_data?.length === p.account_data?.length &&
+            purchases.value[i]?.processing_notes === p.processing_notes
+        )) {
+        return recentPurchasesCache.value;
+    }
+    
+    // Создаем новый массив только если были изменения
+    const sorted = [...purchases.value].sort((a, b) => 
+        new Date(b.purchased_at || b.created_at) - new Date(a.purchased_at || a.created_at)
+    );
+    recentPurchasesCache.value = sorted;
+    return sorted;
 });
 
 // Проверяем, раскрыта ли покупка полностью
@@ -760,7 +784,7 @@ const startPolling = () => {
 
         // Если появились покупки, останавливаем опрос
         try {
-            await fetchPurchases();
+            await fetchPurchases(true); // Пропускаем изменение loading при polling
             if (purchases.value.length > 0) {
                 stopPolling();
                 // Запускаем обновление статуса для заказов в обработке
@@ -800,7 +824,7 @@ const startStatusPolling = () => {
 
         // Обновляем статусы заказов с обработкой ошибок
         try {
-            await fetchPurchases();
+            await fetchPurchases(true); // Пропускаем изменение loading при polling
         } catch (error) {
             console.error('Error in status polling:', error);
             // Не останавливаем интервал при ошибке для автоматического восстановления
@@ -840,45 +864,84 @@ onBeforeRouteLeave(() => {
     stopStatusPolling();
 });
 
-// Умное обновление данных без полной перерисовки
+// Умное обновление данных без полной перерисовки - обновление in-place
 const updatePurchasesSmart = (newPurchases) => {
-    // Создаем Map для быстрого поиска существующих заказов
     const existingMap = new Map();
-    purchases.value.forEach(p => existingMap.set(p.id, p));
-    
-    // Обновляем массив, сохраняя ссылки на неизмененные объекты
-    const updated = newPurchases.map(newPurchase => {
-        const existing = existingMap.get(newPurchase.id);
-        
-        // Если заказ существует и данные не изменились, возвращаем старую ссылку
-        if (existing) {
-            // Проверяем, изменились ли ключевые поля
-            const hasChanged = 
-                existing.status !== newPurchase.status ||
-                existing.account_data?.length !== newPurchase.account_data?.length ||
-                existing.processing_notes !== newPurchase.processing_notes ||
-                JSON.stringify(existing.account_data) !== JSON.stringify(newPurchase.account_data);
-            
-            if (!hasChanged) {
-                return existing; // Возвращаем старую ссылку
-            }
-        }
-        
-        // Если заказ новый или изменился, возвращаем новый объект
-        return newPurchase;
+    purchases.value.forEach((p, index) => {
+        existingMap.set(p.id, { purchase: p, index });
     });
     
-    purchases.value = updated;
+    const newIds = new Set(newPurchases.map(p => p.id));
+    let needsReordering = false;
+    let hasDataChanges = false;
+    
+    // Обновляем существующие объекты напрямую
+    newPurchases.forEach((newPurchase, newIndex) => {
+        const existing = existingMap.get(newPurchase.id);
+        
+        if (existing) {
+            const { purchase: existingPurchase, index: oldIndex } = existing;
+            
+            // Проверяем, изменился ли статус (это единственное, что должно вызывать перерисовку карточки)
+            const statusChanged = existingPurchase.status !== newPurchase.status;
+            
+            // Проверяем, изменились ли другие данные (для обновления объекта, но без перерисовки)
+            const otherDataChanged = 
+                existingPurchase.account_data?.length !== newPurchase.account_data?.length ||
+                existingPurchase.processing_notes !== newPurchase.processing_notes ||
+                JSON.stringify(existingPurchase.account_data) !== JSON.stringify(newPurchase.account_data);
+            
+            // Всегда обновляем объект для синхронизации данных
+            if (statusChanged || otherDataChanged) {
+                Object.assign(existingPurchase, newPurchase);
+                hasDataChanges = true;
+            }
+            
+            // Инвалидируем кэш только при изменении статуса (это вызовет перерисовку карточки)
+            if (statusChanged) {
+                recentPurchasesCache.value = null;
+            }
+            
+            // Проверяем, изменился ли порядок
+            if (oldIndex !== newIndex) {
+                needsReordering = true;
+            }
+        } else {
+            // Новый заказ
+            needsReordering = true;
+        }
+    });
+    
+    // Удаляем заказы, которых больше нет
+    const toRemove = purchases.value.filter(p => !newIds.has(p.id));
+    if (toRemove.length > 0) {
+        needsReordering = true;
+    }
+    
+    // Переупорядочиваем только если нужно, используя nextTick для батчинга
+    if (needsReordering) {
+        // Инвалидируем кэш перед обновлением
+        recentPurchasesCache.value = null;
+        nextTick(() => {
+            purchases.value = newPurchases.map(newPurchase => {
+                const existing = existingMap.get(newPurchase.id);
+                return existing?.purchase || newPurchase;
+            });
+        });
+    }
+    // Если нет изменений в порядке и данных, массив не трогаем - объекты уже обновлены через Object.assign
 };
 
-const fetchPurchases = async () => {
+const fetchPurchases = async (skipLoading = false) => {
     try {
-        loading.value = true;
+        if (!skipLoading) {
+            loading.value = true;
 
-        // Если нет сообщения о подготовке, показываем сообщение "Подготовка товара к выдаче"
-        // Это более понятно для пользователя, чем просто "Загрузка..."
-        if (!isPreparingProduct.value) {
-            loadingStore.start(t('checkout.preparing_product'));
+            // Если нет сообщения о подготовке, показываем сообщение "Подготовка товара к выдаче"
+            // Это более понятно для пользователя, чем просто "Загрузка..."
+            if (!isPreparingProduct.value) {
+                loadingStore.start(t('checkout.preparing_product'));
+            }
         }
 
         // Сохраняем предыдущее состояние заказов перед обновлением
@@ -932,10 +995,12 @@ const fetchPurchases = async () => {
             
             // Если товар выдан (есть покупки), скрываем ВСЕ прелоадеры немедленно
             if (purchases.value.length > 0) {
-                loading.value = false;
-                // Используем reset() для гарантированного скрытия прелоадера
-                // независимо от количества activeRequests
-                loadingStore.reset();
+                if (!skipLoading) {
+                    loading.value = false;
+                    // Используем reset() для гарантированного скрытия прелоадера
+                    // независимо от количества activeRequests
+                    loadingStore.reset();
+                }
                 console.log('✅ Preloaders hidden, purchases loaded');
                 
                 // Запускаем обновление статуса для заказов в обработке
@@ -999,8 +1064,10 @@ const fetchPurchases = async () => {
             }
         } else {
             console.warn('⚠️ Response success=false');
-            loading.value = false;
-            loadingStore.reset();
+            if (!skipLoading) {
+                loading.value = false;
+                loadingStore.reset();
+            }
         }
     } catch (error) {
         console.error('❌ Failed to fetch purchases:', {
@@ -1008,15 +1075,17 @@ const fetchPurchases = async () => {
             response: error.response?.data,
             status: error.response?.status
         });
-        toast.error(
-            t('order_success.load_error') + ': ' + (error.response?.data?.message || error.message)
-        );
-        // При ошибке скрываем прелоадеры
-        loading.value = false;
-        loadingStore.reset();
+        if (!skipLoading) {
+            toast.error(
+                t('order_success.load_error') + ': ' + (error.response?.data?.message || error.message)
+            );
+            // При ошибке скрываем прелоадеры
+            loading.value = false;
+            loadingStore.reset();
+        }
     } finally {
         // Гарантируем скрытие, если товар выдан (на случай, если мы не вышли через return)
-        if (purchases.value && purchases.value.length > 0) {
+        if (!skipLoading && purchases.value && purchases.value.length > 0) {
             loading.value = false;
             loadingStore.reset();
         }
