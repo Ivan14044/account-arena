@@ -993,16 +993,15 @@ const fetchPurchases = async (skipLoading = false) => {
             updatePurchasesSmart(newPurchases);
             console.log('✅ Purchases set:', purchases.value.length);
             
-            // Если товар выдан (есть покупки), скрываем ВСЕ прелоадеры немедленно
+            // Скрываем прелоадеры, если это не фоновое обновление
+            if (!skipLoading) {
+                loading.value = false;
+                loadingStore.reset();
+                console.log('✅ Preloaders hidden');
+            }
+
+            // Если товар выдан (есть покупки)
             if (purchases.value.length > 0) {
-                if (!skipLoading) {
-                    loading.value = false;
-                    // Используем reset() для гарантированного скрытия прелоадера
-                    // независимо от количества activeRequests
-                    loadingStore.reset();
-                }
-                console.log('✅ Preloaders hidden, purchases loaded');
-                
                 // Запускаем обновление статуса для заказов в обработке
                 startStatusPolling();
                 
@@ -1084,8 +1083,8 @@ const fetchPurchases = async (skipLoading = false) => {
             loadingStore.reset();
         }
     } finally {
-        // Гарантируем скрытие, если товар выдан (на случай, если мы не вышли через return)
-        if (!skipLoading && purchases.value && purchases.value.length > 0) {
+        // Гарантируем скрытие, если это не фоновое обновление
+        if (!skipLoading) {
             loading.value = false;
             loadingStore.reset();
         }
