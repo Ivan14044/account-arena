@@ -15,6 +15,9 @@ return array(
     'types' => [
         'product_purchase' => 'Покупка товара',
         'balance_topup' => 'Пополнение баланса',
+        'topup' => 'Пополнение баланса',
+        'registration' => 'Регистрация',
+        'payment' => 'Платеж',
         'manual_delivery' => 'Ручная выдача',
         'manual_delivery_new_order' => 'Новый заказ (ручная выдача)',
         'dispute_created' => 'Спор по товару',

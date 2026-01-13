@@ -15,6 +15,9 @@ return array(
     'types' => [
         'product_purchase' => 'Product Purchase',
         'balance_topup' => 'Balance Top-up',
+        'topup' => 'Balance Top-up',
+        'registration' => 'Registration',
+        'payment' => 'Payment',
         'manual_delivery' => 'Manual Delivery',
         'manual_delivery_new_order' => 'New Order (Manual)',
         'dispute_created' => 'Product Dispute',
