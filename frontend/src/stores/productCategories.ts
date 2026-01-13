@@ -28,11 +28,13 @@ export const useProductCategoriesStore = defineStore('productCategories', {
 
             try {
                 // Get locale from i18n instance available in the component context
-                const { data } = await axios.get('/categories', {
+                const response = await axios.get('/categories', {
                     params: { type: 'product' }
                 });
 
-                const categories: ProductCategory[] = Array.isArray(data) ? data : [];
+                // Laravel Resource Collection может возвращать данные в response.data или напрямую в response.data
+                const responseData = response.data?.data || response.data;
+                const categories: ProductCategory[] = Array.isArray(responseData) ? responseData : [];
 
                 // Transform categories - name should already be localized from backend
                 this.list = categories.map((cat: any) => {
