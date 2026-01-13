@@ -86,8 +86,10 @@ class AdminNotification extends Model
         // Если перевод не произошел, но в оригинале есть ключевые слова, пытаемся еще раз
         if (!$wasTranslated) {
             $originalLower = mb_strtolower($originalTitle);
-            if (strpos($originalLower, 'purcha') !== false) {
+            $originalLowerNoSpaces = mb_strtolower(str_replace(' ', '', $originalTitle));
+            if (strpos($originalLower, 'purcha') !== false || strpos($originalLowerNoSpaces, 'purcha') !== false) {
                 $title = __('notifier.new_product_purchase_title');
+                $wasTranslated = true;
             }
         }
         
@@ -142,8 +144,10 @@ class AdminNotification extends Model
         $message = trim($message);
         
         // Сначала проверяем по ключевым словам (более агрессивный подход)
-        $messageLower = mb_strtolower($message);
-        if (strpos($messageLower, 'purcha') !== false || strpos($messageLower, 'purchase') !== false) {
+        // Убираем пробелы для более надежного поиска
+        $messageLower = mb_strtolower(str_replace(' ', '', $message));
+        $messageLowerWithSpaces = mb_strtolower($message);
+        if (strpos($messageLower, 'purcha') !== false || strpos($messageLowerWithSpaces, 'purchase') !== false || strpos($messageLowerWithSpaces, 'purcha') !== false) {
             // Это похоже на сообщение о покупке
             $translated = __('notifier.new_product_purchase_message');
             if ($translated !== 'notifier.new_product_purchase_message') {
