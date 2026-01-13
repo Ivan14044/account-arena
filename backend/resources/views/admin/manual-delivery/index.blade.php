@@ -335,8 +335,25 @@
     }
     
     function updateStatistics() {
-        fetch('{{ route("admin.manual-delivery.statistics") }}')
-            .then(response => response.json())
+        fetch('{{ route("admin.manual-delivery.statistics") }}', {
+            method: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json',
+            },
+            credentials: 'same-origin'
+        })
+            .then(response => {
+                // Проверяем, что ответ действительно JSON
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    throw new Error('Response is not JSON');
+                }
+                return response.json();
+            })
             .then(data => {
                 if (data.success) {
                     const newCount = data.data.pending;
@@ -370,7 +387,13 @@
                     updateMenuBadge(newCount);
                 }
             })
-            .catch(error => console.error('Error updating statistics:', error));
+            .catch(error => {
+                // Логируем ошибку только в development режиме
+                if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                    console.error('Error updating statistics:', error);
+                }
+                // Не показываем ошибку пользователю, чтобы не мешать работе
+            });
     }
     
     function updateMenuBadge(count) {

@@ -60,7 +60,7 @@ class SecurityHeaders
             "default-src 'self'",
             "script-src 'self' 'unsafe-inline' 'unsafe-eval' http://cdn.jsdelivr.net https://cdn.jsdelivr.net http://cdn.datatables.net https://cdn.datatables.net http://cdnjs.cloudflare.com https://cdnjs.cloudflare.com http://code.jquery.com https://code.jquery.com http://cdn.ckeditor.com https://cdn.ckeditor.com https://static.cloudflareinsights.com",
             "style-src 'self' 'unsafe-inline' http://fonts.googleapis.com https://fonts.googleapis.com http://cdn.jsdelivr.net https://cdn.jsdelivr.net http://cdn.datatables.net https://cdn.datatables.net http://cdnjs.cloudflare.com https://cdnjs.cloudflare.com http://code.jquery.com https://code.jquery.com",
-            "font-src 'self' http://fonts.gstatic.com https://fonts.gstatic.com data: http://cdn.jsdelivr.net https://cdn.jsdelivr.net",
+            "font-src 'self' http://fonts.gstatic.com https://fonts.gstatic.com data: http://cdn.jsdelivr.net https://cdn.jsdelivr.net https://r2cdn.perplexity.ai",
             "img-src 'self' data: http: https: blob:",
             "connect-src 'self' {$appUrl} {$frontendUrl} https://api.monobank.ua https://api.cryptomus.com http://cdn.ckeditor.com https://cdn.ckeditor.com http://cdn.datatables.net https://cdn.datatables.net http://cdn.jsdelivr.net https://cdn.jsdelivr.net https://static.cloudflareinsights.com",
             "frame-src 'self'",
