@@ -39,38 +39,55 @@ class AdminNotification extends Model
         
         // Нормализуем текст - убираем лишние пробелы
         $title = trim($title);
+        $originalTitle = $title;
         
         // Сначала проверяем по ключевым словам (более агрессивный подход)
+        // Делаем это ДО удаления плейсхолдеров, чтобы гарантировать перевод
         $titleLower = mb_strtolower($title);
+        $wasTranslated = false;
+        
         if (strpos($titleLower, 'purcha') !== false || strpos($titleLower, 'purchase') !== false) {
             // Это похоже на уведомление о покупке
             $translated = __('notifier.new_product_purchase_title');
             if ($translated !== 'notifier.new_product_purchase_title') {
                 $title = $translated;
+                $wasTranslated = true;
             }
         } elseif (strpos($titleLower, 'user') !== false && strpos($titleLower, 'new') !== false) {
             // Это похоже на уведомление о новом пользователе
             $translated = __('notifier.new_user_title');
             if ($translated !== 'notifier.new_user_title') {
                 $title = $translated;
+                $wasTranslated = true;
             }
         } elseif (strpos($titleLower, 'payment') !== false && strpos($titleLower, 'new') !== false) {
             // Это похоже на уведомление о платеже
             $translated = __('notifier.new_payment_title');
             if ($translated !== 'notifier.new_payment_title') {
                 $title = $translated;
+                $wasTranslated = true;
             }
         } elseif (strpos($title, 'notifier.') === 0) {
             // Если это ключ перевода вида "notifier.xxx", переводим его
             $translated = __($title);
             if ($translated !== $title) {
                 $title = $translated;
+                $wasTranslated = true;
             }
         } else {
             // Пытаемся перевести через стандартную функцию
             $translated = __($title);
             if ($translated !== $title) {
                 $title = $translated;
+                $wasTranslated = true;
+            }
+        }
+        
+        // Если перевод не произошел, но в оригинале есть ключевые слова, пытаемся еще раз
+        if (!$wasTranslated) {
+            $originalLower = mb_strtolower($originalTitle);
+            if (strpos($originalLower, 'purcha') !== false) {
+                $title = __('notifier.new_product_purchase_title');
             }
         }
         
