@@ -41,7 +41,13 @@ class ProductCategoryController extends Controller
         // Handle image upload
         if ($request->hasFile('image')) {
             $path = $request->file('image')->store('categories', 'public');
-            $data['image_url'] = Storage::url($path);
+            // Получаем URL и преобразуем в абсолютный, если нужно
+            $imageUrl = Storage::disk('public')->url($path);
+            // Если URL относительный, преобразуем в абсолютный
+            if (!str_starts_with($imageUrl, 'http')) {
+                $imageUrl = url($imageUrl);
+            }
+            $data['image_url'] = $imageUrl;
         }
 
         $category = Category::create($data);
@@ -67,7 +73,13 @@ class ProductCategoryController extends Controller
         // Handle image upload
         if ($request->hasFile('image')) {
             $path = $request->file('image')->store('categories', 'public');
-            $category->image_url = Storage::url($path);
+            // Получаем URL и преобразуем в абсолютный, если нужно
+            $imageUrl = Storage::disk('public')->url($path);
+            // Если URL относительный, преобразуем в абсолютный
+            if (!str_starts_with($imageUrl, 'http')) {
+                $imageUrl = url($imageUrl);
+            }
+            $category->image_url = $imageUrl;
             $category->save();
         }
 
