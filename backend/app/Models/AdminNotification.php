@@ -40,8 +40,28 @@ class AdminNotification extends Model
         // Нормализуем текст - убираем лишние пробелы
         $title = trim($title);
         
-        // Если это ключ перевода вида "notifier.xxx", переводим его
-        if (strpos($title, 'notifier.') === 0) {
+        // Сначала проверяем по ключевым словам (более агрессивный подход)
+        $titleLower = mb_strtolower($title);
+        if (strpos($titleLower, 'purcha') !== false || strpos($titleLower, 'purchase') !== false) {
+            // Это похоже на уведомление о покупке
+            $translated = __('notifier.new_product_purchase_title');
+            if ($translated !== 'notifier.new_product_purchase_title') {
+                $title = $translated;
+            }
+        } elseif (strpos($titleLower, 'user') !== false && strpos($titleLower, 'new') !== false) {
+            // Это похоже на уведомление о новом пользователе
+            $translated = __('notifier.new_user_title');
+            if ($translated !== 'notifier.new_user_title') {
+                $title = $translated;
+            }
+        } elseif (strpos($titleLower, 'payment') !== false && strpos($titleLower, 'new') !== false) {
+            // Это похоже на уведомление о платеже
+            $translated = __('notifier.new_payment_title');
+            if ($translated !== 'notifier.new_payment_title') {
+                $title = $translated;
+            }
+        } elseif (strpos($title, 'notifier.') === 0) {
+            // Если это ключ перевода вида "notifier.xxx", переводим его
             $translated = __($title);
             if ($translated !== $title) {
                 $title = $translated;
@@ -51,26 +71,6 @@ class AdminNotification extends Model
             $translated = __($title);
             if ($translated !== $title) {
                 $title = $translated;
-            } else {
-                // Если перевод не найден, пытаемся найти соответствующий ключ
-                // Проверяем по ключевым словам, а не точному совпадению
-                $titleLower = mb_strtolower($title);
-                if (strpos($titleLower, 'purcha') !== false || strpos($titleLower, 'purchase') !== false) {
-                    $translated = __('notifier.new_product_purchase_title');
-                    if ($translated !== 'notifier.new_product_purchase_title') {
-                        $title = $translated;
-                    }
-                } elseif (strpos($titleLower, 'user') !== false && strpos($titleLower, 'new') !== false) {
-                    $translated = __('notifier.new_user_title');
-                    if ($translated !== 'notifier.new_user_title') {
-                        $title = $translated;
-                    }
-                } elseif (strpos($titleLower, 'payment') !== false && strpos($titleLower, 'new') !== false) {
-                    $translated = __('notifier.new_payment_title');
-                    if ($translated !== 'notifier.new_payment_title') {
-                        $title = $translated;
-                    }
-                }
             }
         }
         
@@ -110,8 +110,28 @@ class AdminNotification extends Model
         // Нормализуем текст - убираем лишние пробелы
         $message = trim($message);
         
-        // Если это ключ перевода вида "notifier.xxx", переводим его
-        if (strpos($message, 'notifier.') === 0) {
+        // Сначала проверяем по ключевым словам (более агрессивный подход)
+        $messageLower = mb_strtolower($message);
+        if (strpos($messageLower, 'purcha') !== false || strpos($messageLower, 'purchase') !== false) {
+            // Это похоже на сообщение о покупке
+            $translated = __('notifier.new_product_purchase_message');
+            if ($translated !== 'notifier.new_product_purchase_message') {
+                $message = $translated;
+            }
+        } elseif (strpos($messageLower, 'user') !== false && (strpos($messageLower, 'new') !== false || strpos($messageLower, 'registered') !== false)) {
+            // Это похоже на сообщение о новом пользователе
+            $translated = __('notifier.new_user_message');
+            if ($translated !== 'notifier.new_user_message') {
+                $message = $translated;
+            }
+        } elseif (strpos($messageLower, 'payment') !== false && strpos($messageLower, 'new') !== false) {
+            // Это похоже на сообщение о платеже
+            $translated = __('notifier.new_payment_message');
+            if ($translated !== 'notifier.new_payment_message') {
+                $message = $translated;
+            }
+        } elseif (strpos($message, 'notifier.') === 0) {
+            // Если это ключ перевода вида "notifier.xxx", переводим его
             $translated = __($message);
             if ($translated !== $message) {
                 $message = $translated;
@@ -121,26 +141,6 @@ class AdminNotification extends Model
             $translated = __($message);
             if ($translated !== $message) {
                 $message = $translated;
-            } else {
-                // Если перевод не найден, пытаемся найти соответствующий ключ для сообщений
-                // Проверяем по ключевым словам
-                $messageLower = mb_strtolower($message);
-                if (strpos($messageLower, 'purcha') !== false || strpos($messageLower, 'purchase') !== false) {
-                    $translated = __('notifier.new_product_purchase_message');
-                    if ($translated !== 'notifier.new_product_purchase_message') {
-                        $message = $translated;
-                    }
-                } elseif (strpos($messageLower, 'user') !== false && (strpos($messageLower, 'new') !== false || strpos($messageLower, 'registered') !== false)) {
-                    $translated = __('notifier.new_user_message');
-                    if ($translated !== 'notifier.new_user_message') {
-                        $message = $translated;
-                    }
-                } elseif (strpos($messageLower, 'payment') !== false && strpos($messageLower, 'new') !== false) {
-                    $translated = __('notifier.new_payment_message');
-                    if ($translated !== 'notifier.new_payment_message') {
-                        $message = $translated;
-                    }
-                }
             }
         }
         
