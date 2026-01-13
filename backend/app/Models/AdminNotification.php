@@ -43,10 +43,12 @@ class AdminNotification extends Model
         
         // Сначала проверяем по ключевым словам (более агрессивный подход)
         // Делаем это ДО удаления плейсхолдеров, чтобы гарантировать перевод
-        $titleLower = mb_strtolower($title);
+        // Убираем пробелы для более надежного поиска
+        $titleLower = mb_strtolower(str_replace(' ', '', $title));
+        $titleLowerWithSpaces = mb_strtolower($title);
         $wasTranslated = false;
         
-        if (strpos($titleLower, 'purcha') !== false || strpos($titleLower, 'purchase') !== false) {
+        if (strpos($titleLower, 'purcha') !== false || strpos($titleLowerWithSpaces, 'purchase') !== false || strpos($titleLowerWithSpaces, 'purcha') !== false) {
             // Это похоже на уведомление о покупке
             $translated = __('notifier.new_product_purchase_title');
             if ($translated !== 'notifier.new_product_purchase_title') {
