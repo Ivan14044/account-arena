@@ -397,15 +397,24 @@
     }
     
     function updateMenuBadge(count) {
-        const menuBadge = document.querySelector('#manual-delivery-count');
-        if (menuBadge) {
-            if (count > 0) {
-                menuBadge.textContent = count > 99 ? '99+' : count;
-                menuBadge.className = 'badge badge-warning navbar-badge';
-                menuBadge.style.display = 'inline-block';
-            } else {
-                menuBadge.style.display = 'none';
+        const $li = document.getElementById('manual-delivery-count');
+        if (!$li) return;
+
+        const $p = $li.querySelector('a.nav-link p');
+        if (!$p) return;
+
+        let $badge = $li.querySelector('.badge');
+
+        if (count > 0) {
+            if (!$badge) {
+                $badge = document.createElement('span');
+                $badge.className = 'badge badge-warning right';
+                $p.appendChild($badge);
             }
+            $badge.textContent = count > 99 ? '99+' : count;
+            $badge.style.display = 'inline-block';
+        } else if ($badge) {
+            $badge.style.display = 'none';
         }
     }
     

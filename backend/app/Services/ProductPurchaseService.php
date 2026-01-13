@@ -428,6 +428,10 @@ class ProductPurchaseService
 
             if ($purchase->serviceAccount && $purchase->serviceAccount->requiresManualDelivery()) {
                 // Инвалидируем кеш счетчика
+                Log::info('[Manual Delivery Badge] Invalidating cache due to new manual purchase', [
+                    'purchase_id' => $purchase->id,
+                    'order_number' => $purchase->order_number,
+                ]);
                 Cache::forget('manual_delivery_pending_count');
                 
                 try {

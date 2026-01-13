@@ -50,44 +50,29 @@
                 previousUnreadCount = count;
 
                 if (count > 0) {
-                    $badgeElement.textContent = count;
-                    $badgeElement.classList.remove('badge-secondary');
-                    $badgeElement.classList.add('badge-danger');
+                    $badgeElement.innerText = count;
+                    $badgeElement.style.display = 'inline-block';
                 } else {
-                    $badgeElement.textContent = '';
-                    $badgeElement.classList.remove('badge-danger');
+                    $badgeElement.style.display = 'none';
                 }
             },
             error: function (xhr, status, error) {
-                // Игнорируем ошибки
+                console.debug('[Support Chat Badge] Error updating badge:', error);
             }
         });
     }
 
-    function initSupportChatBadge() {
-        if (!location.pathname.startsWith("/admin")) {
-            return;
-        }
-
-        if (typeof jQuery !== 'undefined') {
-            $(document).ready(function () {
-                setTimeout(function () {
-                    updateSupportChatBadge();
-                    setInterval(updateSupportChatBadge, 3000);
-                }, 1000);
-            });
-        } else {
-            setTimeout(initSupportChatBadge, 100);
-        }
+    // Обновляем каждые 30 секунд
+    if (location.pathname.startsWith("/admin")) {
+        setInterval(updateSupportChatBadge, 30000);
+        // Первое обновление через 5 секунд
+        setTimeout(updateSupportChatBadge, 5000);
     }
-
-    initSupportChatBadge();
 })();
 
-// Счетчик новых претензий на товары
 (function () {
-    // Переменная для хранения предыдущего значения счетчика
-    let previousNewDisputesCount = -1;
+    // Переменная для хранения предыдущего значения счетчика претензий
+    let previousDisputeCount = -1;
 
     // Функция для обновления счетчика новых претензий
     function updateDisputesBadge() {
@@ -100,7 +85,7 @@
             return;
         }
 
-        let $badgeElement = document.querySelector('#disputes-unread-count .badge')
+        let $badgeElement = document.querySelector('#disputes-unread-count .badge');
         if (!$badgeElement) {
             return;
         }
@@ -112,12 +97,12 @@
             success: function (data) {
                 const count = data.count || 0;
 
-                // Воспроизводим звук при появлении новой претензии
-                if (count > previousNewDisputesCount && previousNewDisputesCount >= 0) {
-                    const newDisputesCount = count - previousNewDisputesCount;
-                    console.log('[Sound] Playing notification sound - Disputes: ' + newDisputesCount + ' new dispute(s)', {
-                        event: 'disputes_new_dispute',
-                        previousCount: previousNewDisputesCount,
+                // Воспроизводим звук при появлении новых претензий
+                if (count > previousDisputeCount && previousDisputeCount >= 0) {
+                    const newDisputesCount = count - previousDisputeCount;
+                    console.log('[Sound] Playing notification sound - New disputes: ' + newDisputesCount + ' new dispute(s)', {
+                        event: 'new_dispute',
+                        previousCount: previousDisputeCount,
                         currentCount: count,
                         newDisputes: newDisputesCount
                     });
@@ -134,49 +119,35 @@
                     }
                 }
 
-                previousNewDisputesCount = count;
-
+                previousDisputeCount = count;
 
                 if (count > 0) {
                     $badgeElement.innerText = count;
+                    $badgeElement.style.display = 'inline-block';
                     $badgeElement.classList.remove('badge-secondary');
                     $badgeElement.classList.add('badge-warning');
                 } else {
-                    $badgeElement.innerText = '';
-                    $badgeElement.classList.remove('badge-warning');
+                    $badgeElement.style.display = 'none';
                 }
             },
             error: function (xhr, status, error) {
-                // Игнорируем ошибки
+                console.debug('[Disputes Badge] Error updating badge:', error);
             }
         });
     }
 
-    function initDisputesBadge() {
-        // Only initialize on admin pages
-        if (!location.pathname.startsWith("/admin")) {
-            return;
-        }
-
-        if (typeof jQuery !== 'undefined') {
-            $(document).ready(function () {
-                setTimeout(function () {
-                    updateDisputesBadge();
-                    setInterval(updateDisputesBadge, 3000);
-                }, 1000);
-            });
-        } else {
-            setTimeout(initDisputesBadge, 100);
-        }
+    // Обновляем каждые 30 секунд
+    if (location.pathname.startsWith("/admin")) {
+        setInterval(updateDisputesBadge, 30000);
+        // Первое обновление через 10 секунд
+        setTimeout(updateDisputesBadge, 10000);
     }
-
-    initDisputesBadge();
 })();
 
-// Счетчик заказов на ручную обработку
 (function () {
-    // Переменная для хранения предыдущего значения счетчика
+    // Переменная для хранения предыдущего значения счетчика заказов на ручную обработку
     let previousManualDeliveryCount = -1;
+    
     // Переменная для хранения настроек уведомлений
     let notificationSettings = {
         manual_delivery_enabled: true,
@@ -188,7 +159,7 @@
     // Функция для очистки интервала обновления счетчика
     function clearManualDeliveryInterval() {
         if (updateInterval !== null) {
-            clearInterval(updateInterval);
+            clearTimeout(updateInterval);
             updateInterval = null;
         }
     }
@@ -238,7 +209,7 @@
             data: { _t: new Date().getTime() }, // Обход кеша через timestamp
             success: function (data) {
                 const count = data.count || 0;
-
+                
                 // Воспроизводим звук при появлении новых заказов
                 // Только если уведомления для ручной обработки включены И звук включен
                 if (count > previousManualDeliveryCount && previousManualDeliveryCount >= 0) {
@@ -278,11 +249,15 @@
                 // ОБНОВЛЕННАЯ ЛОГИКА DOM: Ищем тег <p> внутри ссылки, чтобы badge отображался корректно в AdminLTE
                 const $li = document.getElementById('manual-delivery-count');
                 if (!$li) {
+                    console.debug('[Manual Delivery Badge] Element #manual-delivery-count not found in DOM');
                     return;
                 }
 
+                // Ищем или создаем контейнер для бейджа
+                // В AdminLTE 3 структура обычно: li.nav-item > a.nav-link > p
                 const $p = $li.querySelector('a.nav-link p');
                 if (!$p) {
+                    console.debug('[Manual Delivery Badge] Could not find <p> inside #manual-delivery-count a.nav-link');
                     return;
                 }
 
@@ -294,8 +269,16 @@
                         $badge = document.createElement('span');
                         $badge.className = 'badge badge-warning right'; // 'right' прижимает к правому краю в AdminLTE
                         $p.appendChild($badge);
+                        console.debug('[Manual Delivery Badge] Created new badge element');
                     }
-                    $badge.innerText = count;
+                    
+                    // Обновляем текст и отображение
+                    const displayCount = count > 99 ? '99+' : count;
+                    if ($badge.innerText !== String(displayCount)) {
+                        $badge.innerText = displayCount;
+                        console.debug('[Manual Delivery Badge] Updated count to:', displayCount);
+                    }
+                    
                     $badge.style.display = 'inline-block';
                     $badge.classList.remove('badge-secondary');
                     $badge.classList.add('badge-warning');
@@ -303,10 +286,16 @@
                     // Если заказов нет, скрываем badge
                     $badge.style.display = 'none';
                     $badge.innerText = '';
+                    console.debug('[Manual Delivery Badge] Hidden badge (count is 0)');
                 }
             },
             error: function (xhr, status, error) {
                 console.debug('[Manual Delivery Badge] Error updating badge:', error);
+            },
+            complete: function() {
+                // Планируем следующее обновление через 2 секунды (вместо жесткого setInterval)
+                // Это предотвращает наложение запросов если сервер тормозит
+                updateInterval = setTimeout(updateManualDeliveryBadge, 2000);
             }
         });
     }
@@ -327,20 +316,17 @@
                 
                 // Функция для попытки инициализации счетчика
                 function tryInitBadge() {
-                    // Проверяем, что элемент существует перед началом обновлений
-                    let $badgeElement = document.querySelector('#manual-delivery-count .badge') 
-                                     || document.querySelector('#manual-delivery-count span.badge')
-                                     || document.querySelector('#manual-delivery-count');
+                    // Проверяем, что элемент меню существует (необязательно с бейджем)
+                    let $menuItem = document.getElementById('manual-delivery-count');
                     
-                    if ($badgeElement) {
-                        // Элемент найден, начинаем обновления немедленно
-                        updateManualDeliveryBadge();
+                    if ($menuItem) {
+                        console.log('[Manual Delivery Badge] Menu item found, starting polling...');
                         
-                        // Очищаем существующий интервал перед созданием нового (защита от дублирования)
+                        // Очищаем существующий интервал/таймаут перед созданием нового
                         clearManualDeliveryInterval();
                         
-                        // Создаем интервал с меньшим интервалом (1 секунда)
-                        updateInterval = setInterval(updateManualDeliveryBadge, 1000);
+                        // Запускаем первое обновление немедленно
+                        updateManualDeliveryBadge();
                         return true;
                     }
                     return false;
@@ -348,14 +334,18 @@
                 
                 // Пытаемся инициализировать немедленно
                 if (!tryInitBadge()) {
-                    // Если элемент не найден, пробуем еще раз через небольшую задержку
-                    console.debug('[Manual Delivery Badge] Element not found on first try, retrying...');
-                    setTimeout(function () {
-                        if (!tryInitBadge()) {
-                            // Последняя попытка через 2 секунды
-                            setTimeout(tryInitBadge, 2000);
+                    console.debug('[Manual Delivery Badge] Element #manual-delivery-count not found on first try, retrying...');
+                    let retries = 0;
+                    const maxRetries = 10;
+                    const retryInterval = setInterval(function() {
+                        retries++;
+                        if (tryInitBadge() || retries >= maxRetries) {
+                            clearInterval(retryInterval);
+                            if (retries >= maxRetries) {
+                                console.debug('[Manual Delivery Badge] Max retries reached, element not found');
+                            }
                         }
-                    }, 500);
+                    }, 1000);
                 }
             });
         } else {
@@ -376,141 +366,62 @@
     function initSound() {
         try {
             notificationSound = new Audio('/assets/admin/sounds/notification.mp3');
-            notificationSound.volume = 0.5; // Устанавливаем громкость 50%
-        } catch (e) {
-            console.warn('Не удалось загрузить звук уведомления:', e);
-        }
-    }
-
-    // Воспроизведение звука
-    function playNotificationSound(reason) {
-        if (notificationSound) {
-            console.log('[Sound] Playing notification sound - Admin notifications', {
-                event: 'admin_notification_new',
-                reason: reason || 'new_notification',
-                timestamp: new Date().toISOString()
-            });
-
-            notificationSound.play().catch(function (error) {
-                // Игнорируем ошибки автовоспроизведения (браузеры блокируют автовоспроизведение)
-                console.debug('Автовоспроизведение звука заблокировано браузером');
-            });
-        }
-    }
-
-    // Обработка обновления уведомлений из API
-    function handleNotificationUpdate(data) {
-        if (!data || typeof data.label === 'undefined') {
-            return;
-        }
-
-        const currentCount = parseInt(data.label) || 0;
-
-        // Если это первая инициализация, просто сохраняем счетчик
-        if (lastNotificationCount === -1) {
-            lastNotificationCount = currentCount;
+            notificationSound.volume = 0.3; // 30% громкости
             isInitialized = true;
-            return;
+            console.log('[Sound] Notification sound initialized');
+        } catch (e) {
+            console.error('[Sound] Failed to initialize notification sound:', e);
         }
-
-        // Если счетчик увеличился и звук включен, воспроизводим звук
-        if (currentCount > lastNotificationCount && isInitialized) {
-            const newNotificationsCount = currentCount - lastNotificationCount;
-            if (data.sound_enabled && data.has_new) {
-                playNotificationSound('count_increased: ' + newNotificationsCount + ' new notification(s)');
-            } else if (!data.sound_enabled) {
-                console.log('[Sound] Sound disabled in settings, skipping playback', {
-                    event: 'admin_notification_new',
-                    reason: 'sound_disabled',
-                    newNotifications: newNotificationsCount
-                });
-            } else if (!data.has_new) {
-                console.log('[Sound] No new notifications flag, skipping playback', {
-                    event: 'admin_notification_new',
-                    reason: 'no_new_flag',
-                    newNotifications: newNotificationsCount
-                });
-            }
-        }
-
-        lastNotificationCount = currentCount;
     }
 
-    // Проверка новых уведомлений через API
-    function checkAdminNotificationsViaAPI() {
-        if (!location.pathname.startsWith("/admin")) {
-            return;
+    // Функция воспроизведения звука
+    function playSound() {
+        if (!isInitialized) initSound();
+        if (notificationSound) {
+            notificationSound.play().catch(e => {
+                console.debug('[Sound] Playback blocked by browser, waiting for user interaction');
+            });
         }
+    }
+
+    // Функция получения количества уведомлений
+    function checkNotifications() {
+        if (typeof jQuery === 'undefined') return;
 
         $.ajax({
             url: '/admin/admin_notifications/get',
             method: 'GET',
             dataType: 'json',
             success: function (data) {
-                handleNotificationUpdate(data);
+                // Если data.total существует (новое API)
+                if (data && typeof data.total !== 'undefined') {
+                    const currentCount = parseInt(data.total);
+                    
+                    // Если это не первая загрузка и количество увеличилось - играем звук
+                    if (lastNotificationCount !== -1 && currentCount > lastNotificationCount) {
+                        console.log('[Sound] Playing notification sound - New admin notification');
+                        playSound();
+                    }
+                    
+                    lastNotificationCount = currentCount;
+                }
             },
-            error: function () {
-                // Игнорируем ошибки
+            error: function (xhr) {
+                console.debug('[Notifications] Error fetching count:', xhr.status);
             }
         });
     }
 
-    // Инициализация при загрузке страницы
-    if (typeof jQuery !== 'undefined' && location.pathname.startsWith("/admin")) {
-        $(document).ready(function () {
-            initSound();
-
-            // Получаем начальное количество уведомлений через API
-            checkAdminNotificationsViaAPI();
-
-            // Проверяем уведомления каждые 5 секунд (чаще, чем AdminLTE обновляет)
-            setInterval(checkAdminNotificationsViaAPI, 5000);
+    // Инициализация при загрузке
+    $(document).ready(function() {
+        // Проверяем каждые 30 секунд
+        setInterval(checkNotifications, 30000);
+        // Первая проверка через 3 секунды
+        setTimeout(checkNotifications, 3000);
+        
+        // Инициализируем звук при первом клике пользователя (обход ограничений браузера)
+        $(document).one('click', function() {
+            if (!isInitialized) initSound();
         });
-    }
-
-    // Перехватываем обновления виджета уведомлений AdminLTE через jQuery
-    if (typeof jQuery !== 'undefined') {
-        $(document).ready(function () {
-            // Перехватываем AJAX запросы к уведомлениям
-            $(document).ajaxSuccess(function (event, xhr, settings) {
-                if (settings.url && settings.url.includes('admin_notifications/get')) {
-                    try {
-                        const data = typeof xhr.responseJSON !== 'undefined' ? xhr.responseJSON : JSON.parse(xhr.responseText);
-                        handleNotificationUpdate(data);
-                    } catch (e) {
-                        // Игнорируем ошибки парсинга
-                    }
-                }
-            });
-        });
-    }
+    });
 })();
-
-// Виправлення logout URL для admin та supplier панелей
-(function () {
-    function fixLogoutForm() {
-        const logoutForm = document.getElementById('logout-form');
-        if (!logoutForm)  return;
-        const currentPath = window.location.pathname;
-        let logoutUrl = '';
-
-        if (currentPath.startsWith('/admin')) {
-            logoutUrl = '/admin/logout';
-        } else if (currentPath.startsWith('/supplier')) {
-            logoutUrl = '/supplier/logout';
-        } else {
-            logoutUrl = '/admin/logout';
-        }
-
-        if (logoutForm.getAttribute('action') !== logoutUrl) {
-            logoutForm.setAttribute('action', logoutUrl);
-        }
-    }
-
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', fixLogoutForm);
-    } else {
-        fixLogoutForm();
-    }
-})();
-

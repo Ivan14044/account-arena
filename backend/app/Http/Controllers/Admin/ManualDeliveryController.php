@@ -219,6 +219,12 @@ class ManualDeliveryController extends Controller
             })
             ->count();
         
+        Log::debug('[Manual Delivery Badge] Counting pending orders', [
+            'count' => $count,
+            'url' => request()->fullUrl(),
+            'user_id' => auth()->id(),
+        ]);
+        
         return response()->json(['count' => $count]);
     }
 
