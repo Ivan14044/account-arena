@@ -81,8 +81,16 @@ class AdminNotification extends Model
         $title = preg_replace('/:\w+/', '', $title);
         // Убираем пустые скобки
         $title = preg_replace('/\s*\(\)/', '', $title);
-        // Убираем дублирование текста (если заголовок повторяется)
-        $title = preg_replace('/^(.+?)\s+\1$/u', '$1', $title);
+        // Убираем дублирование текста (если заголовок повторяется) - упрощенная версия
+        $words = explode(' ', trim($title));
+        if (count($words) > 2) {
+            $half = ceil(count($words) / 2);
+            $firstHalf = implode(' ', array_slice($words, 0, $half));
+            $secondHalf = implode(' ', array_slice($words, $half));
+            if (trim($firstHalf) === trim($secondHalf)) {
+                $title = $firstHalf;
+            }
+        }
         
         return trim($title);
     }
