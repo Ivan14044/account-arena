@@ -117,7 +117,7 @@
             },
             "processing": "In manual processing",
             "processing_description": "A manager is processing your order. The product will be delivered after processing is complete.",
-            "working_hours": "Manager working hours: Mon-Fri, 9:00-18:00 MSK",
+            "working_hours": "Manager working hours: Mon-Fri, 9:00-18:00 Kyiv",
             "processing_since": "Processing since {date}",
             "average_processing_time": "Average processing time: {hours} hrs.",
             "processing_duration": "Processing for",
