@@ -66,62 +66,69 @@
 
     <div class="row">
         <div class="col-lg-3 col-md-6 mb-3 d-flex">
-            <div class="stat-card stat-card-primary stat-card-compact w-100">
+            <div class="stat-card stat-card-primary w-100">
                 <div class="stat-card-body">
-                    <div class="stat-label">Всего товаров</div>
-                    <div class="stat-value">{{ number_format($totalProducts, 0) }}</div>
-                    <div class="stat-icon-bottom">
-                        <i class="fas fa-box"></i>
+                    <div class="stat-main-info">
+                        <div class="stat-label">Всего товаров</div>
+                        <div class="stat-value">{{ number_format($totalProducts, 0) }}</div>
                     </div>
-                    <a href="{{ route('admin.service-accounts.index') }}" class="stat-link">
+                    <a href="{{ route('admin.service-accounts.index') }}" class="stat-link text-primary">
                         {{ __('Подробнее') }} <i class="fas fa-arrow-right"></i>
                     </a>
+                </div>
+                <div class="stat-icon-bg">
+                    <i class="fas fa-box"></i>
                 </div>
             </div>
         </div>
 
         <div class="col-lg-3 col-md-6 mb-3 d-flex">
-            <div class="stat-card stat-card-success stat-card-compact w-100">
+            <div class="stat-card stat-card-success w-100">
                 <div class="stat-card-body">
-                    <div class="stat-label">Доступно для продажи</div>
-                    <div class="stat-value">{{ number_format($availableProducts, 0) }}</div>
-                    <div class="stat-icon-bottom">
-                        <i class="fas fa-check-circle"></i>
+                    <div class="stat-main-info">
+                        <div class="stat-label">Доступно для продажи</div>
+                        <div class="stat-value">{{ number_format($availableProducts, 0) }}</div>
                     </div>
-                    <a href="{{ route('admin.service-accounts.index') }}" class="stat-link">
+                    <a href="{{ route('admin.service-accounts.index') }}" class="stat-link text-success">
                         {{ __('Подробнее') }} <i class="fas fa-arrow-right"></i>
                     </a>
+                </div>
+                <div class="stat-icon-bg">
+                    <i class="fas fa-check-circle"></i>
                 </div>
             </div>
         </div>
 
         <div class="col-lg-3 col-md-6 mb-3 d-flex">
-            <div class="stat-card stat-card-info stat-card-compact w-100">
+            <div class="stat-card stat-card-info w-100">
                 <div class="stat-card-body">
-                    <div class="stat-label">Товаров на сумму</div>
-                    <div class="stat-value">{{ number_format($totalProductsValue, 2) }}</div>
-                    <div class="text-muted small mb-2">{{ \App\Models\Option::get('currency') }}</div>
-                    <div class="stat-icon-bottom">
-                        <i class="fas fa-calculator"></i>
+                    <div class="stat-main-info">
+                        <div class="stat-label">Товаров на сумму</div>
+                        <div class="stat-value">{{ number_format($totalProductsValue, 2) }}<span class="stat-unit">{{ \App\Models\Option::get('currency') }}</span></div>
                     </div>
-                    <a href="{{ route('admin.service-accounts.index') }}" class="stat-link">
+                    <a href="{{ route('admin.service-accounts.index') }}" class="stat-link text-info">
                         {{ __('Подробнее') }} <i class="fas fa-arrow-right"></i>
                     </a>
+                </div>
+                <div class="stat-icon-bg">
+                    <i class="fas fa-calculator"></i>
                 </div>
             </div>
         </div>
 
         <div class="col-lg-3 col-md-6 mb-3 d-flex">
-            <div class="stat-card stat-card-primary stat-card-compact w-100">
+            <div class="stat-card stat-card-warning w-100">
                 <div class="stat-card-body">
-                    <div class="stat-label">Всего пользователей</div>
-                    <div class="stat-value">{{ number_format($totalUsers, 0) }}</div>
-                    <div class="stat-icon-bottom">
-                        <i class="fas fa-users"></i>
+                    <div class="stat-main-info">
+                        <div class="stat-label">Всего пользователей</div>
+                        <div class="stat-value">{{ number_format($totalUsers, 0) }}</div>
                     </div>
-                    <a href="{{ route('admin.users.index') }}" class="stat-link">
+                    <a href="{{ route('admin.users.index') }}" class="stat-link text-warning">
                         {{ __('Подробнее') }} <i class="fas fa-arrow-right"></i>
                     </a>
+                </div>
+                <div class="stat-icon-bg">
+                    <i class="fas fa-users"></i>
                 </div>
             </div>
         </div>
@@ -151,63 +158,69 @@
 
     <div class="row">
         <div class="col-lg-3 col-md-6 mb-3 d-flex">
-            <div class="stat-card stat-card-success stat-card-compact w-100">
+            <div class="stat-card stat-card-success w-100">
                 <div class="stat-card-body">
-                    <div class="stat-label">Покупки за период</div>
-                    <div class="stat-value">{{ number_format($purchasesInPeriod, 0) }}</div>
-                    <div class="stat-icon-bottom">
-                        <i class="fas fa-cart-plus"></i>
+                    <div class="stat-main-info">
+                        <div class="stat-label">Покупки за период</div>
+                        <div class="stat-value">{{ number_format($purchasesInPeriod, 0) }}</div>
                     </div>
-                    <a href="{{ route('admin.purchases.index') }}" class="stat-link">
+                    <a href="{{ route('admin.purchases.index') }}" class="stat-link text-success">
                         {{ __('Подробнее') }} <i class="fas fa-arrow-right"></i>
                     </a>
+                </div>
+                <div class="stat-icon-bg">
+                    <i class="fas fa-cart-plus"></i>
                 </div>
             </div>
         </div>
 
         <div class="col-lg-3 col-md-6 mb-3 d-flex">
-            <div class="stat-card stat-card-danger stat-card-compact w-100">
+            <div class="stat-card stat-card-danger w-100">
                 <div class="stat-card-body">
-                    <div class="stat-label">Продано за период</div>
-                    <div class="stat-value">{{ number_format($soldInPeriod, 0) }}</div>
-                    <div class="stat-icon-bottom">
-                        <i class="fas fa-shopping-cart"></i>
+                    <div class="stat-main-info">
+                        <div class="stat-label">Продано за период</div>
+                        <div class="stat-value">{{ number_format($soldInPeriod, 0) }}</div>
                     </div>
-                    <a href="{{ route('admin.purchases.index') }}" class="stat-link">
+                    <a href="{{ route('admin.purchases.index') }}" class="stat-link text-danger">
                         {{ __('Подробнее') }} <i class="fas fa-arrow-right"></i>
                     </a>
+                </div>
+                <div class="stat-icon-bg">
+                    <i class="fas fa-shopping-cart"></i>
                 </div>
             </div>
         </div>
 
         <div class="col-lg-3 col-md-6 mb-3 d-flex">
-            <div class="stat-card stat-card-warning stat-card-compact w-100">
+            <div class="stat-card stat-card-warning w-100">
                 <div class="stat-card-body">
-                    <div class="stat-label">Доход за период</div>
-                    <div class="stat-value">{{ number_format($revenueInPeriod, 2) }}</div>
-                    <div class="text-muted small mb-2">{{ \App\Models\Option::get('currency') }}</div>
-                    <div class="stat-icon-bottom">
-                        <i class="fas fa-dollar-sign"></i>
+                    <div class="stat-main-info">
+                        <div class="stat-label">Доход за период</div>
+                        <div class="stat-value">{{ number_format($revenueInPeriod, 2) }}<span class="stat-unit">{{ \App\Models\Option::get('currency') }}</span></div>
                     </div>
-                    <a href="{{ route('admin.purchases.index') }}" class="stat-link">
+                    <a href="{{ route('admin.purchases.index') }}" class="stat-link text-warning">
                         {{ __('Подробнее') }} <i class="fas fa-arrow-right"></i>
                     </a>
+                </div>
+                <div class="stat-icon-bg">
+                    <i class="fas fa-dollar-sign"></i>
                 </div>
             </div>
         </div>
 
         <div class="col-lg-3 col-md-6 mb-3 d-flex">
-            <div class="stat-card stat-card-info stat-card-compact w-100">
+            <div class="stat-card stat-card-info w-100">
                 <div class="stat-card-body">
-                    <div class="stat-label">Средний чек</div>
-                    <div class="stat-value">{{ number_format($averageOrderValue, 2) }}</div>
-                    <div class="text-muted small mb-2">{{ \App\Models\Option::get('currency') }}</div>
-                    <div class="stat-icon-bottom">
-                        <i class="fas fa-receipt"></i>
+                    <div class="stat-main-info">
+                        <div class="stat-label">Средний чек</div>
+                        <div class="stat-value">{{ number_format($averageOrderValue, 2) }}<span class="stat-unit">{{ \App\Models\Option::get('currency') }}</span></div>
                     </div>
-                    <a href="{{ route('admin.purchases.index') }}" class="stat-link">
+                    <a href="{{ route('admin.purchases.index') }}" class="stat-link text-info">
                         {{ __('Подробнее') }} <i class="fas fa-arrow-right"></i>
                     </a>
+                </div>
+                <div class="stat-icon-bg">
+                    <i class="fas fa-receipt"></i>
                 </div>
             </div>
         </div>
