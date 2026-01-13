@@ -53,7 +53,16 @@
                             </td>
                             <td class="align-middle text-nowrap">
                                 <span class="badge badge-info badge-modern px-2 py-1">
-                                    <i class="fas fa-info-circle mr-1"></i>{{ __('notifier.types.' . $notification->type) != 'notifier.types.' . $notification->type ? __('notifier.types.' . $notification->type) : $notification->type }}
+                                    <i class="fas fa-info-circle mr-1"></i>
+                                    @php
+                                        $typeKey = 'notifier.types.' . $notification->type;
+                                        $translatedType = __($typeKey);
+                                        if ($translatedType === $typeKey) {
+                                            // Если перевод не найден, форматируем сам тип
+                                            $translatedType = ucfirst(str_replace('_', ' ', $notification->type));
+                                        }
+                                    @endphp
+                                    {{ $translatedType }}
                                 </span>
                             </td>
                             <td class="align-middle">
