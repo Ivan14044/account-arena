@@ -71,7 +71,7 @@ class AdminNotification extends Model
             }
         } elseif (strpos($title, 'notifier.') === 0) {
             // Если это ключ перевода вида "notifier.xxx", переводим его
-            $translated = __($title);
+            $translated = __($title, [], 'ru'); // Принудительно используем русскую локаль
             if ($translated !== $title) {
                 $title = $translated;
                 $wasTranslated = true;
@@ -82,6 +82,13 @@ class AdminNotification extends Model
             if ($translated !== $title) {
                 $title = $translated;
                 $wasTranslated = true;
+            }
+            // Если перевод вернул английский текст (старые записи), пытаемся перевести на русский
+            if ($wasTranslated && preg_match('/^[A-Za-z\s]+$/', $title) && strpos($originalTitle, 'notifier.') === 0) {
+                $translated = __($originalTitle, [], 'ru');
+                if ($translated !== $originalTitle) {
+                    $title = $translated;
+                }
             }
         }
         
@@ -171,7 +178,7 @@ class AdminNotification extends Model
             }
         } elseif (strpos($message, 'notifier.') === 0) {
             // Если это ключ перевода вида "notifier.xxx", переводим его
-            $translated = __($message);
+            $translated = __($message, [], 'ru'); // Принудительно используем русскую локаль
             if ($translated !== $message) {
                 $message = $translated;
             }
@@ -180,6 +187,14 @@ class AdminNotification extends Model
             $translated = __($message);
             if ($translated !== $message) {
                 $message = $translated;
+            }
+            // Если перевод вернул английский текст (старые записи), пытаемся перевести на русский
+            $originalMessage = $this->message ?? '';
+            if (preg_match('/^[A-Za-z\s,:\-]+$/', $message) && strpos($originalMessage, 'notifier.') === 0) {
+                $translated = __($originalMessage, [], 'ru');
+                if ($translated !== $originalMessage) {
+                    $message = $translated;
+                }
             }
         }
         
