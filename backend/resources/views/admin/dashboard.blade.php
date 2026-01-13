@@ -56,7 +56,7 @@
     @endif
 
     <!-- Общая статистика -->
-    <div class="row mb-3">
+    <div class="row mb-2">
         <div class="col-12">
             <h5 class="dashboard-section-header">
                 <i class="fas fa-chart-bar"></i>Общая статистика
@@ -65,7 +65,7 @@
     </div>
 
     <div class="row">
-        <div class="col-lg-3 col-md-6 mb-4 d-flex">
+        <div class="col-lg-3 col-md-6 mb-3 d-flex">
             <div class="stat-card stat-card-primary stat-card-compact w-100">
                 <div class="stat-card-body">
                     <div class="stat-icon">
@@ -99,7 +99,7 @@
             </div>
         </div>
 
-        <div class="col-lg-3 col-md-6 mb-4 d-flex">
+        <div class="col-lg-3 col-md-6 mb-3 d-flex">
             <div class="stat-card stat-card-info stat-card-compact w-100">
                 <div class="stat-card-body">
                     <div class="stat-icon">
@@ -117,7 +117,7 @@
             </div>
         </div>
 
-        <div class="col-lg-3 col-md-6 mb-4 d-flex">
+        <div class="col-lg-3 col-md-6 mb-3 d-flex">
             <div class="stat-card stat-card-primary stat-card-compact w-100">
                 <div class="stat-card-body">
                     <div class="stat-icon">
@@ -136,7 +136,7 @@
     </div>
 
     <!-- Статистика за период -->
-    <div class="row mt-4 mb-3">
+    <div class="row mt-3 mb-2">
         <div class="col-12">
             <h5 class="dashboard-section-header">
                 <i class="fas fa-calendar-day"></i>Статистика за период
@@ -158,7 +158,7 @@
     </div>
 
     <div class="row">
-        <div class="col-lg-3 col-md-6 mb-4 d-flex">
+        <div class="col-lg-3 col-md-6 mb-3 d-flex">
             <div class="stat-card stat-card-success stat-card-compact w-100">
                 <div class="stat-card-body">
                     <div class="stat-icon">
@@ -175,7 +175,7 @@
             </div>
         </div>
 
-        <div class="col-lg-3 col-md-6 mb-4 d-flex">
+        <div class="col-lg-3 col-md-6 mb-3 d-flex">
             <div class="stat-card stat-card-danger stat-card-compact w-100">
                 <div class="stat-card-body">
                     <div class="stat-icon">
@@ -192,7 +192,7 @@
             </div>
         </div>
 
-        <div class="col-lg-3 col-md-6 mb-4 d-flex">
+        <div class="col-lg-3 col-md-6 mb-3 d-flex">
             <div class="stat-card stat-card-warning stat-card-compact w-100">
                 <div class="stat-card-body">
                     <div class="stat-icon">
@@ -210,8 +210,8 @@
             </div>
         </div>
 
-        <div class="col-lg-3 col-md-6 mb-4 d-flex">
-            <div class="stat-card stat-card-info w-100">
+        <div class="col-lg-3 col-md-6 mb-3 d-flex">
+            <div class="stat-card stat-card-info stat-card-compact w-100">
                 <div class="stat-card-body">
                     <div class="stat-icon">
                         <i class="fas fa-receipt"></i>
@@ -230,7 +230,7 @@
     </div>
 
     <!-- Графики и аналитика -->
-    <div class="row mt-4">
+    <div class="row mt-3">
         <div class="col-12 mb-3">
             <h5 class="text-muted mb-0"><i class="fas fa-chart-bar mr-2"></i>Аналитика продаж</h5>
         </div>

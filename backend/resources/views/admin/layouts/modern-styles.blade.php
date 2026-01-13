@@ -157,24 +157,42 @@
 
 /* Компактные карточки статистики (для страниц без ссылок "Подробнее") */
 .stat-card-compact {
-    min-height: 90px !important; /* Вместо 140px */
-    padding: 0.875rem 1rem !important; /* Вместо 1.25rem */
+    min-height: 70px !important; /* Было 90px */
+    padding: 0.75rem 0.875rem !important; /* Было 0.875rem 1rem */
 }
 
 .stat-card-compact .stat-icon {
-    width: 38px !important; /* Вместо 45px */
-    height: 38px !important; /* Вместо 45px */
-    font-size: 1.1rem !important; /* Вместо 1.25rem */
+    width: 32px !important; /* Было 38px */
+    height: 32px !important; /* Было 38px */
+    font-size: 0.95rem !important; /* Было 1.1rem */
 }
 
 .stat-card-compact .stat-value {
-    font-size: 1.5rem !important; /* Вместо 1.75rem */
+    font-size: 1.35rem !important; /* Было 1.5rem */
     line-height: 1.1 !important;
+    margin-bottom: 0.125rem !important;
 }
 
 .stat-card-compact .stat-label {
-    font-size: 0.65rem !important; /* Вместо 0.7rem */
-    margin-bottom: 0.25rem !important; /* Вместо 0.375rem */
+    font-size: 0.6rem !important; /* Было 0.65rem */
+    margin-bottom: 0.125rem !important; /* Было 0.25rem */
+    line-height: 1.2;
+}
+
+/* Уменьшаем отступы для ссылок "Подробнее" в компактных карточках */
+.stat-card-compact a {
+    font-size: 0.7rem !important;
+    margin-top: 0.25rem !important;
+}
+
+.stat-card-compact a i {
+    font-size: 0.65rem !important;
+    margin-left: 0.375rem !important;
+}
+
+/* Уменьшаем gap между иконкой и контентом */
+.stat-card-compact .stat-card-body {
+    gap: 0.75rem !important; /* Было 1rem */
 }
 
 /* КАРТОЧКИ */
