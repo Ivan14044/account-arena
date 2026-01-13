@@ -121,6 +121,7 @@
 @endsection
 
 @section('js')
+    <script src="https://cdn.ckeditor.com/ckeditor5/35.1.0/classic/ckeditor.js"></script>
     <script>
         document.querySelectorAll('.ckeditor').forEach(function (textarea) {
             ClassicEditor

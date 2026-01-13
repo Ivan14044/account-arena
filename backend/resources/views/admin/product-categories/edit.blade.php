@@ -106,6 +106,7 @@
 @endsection
 
 @section('js')
+    <script src="https://cdn.ckeditor.com/ckeditor5/35.1.0/classic/ckeditor.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Preview image from file input

@@ -123,6 +123,7 @@
 
 
 @section('js')
+    <script src="https://cdn.ckeditor.com/ckeditor5/35.1.0/classic/ckeditor.js"></script>
     <style>
         .select2-selection { height: 38px!important; width: 100%; }
     </style>
