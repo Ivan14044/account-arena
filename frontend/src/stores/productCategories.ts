@@ -27,14 +27,19 @@ export const useProductCategoriesStore = defineStore('productCategories', {
             if (this.loaded && !force) return;
 
             try {
+                console.log('[CategoriesStore] Fetching categories...');
                 // Get locale from i18n instance available in the component context
                 const response = await axios.get('/categories', {
                     params: { type: 'product' }
                 });
 
+                console.log('[CategoriesStore] Response:', response.data);
+
                 // Laravel Resource Collection может возвращать данные в response.data или напрямую в response.data
                 const responseData = response.data?.data || response.data;
                 const categories: ProductCategory[] = Array.isArray(responseData) ? responseData : [];
+
+                console.log('[CategoriesStore] Parsed categories:', categories.length, categories);
 
                 // Transform categories - name should already be localized from backend
                 this.list = categories.map((cat: any) => {
@@ -52,9 +57,10 @@ export const useProductCategoriesStore = defineStore('productCategories', {
                     };
                 });
 
+                console.log('[CategoriesStore] Final list:', this.list.length, this.list);
                 this.loaded = true;
             } catch (error) {
-                console.error('Error fetching product categories:', error);
+                console.error('[CategoriesStore] Error fetching product categories:', error);
                 this.list = [];
             }
         },
