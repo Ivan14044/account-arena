@@ -142,6 +142,14 @@
                     </tbody>
                 </table>
             </div>
+
+            @if($notificationTemplates->hasPages())
+                <div class="px-4 py-3 border-top">
+                    <div class="d-flex justify-content-center">
+                        {{ $notificationTemplates->links('pagination::bootstrap-4') }}
+                    </div>
+                </div>
+            @endif
         </div>
     </div>
 
@@ -197,7 +205,8 @@
                 "language": {
                     "url": "//cdn.datatables.net/plug-ins/1.11.5/i18n/ru.json"
                 },
-                "pageLength": 25,
+                "paging": false,
+                "info": false,
                 "columnDefs": [
                     { "orderable": false, "targets": 3 }
                 ],

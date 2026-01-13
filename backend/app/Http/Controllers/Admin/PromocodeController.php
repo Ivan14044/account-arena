@@ -20,9 +20,16 @@ class PromocodeController extends Controller
 
     public function index()
     {
+        $statistics = [
+            'total' => Promocode::count(),
+            'active' => Promocode::where('is_active', true)->count(),
+            'usages' => Promocode::sum('usage_count'),
+            'avg_discount' => Promocode::count() > 0 ? round(Promocode::avg('percent_discount'), 1) : 0,
+        ];
+
         $promocodes = Promocode::orderBy('id', 'desc')->paginate(20);
 
-        return view('admin.promocodes.index', compact('promocodes'));
+        return view('admin.promocodes.index', compact('promocodes', 'statistics'));
     }
 
     public function create()

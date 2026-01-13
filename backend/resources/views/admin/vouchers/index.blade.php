@@ -38,7 +38,7 @@
                     </div>
                     <div class="stat-content">
                         <div class="stat-label">Всего ваучеров</div>
-                        <div class="stat-value">{{ $vouchers->count() }}</div>
+                        <div class="stat-value">{{ $statistics['total'] }}</div>
                     </div>
                 </div>
             </div>
@@ -52,7 +52,7 @@
                     </div>
                     <div class="stat-content">
                         <div class="stat-label">Активные</div>
-                        <div class="stat-value">{{ $vouchers->where('is_active', true)->where('used_at', null)->count() }}</div>
+                        <div class="stat-value">{{ $statistics['active'] }}</div>
                     </div>
                 </div>
             </div>
@@ -66,7 +66,7 @@
                     </div>
                     <div class="stat-content">
                         <div class="stat-label">Использованные</div>
-                        <div class="stat-value">{{ $vouchers->whereNotNull('used_at')->count() }}</div>
+                        <div class="stat-value">{{ $statistics['used'] }}</div>
                     </div>
                 </div>
             </div>
@@ -80,7 +80,7 @@
                     </div>
                     <div class="stat-content">
                         <div class="stat-label">Общая сумма</div>
-                        <div class="stat-value">${{ number_format($vouchers->sum('amount'), 0) }}</div>
+                        <div class="stat-value">${{ number_format($statistics['total_amount'], 0) }}</div>
                     </div>
                 </div>
             </div>
@@ -193,6 +193,14 @@
                     </tbody>
                 </table>
             </div>
+
+            @if($vouchers->hasPages())
+                <div class="px-4 py-3 border-top">
+                    <div class="d-flex justify-content-center">
+                        {{ $vouchers->links('pagination::bootstrap-4') }}
+                    </div>
+                </div>
+            @endif
         </div>
     </div>
 
@@ -259,7 +267,8 @@
                 "language": {
                     "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/Russian.json"
                 },
-                "pageLength": 25,
+                "paging": false,
+                "info": false,
                 "columnDefs": [
                     { "orderable": false, "targets": 7 }
                 ],

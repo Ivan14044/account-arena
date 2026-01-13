@@ -19,14 +19,33 @@ class SettingController extends Controller
         $notificationSettings = AdminNotificationSetting::getOrCreateForUser(auth()->id());
         
         // Настройки Telegram
+        $botToken = Option::get('telegram_bot_token', '');
+        if (!empty($botToken)) {
+            try {
+                $botToken = decrypt($botToken);
+            } catch (\Exception $e) {
+                // Not encrypted or wrong key
+            }
+        }
+
         $telegramSettings = [
             'enabled' => Option::get('telegram_client_enabled', false),
-            'bot_token' => Option::get('telegram_bot_token', ''),
+            'bot_token' => $botToken,
             'bot_username' => Option::get('telegram_bot_username', ''),
             'bot_id' => Option::get('telegram_bot_id', ''),
         ];
 
-        return view('admin.settings.index', compact('currency', 'notificationSettings', 'telegramSettings'));
+        // SMTP Password decryption for view
+        $smtpPassword = Option::get('smtp_password', '');
+        if (!empty($smtpPassword)) {
+            try {
+                $smtpPassword = decrypt($smtpPassword);
+            } catch (\Exception $e) {
+                // Not encrypted
+            }
+        }
+
+        return view('admin.settings.index', compact('currency', 'notificationSettings', 'telegramSettings', 'smtpPassword'));
     }
 
     public function store(Request $request)

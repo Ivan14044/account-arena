@@ -12,6 +12,10 @@ class AdminController extends Controller
 {
     public function index()
     {
+        if (!auth()->user()->is_main_admin) {
+            return redirect()->route('admin.dashboard')->with('error', 'У вас нет прав для управления администраторами.');
+        }
+
         $users = User::where('is_admin', true)
             ->where('is_main_admin', false)
             ->orderBy('id', 'desc')
@@ -28,11 +32,19 @@ class AdminController extends Controller
 
     public function create()
     {
+        if (!auth()->user()->is_main_admin) {
+            return redirect()->route('admin.dashboard')->with('error', 'У вас нет прав для создания администраторов.');
+        }
+
         return view('admin.admins.create');
     }
 
     public function store(Request $request)
     {
+        if (!auth()->user()->is_main_admin) {
+            return redirect()->route('admin.dashboard')->with('error', 'У вас нет прав для создания администраторов.');
+        }
+
         $validated = $request->validate($this->getRules());
 
         User::create([
@@ -48,6 +60,10 @@ class AdminController extends Controller
 
     public function edit(User $admin)
     {
+        if (!auth()->user()->is_main_admin) {
+            return redirect()->route('admin.dashboard')->with('error', 'У вас нет прав для редактирования администраторов.');
+        }
+
         // ВАЖНО: Защита Main Admin. Его нельзя редактировать через общий интерфейс управления админами.
         if ($admin->is_main_admin) {
             return redirect()->route('admin.admins.index')->with('error', 'Редактирование главного администратора запрещено.');
@@ -58,6 +74,10 @@ class AdminController extends Controller
 
     public function update(Request $request, User $admin)
     {
+        if (!auth()->user()->is_main_admin) {
+            return redirect()->route('admin.dashboard')->with('error', 'У вас нет прав для редактирования администраторов.');
+        }
+
         if ($admin->is_main_admin) {
             return redirect()->route('admin.admins.index')->with('error', 'Редактирование главного администратора запрещено.');
         }
@@ -82,6 +102,10 @@ class AdminController extends Controller
 
     public function destroy(User $admin)
     {
+        if (!auth()->user()->is_main_admin) {
+            return redirect()->route('admin.dashboard')->with('error', 'У вас нет прав для удаления администраторов.');
+        }
+
         if ($admin->is_main_admin) {
             return redirect()->route('admin.admins.index')->with('error', 'Нельзя удалить главного администратора.');
         }
@@ -97,6 +121,10 @@ class AdminController extends Controller
 
     public function block(User $admin)
     {
+        if (!auth()->user()->is_main_admin) {
+            return redirect()->route('admin.dashboard')->with('error', 'У вас нет прав для блокировки администраторов.');
+        }
+
         if ($admin->is_main_admin) {
             return redirect()->route('admin.admins.index')->with('error', 'Нельзя заблокировать главного администратора.');
         }

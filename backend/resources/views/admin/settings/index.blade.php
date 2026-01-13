@@ -153,7 +153,7 @@
                             <label for="smtp_password">Password</label>
                             <input type="password" name="smtp_password" id="smtp_password"
                                 class="form-control @error('smtp_password') is-invalid @enderror"
-                                value="{{ old('smtp_password', \App\Models\Option::get('smtp_password')) }}"
+                                value="{{ old('smtp_password', $smtpPassword) }}"
                                 placeholder="Your email password or app-specific password">
                             <small class="form-text text-muted">For Gmail, use App Password (not your regular
                                 password)</small>

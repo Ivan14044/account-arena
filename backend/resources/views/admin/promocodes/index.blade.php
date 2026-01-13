@@ -41,7 +41,7 @@
                     </div>
                     <div class="stat-content">
                         <div class="stat-label">Всего промокодов</div>
-                        <div class="stat-value">{{ $promocodes->count() }}</div>
+                        <div class="stat-value">{{ $statistics['total'] }}</div>
                     </div>
                 </div>
             </div>
@@ -55,7 +55,7 @@
                     </div>
                     <div class="stat-content">
                         <div class="stat-label">Активные</div>
-                        <div class="stat-value">{{ $promocodes->where('is_active', true)->count() }}</div>
+                        <div class="stat-value">{{ $statistics['active'] }}</div>
                     </div>
                 </div>
             </div>
@@ -69,7 +69,7 @@
                     </div>
                     <div class="stat-content">
                         <div class="stat-label">Использований</div>
-                        <div class="stat-value">{{ $promocodes->sum('usage_count') }}</div>
+                        <div class="stat-value">{{ $statistics['usages'] }}</div>
                     </div>
                 </div>
             </div>
@@ -83,7 +83,7 @@
                     </div>
                     <div class="stat-content">
                         <div class="stat-label">Ср. скидка</div>
-                        <div class="stat-value">{{ $promocodes->count() > 0 ? round($promocodes->avg('percent_discount'), 1) : 0 }}%</div>
+                        <div class="stat-value">{{ $statistics['avg_discount'] }}%</div>
                     </div>
                 </div>
             </div>
@@ -96,7 +96,7 @@
             <div class="d-flex justify-content-between align-items-center">
                 <div>
                     <h5 class="mb-0 font-weight-normal">Список промокодов</h5>
-                    <small class="text-muted">Всего записей: {{ $promocodes->count() }}</small>
+                    <small class="text-muted">Всего записей: {{ $statistics['total'] }}</small>
                 </div>
             </div>
         </div>
@@ -277,6 +277,14 @@
                     </tbody>
                 </table>
             </div>
+
+            @if($promocodes->hasPages())
+                <div class="px-4 py-3 border-top">
+                    <div class="d-flex justify-content-center">
+                        {{ $promocodes->links('pagination::bootstrap-4') }}
+                    </div>
+                </div>
+            @endif
         </div>
     </div>
 
@@ -356,7 +364,8 @@
                 "language": {
                     "url": "//cdn.datatables.net/plug-ins/1.11.5/i18n/ru.json"
                 },
-                "pageLength": 25,
+                "paging": false,
+                "info": false,
                 "columnDefs": [
                     { "orderable": false, "targets": [0, 8] }
                 ],

@@ -15,13 +15,12 @@ class NotificationTemplateController extends Controller
         $notificationTemplates = NotificationTemplate::query()
             ->where('is_mass', $type === 'custom' ? 1 : 0)
             ->orderBy('id', 'desc')
-            ->get();
+            ->paginate(20);
 
-        $allTemplates = NotificationTemplate::all();
         $statistics = [
-            'total' => $allTemplates->count(),
-            'system' => $allTemplates->where('is_mass', 0)->count(),
-            'custom' => $allTemplates->where('is_mass', 1)->count(),
+            'total' => NotificationTemplate::count(),
+            'system' => NotificationTemplate::where('is_mass', 0)->count(),
+            'custom' => NotificationTemplate::where('is_mass', 1)->count(),
         ];
 
         return view('admin.notification-templates.index', compact('notificationTemplates', 'statistics'));
@@ -36,16 +35,19 @@ class NotificationTemplateController extends Controller
     {
         $validated = $request->validate($this->getRules(true));
 
-        $notificationTemplate = NotificationTemplate::create([
-            'code' => $validated['code'],
-            'name' => $validated['name'],
-            'is_mass' => $request->input('is_mass', 0),
-        ]);
-
         // ВАЖНО: Санитизация данных для защиты от XSS
         $validated = $this->sanitizeTemplateData($validated);
-        
-        $notificationTemplate->saveTranslation($validated);
+
+        $notificationTemplate = \Illuminate\Support\Facades\DB::transaction(function () use ($validated, $request) {
+            $notificationTemplate = NotificationTemplate::create([
+                'code' => $validated['code'],
+                'name' => $validated['name'],
+                'is_mass' => $request->input('is_mass', 0),
+            ]);
+
+            $notificationTemplate->saveTranslation($validated);
+            return $notificationTemplate;
+        });
 
         $route = $request->has('save')
             ? route('admin.notification-templates.edit', $notificationTemplate->id)
@@ -71,8 +73,10 @@ class NotificationTemplateController extends Controller
         // ВАЖНО: Санитизация данных для защиты от XSS
         $validated = $this->sanitizeTemplateData($validated);
 
-        $notificationTemplate->update($validated);
-        $notificationTemplate->saveTranslation($validated);
+        \Illuminate\Support\Facades\DB::transaction(function () use ($validated, $notificationTemplate) {
+            $notificationTemplate->update($validated);
+            $notificationTemplate->saveTranslation($validated);
+        });
 
         $route = $request->has('save')
             ? route('admin.notification-templates.edit', $notificationTemplate->id)

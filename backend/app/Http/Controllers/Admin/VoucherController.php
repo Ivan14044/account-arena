@@ -11,9 +11,16 @@ class VoucherController extends Controller
 {
     public function index()
     {
+        $statistics = [
+            'total' => Voucher::count(),
+            'active' => Voucher::where('is_active', true)->whereNull('used_at')->count(),
+            'used' => Voucher::whereNotNull('used_at')->count(),
+            'total_amount' => Voucher::sum('amount'),
+        ];
+
         $vouchers = Voucher::with('user')->orderBy('id', 'desc')->paginate(20);
 
-        return view('admin.vouchers.index', compact('vouchers'));
+        return view('admin.vouchers.index', compact('vouchers', 'statistics'));
     }
 
     public function create()

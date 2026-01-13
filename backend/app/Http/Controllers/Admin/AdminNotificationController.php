@@ -77,7 +77,7 @@ class AdminNotificationController extends Controller
 
     public function index()
     {
-        $notifications = AdminNotification::orderBy('id', 'desc')->get();
+        $notifications = AdminNotification::orderBy('id', 'desc')->paginate(50);
 
         return view('admin.admin_notifications.index', compact('notifications'));
     }
