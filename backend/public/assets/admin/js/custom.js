@@ -184,6 +184,14 @@
     };
     // Флаг для предотвращения множественных интервалов
     let updateInterval = null;
+    
+    // Функция для очистки интервала обновления счетчика
+    function clearManualDeliveryInterval() {
+        if (updateInterval !== null) {
+            clearInterval(updateInterval);
+            updateInterval = null;
+        }
+    }
 
     // Функция для загрузки настроек уведомлений
     function loadNotificationSettings() {
@@ -231,6 +239,11 @@
             // Если элемент не найден, пробуем еще раз через небольшую задержку
             console.debug('[Manual Delivery Badge] Element not found, will retry');
             return;
+        }
+        
+        // Логируем для отладки (только в development режиме)
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+            console.debug('[Manual Delivery Badge] Updating badge count...');
         }
 
         $.ajax({
@@ -342,10 +355,11 @@
                         // Элемент найден, начинаем обновления немедленно
                         updateManualDeliveryBadge();
                         
-                        // Создаем интервал только один раз с меньшим интервалом (1 секунда)
-                        if (!updateInterval) {
-                            updateInterval = setInterval(updateManualDeliveryBadge, 1000);
-                        }
+                        // Очищаем существующий интервал перед созданием нового (защита от дублирования)
+                        clearManualDeliveryInterval();
+                        
+                        // Создаем интервал с меньшим интервалом (1 секунда)
+                        updateInterval = setInterval(updateManualDeliveryBadge, 1000);
                         return true;
                     }
                     return false;

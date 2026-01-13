@@ -87,6 +87,9 @@ class ManualDeliveryService
                     'is_waiting_stock' => true,
                 ]);
                 
+                // Инвалидируем кеш счетчика необработанных заказов
+                Cache::forget('manual_delivery_pending_count');
+                
                 // Записываем историю изменения статуса
                 PurchaseStatusHistory::createHistory(
                     $purchase,
@@ -110,6 +113,9 @@ class ManualDeliveryService
                 $purchase->update([
                     'is_waiting_stock' => false,
                 ]);
+                
+                // Инвалидируем кеш счетчика необработанных заказов
+                Cache::forget('manual_delivery_pending_count');
             }
 
             // КРИТИЧНО: Увеличиваем счетчик used при обработке заказа
@@ -534,9 +540,12 @@ class ManualDeliveryService
                 ]
             );
             
-            // Инвалидируем кеш счетчика необработанных заказов, чтобы счетчик обновился сразу
+            // Примечание: Кеш уже инвалидирован в ProductPurchaseService::createProductPurchase
+            // перед вызовом этого метода, поэтому здесь инвалидация не требуется
+            // Но оставляем для надежности на случай прямого вызова метода
             Cache::forget('manual_delivery_pending_count');
         } catch (\Throwable $e) {
+            // Кеш уже инвалидирован в ProductPurchaseService, поэтому счетчик обновится даже при ошибке
             Log::error('Failed to notify admin about new manual order', [
                 'purchase_id' => $purchase->id,
                 'error' => $e->getMessage(),

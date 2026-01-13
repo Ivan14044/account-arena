@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\{ServiceAccount, Purchase, Transaction, Option, SupplierEarning, User};
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Cache;
 use App\Services\ManualDeliveryService;
 
 /**
@@ -243,6 +244,10 @@ public function createProductPurchase(
 
     // Уведомляем администратора и пользователя о новом заказе на ручную обработку
     if ($requiresManualDelivery) {
+        // ВАЖНО: Инвалидируем кеш СРАЗУ после создания заказа, чтобы счетчик обновился немедленно
+        // Делаем это до отправки уведомлений, чтобы избежать race condition
+        Cache::forget('manual_delivery_pending_count');
+        
         try {
             $manualDeliveryService = app(ManualDeliveryService::class);
             // Уведомляем администратора
@@ -251,6 +256,7 @@ public function createProductPurchase(
             $manualDeliveryService->notifyUserAboutOrderCreated($purchase);
         } catch (\Throwable $e) {
             // Не ломаем основную покупку из-за ошибки уведомления
+            // Кеш уже инвалидирован выше, поэтому счетчик обновится даже при ошибке
             Log::error('Failed to notify about manual order', [
                 'purchase_id' => $purchase->id,
                 'error' => $e->getMessage(),

@@ -8,6 +8,7 @@ use App\Services\ManualDeliveryService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Cache;
 
 class ProcessWaitingStockOrders extends Command
 {
@@ -78,6 +79,9 @@ class ProcessWaitingStockOrders extends Command
                     $order->update([
                         'is_waiting_stock' => false,
                     ]);
+                    
+                    // Инвалидируем кеш счетчика необработанных заказов
+                    Cache::forget('manual_delivery_pending_count');
                     
                     $processedCount++;
                 } else {

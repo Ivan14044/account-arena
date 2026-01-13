@@ -102,7 +102,8 @@ class AppServiceProvider extends ServiceProvider
             if (is_array($item) && isset($item['id']) && $item['id'] === 'manual-delivery-count') {
                 try {
                     // Получаем количество заказов на обработку
-                    $pendingCount = Cache::remember('manual_delivery_pending_count', 30, function () {
+                    // Уменьшаем TTL кеша до 10 секунд для более быстрого обновления
+                    $pendingCount = Cache::remember('manual_delivery_pending_count', 10, function () {
                         try {
                             return Purchase::where('status', Purchase::STATUS_PROCESSING)
                                 ->whereHas('serviceAccount', function($q) {
