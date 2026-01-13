@@ -80,14 +80,15 @@ class AdminNotification extends Model
         $title = preg_replace('/:\w+/', '', $title);
         // Убираем пустые скобки
         $title = preg_replace('/\s*\(\)/', '', $title);
-        // Убираем дублирование текста (если заголовок повторяется) - упрощенная версия
+        // Убираем дублирование текста (если заголовок повторяется)
+        // Проверяем, не начинается ли текст с повторения первых слов
         $words = explode(' ', trim($title));
-        if (count($words) > 2) {
-            $half = ceil(count($words) / 2);
-            $firstHalf = implode(' ', array_slice($words, 0, $half));
-            $secondHalf = implode(' ', array_slice($words, $half));
-            if (trim($firstHalf) === trim($secondHalf)) {
-                $title = $firstHalf;
+        if (count($words) >= 4) {
+            // Берем первые 2-3 слова и проверяем, не повторяются ли они
+            $firstPart = implode(' ', array_slice($words, 0, min(3, floor(count($words) / 2))));
+            $rest = implode(' ', array_slice($words, min(3, floor(count($words) / 2))));
+            if (strpos($rest, $firstPart) === 0) {
+                $title = $rest;
             }
         }
         
@@ -152,6 +153,15 @@ class AdminNotification extends Model
         // Очищаем лишние знаки препинания (двойные запятые, пробелы)
         $message = preg_replace('/,\s*,/', ',', $message);
         $message = preg_replace('/\s+/', ' ', $message);
+        // Убираем дублирование текста в сообщениях
+        $words = explode(' ', trim($message));
+        if (count($words) >= 4) {
+            $firstPart = implode(' ', array_slice($words, 0, min(3, floor(count($words) / 2))));
+            $rest = implode(' ', array_slice($words, min(3, floor(count($words) / 2))));
+            if (strpos($rest, $firstPart) === 0) {
+                $message = $rest;
+            }
+        }
         
         return trim($message);
     }
