@@ -51,25 +51,21 @@ class AdminNotification extends Model
             } else {
                 // Если перевод не найден, пытаемся найти соответствующий ключ
                 // Расширенный маппинг английских текстов на ключи переводов
-                $keyMapping = [
-                    'New purchase' => 'notifier.new_product_purchase_title',
-                    'New Purchase' => 'notifier.new_product_purchase_title',
-                    'New purcha e' => 'notifier.new_product_purchase_title', // Опечатка в старых записях
-                    'New user' => 'notifier.new_user_title',
-                    'New User' => 'notifier.new_user_title',
-                    'New payment' => 'notifier.new_payment_title',
-                    'New Payment' => 'notifier.new_payment_title',
-                    'Product Purchase' => 'notifier.types.product_purchase',
-                ];
-                
-                // Попытка найти по частичному совпадению (без учета регистра)
-                foreach ($keyMapping as $english => $key) {
-                    if (stripos($title, $english) !== false) {
-                        $translated = __($key);
-                        if ($translated !== $key) {
-                            $title = $translated;
-                            break;
-                        }
+                // Проверяем по ключевым словам, а не точному совпадению
+                if (stripos($title, 'purcha') !== false || stripos($title, 'purchase') !== false) {
+                    $translated = __('notifier.new_product_purchase_title');
+                    if ($translated !== 'notifier.new_product_purchase_title') {
+                        $title = $translated;
+                    }
+                } elseif (stripos($title, 'user') !== false && stripos($title, 'new') !== false) {
+                    $translated = __('notifier.new_user_title');
+                    if ($translated !== 'notifier.new_user_title') {
+                        $title = $translated;
+                    }
+                } elseif (stripos($title, 'payment') !== false && stripos($title, 'new') !== false) {
+                    $translated = __('notifier.new_payment_title');
+                    if ($translated !== 'notifier.new_payment_title') {
+                        $title = $translated;
                     }
                 }
             }
@@ -120,24 +116,21 @@ class AdminNotification extends Model
                 $message = $translated;
             } else {
                 // Если перевод не найден, пытаемся найти соответствующий ключ для сообщений
-                $keyMapping = [
-                    'New purchase' => 'notifier.new_product_purchase_message',
-                    'New Purchase' => 'notifier.new_product_purchase_message',
-                    'New purcha e' => 'notifier.new_product_purchase_message', // Опечатка в старых записях
-                    'New user registered' => 'notifier.new_user_message',
-                    'New user' => 'notifier.new_user_message',
-                    'New payment' => 'notifier.new_payment_message',
-                    'New Payment' => 'notifier.new_payment_message',
-                ];
-                
-                // Попытка найти по частичному совпадению
-                foreach ($keyMapping as $english => $key) {
-                    if (stripos($message, $english) !== false) {
-                        $translated = __($key);
-                        if ($translated !== $key) {
-                            $message = $translated;
-                            break;
-                        }
+                // Проверяем по ключевым словам
+                if (stripos($message, 'purcha') !== false || stripos($message, 'purchase') !== false) {
+                    $translated = __('notifier.new_product_purchase_message');
+                    if ($translated !== 'notifier.new_product_purchase_message') {
+                        $message = $translated;
+                    }
+                } elseif (stripos($message, 'user') !== false && (stripos($message, 'new') !== false || stripos($message, 'registered') !== false)) {
+                    $translated = __('notifier.new_user_message');
+                    if ($translated !== 'notifier.new_user_message') {
+                        $message = $translated;
+                    }
+                } elseif (stripos($message, 'payment') !== false && stripos($message, 'new') !== false) {
+                    $translated = __('notifier.new_payment_message');
+                    if ($translated !== 'notifier.new_payment_message') {
+                        $message = $translated;
                     }
                 }
             }

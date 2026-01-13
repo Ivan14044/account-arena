@@ -56,17 +56,19 @@
                                     <i class="fas fa-info-circle mr-1"></i>
                                     @php
                                         $type = $notification->type;
-                                        // Если тип содержит пробелы (например, "Product Purchase"), пробуем найти в маппинге
-                                        if (strpos($type, ' ') !== false) {
-                                            $typeMapping = [
-                                                'Product Purchase' => 'product_purchase',
-                                                'Balance Top-up' => 'balance_topup',
-                                                'New User' => 'new_user',
-                                                'Registration' => 'registration',
-                                                'Payment' => 'payment',
-                                            ];
-                                            if (isset($typeMapping[$type])) {
-                                                $type = $typeMapping[$type];
+                                        // Если тип содержит пробелы или опечатки, пробуем найти по ключевым словам
+                                        if (strpos($type, ' ') !== false || stripos($type, 'purcha') !== false) {
+                                            // Маппинг для типов с пробелами или опечатками
+                                            if (stripos($type, 'purcha') !== false || stripos($type, 'purchase') !== false) {
+                                                $type = 'product_purchase';
+                                            } elseif (stripos($type, 'top') !== false || stripos($type, 'balance') !== false) {
+                                                $type = 'balance_topup';
+                                            } elseif (stripos($type, 'user') !== false) {
+                                                $type = 'new_user';
+                                            } elseif (stripos($type, 'registration') !== false) {
+                                                $type = 'registration';
+                                            } elseif (stripos($type, 'payment') !== false) {
+                                                $type = 'payment';
                                             }
                                         }
                                         $typeKey = 'notifier.types.' . $type;
