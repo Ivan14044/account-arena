@@ -8,6 +8,7 @@ use App\Models\ServiceAccount;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Cache;
 use App\Services\NotifierService;
 use App\Services\EmailService;
 use App\Services\NotificationTemplateService;
@@ -128,6 +129,9 @@ class ManualDeliveryService
                 'processing_notes' => $notes,
                 'is_waiting_stock' => false, // Сбрасываем флаг ожидания при успешной обработке
             ]);
+            
+            // Инвалидируем кеш счетчика необработанных заказов, чтобы счетчик обновился сразу
+            Cache::forget('manual_delivery_pending_count');
 
             // Записываем историю изменения статуса
             PurchaseStatusHistory::createHistory(
@@ -227,6 +231,9 @@ class ManualDeliveryService
             $purchase->update([
                 'status' => Purchase::STATUS_CANCELLED,
             ]);
+            
+            // Инвалидируем кеш счетчика необработанных заказов, чтобы счетчик обновился сразу
+            Cache::forget('manual_delivery_pending_count');
 
             // Записываем историю изменения статуса
             PurchaseStatusHistory::createHistory(
@@ -526,6 +533,9 @@ class ManualDeliveryService
                     'total_amount' => number_format($purchase->total_amount, 2),
                 ]
             );
+            
+            // Инвалидируем кеш счетчика необработанных заказов, чтобы счетчик обновился сразу
+            Cache::forget('manual_delivery_pending_count');
         } catch (\Throwable $e) {
             Log::error('Failed to notify admin about new manual order', [
                 'purchase_id' => $purchase->id,
