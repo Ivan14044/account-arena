@@ -22,6 +22,7 @@ import { useLoadingStore } from '@/stores/loading';
 import { useAuthStore } from '@/stores/auth';
 import { useAccountsStore } from '@/stores/accounts';
 import { useBannersStore } from '@/stores/banners';
+import { useProductCategoriesStore } from '@/stores/productCategories';
 
 import logo from '@/assets/logo.webp';
 
@@ -73,11 +74,15 @@ onMounted(async () => {
         const optionStore = useOptionStore();
         const notificationStore = useNotificationStore();
         const accountsStore = useAccountsStore();
+        const categoriesStore = useProductCategoriesStore();
 
         // ОПТИМИЗАЦИЯ: Загружаем все критичные данные параллельно при старте приложения
         const promises = [
             pageStore.fetchData().catch(e => console.error('[APP] Ошибка загрузки pages:', e)),
             optionStore.fetchData().catch(e => console.error('[APP] Ошибка загрузки options:', e)),
+            categoriesStore
+                .fetchAll()
+                .catch(e => console.error('[APP] Ошибка загрузки categories:', e)), // Предзагрузка категорий
             accountsStore
                 .fetchAll()
                 .catch(e => {
