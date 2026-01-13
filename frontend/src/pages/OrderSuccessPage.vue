@@ -321,13 +321,6 @@
                                         </svg>
                                         {{ $t('profile.purchases.contact_manager') }}
                                     </button>
-                                    <!-- Кнопка отмены заказа -->
-                                    <button
-                                        class="px-4 py-2 text-sm bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors font-medium"
-                                        @click="openCancelModal(purchase)"
-                                    >
-                                        {{ $t('profile.purchases.cancel_order') }}
-                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -605,60 +598,6 @@
                 </router-link>
             </div>
         </div>
-        
-        <!-- Модальное окно отмены заказа -->
-        <Teleport to="body">
-            <Transition name="modal">
-                <div
-                    v-if="showCancelModal"
-                    class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/30 backdrop-blur-sm p-4"
-                    @click.self="closeCancelModal"
-                >
-                    <div
-                        class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-md w-full p-6 relative"
-                    >
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                            {{ $t('profile.purchases.cancel_order') }}
-                        </h3>
-                        <p class="text-sm text-gray-700 dark:text-gray-300 mb-4">
-                            {{ $t('profile.purchases.cancel_order_confirm') }}
-                        </p>
-                        <div class="mb-4">
-                            <label for="cancellationReason" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                {{ $t('profile.purchases.cancel_reason_label') }}
-                            </label>
-                            <textarea
-                                id="cancellationReason"
-                                v-model="cancellationReason"
-                                rows="4"
-                                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                                :placeholder="$t('profile.purchases.cancel_reason_placeholder')"
-                                minlength="10"
-                                maxlength="500"
-                            ></textarea>
-                            <p v-if="cancellationReasonError" class="text-red-500 text-xs mt-1">{{ cancellationReasonError }}</p>
-                        </div>
-                        <div class="flex justify-end gap-3">
-                            <button
-                                type="button"
-                                class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-                                @click="closeCancelModal"
-                            >
-                                {{ $t('profile.purchases.cancel_modal_close') }}
-                            </button>
-                            <button
-                                type="button"
-                                class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                :disabled="!cancellationReason || cancellationReason.length < 10"
-                                @click="confirmCancelOrder"
-                            >
-                                {{ $t('profile.purchases.cancel_order_confirm_button') }}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </Transition>
-        </Teleport>
     </div>
 </template>
 
@@ -1177,82 +1116,6 @@ const getProcessingDuration = (purchase) => {
         return t('profile.purchases.processing_duration_days', { days, hours: remainingHours });
     }
     return t('profile.purchases.processing_duration_hours', { hours, minutes });
-};
-
-// Модальное окно отмены заказа
-const showCancelModal = ref(false);
-const selectedPurchaseForCancel = ref(null);
-const cancellationReason = ref('');
-const cancellationReasonError = ref('');
-
-// Открытие модального окна отмены заказа
-const openCancelModal = (purchase) => {
-    selectedPurchaseForCancel.value = purchase;
-    cancellationReason.value = '';
-    cancellationReasonError.value = '';
-    showCancelModal.value = true;
-};
-
-// Закрытие модального окна отмены
-const closeCancelModal = () => {
-    showCancelModal.value = false;
-    selectedPurchaseForCancel.value = null;
-    cancellationReason.value = '';
-    cancellationReasonError.value = '';
-};
-
-// Подтверждение отмены заказа
-const confirmCancelOrder = async () => {
-    if (!selectedPurchaseForCancel.value) return;
-    
-    // Валидация причины отмены
-    if (!cancellationReason.value || cancellationReason.value.trim().length < 10) {
-        cancellationReasonError.value = t('profile.purchases.cancel_reason_min_length');
-        return;
-    }
-    
-    if (cancellationReason.value.length > 500) {
-        cancellationReasonError.value = t('profile.purchases.cancel_reason_max_length');
-        return;
-    }
-    
-    cancellationReasonError.value = '';
-    
-    try {
-        const { useAuthStore } = await import('@/stores/auth');
-        const authStore = useAuthStore();
-        const token = authStore.token;
-        
-        if (!token) {
-            toast.error(t('profile.purchases.not_authorized'));
-            await router.push('/login');
-            return;
-        }
-        
-        const response = await axios.post(
-            `/purchases/${selectedPurchaseForCancel.value.id}/cancel`,
-            {
-                cancellation_reason: cancellationReason.value.trim()
-            },
-            {
-                headers: {
-                    Authorization: `Bearer ${token}`
-                }
-            }
-        );
-        
-        if (response.data.success) {
-            toast.success(t('profile.purchases.order_cancelled'));
-            closeCancelModal();
-            // Обновляем список покупок
-            await fetchPurchases();
-        } else {
-            toast.error(response.data.message || t('profile.purchases.cancel_order_error'));
-        }
-    } catch (error) {
-        console.error('Error cancelling order:', error);
-        toast.error(error.response?.data?.message || t('profile.purchases.cancel_order_error'));
-    }
 };
 
 // Связаться с менеджером о заказе
