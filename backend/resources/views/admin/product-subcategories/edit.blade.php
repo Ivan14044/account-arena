@@ -100,6 +100,7 @@
 @endsection
 
 @section('js')
+    <script src="https://cdn.ckeditor.com/ckeditor5/35.1.0/classic/ckeditor.js"></script>
     <script>
         // Initialize CKEditor
         if (typeof ClassicEditor !== 'undefined') {

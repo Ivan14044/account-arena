@@ -81,21 +81,28 @@ class ProductPurchaseService
      * @param string $paymentMethod Метод оплаты
      * @return array ['transaction' => Transaction, 'purchase' => Purchase]
      */
-public function createProductPurchase(
-    ServiceAccount $product,
-    int $quantity,
-    float $price,
-    float $total,
-    ?int $userId = null,
-    ?string $guestEmail = null,
-    string $paymentMethod = 'balance'
-): array {
-    // ВАЖНО: Товар должен быть заблокирован (lockForUpdate) перед вызовом этого метода
-    // Это предотвращает race condition при одновременной выдаче товара
-    
-    // Получаем аккаунты из accounts_data
-    $accountsData = $product->accounts_data ?? [];
-    
+    public function createProductPurchase(
+        ServiceAccount $product,
+        int $quantity,
+        float $price,
+        float $total,
+        ?int $userId = null,
+        ?string $guestEmail = null,
+        string $paymentMethod = 'balance'
+    ): array {
+        return DB::transaction(function () use ($product, $quantity, $price, $total, $userId, $guestEmail, $paymentMethod) {
+            // ВАЖНО: Товар должен быть заблокирован (lockForUpdate) перед вызовом этого метода
+            // Это предотвращает race condition при одновременной выдаче товара
+            
+            // Если товар еще не заблокирован, блокируем его сейчас для безопасности
+            // (Хотя вызывающий код должен был это сделать)
+            if (!$product->wasRecentlyCreated) {
+                $product = ServiceAccount::lockForUpdate()->find($product->id);
+            }
+            
+            // Получаем аккаунты из accounts_data
+            $accountsData = $product->accounts_data ?? [];
+
     // ВАЖНО: Проверяем, что accounts_data является массивом
     // Если это строка (JSON), пытаемся декодировать
     if (!is_array($accountsData)) {
@@ -332,10 +339,11 @@ public function createProductPurchase(
         ]);
     }
 
-    return [
-        'transaction' => $transaction,
-        'purchase' => $purchase,
-    ];
+        return [
+            'transaction' => $transaction,
+            'purchase' => $purchase,
+        ];
+    });
 }
 
 

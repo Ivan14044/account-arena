@@ -90,6 +90,21 @@ class Category extends Model
         return $query->whereNotNull('parent_id');
     }
 
+    public function getImageUrlAttribute($value)
+    {
+        if (!$value) {
+            return null;
+        }
+
+        // Если это уже полный URL (начинается с http), возвращаем как есть
+        if (str_starts_with($value, 'http')) {
+            return $value;
+        }
+
+        // В противном случае формируем полный URL через Storage
+        return \Illuminate\Support\Facades\Storage::disk('public')->url($value);
+    }
+
     public function translations()
     {
         return $this->hasMany(CategoryTranslation::class);

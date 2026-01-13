@@ -168,24 +168,27 @@ class DashboardController extends Controller
      */
     private function getCategoryChartData()
     {
-        $categorySales = Purchase::where('status', 'completed')
-            ->whereHas('serviceAccount.category')
-            ->with('serviceAccount.category')
-            ->get()
-            ->groupBy(function($purchase) {
-                return $purchase->serviceAccount->category->admin_name ?? 'Без категории';
+        // Используем оптимизированный SQL-запрос для получения статистики по категориям
+        $results = \Illuminate\Support\Facades\DB::table('purchases')
+            ->join('service_accounts', 'purchases.service_account_id', '=', 'service_accounts.id')
+            ->join('categories', 'service_accounts.category_id', '=', 'categories.id')
+            ->join('category_translations', function($join) {
+                $join->on('categories.id', '=', 'category_translations.category_id')
+                    ->where('category_translations.code', '=', 'name')
+                    ->where('category_translations.locale', '=', 'ru');
             })
-            ->map(function($group) {
-                return $group->count();
-            });
+            ->where('purchases.status', '=', 'completed')
+            ->select('category_translations.value as category_name', \Illuminate\Support\Facades\DB::raw('count(purchases.id) as sales_count'))
+            ->groupBy('category_translations.value')
+            ->get();
         
-        $labels = $categorySales->keys()->toArray();
-        $data = $categorySales->values()->toArray();
+        $labels = $results->pluck('category_name')->toArray();
+        $data = $results->pluck('sales_count')->toArray();
         
         // Генерируем цвета для графиков
         $colors = [];
         for ($i = 0; $i < count($labels); $i++) {
-            $hue = (360 / count($labels)) * $i;
+            $hue = (360 / max(1, count($labels))) * $i;
             $colors[] = "hsl({$hue}, 70%, 60%)";
         }
         

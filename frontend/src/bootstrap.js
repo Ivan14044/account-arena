@@ -1,4 +1,10 @@
 import axios from 'axios';
+import { createToastInterface } from 'vue-toastification';
+
+const toast = createToastInterface({
+    position: 'top-right',
+    timeout: 5000
+});
 
 // Поддерживаем оба варианта переменных окружения для совместимости:
 // - VITE_API_BASE (текущая)
@@ -30,6 +36,33 @@ axios.interceptors.request.use(config => {
 
     return config;
 });
+
+// Interceptor для обработки ошибок
+axios.interceptors.response.use(
+    response => response,
+    error => {
+        const status = error.response ? error.response.status : null;
+
+        if (status === 401) {
+            // Обработка 401 Unauthorized - например, перенаправление на логин
+            // Но в этом проекте может быть гостевой доступ, поэтому просто уведомляем
+            console.warn('Unauthorized access');
+        } else if (status === 403) {
+            toast.error('Доступ запрещен');
+        } else if (status === 422) {
+            // Ошибки валидации - обычно обрабатываются в компонентах,
+            // но можем вывести общее уведомление
+            const message = error.response.data.message || 'Ошибка валидации данных';
+            toast.error(message);
+        } else if (status >= 500) {
+            toast.error('Ошибка сервера. Пожалуйста, попробуйте позже.');
+        } else if (!error.response) {
+            toast.error('Проблема с сетью. Проверьте подключение.');
+        }
+
+        return Promise.reject(error);
+    }
+);
 
 // Экспортируем настроенный экземпляр axios
 export default axios;

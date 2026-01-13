@@ -4,13 +4,21 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Category;
+use App\Services\CategoryService;
 use Illuminate\Http\Request;
 
 class ArticleCategoryController extends Controller
 {
+    protected $categoryService;
+
+    public function __construct(CategoryService $categoryService)
+    {
+        $this->categoryService = $categoryService;
+    }
+
     public function index()
     {
-        $categories = Category::articleCategories()->with('translations')->get();
+        $categories = $this->categoryService->getCategories(Category::TYPE_ARTICLE);
 
         return view('admin.article-categories.index', compact('categories'));
     }
@@ -28,9 +36,7 @@ class ArticleCategoryController extends Controller
             getTransAttributes(['name', 'meta_title', 'meta_description', 'text'])
         );
 
-        $category = Category::create(['type' => Category::TYPE_ARTICLE]);
-
-        $category->saveTranslation($validated);
+        $this->categoryService->saveCategory(['type' => Category::TYPE_ARTICLE], $validated);
 
         return redirect()->route('admin.article-categories.index')->with('success', 'Категория статей успешно создана.');
     }
@@ -38,7 +44,7 @@ class ArticleCategoryController extends Controller
     public function update(Request $request, $article_category)
     {
         $category = Category::where('id', $article_category)
-            ->articleCategories()
+            ->where('type', Category::TYPE_ARTICLE)
             ->firstOrFail();
 
         $validated = $request->validate(
@@ -47,7 +53,7 @@ class ArticleCategoryController extends Controller
             getTransAttributes(['name', 'meta_title', 'meta_description', 'text'])
         );
 
-        $category->saveTranslation($validated);
+        $this->categoryService->saveCategory([], $validated, $category);
 
         $route = $request->has('save')
             ? route('admin.article-categories.edit', $category->id)
@@ -59,10 +65,9 @@ class ArticleCategoryController extends Controller
     public function edit($article_category)
     {
         $category = Category::where('id', $article_category)
-            ->articleCategories()
+            ->where('type', Category::TYPE_ARTICLE)
+            ->with('translations')
             ->firstOrFail();
-
-        $category->load('translations');
 
         $categoryData = $category->translations
             ->groupBy('locale')
@@ -81,11 +86,10 @@ class ArticleCategoryController extends Controller
     public function destroy($article_category)
     {
         $category = Category::where('id', $article_category)
-            ->articleCategories()
+            ->where('type', Category::TYPE_ARTICLE)
             ->firstOrFail();
 
-        $category->articles()->detach();
-        $category->delete();
+        $this->categoryService->deleteCategory($category);
 
         return redirect()->route('admin.article-categories.index')->with('success', 'Категория статей успешно удалена.');
     }
@@ -101,10 +105,8 @@ class ArticleCategoryController extends Controller
             $rules['text.' . $lang] = ['nullable', 'string'];
         }
 
-        // require at least one language name
         $rules['name'] = ['array', 'required_without_all:' . implode(',', array_map(fn($l) => 'name.' . $l, array_keys(config('langs'))))];
 
         return $rules;
     }
 }
-

@@ -68,7 +68,7 @@ class ServiceAccountController extends Controller
 
         if ($request->hasFile('image')) {
             $path = $request->file('image')->store('products', 'public');
-            $validated['image_url'] = Storage::url($path);
+            $validated['image_url'] = $path;
         }
 
         // Если выбрана подкатегория, используем её ID как category_id
@@ -128,7 +128,7 @@ class ServiceAccountController extends Controller
         // Handle image upload
         if ($request->hasFile('image')) {
             $path = $request->file('image')->store('products', 'public');
-            $imageUrl = Storage::url($path);
+            $imageUrl = $path;
         }
 
         $lines = array_filter(explode("\n", $bulkAccounts));
@@ -256,7 +256,7 @@ class ServiceAccountController extends Controller
         // Handle image upload
         if ($request->hasFile('image')) {
             $path = $request->file('image')->store('products', 'public');
-            $validated['image_url'] = Storage::url($path);
+            $validated['image_url'] = $path;
         }
 
         // ИСПРАВЛЕНО: Сохраняем проданные аккаунты и добавляем новые

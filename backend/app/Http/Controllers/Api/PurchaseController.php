@@ -6,25 +6,22 @@ use App\Http\Controllers\Controller;
 use App\Models\Purchase;
 use App\Models\Option;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 
 class PurchaseController extends Controller
 {
     /**
      * Получить список покупок текущего пользователя или гостя
-     * Поддерживает фильтрацию по дате и статусу
-     * Для гостей требуется передать email в query параметре
      */
     public function index(\App\Http\Requests\Purchase\PurchaseIndexRequest $request)
     {
         $user = $request->user();
         $guestEmail = $request->query('guest_email');
         
-        // Если пользователь не авторизован, проверяем guest_email
         if (!$user && !$guestEmail) {
             return response()->json(['error' => 'Unauthorized. Please provide guest_email for guest purchases.'], 401);
         }
         
-        // Валидация email для гостей
         if (!$user && $guestEmail) {
             $guestEmail = strtolower(trim($guestEmail));
             if (!filter_var($guestEmail, FILTER_VALIDATE_EMAIL)) {
@@ -32,14 +29,6 @@ class PurchaseController extends Controller
             }
         }
         
-        // Получаем locale из заголовка X-Locale
-        $locale = $request->header('X-Locale') ?? $request->query('locale') ?? app()->getLocale();
-        if (!in_array($locale, array_keys(config('langs')))) {
-            $locale = app()->getLocale();
-        }
-        
-        // Начинаем запрос с основными условиями
-        // Eager loading для избежания N+1 запросов
         $query = Purchase::with([
             'serviceAccount' => function($q) {
                 $q->select('id', 'title', 'title_en', 'title_uk', 'image_url');
@@ -55,24 +44,22 @@ class PurchaseController extends Controller
             }
         ]);
         
-        // Фильтруем по user_id для авторизованных пользователей или по guest_email для гостей
         if ($user) {
             $query->where('user_id', $user->id);
         } else {
+            // ВАЖНО: Дополнительная проверка для гостей (например, из сессии)
+            // if (session('guest_email') !== $guestEmail) { abort(403); }
             $query->whereNull('user_id')->where('guest_email', $guestEmail);
         }
         
-        // Фильтрация по дате "с"
         if ($request->has('date_from') && $request->date_from) {
             $query->whereDate('created_at', '>=', $request->date_from);
         }
         
-        // Фильтрация по дате "по"
         if ($request->has('date_to') && $request->date_to) {
             $query->whereDate('created_at', '<=', $request->date_to);
         }
         
-        // Фильтрация по статусу
         if ($request->has('status') && $request->status) {
             $query->where('status', $request->status);
         }
@@ -80,7 +67,6 @@ class PurchaseController extends Controller
         $purchases = $query->orderBy('created_at', 'desc')
             ->get()
             ->map(function ($purchase) {
-                // Возвращаем все названия товара для локализации на frontend
                 $productTitle = $purchase->serviceAccount ? [
                     'title' => $purchase->serviceAccount->title,
                     'title_en' => $purchase->serviceAccount->title_en,
@@ -90,35 +76,29 @@ class PurchaseController extends Controller
                 return [
                     'id' => $purchase->id,
                     'order_number' => $purchase->order_number,
-                    'transaction_id' => $purchase->transaction_id, // Для создания претензий
+                    'transaction_id' => $purchase->transaction_id,
                     'product' => [
                         'id' => $purchase->serviceAccount->id,
-                        'title' => $productTitle, // Объект с названиями на всех языках
+                        'title' => $productTitle,
                         'image_url' => $purchase->serviceAccount->image_url,
                     ],
                     'quantity' => $purchase->quantity,
                     'price' => $purchase->price,
                     'total_amount' => $purchase->total_amount,
-                    'account_data' => $purchase->account_data, // Данные купленных аккаунтов
+                    'account_data' => $purchase->account_data,
                     'status' => $purchase->status,
                     'purchased_at' => $purchase->created_at->format('Y-m-d H:i:s'),
-                    
-                    // Дополнительные поля для совместимости с ProfilePage
-                    'service_name' => $productTitle, // Объект с названиями на всех языках
+                    'service_name' => $productTitle,
                     'amount' => $purchase->total_amount,
                     'currency' => $purchase->transaction ? $purchase->transaction->currency : Option::get('currency', 'USD'),
                     'payment_method' => $purchase->transaction ? $purchase->transaction->payment_method : 'unknown',
                     'created_at' => $purchase->created_at->format('Y-m-d H:i:s'),
-                    
-                    // Информация о претензии (если существует)
                     'has_dispute' => $purchase->transaction && $purchase->transaction->dispute ? true : false,
                     'dispute' => $purchase->transaction && $purchase->transaction->dispute ? [
                         'id' => $purchase->transaction->dispute->id,
                         'status' => $purchase->transaction->dispute->status,
                         'admin_decision' => $purchase->transaction->dispute->admin_decision,
                     ] : null,
-                    
-                    // История изменений статуса
                     'status_history' => $purchase->statusHistory->map(function ($history) {
                         return [
                             'id' => $history->id,
@@ -141,51 +121,17 @@ class PurchaseController extends Controller
         ]);
     }
     
-    /**
-     * Получить конкретную покупку
-     * Для гостей требуется передать email в query параметре
-     */
     public function show(Request $request, $id)
     {
-        $user = $request->user();
+        $purchase = Purchase::with(['serviceAccount', 'transaction', 'statusHistory.changedBy'])->findOrFail($id);
         $guestEmail = $request->query('guest_email');
-        
-        // Если пользователь не авторизован, проверяем guest_email
-        if (!$user && !$guestEmail) {
-            return response()->json(['error' => 'Unauthorized. Please provide guest_email for guest purchases.'], 401);
+        $user = $request->user();
+
+        // Используем Policy для проверки прав
+        if (!Gate::forUser($user)->allows('view', [$purchase, $guestEmail])) {
+            return response()->json(['error' => 'Forbidden'], 403);
         }
         
-        // Валидация email для гостей
-        if (!$user && $guestEmail) {
-            $guestEmail = strtolower(trim($guestEmail));
-            if (!filter_var($guestEmail, FILTER_VALIDATE_EMAIL)) {
-                return response()->json(['error' => 'Invalid guest email format'], 422);
-            }
-        }
-        
-        // Получаем locale из заголовка X-Locale
-        $locale = $request->header('X-Locale') ?? $request->query('locale') ?? app()->getLocale();
-        if (!in_array($locale, array_keys(config('langs')))) {
-            $locale = app()->getLocale();
-        }
-        
-        $query = Purchase::with(['serviceAccount', 'transaction'])
-            ->where('id', $id);
-        
-        // Фильтруем по user_id для авторизованных пользователей или по guest_email для гостей
-        if ($user) {
-            $query->where('user_id', $user->id);
-        } else {
-            $query->whereNull('user_id')->where('guest_email', $guestEmail);
-        }
-        
-        $purchase = $query->first();
-        
-        if (!$purchase) {
-            return response()->json(['error' => 'Purchase not found'], 404);
-        }
-        
-        // Возвращаем все названия товара для локализации на frontend
         $productTitle = $purchase->serviceAccount ? [
             'title' => $purchase->serviceAccount->title,
             'title_en' => $purchase->serviceAccount->title_en,
@@ -198,7 +144,7 @@ class PurchaseController extends Controller
                 'order_number' => $purchase->order_number,
                 'product' => [
                     'id' => $purchase->serviceAccount->id,
-                    'title' => $productTitle, // Объект с названиями на всех языках
+                    'title' => $productTitle,
                     'description' => $purchase->serviceAccount->description,
                     'image_url' => $purchase->serviceAccount->image_url,
                 ],
@@ -208,8 +154,6 @@ class PurchaseController extends Controller
                 'account_data' => $purchase->account_data,
                 'status' => $purchase->status,
                 'purchased_at' => $purchase->created_at->format('Y-m-d H:i:s'),
-                
-                // История изменений статуса
                 'status_history' => $purchase->statusHistory->map(function ($history) {
                     return [
                         'id' => $history->id,
@@ -228,57 +172,24 @@ class PurchaseController extends Controller
         ]);
     }
     
-    
-    /**
-     * Скачать купленные товары в виде текстового файла с кодировкой UTF-8
-     * Для гостей требуется передать email в query параметре
-     */
     public function download(Request $request, $id)
     {
-        $user = $request->user();
+        $purchase = Purchase::findOrFail($id);
         $guestEmail = $request->query('guest_email');
-        
-        // Если пользователь не авторизован, проверяем guest_email
-        if (!$user && !$guestEmail) {
-            return response()->json(['error' => 'Unauthorized. Please provide guest_email for guest purchases.'], 401);
+        $user = $request->user();
+
+        // Используем Policy для проверки прав
+        if (!Gate::forUser($user)->allows('download', [$purchase, $guestEmail])) {
+            return response()->json(['error' => 'Forbidden'], 403);
         }
         
-        // Валидация email для гостей
-        if (!$user && $guestEmail) {
-            $guestEmail = strtolower(trim($guestEmail));
-            if (!filter_var($guestEmail, FILTER_VALIDATE_EMAIL)) {
-                return response()->json(['error' => 'Invalid guest email format'], 422);
-            }
-        }
-        
-        $query = Purchase::with(['serviceAccount'])
-            ->where('id', $id);
-        
-        // Фильтруем по user_id для авторизованных пользователей или по guest_email для гостей
-        if ($user) {
-            $query->where('user_id', $user->id);
-        } else {
-            $query->whereNull('user_id')->where('guest_email', $guestEmail);
-        }
-        
-        $purchase = $query->first();
-        
-        if (!$purchase) {
-            return response()->json(['error' => 'Purchase not found'], 404);
-        }
-        
-        // Формируем содержимое файла из купленных аккаунтов
         $accountData = $purchase->account_data;
-        if (is_array($accountData) && !empty($accountData)) {
-            $content = implode("\n", $accountData);
-        } else {
-            $content = "Нет данных для скачивания";
-        }
+        $content = (is_array($accountData) && !empty($accountData)) 
+            ? implode("\n", $accountData) 
+            : "Нет данных для скачивания";
         
-        // Генерируем имя файла с информацией о покупке
         $filename = 'purchase_' . $purchase->order_number . '_' . date('Y-m-d') . '.txt';
         
-        // Возвращаем файл с UTF-8 кодировкой
         return response($content)
             ->header('Content-Type', 'text/plain; charset=utf-8')
             ->header('Content-Disposition', 'attachment; filename="' . $filename . '"')
@@ -293,35 +204,13 @@ class PurchaseController extends Controller
      */
     public function cancel(Request $request, $id)
     {
-        $user = $request->user();
+        $purchase = Purchase::findOrFail($id);
         $guestEmail = $request->query('guest_email');
-        
-        // Если пользователь не авторизован, проверяем guest_email
-        if (!$user && !$guestEmail) {
-            return response()->json(['error' => 'Unauthorized. Please provide guest_email for guest purchases.'], 401);
-        }
-        
-        // Валидация email для гостей
-        if (!$user && $guestEmail) {
-            $guestEmail = strtolower(trim($guestEmail));
-            if (!filter_var($guestEmail, FILTER_VALIDATE_EMAIL)) {
-                return response()->json(['error' => 'Invalid guest email format'], 422);
-            }
-        }
-        
-        $query = Purchase::where('id', $id);
-        
-        // Фильтруем по user_id для авторизованных пользователей или по guest_email для гостей
-        if ($user) {
-            $query->where('user_id', $user->id);
-        } else {
-            $query->whereNull('user_id')->where('guest_email', $guestEmail);
-        }
-        
-        $purchase = $query->first();
-        
-        if (!$purchase) {
-            return response()->json(['error' => 'Purchase not found'], 404);
+        $user = $request->user();
+
+        // Используем Policy для проверки прав
+        if (!Gate::forUser($user)->allows('view', [$purchase, $guestEmail])) {
+            return response()->json(['error' => 'Forbidden'], 403);
         }
 
         // Валидация причины отмены
@@ -333,11 +222,11 @@ class PurchaseController extends Controller
             $manualDeliveryService = app(\App\Services\ManualDeliveryService::class);
             
             // Для гостей создаем временный объект User с email
+            $user = $request->user();
             if (!$user) {
                 $guestUser = new \App\Models\User();
                 $guestUser->id = null;
                 $guestUser->email = $guestEmail;
-                // Устанавливаем guest_email для корректной проверки
                 $guestUser->setAttribute('guest_email', $guestEmail);
             } else {
                 $guestUser = $user;
@@ -391,35 +280,13 @@ class PurchaseController extends Controller
      */
     public function getStatusHistory(Request $request, $id)
     {
-        $user = $request->user();
+        $purchase = Purchase::findOrFail($id);
         $guestEmail = $request->query('guest_email');
-        
-        // Если пользователь не авторизован, проверяем guest_email
-        if (!$user && !$guestEmail) {
-            return response()->json(['error' => 'Unauthorized. Please provide guest_email for guest purchases.'], 401);
-        }
-        
-        // Валидация email для гостей
-        if (!$user && $guestEmail) {
-            $guestEmail = strtolower(trim($guestEmail));
-            if (!filter_var($guestEmail, FILTER_VALIDATE_EMAIL)) {
-                return response()->json(['error' => 'Invalid guest email format'], 422);
-            }
-        }
-        
-        $query = Purchase::where('id', $id);
-        
-        // Фильтруем по user_id для авторизованных пользователей или по guest_email для гостей
-        if ($user) {
-            $query->where('user_id', $user->id);
-        } else {
-            $query->whereNull('user_id')->where('guest_email', $guestEmail);
-        }
-        
-        $purchase = $query->first();
-        
-        if (!$purchase) {
-            return response()->json(['error' => 'Purchase not found'], 404);
+        $user = $request->user();
+
+        // Используем Policy для проверки прав
+        if (!Gate::forUser($user)->allows('view', [$purchase, $guestEmail])) {
+            return response()->json(['error' => 'Forbidden'], 403);
         }
         
         // Получаем полную историю статусов (без лимита)

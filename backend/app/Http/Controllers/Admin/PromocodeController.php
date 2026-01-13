@@ -11,6 +11,13 @@ use Illuminate\Support\Str;
 
 class PromocodeController extends Controller
 {
+    protected $promocodeService;
+
+    public function __construct(\App\Services\PromocodeService $promocodeService)
+    {
+        $this->promocodeService = $promocodeService;
+    }
+
     public function index()
     {
         $promocodes = Promocode::orderBy('id', 'desc')->get();
@@ -36,14 +43,13 @@ class PromocodeController extends Controller
         $validated = $validator->validate();
 
         $quantity = (int)($request->input('quantity', 1));
-        $manualBatchId = trim((string)$request->input('batch_id', '')) ?: null;
-
+        
         if ($quantity <= 1) {
             $promocode = Promocode::create([
                 'code' => $validated['code'],
                 'type' => $validated['type'],
                 'prefix' => $validated['prefix'] ?? null,
-                'batch_id' => $manualBatchId,
+                'batch_id' => trim((string)$request->input('batch_id', '')) ?: null,
                 'percent_discount' => $validated['percent_discount'] ?? 0,
                 'usage_limit' => $validated['usage_limit'] ?? 0,
                 'per_user_limit' => $validated['per_user_limit'] ?? 1,
@@ -55,32 +61,7 @@ class PromocodeController extends Controller
             return redirect()->route('admin.promocodes.index')->with('success', 'Промокод успешно создан.');
         }
 
-        $batchId = $manualBatchId ?: (string) Str::uuid();
-        $prefix = (string) ($validated['prefix'] ?? '');
-        $created = 0;
-
-        DB::transaction(function () use ($quantity, $prefix, $validated, $batchId, &$created) {
-            for ($i = 0; $i < $quantity; $i++) {
-                do {
-                    $code = $prefix . $this->generateCode(8);
-                } while (Promocode::where('code', $code)->exists());
-
-                Promocode::create([
-                    'code' => $code,
-                    'type' => $validated['type'],
-                    'prefix' => $prefix ?: null,
-                    'batch_id' => $batchId,
-                    'percent_discount' => $validated['percent_discount'] ?? 0,
-                    'usage_limit' => $validated['usage_limit'] ?? 0,
-                    'per_user_limit' => $validated['per_user_limit'] ?? 1,
-                    'starts_at' => $validated['starts_at'] ?? null,
-                    'expires_at' => $validated['expires_at'] ?? null,
-                    'is_active' => $validated['is_active'],
-                ]);
-
-                $created++;
-            }
-        });
+        $created = $this->promocodeService->bulkCreate($validated + ['batch_id' => $request->input('batch_id')]);
 
         return redirect()->route('admin.promocodes.index')->with('success', "Создано {$created} промокодов в партии.");
     }

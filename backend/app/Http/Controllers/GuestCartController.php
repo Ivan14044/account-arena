@@ -98,47 +98,14 @@ class GuestCartController extends Controller
     {
         $purchaseService = app(ProductPurchaseService::class);
         
-        DB::transaction(function () use ($guestEmail, $productsData, $purchaseService) {
-            foreach ($productsData as $item) {
-                // ВАЖНО: Блокируем товар для предотвращения race condition
-                $product = ServiceAccount::lockForUpdate()->find($item['product_id']);
-                if (!$product) {
-                    \Illuminate\Support\Facades\Log::error('GuestCartController: Product not found', [
-                        'product_id' => $item['product_id'] ?? null,
-                        'guest_email' => $guestEmail,
-                    ]);
-                    throw new \Exception("Product not found: {$item['product_id']}");
-                }
-
-                // ВАЖНО: Проверяем наличие товара перед созданием покупки
-                $available = $product->getAvailableStock();
-                if ($available < $item['quantity']) {
-                    \Illuminate\Support\Facades\Log::error('GuestCartController: Insufficient stock', [
-                        'product_id' => $product->id,
-                        'product_title' => $product->title,
-                        'requested' => $item['quantity'],
-                        'available' => $available,
-                        'guest_email' => $guestEmail,
-                    ]);
-                    throw new \Exception("Insufficient stock for product {$product->id}. Available: {$available}, requested: {$item['quantity']}");
-                }
-
-                $quantity = $item['quantity'];
-                $price = $item['price'];
-                $total = $item['total'];
-                
-                // Создаем покупку используя сервис
-                $purchaseService->createProductPurchase(
-                    $product,
-                    $quantity,
-                    $price,
-                    $total,
-                    null, // user_id = null для гостевых покупок
-                    $guestEmail,
-                    'guest_purchase'
-                );
-            }
-        });
+        // Используем массовое создание покупок из сервиса
+        // Это обеспечит атомарность, уведомления и инвалидацию кеша
+        return $purchaseService->createMultiplePurchases(
+            $productsData, 
+            null, // userId = null для гостей
+            $guestEmail, 
+            'guest_purchase'
+        );
     }
 }
 

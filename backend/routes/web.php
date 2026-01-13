@@ -70,7 +70,6 @@ Route::prefix('/admin')
             Route::resource('product-categories', ProductCategoryController::class)->except(['show']);
             Route::resource('product-subcategories', ProductSubcategoryController::class)->except(['show']);
             Route::resource('article-categories', ArticleCategoryController::class)->except(['show']);
-            Route::resource('categories', CategoryController::class)->except(['show']); // For backward compatibility
             Route::resource('banners', BannerController::class)->except(['show']);
             Route::resource('email-templates', EmailTemplateController::class);
             Route::post('email-templates/{email_template}/send-test', [EmailTemplateController::class, 'sendTest'])->name('email-templates.send-test');

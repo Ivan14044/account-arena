@@ -9,6 +9,13 @@ use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
 {
+    protected $userService;
+
+    public function __construct(\App\Services\UserService $userService)
+    {
+        $this->userService = $userService;
+    }
+
     public function index()
     {
         $users = User::where('is_admin', false)
@@ -30,84 +37,42 @@ class UserController extends Controller
             'password' => 'required|min:6',
         ]);
 
-        User::create([
-            'name' => explode('@', $request->email)[0], // Use email prefix as name
-            'email' => $request->email,
-            'is_blocked' => 0,
-            'password' => Hash::make($request->password),
-            'is_pending' => 0,
-        ]);
+        $this->userService->createUser($validated);
 
         return redirect()->route('admin.users.index')->with('success', 'Пользователь успешно создан.');
     }
 
     public function edit(User $user)
     {
-        // ИСПРАВЛЕНО: Загружаем покупки товаров вместо подписок
-        $purchases = $user->purchases()
-            ->with(['serviceAccount', 'transaction'])
-            ->orderByDesc('created_at')
-            ->get();
+        // Используем сервис для получения истории покупок
+        $purchases = $this->userService->getPurchaseHistory($user);
 
         return view('admin.users.edit', compact('user', 'purchases'));
     }
 
-public function update(Request $request, User $user)
-{
-    $request->validate([
-        'name' => 'required|string|max:255',
-        'email' => 'required|email|unique:users,email,' . $user->id,
-        'is_blocked' => 'required',
-        'password' => 'nullable|min:6|confirmed',
-        'personal_discount' => 'nullable|integer|min:0|max:100',
-        'personal_discount_expires_at' => 'nullable|date',
-        'is_supplier' => 'nullable|boolean',
-        'supplier_balance' => 'nullable|numeric|min:0',
-        'supplier_commission' => 'nullable|numeric|min:0|max:100',
-        'supplier_hold_hours' => 'nullable|integer|min:1|max:8760', // ВАЖНО: min:1, так как 0 часов означает отсутствие холда
-    ]);
+    public function update(Request $request, User $user)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email,' . $user->id,
+            'is_blocked' => 'required',
+            'password' => 'nullable|min:6|confirmed',
+            'personal_discount' => 'nullable|integer|min:0|max:100',
+            'personal_discount_expires_at' => 'nullable|date',
+            'is_supplier' => 'nullable|boolean',
+            'supplier_balance' => 'nullable|numeric|min:0',
+            'supplier_commission' => 'nullable|numeric|min:0|max:100',
+            'supplier_hold_hours' => 'nullable|integer|min:1|max:8760',
+        ]);
 
-    $is_blocked = $request->is_blocked;
-    $is_pending = $user->is_pending;
-    if ($request->is_blocked == 2) {
-        $is_blocked = 0;
-        $is_pending = 1;
-    } elseif ($request->is_blocked == 0) {
-        $is_blocked = 0;
-        $is_pending = 0;
+        $this->userService->updateUser($user, $validated);
+
+        $route = $request->has('save')
+            ? route('admin.users.edit', $user->id)
+            : route('admin.users.index');
+
+        return redirect($route)->with('success', 'Пользователь успешно обновлен.');
     }
-
-    // Подготовим значения для update
-    $updateData = [
-        'name' => $request->name,
-        'email' => $request->email,
-        'is_blocked' => $is_blocked,
-        'is_pending' => $is_pending,
-        'password' => $request->password ? Hash::make($request->password) : $user->password,
-        'personal_discount' => $request->personal_discount ?? 0,
-        'personal_discount_expires_at' => $request->personal_discount_expires_at,
-        'is_supplier' => $request->boolean('is_supplier', false),
-        'supplier_balance' => $request->input('supplier_balance', 0),
-        'supplier_commission' => $request->input('supplier_commission', 10),
-    ];
-
-    // Сохраняем supplier_hold_hours корректно:
-    if ($request->filled('supplier_hold_hours')) {
-        $updateData['supplier_hold_hours'] = (int) $request->input('supplier_hold_hours');
-    } else {
-        // если поле не передано (например, форма не отправила), оставляем текущее значение в БД,
-        // но если в БД оно было null — ставим дефолт 6
-        $updateData['supplier_hold_hours'] = $user->supplier_hold_hours ?? 6;
-    }
-
-    $user->update($updateData);
-
-    $route = $request->has('save')
-        ? route('admin.users.edit', $user->id)
-        : route('admin.users.index');
-
-    return redirect($route)->with('success', 'Пользователь успешно обновлен.');
-}
 
 
     public function destroy(User $user)

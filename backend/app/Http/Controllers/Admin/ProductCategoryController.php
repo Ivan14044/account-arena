@@ -4,18 +4,23 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Category;
+use App\Services\CategoryService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
 class ProductCategoryController extends Controller
 {
+    protected $categoryService;
+
+    public function __construct(CategoryService $categoryService)
+    {
+        $this->categoryService = $categoryService;
+    }
+
     public function index()
     {
-        // Получаем только родительские категории (без подкатегорий) с их подкатегориями
-        $categories = Category::productCategories()
-            ->parentCategories()
-            ->with(['translations', 'children.translations'])
-            ->get();
+        // Используем сервис для получения категорий
+        $categories = $this->categoryService->getCategories(Category::TYPE_PRODUCT);
 
         return view('admin.product-categories.index', compact('categories'));
     }
@@ -35,24 +40,14 @@ class ProductCategoryController extends Controller
 
         $data = [
             'type' => Category::TYPE_PRODUCT,
-            'parent_id' => null, // Категории товаров всегда родительские
+            'parent_id' => null,
         ];
         
-        // Handle image upload
         if ($request->hasFile('image')) {
-            $path = $request->file('image')->store('categories', 'public');
-            // Получаем URL и преобразуем в абсолютный, если нужно
-            $imageUrl = Storage::disk('public')->url($path);
-            // Если URL относительный, преобразуем в абсолютный
-            if (!str_starts_with($imageUrl, 'http')) {
-                $imageUrl = url($imageUrl);
-            }
-            $data['image_url'] = $imageUrl;
+            $data['image_url'] = $request->file('image')->store('categories', 'public');
         }
 
-        $category = Category::create($data);
-
-        $category->saveTranslation($validated);
+        $this->categoryService->saveCategory($data, $validated);
 
         return redirect()->route('admin.product-categories.index')->with('success', 'Категория товаров успешно создана.');
     }
@@ -61,7 +56,7 @@ class ProductCategoryController extends Controller
     {
         $category = Category::where('id', $product_category)
             ->where('type', Category::TYPE_PRODUCT)
-            ->whereNull('parent_id') // Редактируем только родительские категории
+            ->whereNull('parent_id')
             ->firstOrFail();
         
         $validated = $request->validate(
@@ -70,20 +65,12 @@ class ProductCategoryController extends Controller
             getTransAttributes(['name', 'meta_title', 'meta_description', 'text'])
         );
 
-        // Handle image upload
+        $data = [];
         if ($request->hasFile('image')) {
-            $path = $request->file('image')->store('categories', 'public');
-            // Получаем URL и преобразуем в абсолютный, если нужно
-            $imageUrl = Storage::disk('public')->url($path);
-            // Если URL относительный, преобразуем в абсолютный
-            if (!str_starts_with($imageUrl, 'http')) {
-                $imageUrl = url($imageUrl);
-            }
-            $category->image_url = $imageUrl;
-            $category->save();
+            $data['image_url'] = $request->file('image')->store('categories', 'public');
         }
 
-        $category->saveTranslation($validated);
+        $this->categoryService->saveCategory($data, $validated, $category);
 
         $route = $request->has('save')
             ? route('admin.product-categories.edit', $category->id)
@@ -96,11 +83,10 @@ class ProductCategoryController extends Controller
     {
         $category = Category::where('id', $product_category)
             ->where('type', Category::TYPE_PRODUCT)
-            ->whereNull('parent_id') // Редактируем только родительские категории
+            ->whereNull('parent_id')
+            ->with('translations')
             ->firstOrFail();
         
-        $category->load('translations');
-
         $categoryData = $category->translations
             ->groupBy('locale')
             ->map(function ($translations) {
@@ -119,13 +105,10 @@ class ProductCategoryController extends Controller
     {
         $category = Category::where('id', $product_category)
             ->where('type', Category::TYPE_PRODUCT)
-            ->whereNull('parent_id') // Удаляем только родительские категории
+            ->whereNull('parent_id')
             ->firstOrFail();
         
-        // Detach products before deleting
-        $category->products()->update(['category_id' => null]);
-        // Подкатегории удалятся автоматически через каскадное удаление
-        $category->delete();
+        $this->categoryService->deleteCategory($category);
 
         return redirect()->route('admin.product-categories.index')->with('success', 'Категория товаров успешно удалена.');
     }
@@ -141,13 +124,9 @@ class ProductCategoryController extends Controller
             $rules['text.' . $lang] = ['nullable', 'string'];
         }
 
-        // require at least one language name
         $rules['name'] = ['array', 'required_without_all:' . implode(',', array_map(fn($l) => 'name.' . $l, array_keys(config('langs'))))];
-        
-        // Image upload rules
         $rules['image'] = ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,webp', 'max:2048'];
 
         return $rules;
     }
 }
-

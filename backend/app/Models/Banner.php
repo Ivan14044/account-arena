@@ -31,6 +31,19 @@ class Banner extends Model
         'order' => 'integer',
     ];
 
+    public function getImageUrlAttribute($value)
+    {
+        if (!$value) {
+            return null;
+        }
+
+        if (str_starts_with($value, 'http')) {
+            return $value;
+        }
+
+        return \Illuminate\Support\Facades\Storage::disk('public')->url($value);
+    }
+
     /**
      * Scope to get only active banners
      */

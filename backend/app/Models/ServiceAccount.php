@@ -11,6 +11,19 @@ class ServiceAccount extends Model
 {
     use HasFactory;
 
+    public function getImageUrlAttribute($value)
+    {
+        if (!$value) {
+            return null;
+        }
+
+        if (str_starts_with($value, 'http')) {
+            return $value;
+        }
+
+        return \Illuminate\Support\Facades\Storage::disk('public')->url($value);
+    }
+
     /**
      * Boot метод для автоматической генерации артикула
      */

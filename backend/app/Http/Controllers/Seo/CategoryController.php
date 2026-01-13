@@ -4,11 +4,19 @@ namespace App\Http\Controllers\Seo;
 
 use App\Http\Controllers\Controller;
 use App\Models\Category;
+use App\Services\CategoryService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
 class CategoryController extends Controller
 {
+    protected $categoryService;
+
+    public function __construct(CategoryService $categoryService)
+    {
+        $this->categoryService = $categoryService;
+    }
+
     /**
      * Показать страницу категории с SEO-контентом
      */
@@ -16,14 +24,9 @@ class CategoryController extends Controller
     {
         $locale = app()->getLocale();
         
-        $category = Category::with([
-            'translations',
-            'parent.translations',
-            'children.translations'
-        ])->find($id);
-        
-        // Если категория не найдена, возвращаем 404
-        if (!$category) {
+        try {
+            $category = $this->categoryService->getCategoryForPublic($id, $locale);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             abort(404);
         }
         
@@ -71,7 +74,7 @@ class CategoryController extends Controller
         $alternateUrls = $this->getAlternateUrls('seo.category', ['id' => $id]);
         
         // Breadcrumbs
-        $breadcrumbs = $this->getBreadcrumbs($category, $locale);
+        $breadcrumbs = $this->categoryService->getBreadcrumbs($category, $locale);
         
         // Структурированные данные
         $structuredData = $this->getCategoryStructuredData($category, $name, $seoText, $locale);
@@ -104,48 +107,10 @@ class CategoryController extends Controller
         $url = $baseUrl . route($routeName, $params, false);
         
         foreach ($locales as $loc) {
-            // Добавляем параметр языка к URL
             $alternateUrls[$loc] = $url . '?lang=' . $loc;
         }
         
         return $alternateUrls;
-    }
-    
-    /**
-     * Получить breadcrumbs для категории (с поддержкой вложенных категорий)
-     */
-    private function getBreadcrumbs(Category $category, string $locale): array
-    {
-        $breadcrumbs = [
-            [
-                'name' => __('Home', [], $locale),
-                'url' => url('/')
-            ]
-        ];
-        
-        // Рекурсивно добавляем всех родителей
-        $parents = [];
-        $parent = $category->parent;
-        while ($parent) {
-            array_unshift($parents, $parent);
-            $parent = $parent->parent;
-        }
-        
-        // Добавляем всех родителей в breadcrumbs
-        foreach ($parents as $parent) {
-            $breadcrumbs[] = [
-                'name' => $parent->translate('name', $locale),
-                'url' => route('seo.category', ['id' => $parent->id])
-            ];
-        }
-        
-        // Добавляем текущую категорию
-        $breadcrumbs[] = [
-            'name' => $category->translate('name', $locale),
-            'url' => url()->current()
-        ];
-        
-        return $breadcrumbs;
     }
     
     /**
