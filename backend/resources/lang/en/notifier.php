@@ -11,4 +11,15 @@ return array(
 
     'new_product_purchase_title' => 'New purchase (:method)',
     'new_product_purchase_message' => 'New purchase (:method), email: :email, name: :name, products: :products, amount: :amount',
+
+    'types' => [
+        'product_purchase' => 'Product Purchase',
+        'balance_topup' => 'Balance Top-up',
+        'manual_delivery' => 'Manual Delivery',
+        'manual_delivery_new_order' => 'New Order (Manual)',
+        'dispute_created' => 'Product Dispute',
+        'support_chat' => 'Support Chat',
+        'new_user' => 'New User',
+        'system' => 'System',
+    ],
 );

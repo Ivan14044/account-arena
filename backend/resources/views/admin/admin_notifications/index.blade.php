@@ -53,12 +53,12 @@
                             </td>
                             <td class="align-middle text-nowrap">
                                 <span class="badge badge-info badge-modern px-2 py-1">
-                                    <i class="fas fa-info-circle mr-1"></i>{{ $notification->type }}
+                                    <i class="fas fa-info-circle mr-1"></i>{{ __('notifier.types.' . $notification->type) != 'notifier.types.' . $notification->type ? __('notifier.types.' . $notification->type) : $notification->type }}
                                 </span>
                             </td>
                             <td class="align-middle">
-                                <div class="font-weight-bold text-dark">{{ $notification->title }}</div>
-                                <div class="text-muted small mt-1">{{ $notification->message }}</div>
+                                <div class="font-weight-bold text-dark">{{ __($notification->title) }}</div>
+                                <div class="text-muted small mt-1">{{ __($notification->message) }}</div>
                             </td>
                             <td class="text-center align-middle">
                                 @if($notification->read)

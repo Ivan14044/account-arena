@@ -11,5 +11,15 @@ return array(
 
     'new_product_purchase_title' => 'Нова покупка (:method)',
     'new_product_purchase_message' => 'Нова покупка (:method), email: :email, ім\'я: :name, товарів: :products, сума: :amount',
-);
 
+    'types' => [
+        'product_purchase' => 'Покупка товару',
+        'balance_topup' => 'Поповнення балансу',
+        'manual_delivery' => 'Ручна видача',
+        'manual_delivery_new_order' => 'Нове замовлення (ручна)',
+        'dispute_created' => 'Спір по товару',
+        'support_chat' => 'Чат підтримки',
+        'new_user' => 'Новий користувач',
+        'system' => 'Система',
+    ],
+);
