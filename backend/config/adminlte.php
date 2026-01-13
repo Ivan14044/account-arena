@@ -468,26 +468,6 @@ return [
             ]
         ],
         [
-            'text' => 'Претензии на товары',
-            'active' => ['admin/disputes*'],
-            'can' => 'admin-only',
-            'url' => 'admin/disputes',
-            'icon' => 'fas fa-fw mr-1 fa-exclamation-triangle',
-            'label' => '',
-            'label_color' => 'secondary',
-            'id' => 'disputes-unread-count',
-        ],
-        [
-            'text' => 'Чат поддержки',
-            'active' => ['admin/support-chats*'],
-            'can' => 'admin-only',
-            'url' => 'admin/support-chats',
-            'label' => '',
-            'label_color' => 'secondary',
-            'icon' => 'fas fa-fw mr-1 fa-comments',
-            'id' => 'support-chats-unread-count',
-        ],
-        [
             'text' => 'Поставщики',
             'icon' => 'fas fa-fw mr-1 fa-user-tie',
             'can' => 'admin-only',
