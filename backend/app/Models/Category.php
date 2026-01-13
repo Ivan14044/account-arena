@@ -120,17 +120,6 @@ class Category extends Model
         return $storage->url($value);
     }
 
-    /**
-     * Получить оригинальное значение image_url без аксессора
-     */
-    public function getRawOriginal($key = null)
-    {
-        if ($key === null) {
-            return $this->getOriginal();
-        }
-        return $this->getOriginal($key);
-    }
-
     public function translations()
     {
         return $this->hasMany(CategoryTranslation::class);
