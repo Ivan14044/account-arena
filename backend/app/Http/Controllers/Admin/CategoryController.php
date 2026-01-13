@@ -41,8 +41,10 @@ class CategoryController extends Controller
         return redirect()->route('admin.categories.index', ['type' => $type])->with('success', 'Категория успешно создана.');
     }
 
-    public function update(Request $request, Category $category)
+    public function update(Request $request, $category)
     {
+        $category = Category::findOrFail($category);
+
         $validated = $request->validate(
             $this->getRules($category->id),
             [],
@@ -60,8 +62,9 @@ class CategoryController extends Controller
         return redirect($route)->with('success', 'Категория успешно обновлена.');
     }
 
-    public function edit(Category $category)
+    public function edit($category)
     {
+        $category = Category::findOrFail($category);
         $category->load('translations');
 
         $categoryData = $category->translations
@@ -78,8 +81,9 @@ class CategoryController extends Controller
         return view('admin.categories.edit', compact('category', 'categoryData'));
     }
 
-    public function destroy(Request $request, Category $category)
+    public function destroy(Request $request, $category)
     {
+        $category = Category::findOrFail($category);
         $type = $category->type ?? 'article';
         
         $category->articles()->detach();

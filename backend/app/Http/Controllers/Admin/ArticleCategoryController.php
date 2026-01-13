@@ -35,8 +35,12 @@ class ArticleCategoryController extends Controller
         return redirect()->route('admin.article-categories.index')->with('success', 'Категория статей успешно создана.');
     }
 
-    public function update(Request $request, Category $category)
+    public function update(Request $request, $article_category)
     {
+        $category = Category::where('id', $article_category)
+            ->articleCategories()
+            ->firstOrFail();
+
         $validated = $request->validate(
             $this->getRules($category->id),
             [],
@@ -52,8 +56,12 @@ class ArticleCategoryController extends Controller
         return redirect($route)->with('success', 'Категория статей успешно обновлена.');
     }
 
-    public function edit(Category $category)
+    public function edit($article_category)
     {
+        $category = Category::where('id', $article_category)
+            ->articleCategories()
+            ->firstOrFail();
+
         $category->load('translations');
 
         $categoryData = $category->translations
@@ -70,8 +78,12 @@ class ArticleCategoryController extends Controller
         return view('admin.article-categories.edit', compact('category', 'categoryData'));
     }
 
-    public function destroy(Category $category)
+    public function destroy($article_category)
     {
+        $category = Category::where('id', $article_category)
+            ->articleCategories()
+            ->firstOrFail();
+
         $category->articles()->detach();
         $category->delete();
 
