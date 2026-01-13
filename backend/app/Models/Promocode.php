@@ -53,6 +53,23 @@ class Promocode extends Model
 
         return true;
     }
+
+    /**
+     * Проверка возможности использования промокода конкретным пользователем
+     */
+    public function canUserUse(?User $user): bool
+    {
+        if (!$user) {
+            return true; // Для гостей ограничение per_user_limit не применяется здесь (обычно через сессии или IP в другом месте)
+        }
+
+        $usageCount = \Illuminate\Support\Facades\DB::table('promocode_usages')
+            ->where('promocode_id', $this->id)
+            ->where('user_id', $user->id)
+            ->count();
+
+        return $usageCount < ($this->per_user_limit ?: 1);
+    }
 }
 
 

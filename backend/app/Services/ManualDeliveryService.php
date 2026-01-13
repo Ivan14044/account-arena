@@ -59,7 +59,7 @@ class ManualDeliveryService
         }
 
         try {
-            return DB::transaction(function () use ($purchase, $admin, $accountData, $notes) {
+            $result = DB::transaction(function () use ($purchase, $admin, $accountData, $notes) {
                 // КРИТИЧНО: Блокируем заказ для обновления (защита от race condition)
                 $purchase = Purchase::lockForUpdate()->findOrFail($purchase->id);
                 
@@ -78,10 +78,6 @@ class ManualDeliveryService
             $availableStock = $product->getAvailableStock();
             
             if ($availableStock < $purchase->quantity) {
-                // Уведомляем клиента и менеджера об отсутствии товара
-                $this->notifyUserAboutOutOfStock($purchase);
-                $this->notifyAdminAboutOutOfStock($purchase);
-                
                 // Переводим заказ в статус ожидания товара вместо исключения
                 $purchase->update([
                     'is_waiting_stock' => true,
@@ -104,7 +100,6 @@ class ManualDeliveryService
                     ]
                 );
                 
-                // Возвращаем заказ в статусе ожидания
                 return $purchase->fresh();
             }
             
@@ -170,11 +165,18 @@ class ManualDeliveryService
                 'available_stock_before' => $availableStock,
             ]);
 
-            // Отправляем уведомление пользователю
-            $this->notifyUserAboutDelivery($purchase);
-
             return $purchase->fresh();
             });
+
+            // ВАЖНО: Уведомления вынесены за пределы транзакции
+            if ($result->status === Purchase::STATUS_COMPLETED) {
+                $this->notifyUserAboutDelivery($result);
+            } elseif ($result->is_waiting_stock) {
+                $this->notifyUserAboutOutOfStock($result);
+                $this->notifyAdminAboutOutOfStock($result);
+            }
+
+            return $result;
         } catch (\Throwable $e) {
             // Записываем ошибку в processing_error
             $purchase->update([

@@ -69,10 +69,12 @@ class UserController extends Controller
             'personal_discount' => 'nullable|integer|min:0|max:100',
             'personal_discount_expires_at' => 'nullable|date',
             'is_supplier' => 'nullable|boolean',
-            'supplier_balance' => 'nullable|numeric|min:0',
             'supplier_commission' => 'nullable|numeric|min:0|max:100',
             'supplier_hold_hours' => 'nullable|integer|min:1|max:8760',
         ]);
+
+        // ВАЖНО: supplier_balance удален из общего обновления для предотвращения случайной перезаписи.
+        // Он должен изменяться только через специальные финансовые операции или корректировки.
 
         $this->userService->updateUser($user, $validated);
 

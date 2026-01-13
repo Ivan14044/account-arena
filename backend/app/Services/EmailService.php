@@ -108,6 +108,7 @@ class EmailService
         $encryption = Option::get('smtp_encryption');
         $username = Option::get('smtp_username');
         $password = Option::get('smtp_password');
+        $verifyPeer = Option::get('smtp_verify_peer', true); // Default to true for security
 
         // ВАЖНО: Попытка расшифровать пароль. Если он не зашифрован (старый формат), используем как есть.
         if (!empty($password)) {
@@ -135,6 +136,7 @@ class EmailService
             'port' => $port,
             'encryption' => $encryption ?? 'null (no encryption)',
             'username' => $username,
+            'verify_peer' => $verifyPeer,
         ]);
 
         Config::set('mail.mailers.dynamic', [
@@ -145,7 +147,7 @@ class EmailService
             'username' => $username,
             'password' => $password,
             'timeout' => 30,
-            'verify_peer' => false, // Some SMTP servers have SSL issues
+            'verify_peer' => (bool)$verifyPeer,
         ]);
 
         Config::set('mail.default', 'dynamic');

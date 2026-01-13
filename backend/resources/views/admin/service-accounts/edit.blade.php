@@ -470,7 +470,11 @@
                             </div>
 
                             <div class="d-flex justify-content-between mb-2">
-                                <button type="button" class="btn btn-success" onclick="exportAccounts()">
+                                <form action="{{ route('admin.service-accounts.export', $serviceAccount) }}" method="POST" id="exportForm" style="display: none;">
+                                    @csrf
+                                    <input type="hidden" name="count" id="exportCountInput">
+                                </form>
+                                <button type="button" class="btn btn-success" onclick="serverExportAccounts()">
                                     <i class="fas fa-download"></i> 
                                 </button>
                                 <button type="button" class="btn btn-info" onclick="$('#importModal').modal('show')">
@@ -800,16 +804,15 @@
             alert('Строки перемешаны случайным образом');
         }
 
-        // Export accounts to file
-        function exportAccounts() {
-            const textarea = document.getElementById('accounts_data');
-            if (!textarea || !textarea.value.trim()) {
-                alert('Нет данных для выгрузки');
+        // Export accounts via server to sync used count
+        function serverExportAccounts() {
+            const totalAvailable = {{ count($availableAccounts) }};
+            if (totalAvailable === 0) {
+                alert('Нет доступных товаров для выгрузки');
                 return;
             }
 
-            const lines = textarea.value.split('\n').filter(line => line.trim() !== '');
-            const countStr = prompt('Сколько товаров выгрузить? (всего: ' + lines.length + ')', lines.length);
+            const countStr = prompt('Сколько товаров выгрузить? (доступно: ' + totalAvailable + ')', totalAvailable);
             
             if (countStr === null) return; // User cancelled
             
@@ -819,18 +822,15 @@
                 return;
             }
 
-            const exportLines = lines.slice(0, Math.min(count, lines.length));
-            const data = exportLines.join('\n');
-            
-            const blob = new Blob([data], { type: 'text/plain' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'product_{{ $serviceAccount->id }}_' + new Date().toISOString().split('T')[0] + '.txt';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
+            if (count > totalAvailable) {
+                alert('Нельзя выгрузить больше, чем доступно (' + totalAvailable + ')');
+                return;
+            }
+
+            if (confirm('ВНИМАНИЕ: После выгрузки эти ' + count + ' товаров будут отмечены как ПРОДАННЫЕ в базе данных. Продолжить?')) {
+                document.getElementById('exportCountInput').value = count;
+                document.getElementById('exportForm').submit();
+            }
         }
 
         // Import accounts from modal

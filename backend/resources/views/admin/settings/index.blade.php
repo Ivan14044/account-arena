@@ -162,7 +162,23 @@
                             @enderror
                         </div>
 
+                        <div class="form-group">
+                            <div class="custom-control custom-switch">
+                                <input type="checkbox" class="custom-control-input" id="smtp_verify_peer"
+                                    name="smtp_verify_peer" value="1" {{ old('smtp_verify_peer', \App\Models\Option::get('smtp_verify_peer', true)) ? 'checked' : '' }}>
+                                <label class="custom-control-label" for="smtp_verify_peer">
+                                    Проверять SSL-сертификат (Verify Peer)
+                                </label>
+                            </div>
+                            <small class="form-text text-muted">
+                                Рекомендуется оставить включенным. Отключайте только если у вашего SMTP-сервера есть проблемы с SSL-сертификатами.
+                            </small>
+                        </div>
+
                         <button type="submit" class="btn btn-primary mt-3">Save</button>
+                        <button type="button" class="btn btn-info mt-3 ml-2" id="test-smtp-btn">
+                            <i class="fas fa-paper-plane mr-2"></i>Отправить тестовое письмо
+                        </button>
                     </form>
                 </div>
 
@@ -359,6 +375,16 @@
                                     <small class="text-muted">Уведомления о новых заказах, требующих ручной обработки</small>
                                 </label>
                             </div>
+
+                            <div class="form-check mb-3">
+                                <input type="checkbox" class="form-check-input" id="low_stock_enabled"
+                                    name="low_stock_enabled" value="1" {{ ($notificationSettings->low_stock_enabled ?? true) ? 'checked' : '' }}>
+                                <label class="form-check-label" for="low_stock_enabled">
+                                    <strong>Низкий остаток товара</strong>
+                                    <br>
+                                    <small class="text-muted">Уведомления когда количество товара становится меньше 5 шт.</small>
+                                </label>
+                            </div>
                         </div>
 
                         <hr>
@@ -450,4 +476,44 @@
 
 @section('css')
     @include('admin.layouts.modern-styles')
+@endsection
+
+@section('js')
+<script>
+$(document).ready(function() {
+    // Активация вкладки из сессии (после редиректа)
+    @if(session('active_tab'))
+        $('.nav-tabs-modern a[href="#content_{{ session('active_tab') }}"]').tab('show');
+    @endif
+
+    // Тестирование SMTP
+    $('#test-smtp-btn').on('click', function() {
+        const btn = $(this);
+        const originalHtml = btn.html();
+        
+        btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-2"></i>Отправка...');
+        
+        $.ajax({
+            url: '{{ route("admin.settings.test-smtp") }}',
+            method: 'POST',
+            data: {
+                _token: '{{ csrf_token() }}'
+            },
+            success: function(response) {
+                if (response.success) {
+                    toastr.success(response.message);
+                } else {
+                    toastr.error(response.message);
+                }
+            },
+            error: function(xhr) {
+                toastr.error('Ошибка при выполнении теста: ' . (xhr.responseJSON ? xhr.responseJSON.message : 'Неизвестная ошибка'));
+            },
+            complete: function() {
+                btn.prop('disabled', false).html(originalHtml);
+            }
+        });
+    });
+});
+</script>
 @endsection

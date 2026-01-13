@@ -54,13 +54,31 @@ class SettingController extends Controller
 
         \Illuminate\Support\Facades\DB::transaction(function () use ($request, $validated) {
             foreach ($validated as $key => $value) {
-                // Шифруем чувствительные данные
-                if (in_array($key, ['smtp_password', 'telegram_bot_token']) && !empty($value)) {
-                    $value = encrypt($value);
+                // Шифруем чувствительные данные только если они изменились или еще не зашифрованы
+                if (in_array($key, ['smtp_password', 'telegram_bot_token'])) {
+                    if (!empty($value)) {
+                        $currentValue = Option::get($key, '');
+                        $decryptedCurrent = '';
+                        
+                        if (!empty($currentValue)) {
+                            try {
+                                $decryptedCurrent = decrypt($currentValue);
+                            } catch (\Exception $e) {
+                                // Not encrypted
+                            }
+                        }
+
+                        // Если значение изменилось, шифруем и сохраняем
+                        if ($value !== $decryptedCurrent) {
+                            $value = encrypt($value);
+                            Option::set($key, $value);
+                        }
+                    }
+                    continue; // Переходим к следующему полю, так как мы уже обработали это
                 }
 
                 // Для checkbox полей нужно сохранять даже если они false
-                if (in_array($key, ['support_chat_enabled', 'support_chat_greeting_enabled'])) {
+                if (in_array($key, ['support_chat_enabled', 'support_chat_greeting_enabled', 'smtp_verify_peer'])) {
                     Option::set($key, $request->has($key) ? true : false);
                 } elseif (!empty($value) || $value === '0' || $value === 0) {
                     Option::set($key, $value);
@@ -95,6 +113,7 @@ class SettingController extends Controller
                     'topup_enabled' => $request->has('topup_enabled'),
                     'support_chat_enabled' => $request->has('support_chat_enabled'),
                     'manual_delivery_enabled' => $request->has('manual_delivery_enabled'),
+                    'low_stock_enabled' => $request->has('low_stock_enabled'),
                     'sound_enabled' => $request->has('sound_enabled'),
                 ]);
             }
@@ -218,6 +237,7 @@ class SettingController extends Controller
                 'smtp_encryption' => ['nullable', 'string', 'in:tls,ssl'], // Can be empty for no encryption
                 'smtp_username' => ['required', 'string'],
                 'smtp_password' => ['required', 'string'],
+                'smtp_verify_peer' => ['nullable', 'boolean'],
             ],
             'support_chat' => [
                 'support_chat_enabled' => ['nullable', 'boolean'],
@@ -232,6 +252,7 @@ class SettingController extends Controller
                 'topup_enabled' => ['nullable', 'boolean'],
                 'support_chat_enabled' => ['nullable', 'boolean'],
                 'manual_delivery_enabled' => ['nullable', 'boolean'],
+                'low_stock_enabled' => ['nullable', 'boolean'],
                 'sound_enabled' => ['nullable', 'boolean'],
             ],
             'telegram' => [

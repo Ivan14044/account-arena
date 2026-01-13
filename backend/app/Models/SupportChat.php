@@ -170,4 +170,14 @@ class SupportChat extends Model
         \Illuminate\Support\Facades\Cache::forget("chat_unread_count_{$this->id}");
         \Illuminate\Support\Facades\Cache::forget('support_chats_unread_count');
     }
+
+    /**
+     * Получить общий размер всех вложений в чате (в байтах)
+     */
+    public function getTotalAttachmentsSize(): int
+    {
+        return SupportMessageAttachment::whereHas('message', function($query) {
+            $query->where('support_chat_id', $this->id);
+        })->sum('file_size');
+    }
 }

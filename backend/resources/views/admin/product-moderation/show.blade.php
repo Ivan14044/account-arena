@@ -108,24 +108,66 @@
                 </div>
             </div>
 
+            {{-- Результаты валидации данных --}}
+            <div class="card mt-3">
+                <div class="card-header bg-light">
+                    <h3 class="card-title">Результаты автоматической проверки</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-4">
+                            <h4 class="text-primary">{{ $stats['total'] }}</h4>
+                            <span>Всего строк</span>
+                        </div>
+                        <div class="col-md-4">
+                            <h4 class="text-success">{{ $stats['valid'] }}</h4>
+                            <span>Валидных строк</span>
+                        </div>
+                        <div class="col-md-4">
+                            <h4 class="text-danger">{{ $stats['invalid'] }}</h4>
+                            <span>Ошибок формата</span>
+                        </div>
+                    </div>
+
+                    @if($stats['invalid'] > 0)
+                        <div class="alert alert-warning mt-3 mb-0">
+                            <i class="fas fa-exclamation-triangle mr-2"></i>
+                            <strong>Обнаружены проблемы в данных:</strong>
+                            <ul class="mt-2 mb-0 pl-4">
+                                @foreach($stats['errors'] as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                                @if(count($stats['errors']) >= 10)
+                                    <li>... и еще {{ $stats['invalid'] - 10 }} ошибок</li>
+                                @endif
+                            </ul>
+                        </div>
+                    @else
+                        <div class="alert alert-success mt-3 mb-0">
+                            <i class="fas fa-check-circle mr-2"></i> Все данные прошли базовую проверку формата.
+                        </div>
+                    @endif
+                </div>
+            </div>
+
             {{-- Предпросмотр аккаунтов --}}
             @if($totalAccounts > 0)
                 <div class="card mt-3">
                     <div class="card-header">
-                        <h3 class="card-title">Предпросмотр аккаунтов ({{ min(10, $totalAccounts) }} из {{ $totalAccounts }})</h3>
+                        <h3 class="card-title">Предпросмотр данных ({{ min(50, $totalAccounts) }} из {{ $totalAccounts }})</h3>
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">
                             <table class="table table-sm table-bordered">
                                 <thead>
                                     <tr>
-                                        <th>#</th>
-                                        <th>Аккаунт</th>
+                                        <th style="width: 50px">#</th>
+                                        <th>Данные аккаунта (Логин:Пароль)</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     @foreach($previewAccounts as $index => $account)
-                                        <tr>
+                                        <tr class="{{ !preg_match('/[:;|]/', $account) ? 'table-danger' : '' }}">
                                             <td>{{ $index + 1 }}</td>
                                             <td><code>{{ $account }}</code></td>
                                         </tr>
@@ -133,9 +175,9 @@
                                 </tbody>
                             </table>
                         </div>
-                        @if($totalAccounts > 10)
+                        @if($totalAccounts > 50)
                             <p class="text-muted mb-0">
-                                <small>Показаны первые 10 аккаунтов из {{ $totalAccounts }}. Остальные будут доступны после одобрения товара.</small>
+                                <small>Показаны первые 50 строк. Полная проверка проведена для всех {{ $totalAccounts }} строк.</small>
                             </p>
                         @endif
                     </div>

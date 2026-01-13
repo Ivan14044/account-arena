@@ -47,13 +47,14 @@ class AdminController extends Controller
 
         $validated = $request->validate($this->getRules());
 
-        User::create([
+        $admin = new User([
             'name' => $validated['name'],
             'email' => $validated['email'],
             'is_blocked' => $validated['is_blocked'],
-            'is_admin' => true,
             'password' => Hash::make($validated['password']),
         ]);
+        $admin->is_admin = true;
+        $admin->save();
 
         return redirect()->route('admin.admins.index')->with('success', 'Administrator successfully created.');
     }

@@ -52,7 +52,7 @@
                     </div>
                     <div class="stat-content">
                         <div class="stat-label">Всего товаров</div>
-                        <div class="stat-value">{{ $serviceAccounts->count() }}</div>
+                        <div class="stat-value">{{ \App\Models\ServiceAccount::count() }}</div>
                     </div>
                 </div>
             </div>
@@ -66,7 +66,7 @@
                     </div>
                     <div class="stat-content">
                         <div class="stat-label">Активные</div>
-                        <div class="stat-value">{{ $serviceAccounts->where('is_active', true)->count() }}</div>
+                        <div class="stat-value">{{ \App\Models\ServiceAccount::where('is_active', true)->count() }}</div>
                     </div>
                 </div>
             </div>
@@ -80,7 +80,7 @@
                     </div>
                     <div class="stat-content">
                         <div class="stat-label">Продано</div>
-                        <div class="stat-value">{{ $serviceAccounts->sum('used') }}</div>
+                        <div class="stat-value">{{ \App\Models\ServiceAccount::sum('used') }}</div>
                     </div>
                 </div>
             </div>
@@ -94,7 +94,7 @@
                     </div>
                     <div class="stat-content">
                         <div class="stat-label">Общая стоимость</div>
-                        <div class="stat-value">${{ number_format($serviceAccounts->sum('price'), 0) }}</div>
+                        <div class="stat-value">${{ number_format(\App\Models\ServiceAccount::sum('price'), 0) }}</div>
                     </div>
                 </div>
             </div>
@@ -121,7 +121,7 @@
                     <div class="btn-group btn-group-filter" role="group">
                         <button type="button" class="btn btn-filter active" data-category-id="all" id="filterCategoryAll">
                             Все товары
-                            <span class="badge badge-light ml-2">{{ $serviceAccounts->count() }}</span>
+                            <span class="badge badge-light ml-2">{{ \App\Models\ServiceAccount::count() }}</span>
                         </button>
                     </div>
                     @if($noCategoryCount > 0)
@@ -183,7 +183,7 @@
             <div class="card-header-content">
                 <div class="card-header-title">
                     <h5 class="mb-0">Список товаров</h5>
-                    <small class="text-muted">Всего записей: <span id="totalCount">{{ $serviceAccounts->count() }}</span></small>
+                    <small class="text-muted">Всего записей: <span id="totalCount">{{ $serviceAccounts->total() }}</span></small>
                 </div>
                 <div class="card-header-controls">
                     <div class="filters-container">
@@ -399,6 +399,14 @@
                     </tbody>
                 </table>
             </div>
+
+            @if($serviceAccounts->hasPages())
+                <div class="px-4 py-3 border-top">
+                    <div class="d-flex justify-content-center">
+                        {{ $serviceAccounts->links('pagination::bootstrap-4') }}
+                    </div>
+                </div>
+            @endif
         </div>
     </div>
 
@@ -949,7 +957,8 @@
                 "language": {
                     "url": "//cdn.datatables.net/plug-ins/1.11.5/i18n/ru.json"
                 },
-                "pageLength": 25,
+                "paging": false,
+                "info": false,
                 "columnDefs": [
                     { "orderable": false, "targets": [0, 2, 10] }, // Drag handle, Изображение, Действия
                     { "orderable": true, "targets": [1, 4, 5, 6, 7, 8, 9] } // ID, Категория, Цена, В наличии, Продано, Статус, Дата

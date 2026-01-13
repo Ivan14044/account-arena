@@ -240,6 +240,17 @@ class SupportChatController extends Controller
                 'message' => 'Этот чат закрыт'
             ], 403);
         }
+
+        // ВАЖНО: Проверка общего объема вложений в чате (Storage DOS protection)
+        $currentTotalSize = $chat->getTotalAttachmentsSize();
+        $chatMaxTotalSize = 100 * 1024 * 1024; // 100MB лимит на чат
+        
+        if ($currentTotalSize > $chatMaxTotalSize) {
+             return response()->json([
+                'success' => false,
+                'errors' => ['attachments' => ['Превышен лимит вложений для этого чата. Удалите старые файлы или обратитесь к администратору.']],
+            ], 422);
+        }
         
         if ($user) {
             if ($chat->user_id !== $user->id) {

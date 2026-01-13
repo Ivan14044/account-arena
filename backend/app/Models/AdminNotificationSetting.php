@@ -19,6 +19,7 @@ class AdminNotificationSetting extends Model
         'topup_enabled',
         'support_chat_enabled',
         'manual_delivery_enabled',
+        'low_stock_enabled',
         'sound_enabled',
     ];
 
@@ -30,6 +31,7 @@ class AdminNotificationSetting extends Model
         'topup_enabled' => 'boolean',
         'support_chat_enabled' => 'boolean',
         'manual_delivery_enabled' => 'boolean',
+        'low_stock_enabled' => 'boolean',
         'sound_enabled' => 'boolean',
     ];
 
@@ -56,6 +58,7 @@ class AdminNotificationSetting extends Model
                 'topup_enabled' => true,
                 'support_chat_enabled' => true,
                 'manual_delivery_enabled' => true,
+                'low_stock_enabled' => true,
                 'sound_enabled' => true,
             ]
         );
@@ -66,6 +69,11 @@ class AdminNotificationSetting extends Model
         
         if ($settings->manual_delivery_enabled === null) {
             $updates['manual_delivery_enabled'] = true;
+            $needsUpdate = true;
+        }
+
+        if ($settings->low_stock_enabled === null) {
+            $updates['low_stock_enabled'] = true;
             $needsUpdate = true;
         }
         
@@ -99,6 +107,7 @@ class AdminNotificationSetting extends Model
             'topup' => 'topup_enabled',
             'support_chat' => 'support_chat_enabled',
             'manual_delivery' => 'manual_delivery_enabled',
+            'low_stock' => 'low_stock_enabled',
         ];
 
         return $mapping[$type] ?? 'product_purchase_enabled';

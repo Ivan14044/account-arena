@@ -73,6 +73,13 @@ class SupportChatController extends Controller
         $chat = SupportChat::with(['user:id,name,email', 'assignedAdmin:id,name,email'])
             ->findOrFail($id);
         
+        // ВАЖНО: Защита от ID Enumeration. 
+        // Если чат назначен на другого менеджера, обычный админ не может его просматривать.
+        $admin = auth()->user();
+        if ($chat->assigned_to && $chat->assigned_to !== $admin->id && !$admin->is_main_admin) {
+            return redirect()->route('admin.support-chats.index')->with('error', 'Этот чат назначен на другого администратора.');
+        }
+
         // Отмечаем сообщения от пользователей/гостей как прочитанные
         // Делаем это в транзакции для атомарности
         DB::transaction(function() use ($chat) {
@@ -131,8 +138,30 @@ class SupportChatController extends Controller
         $request->validate([
             'message' => 'nullable|string|max:5000',
             'attachments' => 'nullable|array|max:5', // Максимум 5 файлов
-            'attachments.*' => 'file|mimes:jpeg,png,jpg,gif,webp,pdf,zip,rar,txt|max:10240', // 10MB max per file, убраны потенциально опасные типы (svg, docx)
+            'attachments.*' => 'file|mimes:jpeg,png,jpg,webp,pdf|max:10240', // 10MB max per file, разрешены только изображения и PDF
         ]);
+
+        // ВАЖНО: Проверка общего объема вложений в чате (Storage DOS protection)
+        $currentTotalSize = $chat->getTotalAttachmentsSize();
+        $chatMaxTotalSize = 200 * 1024 * 1024; // 200MB лимит на чат для админов (больше чем для пользователей)
+        
+        $incomingSize = 0;
+        if ($request->hasFile('attachments')) {
+            foreach ($request->file('attachments') as $file) {
+                $incomingSize += $file->getSize();
+            }
+        }
+
+        if (($currentTotalSize + $incomingSize) > $chatMaxTotalSize) {
+             return back()->withErrors(['message' => 'Превышен лимит вложений для этого чата (200MB). Удалите старые файлы или отправьте меньше вложений.']);
+        }
+
+        // Проверка свободного места на диске
+        $freeSpace = disk_free_space(storage_path('app'));
+        if ($freeSpace !== false && $freeSpace < (500 * 1024 * 1024)) { // 500MB для админов
+            return back()->withErrors(['message' => 'Недостаточно места на сервере для сохранения файлов.']);
+        }
+
         $admin = $request->user();
         
         $messageText = trim($request->input('message', ''));
@@ -446,6 +475,13 @@ class SupportChatController extends Controller
     {
         try {
             $chat = SupportChat::findOrFail($id);
+            $admin = auth()->user();
+
+            // ВАЖНО: Защита доступа к сообщениям через API
+            if ($chat->assigned_to && $chat->assigned_to !== $admin->id && !$admin->is_main_admin) {
+                return response()->json(['success' => false, 'error' => 'Доступ запрещен'], 403);
+            }
+
             $lastMessageId = (int) $request->input('last_message_id', 0);
             
             $messages = $chat->messages()

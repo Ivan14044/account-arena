@@ -35,26 +35,9 @@ class AdminNotificationController extends Controller
                 ];
             });
 
-            $dropdownHtml = '';
-
-            foreach ($dropdownArray as $key => $notification) {
-                $itemClass = $notification['read']
-                    ? 'dropdown-item'
-                    : 'dropdown-item bg-light-primary fw-bold';
-
-                $dropdownHtml .= "
-                    <a href='{$notification['url']}' class='{$itemClass}'>
-                        <div class='d-flex justify-content-between align-items-center w-100'>
-                            <div><i class='{$notification['icon']} mr-2'></i> {$notification['text']}</div>
-                            <span class='text-muted text-xs'>{$notification['time']}</span>
-                        </div>
-                    </a>
-                ";
-
-                if ($key < count($notifications) - 1) {
-                    $dropdownHtml .= "<div class='dropdown-divider'></div>";
-                }
-            }
+            $dropdownHtml = view('admin.admin_notifications.dropdown', [
+                'notifications' => $dropdownArray
+            ])->render();
 
             // Проверяем настройки звука для текущего админа
             $settings = \App\Models\AdminNotificationSetting::getOrCreateForUser(auth()->id());

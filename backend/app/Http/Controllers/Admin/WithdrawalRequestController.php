@@ -4,7 +4,11 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\WithdrawalRequest;
+use App\Models\SupplierNotification;
+use App\Services\BalanceService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class WithdrawalRequestController extends Controller
 {
@@ -41,12 +45,11 @@ class WithdrawalRequestController extends Controller
             ->orderBy('name')
             ->get(['id', 'name', 'email']);
 
-        $allRequests = WithdrawalRequest::all();
         $statistics = [
-            'total' => $allRequests->count(),
-            'pending' => $allRequests->where('status', 'pending')->count(),
-            'paid' => $allRequests->where('status', 'paid')->count(),
-            'total_amount' => $allRequests->where('status', 'paid')->sum('amount'),
+            'total' => WithdrawalRequest::count(),
+            'pending' => WithdrawalRequest::where('status', 'pending')->count(),
+            'paid' => WithdrawalRequest::where('status', 'paid')->count(),
+            'total_amount' => WithdrawalRequest::where('status', 'paid')->sum('amount'),
         ];
 
         return view('admin.withdrawal-requests.index', compact('withdrawalRequests', 'suppliers', 'statistics'));
@@ -64,14 +67,14 @@ class WithdrawalRequestController extends Controller
     /**
      * Approve a withdrawal request.
      */
-    public function approve(WithdrawalRequest $withdrawalRequest)
+    public function approve(WithdrawalRequest $withdrawalRequest, BalanceService $balanceService)
     {
         if ($withdrawalRequest->status !== 'pending') {
             return back()->with('error', 'Можно одобрить только запросы со статусом "В обработке".');
         }
 
         // ВАЖНО: Используем транзакцию и блокировку пользователя для предотвращения Race Condition
-        return \Illuminate\Support\Facades\DB::transaction(function () use ($withdrawalRequest) {
+        return \Illuminate\Support\Facades\DB::transaction(function () use ($withdrawalRequest, $balanceService) {
             try {
                 // Блокируем запись поставщика для эксклюзивного доступа к расчетам баланса
                 $supplier = \App\Models\User::lockForUpdate()->find($withdrawalRequest->supplier_id);
@@ -81,8 +84,8 @@ class WithdrawalRequestController extends Controller
                 }
 
                 // Синхронизируем баланс (переводим held -> available -> supplier_balance)
-                // Теперь это происходит внутри транзакции
-                $this->syncSupplierBalance($supplier);
+                // Теперь это происходит через централизованный сервис
+                $balanceService->syncSupplierBalance($supplier);
                 $supplier->refresh();
 
                 // Вычисляем доступную сумму с учетом других pending запросов
@@ -126,6 +129,25 @@ class WithdrawalRequestController extends Controller
                     'available_amount' => $availableAmount,
                 ]);
 
+                // ВАЖНО: Уведомляем поставщика об одобрении запроса
+                try {
+                    SupplierNotification::create([
+                        'user_id' => $supplier->id,
+                        'type' => 'withdrawal_approved',
+                        'title' => 'Запрос на вывод одобрен',
+                        'message' => "Ваш запрос на вывод средств в размере " . number_format($withdrawalRequest->amount, 2) . " USD одобрен и будет оплачен в ближайшее время.",
+                        'data' => [
+                            'withdrawal_id' => $withdrawalRequest->id,
+                            'amount' => $withdrawalRequest->amount,
+                        ],
+                    ]);
+                } catch (\Throwable $e) {
+                    Log::error('Failed to send supplier notification (withdrawal approved)', [
+                        'withdrawal_id' => $withdrawalRequest->id,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+
                 return back()->with('success', 'Запрос на вывод средств одобрен.');
             } catch (\Exception $e) {
                 \Illuminate\Support\Facades\Log::error('Failed to approve withdrawal request', [
@@ -140,7 +162,7 @@ class WithdrawalRequestController extends Controller
     /**
      * Mark a withdrawal request as paid.
      */
-    public function markAsPaid(WithdrawalRequest $withdrawalRequest, Request $request)
+    public function markAsPaid(WithdrawalRequest $withdrawalRequest, Request $request, BalanceService $balanceService)
     {
         $validated = $request->validate([
             'admin_comment' => ['nullable', 'string', 'max:1000'],
@@ -151,7 +173,7 @@ class WithdrawalRequestController extends Controller
         }
 
         // ВАЖНО: Используем транзакцию для атомарности операций
-        \Illuminate\Support\Facades\DB::transaction(function () use ($withdrawalRequest, $validated) {
+        \Illuminate\Support\Facades\DB::transaction(function () use ($withdrawalRequest, $validated, $balanceService) {
             $supplier = \App\Models\User::lockForUpdate()->find($withdrawalRequest->supplier_id);
             
             if (!$supplier) {
@@ -159,7 +181,7 @@ class WithdrawalRequestController extends Controller
             }
 
             // Сначала синхронизируем баланс (переводим held -> available -> supplier_balance)
-            $this->syncSupplierBalance($supplier);
+            $balanceService->syncSupplierBalance($supplier);
             
             // Обновляем объект поставщика после синхронизации
             $supplier->refresh();
@@ -231,6 +253,25 @@ class WithdrawalRequestController extends Controller
                 'amount' => $withdrawalRequest->amount,
                 'new_balance' => $supplier->fresh()->supplier_balance,
             ]);
+
+            // ВАЖНО: Уведомляем поставщика об оплате
+            try {
+                SupplierNotification::create([
+                    'user_id' => $supplier->id,
+                    'type' => 'withdrawal_paid',
+                    'title' => 'Выплата произведена',
+                    'message' => "Ваш запрос на вывод средств в размере " . number_format($withdrawalRequest->amount, 2) . " USD успешно оплачен.",
+                    'data' => [
+                        'withdrawal_id' => $withdrawalRequest->id,
+                        'amount' => $withdrawalRequest->amount,
+                    ],
+                ]);
+            } catch (\Throwable $e) {
+                Log::error('Failed to send supplier notification (withdrawal paid)', [
+                    'withdrawal_id' => $withdrawalRequest->id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
         });
 
         return back()->with('success', 'Запрос отмечен как оплаченный. Баланс поставщика обновлен.');
@@ -255,72 +296,26 @@ class WithdrawalRequestController extends Controller
             'processed_at' => now(),
         ]);
 
-        return back()->with('success', 'Запрос на вывод средств отклонен.');
-    }
-
-    /**
-     * Синхронизирует supplier_balance из SupplierEarning
-     * Переводит средства из held в available и обновляет баланс
-     */
-    private function syncSupplierBalance($supplier)
-    {
+        // ВАЖНО: Уведомляем поставщика об отказе
         try {
-            // Находим earnings, готовые к переводу
-            $readyToRelease = \App\Models\SupplierEarning::where('supplier_id', $supplier->id)
-                ->where('status', 'held')
-                ->whereNotNull('available_at')
-                ->where('available_at', '<=', now())
-                ->lockForUpdate()
-                ->get();
-
-            if ($readyToRelease->isEmpty()) {
-                return; // Нет средств для перевода
-            }
-
-            $totalAmount = $readyToRelease->sum('amount');
-
-            // ВАЖНО: Проверяем, что сумма положительная
-            if ($totalAmount <= 0) {
-                return; // Нет средств для перевода
-            }
-
-            // Обновляем статус на 'available'
-            $readyToRelease->each(function ($earning) {
-                $earning->update([
-                    'status' => 'available',
-                    'processed_at' => now(),
-                ]);
-            });
-
-            // ВАЖНО: Проверяем, что баланс не станет отрицательным
-            $currentBalance = $supplier->supplier_balance ?? 0;
-            $newBalance = $currentBalance + $totalAmount;
-            
-            if ($newBalance < 0) {
-                \Illuminate\Support\Facades\Log::error('Supplier balance sync: New balance would be negative', [
-                    'supplier_id' => $supplier->id,
-                    'current_balance' => $currentBalance,
-                    'amount_to_add' => $totalAmount,
-                    'new_balance' => $newBalance,
-                ]);
-                return; // Не обновляем баланс, если он станет отрицательным
-            }
-
-            // Увеличиваем баланс поставщика
-            $supplier->increment('supplier_balance', $totalAmount);
-
-            \Illuminate\Support\Facades\Log::info('Supplier balance synced in withdrawal approval', [
-                'supplier_id' => $supplier->id,
-                'earnings_count' => $readyToRelease->count(),
-                'amount_added' => $totalAmount,
-                'new_balance' => $supplier->fresh()->supplier_balance,
+            SupplierNotification::create([
+                'user_id' => $withdrawalRequest->supplier_id,
+                'type' => 'withdrawal_rejected',
+                'title' => 'Запрос на вывод отклонен',
+                'message' => "Ваш запрос на вывод средств в размере " . number_format($withdrawalRequest->amount, 2) . " USD был отклонен администратором. Причина: " . $validated['admin_comment'],
+                'data' => [
+                    'withdrawal_id' => $withdrawalRequest->id,
+                    'amount' => $withdrawalRequest->amount,
+                    'reason' => $validated['admin_comment'],
+                ],
             ]);
         } catch (\Throwable $e) {
-            // Логируем ошибку, но не прерываем процесс
-            \Illuminate\Support\Facades\Log::error('Failed to sync supplier balance in withdrawal approval', [
-                'supplier_id' => $supplier->id,
+            Log::error('Failed to send supplier notification (withdrawal rejected)', [
+                'withdrawal_id' => $withdrawalRequest->id,
                 'error' => $e->getMessage(),
             ]);
         }
+
+        return back()->with('success', 'Запрос на вывод средств отклонен.');
     }
 }

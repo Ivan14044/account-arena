@@ -20,8 +20,8 @@ class Kernel extends ConsoleKernel
         // Пересчет рейтингов поставщиков (каждый день в 3:00)
         $schedule->command('suppliers:recalculate-ratings')->dailyAt('03:00');
 
-        // Перевод средств поставщиков из холда в доступный баланс (каждый час)
-        $schedule->command('suppliers:release-earnings')->hourly();
+        // Перевод средств поставщиков из холда в доступный баланс (каждые 5 минут)
+        $schedule->command('suppliers:release-earnings')->everyFiveMinutes();
 
         // Напоминания менеджерам о просроченных заказах на ручную обработку (каждый час)
         $schedule->command('notify:overdue-manual-orders')->hourly();

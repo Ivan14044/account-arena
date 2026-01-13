@@ -12,6 +12,9 @@ return array(
     'new_product_purchase_title' => 'Новая покупка (:method)',
     'new_product_purchase_message' => 'Новая покупка (:method), email: :email, имя: :name, товаров: :products, сумма: :amount',
 
+    'low_stock_title' => 'Низкий остаток товара',
+    'low_stock_message' => 'Внимание! Товар ":title" (SKU: :sku) заканчивается. Осталось: :count шт.',
+
     'types' => [
         'product_purchase' => 'Покупка товара',
         'balance_topup' => 'Пополнение баланса',
@@ -22,6 +25,7 @@ return array(
         'manual_delivery_new_order' => 'Новый заказ (ручная выдача)',
         'dispute_created' => 'Спор по товару',
         'support_chat' => 'Чат поддержки',
+        'low_stock' => 'Низкий остаток',
         'new_user' => 'Новый пользователь',
         'system' => 'Система',
     ],

@@ -38,12 +38,42 @@ class ProductModerationController extends Controller
         // Загружаем связи
         $product->load(['supplier', 'category', 'moderator']);
 
-        // Получаем первые 10 аккаунтов для предпросмотра
+        // Получаем аккаунты для предпросмотра и валидации
         $accountsData = is_array($product->accounts_data) ? $product->accounts_data : [];
-        $previewAccounts = array_slice($accountsData, 0, 10);
         $totalAccounts = count($accountsData);
+        
+        $stats = [
+            'total' => $totalAccounts,
+            'valid' => 0,
+            'invalid' => 0,
+            'errors' => []
+        ];
 
-        return view('admin.product-moderation.show', compact('product', 'previewAccounts', 'totalAccounts'));
+        // ВАЖНО: Полная валидация всех строк (Storage DOS & Fraud protection)
+        foreach ($accountsData as $index => $line) {
+            $line = trim((string)$line);
+            if (empty($line)) {
+                $stats['invalid']++;
+                if (count($stats['errors']) < 10) {
+                    $stats['errors'][] = "Строка " . ($index + 1) . ": Пустая строка";
+                }
+                continue;
+            }
+            
+            // Базовая проверка формата (наличие разделителя)
+            if (preg_match('/[:;|]/', $line)) {
+                $stats['valid']++;
+            } else {
+                $stats['invalid']++;
+                if (count($stats['errors']) < 10) {
+                    $stats['errors'][] = "Строка " . ($index + 1) . ": Неверный формат (нет разделителя : или ; или |)";
+                }
+            }
+        }
+
+        $previewAccounts = array_slice($accountsData, 0, 50);
+
+        return view('admin.product-moderation.show', compact('product', 'previewAccounts', 'totalAccounts', 'stats'));
     }
 
     /**
@@ -77,54 +107,52 @@ class ProductModerationController extends Controller
                 // Обновляем объект для дальнейшего использования
                 $product->refresh();
 
-                // Отправляем уведомление поставщику
-                if ($lockedProduct->supplier_id && $lockedProduct->supplier) {
-                    try {
-                        SupplierNotification::create([
-                            'user_id' => $lockedProduct->supplier_id,
-                            'type' => 'product_approved',
-                            'title' => 'Товар одобрен',
-                            'message' => "Ваш товар \"{$lockedProduct->title}\" был одобрен администратором и теперь доступен для продажи.",
-                            'data' => [
-                                'product_id' => $lockedProduct->id,
-                                'product_title' => $lockedProduct->title,
-                            ],
-                        ]);
-
-                        // Также отправляем через NotifierService (если есть шаблон)
-                        try {
-                            NotifierService::sendFromTemplate(
-                                'supplier_product_approved',
-                                'supplier_product_approved',
-                                [
-                                    'product_id' => $lockedProduct->id,
-                                    'product_title' => $lockedProduct->title,
-                                ],
-                                'success'
-                            );
-                        } catch (\Throwable $e) {
-                            // Игнорируем ошибки шаблона, так как уведомление уже отправлено через SupplierNotification
-                            Log::warning('ProductModerationController: Template notification failed', [
-                                'product_id' => $lockedProduct->id,
-                                'error' => $e->getMessage(),
-                            ]);
-                        }
-                    } catch (\Throwable $e) {
-                        Log::error('ProductModerationController: Failed to send supplier notification', [
-                            'product_id' => $lockedProduct->id,
-                            'supplier_id' => $lockedProduct->supplier_id,
-                            'error' => $e->getMessage(),
-                        ]);
-                        // Не прерываем транзакцию, если уведомление не отправилось
-                    }
-                }
-
                 Log::info('Product approved by admin', [
                     'product_id' => $lockedProduct->id,
                     'admin_id' => auth()->id(),
                     'supplier_id' => $lockedProduct->supplier_id,
                 ]);
             });
+
+            // ВАЖНО: Уведомления вынесены за пределы транзакции
+            if ($product->supplier_id && $product->supplier) {
+                try {
+                    SupplierNotification::create([
+                        'user_id' => $product->supplier_id,
+                        'type' => 'product_approved',
+                        'title' => 'Товар одобрен',
+                        'message' => "Ваш товар \"{$product->title}\" был одобрен администратором и теперь доступен для продажи.",
+                        'data' => [
+                            'product_id' => $product->id,
+                            'product_title' => $product->title,
+                        ],
+                    ]);
+
+                    // Также отправляем через NotifierService (если есть шаблон)
+                    try {
+                        NotifierService::sendFromTemplate(
+                            'supplier_product_approved',
+                            'supplier_product_approved',
+                            [
+                                'product_id' => $product->id,
+                                'product_title' => $product->title,
+                            ],
+                            'success'
+                        );
+                    } catch (\Throwable $e) {
+                        Log::warning('ProductModerationController: Template notification failed', [
+                            'product_id' => $product->id,
+                            'error' => $e->getMessage(),
+                        ]);
+                    }
+                } catch (\Throwable $e) {
+                    Log::error('ProductModerationController: Failed to send supplier notification', [
+                        'product_id' => $product->id,
+                        'supplier_id' => $product->supplier_id,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+            }
 
             return redirect()->route('admin.product-moderation.index')
                 ->with('success', 'Товар успешно одобрен.');
@@ -175,50 +203,6 @@ class ProductModerationController extends Controller
                 // Обновляем объект для дальнейшего использования
                 $product->refresh();
 
-                // Отправляем уведомление поставщику
-                if ($lockedProduct->supplier_id && $lockedProduct->supplier) {
-                    try {
-                        SupplierNotification::create([
-                            'user_id' => $lockedProduct->supplier_id,
-                            'type' => 'product_rejected',
-                            'title' => 'Товар отклонен',
-                            'message' => "Ваш товар \"{$lockedProduct->title}\" был отклонен администратором. Причина: {$validated['moderation_comment']}",
-                            'data' => [
-                                'product_id' => $lockedProduct->id,
-                                'product_title' => $lockedProduct->title,
-                                'comment' => $validated['moderation_comment'],
-                            ],
-                        ]);
-
-                        // Также отправляем через NotifierService (если есть шаблон)
-                        try {
-                            NotifierService::sendFromTemplate(
-                                'supplier_product_rejected',
-                                'supplier_product_rejected',
-                                [
-                                    'product_id' => $lockedProduct->id,
-                                    'product_title' => $lockedProduct->title,
-                                    'comment' => $validated['moderation_comment'],
-                                ],
-                                'danger'
-                            );
-                        } catch (\Throwable $e) {
-                            // Игнорируем ошибки шаблона, так как уведомление уже отправлено через SupplierNotification
-                            Log::warning('ProductModerationController: Template notification failed', [
-                                'product_id' => $lockedProduct->id,
-                                'error' => $e->getMessage(),
-                            ]);
-                        }
-                    } catch (\Throwable $e) {
-                        Log::error('ProductModerationController: Failed to send supplier notification', [
-                            'product_id' => $lockedProduct->id,
-                            'supplier_id' => $lockedProduct->supplier_id,
-                            'error' => $e->getMessage(),
-                        ]);
-                        // Не прерываем транзакцию, если уведомление не отправилось
-                    }
-                }
-
                 Log::info('Product rejected by admin', [
                     'product_id' => $lockedProduct->id,
                     'admin_id' => auth()->id(),
@@ -226,6 +210,48 @@ class ProductModerationController extends Controller
                     'comment' => $validated['moderation_comment'],
                 ]);
             });
+
+            // ВАЖНО: Уведомления вынесены за пределы транзакции
+            if ($product->supplier_id && $product->supplier) {
+                try {
+                    SupplierNotification::create([
+                        'user_id' => $product->supplier_id,
+                        'type' => 'product_rejected',
+                        'title' => 'Товар отклонен',
+                        'message' => "Ваш товар \"{$product->title}\" был отклонен администратором. Причина: {$validated['moderation_comment']}",
+                        'data' => [
+                            'product_id' => $product->id,
+                            'product_title' => $product->title,
+                            'comment' => $validated['moderation_comment'],
+                        ],
+                    ]);
+
+                    // Также отправляем через NotifierService (если есть шаблон)
+                    try {
+                        NotifierService::sendFromTemplate(
+                            'supplier_product_rejected',
+                            'supplier_product_rejected',
+                            [
+                                'product_id' => $product->id,
+                                'product_title' => $product->title,
+                                'comment' => $validated['moderation_comment'],
+                            ],
+                            'danger'
+                        );
+                    } catch (\Throwable $e) {
+                        Log::warning('ProductModerationController: Template notification failed', [
+                            'product_id' => $product->id,
+                            'error' => $e->getMessage(),
+                        ]);
+                    }
+                } catch (\Throwable $e) {
+                    Log::error('ProductModerationController: Failed to send supplier notification', [
+                        'product_id' => $product->id,
+                        'supplier_id' => $product->supplier_id,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+            }
 
             return redirect()->route('admin.product-moderation.index')
                 ->with('success', 'Товар успешно отклонен. Поставщик получит уведомление.');

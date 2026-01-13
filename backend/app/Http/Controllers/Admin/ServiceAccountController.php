@@ -16,11 +16,12 @@ class ServiceAccountController extends Controller
     public function index()
     {
         // Сортировка по sort_order (для ручной сортировки), затем по id
+        // ВАЖНО: Внедрена пагинация для оптимизации памяти
         $serviceAccounts = ServiceAccount::with('category.translations')->orderBy('sort_order', 'asc')
             ->orderBy('id', 'desc')
-            ->get();
+            ->paginate(20);
 
-        // Получаем все категории товаров (родительские и подкатегории)
+        // Получаем все категории товаров для фильтров и дерева (тут оставляем get, так как категорий обычно немного)
         $categories = \App\Models\Category::productCategories()
             ->with(['translations', 'children.translations'])
             ->orderBy('parent_id', 'asc')
@@ -31,27 +32,36 @@ class ServiceAccountController extends Controller
         $parentCategories = $categories->whereNull('parent_id');
         $subcategories = $categories->whereNotNull('parent_id');
 
+        // ВАЖНО: Получаем статистику по всем товарам для категорий (не ограничиваясь пагинацией)
+        $productCounts = ServiceAccount::select('category_id', DB::raw('count(*) as count'))
+            ->groupBy('category_id')
+            ->pluck('count', 'category_id')
+            ->toArray();
+
         // Подсчитываем количество товаров для каждой родительской категории
-        $parentCategories = $parentCategories->map(function($category) use ($serviceAccounts, $subcategories) {
+        $parentCategories = $parentCategories->map(function($category) use ($productCounts, $subcategories) {
             // Товары напрямую в этой категории
-            $directCount = $serviceAccounts->where('category_id', $category->id)->count();
+            $directCount = $productCounts[$category->id] ?? 0;
             
             // Товары в подкатегориях этой категории
             $subcategoryIds = $subcategories->where('parent_id', $category->id)->pluck('id');
-            $subcategoryCount = $serviceAccounts->whereIn('category_id', $subcategoryIds)->count();
+            $subcategoryCount = 0;
+            foreach ($subcategoryIds as $subId) {
+                $subcategoryCount += $productCounts[$subId] ?? 0;
+            }
             
             $category->products_count = $directCount + $subcategoryCount;
             return $category;
         });
 
         // Подсчитываем количество товаров для каждой подкатегории
-        $subcategories = $subcategories->map(function($subcategory) use ($serviceAccounts) {
-            $subcategory->products_count = $serviceAccounts->where('category_id', $subcategory->id)->count();
+        $subcategories = $subcategories->map(function($subcategory) use ($productCounts) {
+            $subcategory->products_count = $productCounts[$subcategory->id] ?? 0;
             return $subcategory;
         });
 
         // Подсчитываем товары без категории
-        $noCategoryCount = $serviceAccounts->whereNull('category_id')->count();
+        $noCategoryCount = ServiceAccount::whereNull('category_id')->count();
 
         return view('admin.service-accounts.index', compact('serviceAccounts', 'parentCategories', 'subcategories', 'noCategoryCount'));
     }
@@ -259,15 +269,29 @@ class ServiceAccountController extends Controller
             $validated['image_url'] = $path;
         }
 
-        // ИСПРАВЛЕНО: Сохраняем проданные аккаунты и добавляем новые
+        // ИСПРАВЛЕНО: Сохраняем проданные аккаунты и добавляем уникальные новые
         $existingAccountsData = is_array($serviceAccount->accounts_data) ? $serviceAccount->accounts_data : [];
         $usedCount = $serviceAccount->used ?? 0;
 
         // Получаем проданные аккаунты (первые $usedCount элементов)
         $soldAccounts = array_slice($existingAccountsData, 0, $usedCount);
 
-        // Объединяем: проданные аккаунты + новые аккаунты
-        $finalAccountsList = array_merge($soldAccounts, $newAccountsList);
+        // ВАЖНО: Фильтруем дубликаты. Новые аккаунты не должны содержать уже проданные 
+        // и не должны дублироваться между собой.
+        $soldAccountsMap = array_flip($soldAccounts);
+        $finalNewAccounts = [];
+        $duplicatesCount = 0;
+
+        foreach ($newAccountsList as $account) {
+            if (!isset($soldAccountsMap[$account]) && !in_array($account, $finalNewAccounts)) {
+                $finalNewAccounts[] = $account;
+            } else {
+                $duplicatesCount++;
+            }
+        }
+
+        // Объединяем: проданные аккаунты + отфильтрованные новые аккаунты
+        $finalAccountsList = array_merge($soldAccounts, $finalNewAccounts);
 
         $validated['accounts_data'] = $finalAccountsList;
 
@@ -298,8 +322,11 @@ class ServiceAccountController extends Controller
             : route('admin.service-accounts.index');
 
         $message = 'Товар успешно обновлен. ';
-        if (count($newAccountsList) > 0) {
-            $message .= 'Добавлено новых аккаунтов: ' . count($newAccountsList) . '. ';
+        if (count($finalNewAccounts) > 0) {
+            $message .= 'Добавлено новых: ' . count($finalNewAccounts) . '. ';
+        }
+        if ($duplicatesCount > 0) {
+            $message .= 'Отфильтровано дублей: ' . $duplicatesCount . '. ';
         }
         $message .= 'Доступно: ' . (count($finalAccountsList) - $usedCount);
 

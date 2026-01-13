@@ -48,7 +48,31 @@ class UserService
                 unset($data['supplier_balance']);
             }
 
+            // ВАЖНО: Ручная обработка не-fillable полей
+            $explicitFields = [
+                'is_blocked',
+                'is_pending',
+                'is_supplier',
+                'personal_discount',
+                'personal_discount_expires_at',
+                'supplier_commission',
+                'supplier_hold_hours'
+            ];
+
+            $manualUpdates = [];
+            foreach ($explicitFields as $field) {
+                if (isset($data[$field])) {
+                    $manualUpdates[$field] = $data[$field];
+                    unset($data[$field]);
+                }
+            }
+
             $user->update($data);
+
+            if (!empty($manualUpdates)) {
+                $user->forceFill($manualUpdates)->save();
+            }
+
             return $user->fresh();
         });
     }

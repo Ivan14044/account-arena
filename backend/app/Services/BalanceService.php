@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\User;
 use App\Models\Transaction;
 use App\Models\BalanceTransaction;
+use App\Models\SupplierEarning;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -357,6 +358,64 @@ class BalanceService
         ];
         
         return $mapping[$type] ?? 'balance_operation';
+    }
+
+    /**
+     * Синхронизировать баланс поставщика (перевести средства из held в available)
+     * 
+     * @param User $supplier
+     * @return float Сумма, которая была добавлена к балансу
+     */
+    public function syncSupplierBalance(User $supplier): float
+    {
+        if (!$supplier->is_supplier) {
+            return 0.0;
+        }
+
+        return DB::transaction(function () use ($supplier) {
+            // Блокируем пользователя для предотвращения race condition
+            $lockedSupplier = User::lockForUpdate()->find($supplier->id);
+            if (!$lockedSupplier) return 0.0;
+
+            // Находим earnings, готовые к переводу
+            $readyToRelease = SupplierEarning::where('supplier_id', $lockedSupplier->id)
+                ->where('status', 'held')
+                ->whereNotNull('available_at')
+                ->where('available_at', '<=', now())
+                ->lockForUpdate()
+                ->get();
+
+            if ($readyToRelease->isEmpty()) {
+                return 0.0;
+            }
+
+            $totalAmount = round($readyToRelease->sum('amount'), 2);
+
+            if ($totalAmount <= 0) {
+                return 0.0;
+            }
+
+            // Обновляем статус на 'available'
+            SupplierEarning::whereIn('id', $readyToRelease->pluck('id'))
+                ->update([
+                    'status' => 'available',
+                    'processed_at' => now(),
+                ]);
+
+            // Увеличиваем баланс поставщика
+            $lockedSupplier->increment('supplier_balance', $totalAmount);
+
+            // Обновляем баланс в переданном объекте
+            $supplier->supplier_balance = $lockedSupplier->supplier_balance;
+
+            Log::info('Supplier balance synced', [
+                'supplier_id' => $lockedSupplier->id,
+                'amount_added' => $totalAmount,
+                'new_balance' => $lockedSupplier->supplier_balance,
+            ]);
+
+            return $totalAmount;
+        });
     }
 }
 

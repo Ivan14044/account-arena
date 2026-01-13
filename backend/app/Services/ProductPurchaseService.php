@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cache;
 use App\Services\ManualDeliveryService;
+use App\Services\NotifierService;
 
 /**
  * Сервис для обработки покупок товаров
@@ -418,7 +419,13 @@ class ProductPurchaseService
         // ВАЖНО: Уведомления и инвалидация кеша вынесены ЗА ПРЕДЕЛЫ транзакции.
         // Это гарантирует, что к моменту очистки кеша транзакция завершена, 
         // и новые заказы видны в базе данных для всех запросов (в том числе AJAX счетчика).
+        $uniqueProducts = [];
         foreach ($purchases as $purchase) {
+            // Собираем уникальные товары для проверки остатка
+            if ($purchase->serviceAccount && !isset($uniqueProducts[$purchase->serviceAccount->id])) {
+                $uniqueProducts[$purchase->serviceAccount->id] = $purchase->serviceAccount;
+            }
+
             if ($purchase->serviceAccount && $purchase->serviceAccount->requiresManualDelivery()) {
                 // Инвалидируем кеш счетчика
                 Cache::forget('manual_delivery_pending_count');
@@ -438,7 +445,59 @@ class ProductPurchaseService
             }
         }
 
+        // Проверяем остатки после всех покупок
+        foreach ($uniqueProducts as $product) {
+            $this->checkLowStockAndNotify($product);
+        }
+
         return $purchases;
+    }
+
+    /**
+     * Проверить остаток товара и отправить уведомление админу если он низкий
+     */
+    protected function checkLowStockAndNotify(ServiceAccount $product): void
+    {
+        // Для ручной выдачи остаток не проверяем
+        if ($product->requiresManualDelivery()) {
+            return;
+        }
+
+        $available = $product->getAvailableStock();
+        
+        // Порог уведомления (можно вынести в настройки)
+        $threshold = 5;
+
+        if ($available <= $threshold) {
+            $cacheKey = "low_stock_notified_{$product->id}";
+            
+            // Отправляем уведомление только раз в час для одного товара, чтобы не спамить
+            if (!Cache::has($cacheKey)) {
+                try {
+                    $title = __('notifier.low_stock_title');
+                    $message = __('notifier.low_stock_message', [
+                        'title' => $product->title,
+                        'sku' => $product->sku ?? 'N/A',
+                        'count' => $available
+                    ]);
+
+                    NotifierService::send('low_stock', $title, $message, 'warning');
+                    
+                    // Запоминаем, что уведомили
+                    Cache::put($cacheKey, true, now()->addHour());
+                    
+                    Log::info('Low stock notification sent', [
+                        'product_id' => $product->id,
+                        'available' => $available
+                    ]);
+                } catch (\Throwable $e) {
+                    Log::error('Failed to send low stock notification', [
+                        'product_id' => $product->id,
+                        'error' => $e->getMessage()
+                    ]);
+                }
+            }
+        }
     }
 }
 

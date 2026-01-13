@@ -27,99 +27,49 @@ class ReleaseSupplierEarnings extends Command
     /**
      * Execute the console command.
      */
-    public function handle()
+    public function handle(\App\Services\BalanceService $balanceService)
     {
         $this->info('Начинаем перевод средств поставщиков...');
 
-        // Находим все earnings, которые готовы к переводу (held и available_at <= now)
-        $readyToRelease = SupplierEarning::readyToRelease()
-            ->with('supplier')
-            ->get();
+        // Находим всех поставщиков, у которых есть средства в холде, готовые к переводу
+        $supplierIds = SupplierEarning::readyToRelease()
+            ->distinct()
+            ->pluck('supplier_id');
 
-        if ($readyToRelease->isEmpty()) {
+        if ($supplierIds->isEmpty()) {
             $this->info('Нет средств, готовых к переводу.');
             return 0;
         }
 
-        $this->info("Найдено {$readyToRelease->count()} записей для перевода.");
+        $this->info("Найдено " . $supplierIds->count() . " поставщиков для обработки.");
 
-        $processed = 0;
-        $errors = 0;
+        $processedSuppliers = 0;
+        $totalAmountReleased = 0;
 
-        // Группируем по поставщикам для оптимизации
-        $earningsBySupplier = $readyToRelease->groupBy('supplier_id');
-
-        foreach ($earningsBySupplier as $supplierId => $earnings) {
+        foreach ($supplierIds as $supplierId) {
             try {
-                DB::transaction(function () use ($supplierId, $earnings, &$processed) {
-                    $supplier = User::lockForUpdate()->find($supplierId);
-                    
-                    if (!$supplier || !$supplier->is_supplier) {
-                        $this->warn("Поставщик {$supplierId} не найден или не является поставщиком.");
-                        return;
-                    }
+                $supplier = User::find($supplierId);
+                if (!$supplier || !$supplier->is_supplier) {
+                    continue;
+                }
 
-                    $totalAmount = $earnings->sum('amount');
-
-                    // ВАЖНО: Проверяем, что сумма положительная
-                    if ($totalAmount <= 0) {
-                        $this->warn("Поставщик {$supplierId}: сумма для перевода равна нулю или отрицательна.");
-                        return;
-                    }
-
-                    // ВАЖНО: Блокируем earnings перед обновлением для предотвращения race condition
-                    // Обновляем статус всех earnings на 'available'
-                    $earnings->each(function ($earning) {
-                        // Блокируем запись перед обновлением
-                        $lockedEarning = SupplierEarning::lockForUpdate()->find($earning->id);
-                        if ($lockedEarning && $lockedEarning->status === 'held') {
-                            $lockedEarning->update([
-                                'status' => 'available',
-                                'processed_at' => now(),
-                            ]);
-                        }
-                    });
-
-                    // ВАЖНО: Проверяем, что баланс не станет отрицательным (хотя это маловероятно)
-                    $currentBalance = $supplier->supplier_balance ?? 0;
-                    $newBalance = $currentBalance + $totalAmount;
-                    
-                    if ($newBalance < 0) {
-                        Log::error('ReleaseSupplierEarnings: New balance would be negative', [
-                            'supplier_id' => $supplierId,
-                            'current_balance' => $currentBalance,
-                            'amount_to_add' => $totalAmount,
-                            'new_balance' => $newBalance,
-                        ]);
-                        throw new \Exception("Новый баланс будет отрицательным: {$newBalance}");
-                    }
-
-                    // Увеличиваем баланс поставщика
-                    $supplier->increment('supplier_balance', $totalAmount);
-
-                    $processed += $earnings->count();
-
-                    Log::info('Supplier earnings released', [
-                        'supplier_id' => $supplierId,
-                        'earnings_count' => $earnings->count(),
-                        'total_amount' => $totalAmount,
-                        'new_balance' => $supplier->fresh()->supplier_balance,
-                    ]);
-
-                    $this->info("Поставщик {$supplierId}: переведено {$earnings->count()} записей на сумму {$totalAmount} USD");
-                });
+                $releasedAmount = $balanceService->syncSupplierBalance($supplier);
+                
+                if ($releasedAmount > 0) {
+                    $processedSuppliers++;
+                    $totalAmountReleased += $releasedAmount;
+                    $this->info("Поставщик {$supplierId}: переведено " . number_format($releasedAmount, 2) . " USD");
+                }
             } catch (\Throwable $e) {
-                $errors++;
-                Log::error('Failed to release supplier earnings', [
+                Log::error('Failed to release supplier earnings in command', [
                     'supplier_id' => $supplierId,
                     'error' => $e->getMessage(),
-                    'trace' => $e->getTraceAsString(),
                 ]);
                 $this->error("Ошибка при переводе средств поставщика {$supplierId}: {$e->getMessage()}");
             }
         }
 
-        $this->info("Обработка завершена. Обработано: {$processed}, Ошибок: {$errors}");
+        $this->info("Обработка завершена. Обработано поставщиков: {$processedSuppliers}, Общая сумма: " . number_format($totalAmountReleased, 2) . " USD");
 
         return 0;
     }

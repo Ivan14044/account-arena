@@ -35,38 +35,76 @@ class VoucherController extends Controller
             'currency' => 'required|string|size:3',
             'code' => 'nullable|string|unique:vouchers,code',
             'note' => 'nullable|string',
-            'quantity' => 'nullable|integer|min:1|max:100',
+            'quantity' => 'nullable|integer|min:1|max:500',
         ]);
 
         $quantity = $request->input('quantity', 1);
 
-        \Illuminate\Support\Facades\DB::transaction(function () use ($quantity, $validated, $request) {
-            $existingCodes = Voucher::pluck('code')->toArray();
-            $vouchersToInsert = [];
-            $codesInBatch = [];
+        try {
+            \Illuminate\Support\Facades\DB::transaction(function () use ($quantity, $validated, $request) {
+                $vouchersToInsert = [];
+                $generatedCodes = [];
+                $maxAttempts = 3;
+                $attempt = 0;
+                
+                $targetQuantity = $quantity;
+                $currentInserted = 0;
 
-            for ($i = 0; $i < $quantity; $i++) {
-                $code = $request->input('code');
-                if (!$code || ($i > 0)) {
-                    do {
-                        $code = Voucher::generateCode();
-                    } while (in_array($code, $existingCodes) || in_array($code, $codesInBatch));
+                while ($currentInserted < $targetQuantity && $attempt < $maxAttempts) {
+                    $attempt++;
+                    $batchToGenerate = $targetQuantity - $currentInserted;
+                    $batchGeneratedCodes = [];
+                    $batchVouchers = [];
+
+                    for ($i = 0; $i < $batchToGenerate; $i++) {
+                        $code = ($currentInserted === 0 && $i === 0 && $request->filled('code')) ? $request->input('code') : null;
+                        
+                        if (!$code) {
+                            $code = Voucher::generateCode();
+                        }
+                        
+                        if (isset($generatedCodes[$code]) || isset($batchGeneratedCodes[$code])) {
+                            $i--;
+                            continue;
+                        }
+                        
+                        $batchGeneratedCodes[$code] = true;
+                        $batchVouchers[] = [
+                            'code' => $code,
+                            'amount' => $validated['amount'],
+                            'currency' => $validated['currency'],
+                            'note' => $validated['note'] ?? null,
+                            'is_active' => true,
+                            'created_at' => now(),
+                            'updated_at' => now(),
+                        ];
+                    }
+
+                    // Проверяем всю пачку в БД
+                    $codes = array_keys($batchGeneratedCodes);
+                    $existingCodes = Voucher::withTrashed()->whereIn('code', $codes)->pluck('code')->toArray();
+                    $existingMap = array_flip($existingCodes);
+
+                    foreach ($batchVouchers as $voucher) {
+                        if (!isset($existingMap[$voucher['code']])) {
+                            $vouchersToInsert[] = $voucher;
+                            $generatedCodes[$voucher['code']] = true;
+                            $currentInserted++;
+                        }
+                    }
                 }
-                $codesInBatch[] = $code;
 
-                $vouchersToInsert[] = [
-                    'code' => $code,
-                    'amount' => $validated['amount'],
-                    'currency' => $validated['currency'],
-                    'note' => $validated['note'] ?? null,
-                    'is_active' => true,
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ];
-            }
-
-            Voucher::insert($vouchersToInsert);
-        });
+                if ($currentInserted > 0) {
+                    Voucher::insert($vouchersToInsert);
+                }
+                
+                if ($currentInserted < $targetQuantity) {
+                    throw new \Exception("Удалось создать только $currentInserted из $targetQuantity ваучеров из-за коллизий кодов. Пожалуйста, попробуйте еще раз.");
+                }
+            });
+        } catch (\Exception $e) {
+            return redirect()->back()->withInput()->with('error', $e->getMessage());
+        }
 
         $message = $quantity === 1
             ? 'Ваучер успешно создан.'
