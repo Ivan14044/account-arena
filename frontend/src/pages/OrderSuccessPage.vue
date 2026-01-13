@@ -97,7 +97,6 @@
                 <div 
                     v-for="purchase in recentPurchases" 
                     :key="purchase.id" 
-                    v-memo="[purchase.id, purchase.status]"
                     class="purchase-card"
                 >
                     <!-- Заголовок товара -->
@@ -705,19 +704,12 @@ const recentPurchasesCache = ref(null);
 
 // Вычисляемое свойство для покупок (убран фильтр времени)
 const recentPurchases = computed(() => {
-    // Если массив не изменился, возвращаем кэш
-    if (recentPurchasesCache.value && 
-        recentPurchasesCache.value.length === purchases.value.length &&
-        recentPurchasesCache.value.every((p, i) => 
-            purchases.value[i]?.id === p.id &&
-            purchases.value[i]?.status === p.status &&
-            purchases.value[i]?.account_data?.length === p.account_data?.length &&
-            purchases.value[i]?.processing_notes === p.processing_notes
-        )) {
+    // Если кэш уже есть, возвращаем его
+    if (recentPurchasesCache.value) {
         return recentPurchasesCache.value;
     }
     
-    // Создаем новый массив только если были изменения
+    // Создаем новый массив только если были изменения (кэш был сброшен)
     const sorted = [...purchases.value].sort((a, b) => 
         new Date(b.purchased_at || b.created_at) - new Date(a.purchased_at || a.created_at)
     );
@@ -872,64 +864,56 @@ const updatePurchasesSmart = (newPurchases) => {
     });
     
     const newIds = new Set(newPurchases.map(p => p.id));
+    let hasActualChanges = false;
     let needsReordering = false;
-    let hasDataChanges = false;
     
-    // Обновляем существующие объекты напрямую
-    newPurchases.forEach((newPurchase, newIndex) => {
+    const updatedArray = newPurchases.map((newPurchase, newIndex) => {
         const existing = existingMap.get(newPurchase.id);
         
         if (existing) {
             const { purchase: existingPurchase, index: oldIndex } = existing;
             
-            // Проверяем, изменился ли статус (это единственное, что должно вызывать перерисовку карточки)
-            const statusChanged = existingPurchase.status !== newPurchase.status;
+            // Если статус изменился, создаем полностью новый объект, чтобы Vue точно это заметил
+            if (existingPurchase.status !== newPurchase.status) {
+                hasActualChanges = true;
+                return { ...newPurchase };
+            }
             
-            // Проверяем, изменились ли другие данные (для обновления объекта, но без перерисовки)
-            const otherDataChanged = 
+            // Если изменились другие данные (ноты, аккаунты), обновляем их без смены ссылки объекта
+            const otherChanged = 
                 existingPurchase.account_data?.length !== newPurchase.account_data?.length ||
                 existingPurchase.processing_notes !== newPurchase.processing_notes ||
                 JSON.stringify(existingPurchase.account_data) !== JSON.stringify(newPurchase.account_data);
             
-            // Всегда обновляем объект для синхронизации данных
-            if (statusChanged || otherDataChanged) {
+            if (otherChanged) {
                 Object.assign(existingPurchase, newPurchase);
-                hasDataChanges = true;
+                // Помечаем, что были изменения данных, но не меняем ссылку (Vue 3 отследит свойства)
             }
             
-            // Инвалидируем кэш только при изменении статуса (это вызовет перерисовку карточки)
-            if (statusChanged) {
-                recentPurchasesCache.value = null;
-            }
-            
-            // Проверяем, изменился ли порядок
             if (oldIndex !== newIndex) {
                 needsReordering = true;
             }
+            
+            return existingPurchase;
         } else {
             // Новый заказ
+            hasActualChanges = true;
             needsReordering = true;
+            return { ...newPurchase };
         }
     });
     
-    // Удаляем заказы, которых больше нет
-    const toRemove = purchases.value.filter(p => !newIds.has(p.id));
-    if (toRemove.length > 0) {
+    // Проверяем удаленные заказы
+    if (purchases.value.length !== newPurchases.length) {
+        hasActualChanges = true;
         needsReordering = true;
     }
     
-    // Переупорядочиваем только если нужно, используя nextTick для батчинга
-    if (needsReordering) {
-        // Инвалидируем кэш перед обновлением
-        recentPurchasesCache.value = null;
-        nextTick(() => {
-            purchases.value = newPurchases.map(newPurchase => {
-                const existing = existingMap.get(newPurchase.id);
-                return existing?.purchase || newPurchase;
-            });
-        });
+    // Если были изменения статусов, состава или порядка - обновляем массив
+    if (hasActualChanges || needsReordering) {
+        recentPurchasesCache.value = null; // Сбрасываем кэш computed
+        purchases.value = updatedArray;
     }
-    // Если нет изменений в порядке и данных, массив не трогаем - объекты уже обновлены через Object.assign
 };
 
 const fetchPurchases = async (skipLoading = false) => {
