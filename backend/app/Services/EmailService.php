@@ -109,6 +109,15 @@ class EmailService
         $username = Option::get('smtp_username');
         $password = Option::get('smtp_password');
 
+        // ВАЖНО: Попытка расшифровать пароль. Если он не зашифрован (старый формат), используем как есть.
+        if (!empty($password)) {
+            try {
+                $password = decrypt($password);
+            } catch (\Illuminate\Contracts\Encryption\DecryptException $e) {
+                // Пароль не зашифрован или зашифрован другим ключом, оставляем как есть
+            }
+        }
+
         // Validate required settings
         if (empty($host) || empty($port) || empty($username) || empty($password)) {
             throw new \Exception('SMTP settings are incomplete. Please configure host, port, username, and password in admin settings.');

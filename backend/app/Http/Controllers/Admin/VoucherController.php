@@ -11,7 +11,7 @@ class VoucherController extends Controller
 {
     public function index()
     {
-        $vouchers = Voucher::with('user')->orderBy('id', 'desc')->get();
+        $vouchers = Voucher::with('user')->orderBy('id', 'desc')->paginate(20);
 
         return view('admin.vouchers.index', compact('vouchers'));
     }
@@ -32,27 +32,36 @@ class VoucherController extends Controller
         ]);
 
         $quantity = $request->input('quantity', 1);
-        $vouchers = [];
 
-        for ($i = 0; $i < $quantity; $i++) {
-            $code = $request->input('code');
-            if (!$code || ($i > 0)) {
-                // Generate unique code
-                do {
-                    $code = Voucher::generateCode();
-                } while (Voucher::where('code', $code)->exists());
+        \Illuminate\Support\Facades\DB::transaction(function () use ($quantity, $validated, $request) {
+            $existingCodes = Voucher::pluck('code')->toArray();
+            $vouchersToInsert = [];
+            $codesInBatch = [];
+
+            for ($i = 0; $i < $quantity; $i++) {
+                $code = $request->input('code');
+                if (!$code || ($i > 0)) {
+                    do {
+                        $code = Voucher::generateCode();
+                    } while (in_array($code, $existingCodes) || in_array($code, $codesInBatch));
+                }
+                $codesInBatch[] = $code;
+
+                $vouchersToInsert[] = [
+                    'code' => $code,
+                    'amount' => $validated['amount'],
+                    'currency' => $validated['currency'],
+                    'note' => $validated['note'] ?? null,
+                    'is_active' => true,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ];
             }
 
-            $vouchers[] = Voucher::create([
-                'code' => $code,
-                'amount' => $validated['amount'],
-                'currency' => $validated['currency'],
-                'note' => $validated['note'] ?? null,
-                'is_active' => true,
-            ]);
-        }
+            Voucher::insert($vouchersToInsert);
+        });
 
-        $message = $quantity === 1 
+        $message = $quantity === 1
             ? 'Ваучер успешно создан.'
             : "Создано $quantity ваучеров.";
 

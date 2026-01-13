@@ -17,15 +17,21 @@ class PromocodeService
         $quantity = (int) ($data['quantity'] ?? 1);
         $prefix = (string) ($data['prefix'] ?? '');
         $batchId = $data['batch_id'] ?? (string) Str::uuid();
-        $created = 0;
+        
+        // ВАЖНО: Оптимизируем массовое создание. Генерируем коды в памяти и делаем один bulk insert.
+        $existingCodes = Promocode::pluck('code')->toArray();
+        $promocodesToInsert = [];
+        $codesInBatch = [];
 
-        DB::transaction(function () use ($quantity, $prefix, $data, $batchId, &$created) {
+        DB::transaction(function () use ($quantity, $prefix, $data, $batchId, &$promocodesToInsert, $existingCodes, &$codesInBatch) {
             for ($i = 0; $i < $quantity; $i++) {
                 do {
                     $code = $prefix . $this->generateCode(8);
-                } while (Promocode::where('code', $code)->exists());
+                } while (in_array($code, $existingCodes) || in_array($code, $codesInBatch));
 
-                Promocode::create([
+                $codesInBatch[] = $code;
+
+                $promocodesToInsert[] = [
                     'code' => $code,
                     'type' => $data['type'],
                     'prefix' => $prefix ?: null,
@@ -36,13 +42,15 @@ class PromocodeService
                     'starts_at' => $data['starts_at'] ?? null,
                     'expires_at' => $data['expires_at'] ?? null,
                     'is_active' => $data['is_active'] ?? true,
-                ]);
-
-                $created++;
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ];
             }
+
+            Promocode::insert($promocodesToInsert);
         });
 
-        return $created;
+        return count($promocodesToInsert);
     }
 
     /**

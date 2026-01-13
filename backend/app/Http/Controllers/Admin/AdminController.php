@@ -48,11 +48,20 @@ class AdminController extends Controller
 
     public function edit(User $admin)
     {
+        // ВАЖНО: Защита Main Admin. Его нельзя редактировать через общий интерфейс управления админами.
+        if ($admin->is_main_admin) {
+            return redirect()->route('admin.admins.index')->with('error', 'Редактирование главного администратора запрещено.');
+        }
+
         return view('admin.admins.edit', compact('admin'));
     }
 
     public function update(Request $request, User $admin)
     {
+        if ($admin->is_main_admin) {
+            return redirect()->route('admin.admins.index')->with('error', 'Редактирование главного администратора запрещено.');
+        }
+
         $validated = $request->validate($this->getRules($admin->id));
 
         $admin->update([
@@ -73,6 +82,14 @@ class AdminController extends Controller
 
     public function destroy(User $admin)
     {
+        if ($admin->is_main_admin) {
+            return redirect()->route('admin.admins.index')->with('error', 'Нельзя удалить главного администратора.');
+        }
+
+        if ($admin->id === auth()->id()) {
+            return redirect()->route('admin.admins.index')->with('error', 'Вы не можете удалить самого себя.');
+        }
+
         $admin->delete();
 
         return redirect()->route('admin.admins.index')->with('success', 'Administrator successfully deleted.');
@@ -80,6 +97,10 @@ class AdminController extends Controller
 
     public function block(User $admin)
     {
+        if ($admin->is_main_admin) {
+            return redirect()->route('admin.admins.index')->with('error', 'Нельзя заблокировать главного администратора.');
+        }
+
         $admin->is_blocked = !$admin->is_blocked;
         $admin->save();
 

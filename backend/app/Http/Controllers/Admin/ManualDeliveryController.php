@@ -91,13 +91,13 @@ class ManualDeliveryController extends Controller
         $sortBy = in_array($sortBy, $allowedSortFields) ? $sortBy : 'created_at';
         $sortOrder = in_array(strtolower($sortOrder), ['asc', 'desc']) ? strtolower($sortOrder) : 'asc';
         
-        // Для сортировки по времени в обработке используем вычисляемое поле
+        // Сортировка по времени в обработке
         if ($sortBy === 'processing_time') {
             $query->selectRaw('purchases.*, TIMESTAMPDIFF(HOUR, purchases.created_at, NOW()) as processing_time_hours');
             $sortBy = 'processing_time_hours';
         }
         
-        $pendingOrders = $query->orderBy($sortBy, $sortOrder)->get();
+        $pendingOrders = $query->orderBy($sortBy, $sortOrder)->paginate(50)->withQueryString(); // Добавлена пагинация
         $statistics = $this->manualDeliveryService->getStatistics();
 
         return view('admin.manual-delivery.index', compact(
@@ -151,30 +151,34 @@ class ManualDeliveryController extends Controller
             ]);
         }
 
-        // КРИТИЧНО: Санитизация данных аккаунтов от XSS
-        // Удаляем только HTML/JS теги, сохраняя специальные символы (они могут быть частью данных аккаунта)
+        // КРИТИЧНО: Убрали strip_tags, чтобы не повредить пароли/конфиги. 
         $sanitizedAccountData = array_map(function($account) {
-            // Удаляем HTML/JS теги, но сохраняем специальные символы
-            $sanitized = strip_tags($account);
-            // Удаляем потенциально опасные JavaScript события (onclick, onerror и т.д.)
-            $sanitized = preg_replace('/on\w+="[^"]*"/i', '', $sanitized);
-            $sanitized = preg_replace("/on\w+='[^']*'/i", '', $sanitized);
-            return trim($sanitized);
+            return trim($account);
         }, $validated['account_data']);
 
         try {
-            // Обрабатываем заказ с санитизированными данными
-            $this->manualDeliveryService->processPurchase(
-                $purchase,
-                auth()->user(),
-                $sanitizedAccountData,
-                $validated['processing_notes'] ?? null
-            );
+            // ВАЖНО: Используем транзакцию и блокировку заказа
+            \Illuminate\Support\Facades\DB::transaction(function () use ($purchase, $sanitizedAccountData, $validated) {
+                // Блокируем заказ для предотвращения двойной обработки
+                $lockedPurchase = Purchase::where('id', $purchase->id)->lockForUpdate()->firstOrFail();
+                
+                if ($lockedPurchase->status !== Purchase::STATUS_PROCESSING) {
+                    throw new \Exception("Заказ уже был обработан.");
+                }
 
-            // Сохраняем внутренние заметки администратора отдельно
-            if (!empty($validated['admin_notes'])) {
-                $purchase->update(['admin_notes' => $validated['admin_notes']]);
-            }
+                // Обрабатываем заказ
+                $this->manualDeliveryService->processPurchase(
+                    $lockedPurchase,
+                    auth()->user(),
+                    $sanitizedAccountData,
+                    $validated['processing_notes'] ?? null
+                );
+
+                // Сохраняем внутренние заметки администратора отдельно
+                if (!empty($validated['admin_notes'])) {
+                    $lockedPurchase->update(['admin_notes' => $validated['admin_notes']]);
+                }
+            });
 
             return redirect()->route('admin.manual-delivery.index')
                 ->with('success', "Заказ #{$purchase->order_number} успешно обработан.");

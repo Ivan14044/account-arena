@@ -35,8 +35,21 @@ class UserService
                 }
             }
 
+            // ВАЖНО: Защита баланса поставщика от race condition и случайной перезаписи.
+            // Если баланс передан в данных, мы обновляем его атомарно через разницу.
+            if (isset($data['supplier_balance'])) {
+                $newSupplierBalance = (float)$data['supplier_balance'];
+                $currentUser = User::where('id', $user->id)->lockForUpdate()->first();
+                $diff = $newSupplierBalance - (float)$currentUser->supplier_balance;
+                
+                if ($diff != 0) {
+                    $currentUser->increment('supplier_balance', $diff);
+                }
+                unset($data['supplier_balance']);
+            }
+
             $user->update($data);
-            return $user;
+            return $user->fresh();
         });
     }
 

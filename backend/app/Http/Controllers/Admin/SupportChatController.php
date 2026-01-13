@@ -119,38 +119,20 @@ class SupportChatController extends Controller
      */
     public function sendMessage(Request $request, $id, TelegramBotService $telegramService)
     {
+        $chat = SupportChat::findOrFail($id);
+        $admin = $request->user();
+
+        // ВАЖНО: Проверка прав. Если чат назначен на другого админа, 
+        // обычный админ не может в него писать (только Main Admin).
+        if ($chat->assigned_to && $chat->assigned_to !== $admin->id && !$admin->is_main_admin) {
+            return back()->withErrors(['message' => 'Этот чат назначен на другого администратора.']);
+        }
+
         $request->validate([
             'message' => 'nullable|string|max:5000',
             'attachments' => 'nullable|array|max:5', // Максимум 5 файлов
-            'attachments.*' => 'file|mimes:jpeg,png,jpg,gif,webp,svg,pdf,doc,docx,xls,xlsx,txt,zip,rar|max:10240', // 10MB max per file
+            'attachments.*' => 'file|mimes:jpeg,png,jpg,gif,webp,pdf,zip,rar,txt|max:10240', // 10MB max per file, убраны потенциально опасные типы (svg, docx)
         ]);
-        
-        // Проверяем, что есть либо сообщение, либо вложения
-        if (!$request->filled('message') && !$request->hasFile('attachments')) {
-            return back()->withErrors(['message' => 'Введите сообщение или прикрепите файлы']);
-        }
-        
-        // Дополнительная валидация: проверка общего размера всех файлов (максимум 50MB)
-        if ($request->hasFile('attachments')) {
-            $totalSize = 0;
-            $maxTotalSize = 50 * 1024 * 1024; // 50MB общий лимит
-            
-            foreach ($request->file('attachments') as $file) {
-                $totalSize += $file->getSize();
-            }
-            
-            if ($totalSize > $maxTotalSize) {
-                return back()->withErrors(['attachments' => 'Общий размер всех файлов не должен превышать 50MB']);
-            }
-            
-            // Проверка доступного места на диске (минимум 100MB должно остаться)
-            $freeSpace = disk_free_space(public_path());
-            if ($freeSpace !== false && $freeSpace < (100 * 1024 * 1024)) {
-                return back()->withErrors(['attachments' => 'Недостаточно места на диске для сохранения файлов']);
-            }
-        }
-        
-        $chat = SupportChat::findOrFail($id);
         $admin = $request->user();
         
         $messageText = trim($request->input('message', ''));
@@ -352,11 +334,17 @@ class SupportChatController extends Controller
      */
     public function updateStatus(Request $request, $id)
     {
+        $chat = SupportChat::findOrFail($id);
+        $admin = $request->user();
+
+        // Проверка прав на изменение статуса
+        if ($chat->assigned_to && $chat->assigned_to !== $admin->id && !$admin->is_main_admin) {
+            return redirect()->back()->with('error', 'У вас нет прав на изменение статуса этого чата.');
+        }
+
         $request->validate([
             'status' => 'required|in:open,closed,pending',
         ]);
-        
-        $chat = SupportChat::findOrFail($id);
         $oldStatus = $chat->status;
 
         // Используем транзакцию для атомарности обновления статуса и создания сообщения

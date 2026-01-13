@@ -42,6 +42,9 @@ class NotificationTemplateController extends Controller
             'is_mass' => $request->input('is_mass', 0),
         ]);
 
+        // ВАЖНО: Санитизация данных для защиты от XSS
+        $validated = $this->sanitizeTemplateData($validated);
+        
         $notificationTemplate->saveTranslation($validated);
 
         $route = $request->has('save')
@@ -65,6 +68,9 @@ class NotificationTemplateController extends Controller
     {
         $validated = $request->validate($this->getRules());
 
+        // ВАЖНО: Санитизация данных для защиты от XSS
+        $validated = $this->sanitizeTemplateData($validated);
+
         $notificationTemplate->update($validated);
         $notificationTemplate->saveTranslation($validated);
 
@@ -85,6 +91,28 @@ class NotificationTemplateController extends Controller
 
         return redirect()->route('admin.notification-templates.index', ['type' => 'custom'])
             ->with('success', 'Шаблон уведомления успешно удален.');
+    }
+
+    /**
+     * Санитизация данных шаблона для защиты от XSS
+     * Разрешаем только безопасные HTML теги для форматирования
+     */
+    private function sanitizeTemplateData(array $data): array
+    {
+        foreach (config('langs') as $lang => $flag) {
+            foreach(NotificationTemplate::TRANSLATION_FIELDS as $field) {
+                $key = $field . '.' . $lang;
+                if (isset($data[$key]) && is_string($data[$key])) {
+                    // Разрешаем только базовые теги форматирования и удаляем потенциально опасные
+                    $allowedTags = '<b><strong><i><em><u><br><p><ul><ol><li>';
+                    $data[$key] = strip_tags($data[$key], $allowedTags);
+                    // Дополнительная очистка от потенциально опасных атрибутов
+                    $data[$key] = preg_replace('/on\w+\s*=\s*["\'][^"\']*["\']/i', '', $data[$key]);
+                    $data[$key] = preg_replace('/javascript:/i', '', $data[$key]);
+                }
+            }
+        }
+        return $data;
     }
 
     private function getRules($isCreate = false)

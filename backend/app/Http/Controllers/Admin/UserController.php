@@ -16,11 +16,15 @@ class UserController extends Controller
         $this->userService = $userService;
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $users = User::where('is_admin', false)
-            ->orderBy('id', 'desc')
-            ->get();
+        $query = User::orderBy('id', 'desc');
+
+        if ($request->has('admins')) {
+            $users = $query->where('is_admin', true)->paginate(20);
+        } else {
+            $users = $query->where('is_admin', false)->paginate(20);
+        }
 
         return view('admin.users.index', compact('users'));
     }
@@ -52,6 +56,11 @@ class UserController extends Controller
 
     public function update(Request $request, User $user)
     {
+        // ВАЖНО: Только Main Admin может редактировать других администраторов
+        if ($user->is_admin && !auth()->user()->is_main_admin && $user->id !== auth()->id()) {
+            return redirect()->back()->with('error', 'У вас нет прав для редактирования этого администратора.');
+        }
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $user->id,
@@ -77,9 +86,23 @@ class UserController extends Controller
 
     public function destroy(User $user)
     {
+        // ВАЖНО: Только Main Admin может удалять администраторов
+        if ($user->is_admin && !auth()->user()->is_main_admin) {
+            return redirect()->back()->with('error', 'Только главный администратор может удалять администраторов.');
+        }
+
+        // Нельзя удалить самого себя или главного админа
+        if ($user->id === auth()->id()) {
+            return redirect()->back()->with('error', 'Вы не можете удалить самого себя.');
+        }
+
+        if ($user->is_main_admin) {
+            return redirect()->back()->with('error', 'Нельзя удалить главного администратора.');
+        }
+
         $user->delete();
 
-        return redirect()->route('admin.users.index')->with('success', 'User successfully deleted.');
+        return redirect()->route('admin.users.index')->with('success', 'Пользователь успешно удален.');
     }
 
     public function block(User $user)
@@ -106,11 +129,14 @@ class UserController extends Controller
         $operation = $request->input('operation');
         $amount = $request->input('amount');
         $comment = $request->input('comment', '');
-        $oldBalance = $user->balance ?? 0;
 
         // ВАЖНО: Используем транзакцию для атомарности операций
         try {
-            \Illuminate\Support\Facades\DB::transaction(function () use ($operation, $amount, $user, $oldBalance, $comment) {
+            \Illuminate\Support\Facades\DB::transaction(function () use ($operation, $amount, $user, $comment) {
+                // ВАЖНО: Блокируем пользователя для предотвращения race condition
+                $lockedUser = User::where('id', $user->id)->lockForUpdate()->first();
+                $oldBalance = $lockedUser->balance ?? 0;
+                
                 $balanceService = app(\App\Services\BalanceService::class);
                 $newBalance = $oldBalance;
                 $operationText = '';
@@ -121,7 +147,7 @@ class UserController extends Controller
                     case 'add':
                         // Пополнение через BalanceService
                         $balanceService->topUp(
-                            $user,
+                            $lockedUser,
                             $amount,
                             \App\Services\BalanceService::TYPE_TOPUP_ADMIN,
                             [
@@ -130,17 +156,13 @@ class UserController extends Controller
                                 'comment' => $comment,
                             ]
                         );
-                        $newBalance = $user->fresh()->balance;
-                        $operationText = 'пополнен на';
-                        $paymentMethod = 'admin_balance_topup';
                         break;
 
                     case 'subtract':
                         // Списание через BalanceService
-                        // BalanceService сам проверит достаточность средств
                         try {
                             $balanceService->deduct(
-                                $user,
+                                $lockedUser,
                                 $amount,
                                 \App\Services\BalanceService::TYPE_DEDUCTION,
                                 [
@@ -149,9 +171,6 @@ class UserController extends Controller
                                     'comment' => $comment,
                                 ]
                             );
-                            $newBalance = $user->fresh()->balance;
-                            $operationText = 'уменьшен на';
-                            $paymentMethod = 'admin_balance_deduction';
                         } catch (\Exception $e) {
                             throw new \Exception("Недостаточно средств. Текущий баланс: {$oldBalance} USD, попытка списать: {$amount} USD");
                         }
@@ -159,17 +178,14 @@ class UserController extends Controller
 
                     case 'set':
                         // Установка нового баланса
-                        // ВАЖНО: Запрещаем установку отрицательного баланса
                         if ($amount < 0) {
                             throw new \Exception("Баланс не может быть отрицательным. Минимальное значение: 0 USD");
                         }
 
-                        // Вычисляем разницу и применяем через BalanceService
                         $difference = $amount - $oldBalance;
                         if ($difference > 0) {
-                            // Пополняем
                             $balanceService->topUp(
-                                $user,
+                                $lockedUser,
                                 $difference,
                                 \App\Services\BalanceService::TYPE_ADJUSTMENT,
                                 [
@@ -179,10 +195,9 @@ class UserController extends Controller
                                 ]
                             );
                         } elseif ($difference < 0) {
-                            // Списываем
                             try {
                                 $balanceService->deduct(
-                                    $user,
+                                    $lockedUser,
                                     abs($difference),
                                     \App\Services\BalanceService::TYPE_ADJUSTMENT,
                                     [
@@ -195,11 +210,10 @@ class UserController extends Controller
                                 throw new \Exception("Недостаточно средств для установки баланса. Текущий баланс: {$oldBalance} USD, требуется: {$amount} USD");
                             }
                         }
-                        $newBalance = $user->fresh()->balance;
-                        $operationText = 'установлен в';
-                        $paymentMethod = 'admin_balance_adjustment';
                         break;
                 }
+
+                $newBalance = $lockedUser->fresh()->balance;
 
                 // Логируем действие администратора
                 \Log::info('Admin balance update', [

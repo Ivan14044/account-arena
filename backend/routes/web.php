@@ -74,6 +74,7 @@ Route::prefix('/admin')
             Route::resource('email-templates', EmailTemplateController::class);
             Route::post('email-templates/{email_template}/send-test', [EmailTemplateController::class, 'sendTest'])->name('email-templates.send-test');
             Route::resource('settings', SettingController::class)->only(['index', 'store']);
+            Route::post('settings/test-smtp', [SettingController::class, 'testSmtp'])->name('settings.test-smtp');
             Route::get('settings/notification-check', [SettingController::class, 'getNotificationSettings'])->name('settings.notification-check');
             Route::resource('service-accounts', ServiceAccountController::class)->except(['show']);
             Route::get('service-accounts/{serviceAccount}/export', [ServiceAccountController::class, 'export'])->name('service-accounts.export');
@@ -151,8 +152,8 @@ Route::prefix('/admin')
             Route::post('support-chats/{id}/message', [\App\Http\Controllers\Admin\SupportChatController::class, 'sendMessage'])->name('support-chats.send-message');
             Route::post('support-chats/{id}/assign', [\App\Http\Controllers\Admin\SupportChatController::class, 'assign'])->name('support-chats.assign');
             Route::post('support-chats/{id}/status', [\App\Http\Controllers\Admin\SupportChatController::class, 'updateStatus'])->name('support-chats.update-status');
-            Route::post('support-chats/{id}/typing', [\App\Http\Controllers\Admin\SupportChatController::class, 'sendTyping'])->name('support-chats.send-typing');
-            Route::post('support-chats/{id}/typing/stop', [\App\Http\Controllers\Admin\SupportChatController::class, 'stopTyping'])->name('support-chats.stop-typing');
+            Route::post('support-chats/{id}/typing', [\App\Http\Controllers\Admin\SupportChatController::class, 'sendTyping'])->name('support-chats.send-typing')->middleware('throttle:60,1');
+            Route::post('support-chats/{id}/typing/stop', [\App\Http\Controllers\Admin\SupportChatController::class, 'stopTyping'])->name('support-chats.stop-typing')->middleware('throttle:60,1');
             Route::get('support-chats/{id}/typing/user-status', [\App\Http\Controllers\Admin\SupportChatController::class, 'getUserTypingStatus'])->name('support-chats.user-typing-status');
             Route::post('support-chats/{id}/notes', [\App\Http\Controllers\Admin\SupportChatController::class, 'addNote'])->name('support-chats.add-note');
             Route::delete('support-chats/{id}/notes/{noteId}', [\App\Http\Controllers\Admin\SupportChatController::class, 'deleteNote'])->name('support-chats.delete-note');

@@ -150,159 +150,97 @@ class ProductDispute extends Model
      */
     public function resolveWithRefund($adminId, $comment = null)
     {
-        // ВАЖНО: Проверяем, что претензия еще не обработана
-        if ($this->status === self::STATUS_RESOLVED || $this->status === self::STATUS_REJECTED) {
-            throw new \Exception('Dispute already resolved or rejected');
-        }
-
-        // ВАЖНО: Проверяем, что транзакция еще не была возвращена
-        if ($this->transaction->status === 'refunded') {
-            throw new \Exception('Transaction already refunded');
-        }
-
         DB::transaction(function () use ($adminId, $comment) {
+            // ВАЖНО: Блокируем саму запись претензии для предотвращения двойного вызова
+            $dispute = self::where('id', $this->id)->lockForUpdate()->firstOrFail();
+
+            // ВАЖНО: Проверяем статус ВНУТРИ транзакции после блокировки
+            if ($dispute->status === self::STATUS_RESOLVED || $dispute->status === self::STATUS_REJECTED) {
+                throw new \Exception('Dispute already resolved or rejected');
+            }
+
+            // ВАЖНО: Проверяем, что транзакция еще не была возвращена (также после блокировки)
+            if ($dispute->transaction->status === 'refunded') {
+                throw new \Exception('Transaction already refunded');
+            }
+
             // ВАЖНО: Возвращаем деньги пользователю на баланс через BalanceService
-            // Это обеспечивает создание BalanceTransaction и полную историю операций
             $balanceService = app(\App\Services\BalanceService::class);
             try {
                 $balanceService->topUp(
-                    $this->user,
-                    $this->refund_amount,
+                    $dispute->user,
+                    $dispute->refund_amount,
                     \App\Services\BalanceService::TYPE_REFUND,
                     [
-                        'dispute_id' => $this->id,
-                        'transaction_id' => $this->transaction_id,
+                        'dispute_id' => $dispute->id,
+                        'transaction_id' => $dispute->transaction_id,
                         'admin_id' => $adminId,
                         'comment' => $comment,
                     ]
                 );
             } catch (\Exception $e) {
                 \Illuminate\Support\Facades\Log::error('ProductDispute refund: Failed to refund via BalanceService', [
-                    'dispute_id' => $this->id,
-                    'user_id' => $this->user->id,
-                    'refund_amount' => $this->refund_amount,
+                    'dispute_id' => $dispute->id,
+                    'user_id' => $dispute->user->id,
+                    'refund_amount' => $dispute->refund_amount,
                     'error' => $e->getMessage(),
                 ]);
                 throw $e;
             }
 
             // ВАЖНО: Обрабатываем SupplierEarning только если товар от поставщика
-            if ($this->supplier_id && $this->supplier) {
+            if ($dispute->supplier_id && $dispute->supplier) {
                 // Ищем SupplierEarning для этой транзакции
-                $supplierEarning = SupplierEarning::where('transaction_id', $this->transaction_id)
-                    ->where('supplier_id', $this->supplier_id)
-                    ->where('status', '!=', 'reversed') // Исключаем уже отмененные
+                $supplierEarning = SupplierEarning::where('transaction_id', $dispute->transaction_id)
+                    ->where('supplier_id', $dispute->supplier_id)
+                    ->where('status', '!=', 'reversed')
                     ->first();
 
                 if ($supplierEarning) {
-                    // Найден SupplierEarning - списываем только ту сумму, которая была зачислена поставщику
+                    // Списываем только ту сумму, которая была зачислена поставщику (с учетом комиссии)
                     $supplierAmountToDeduct = $supplierEarning->amount;
-                    $originalStatus = $supplierEarning->status; // Сохраняем оригинальный статус ДО изменений
-                    
-                    \Illuminate\Support\Facades\Log::info('ProductDispute refund: Found SupplierEarning', [
-                        'dispute_id' => $this->id,
-                        'transaction_id' => $this->transaction_id,
-                        'supplier_id' => $this->supplier_id,
-                        'refund_amount' => $this->refund_amount,
-                        'supplier_earning_id' => $supplierEarning->id,
-                        'supplier_earning_amount' => $supplierAmountToDeduct,
-                        'supplier_earning_status' => $originalStatus,
-                    ]);
+                    $originalStatus = $supplierEarning->status;
 
-                    // Проверяем статус SupplierEarning ДО вызова reverse()
-                    if ($originalStatus === 'withdrawn') {
-                        // Средства уже выведены - нужно списать из баланса
-                        \Illuminate\Support\Facades\Log::warning('ProductDispute refund: SupplierEarning already withdrawn, deducting from balance', [
-                            'dispute_id' => $this->id,
-                            'supplier_id' => $this->supplier_id,
-                            'amount' => $supplierAmountToDeduct,
-                            'current_balance' => $this->supplier->supplier_balance,
-                        ]);
-
-                        // ВАЖНО: Проверяем, что баланс достаточен, и запрещаем отрицательный баланс
-                        if ($this->supplier->supplier_balance < $supplierAmountToDeduct) {
-                            \Illuminate\Support\Facades\Log::error('ProductDispute refund: Insufficient supplier balance', [
-                                'dispute_id' => $this->id,
-                                'supplier_id' => $this->supplier_id,
-                                'required' => $supplierAmountToDeduct,
-                                'available' => $this->supplier->supplier_balance,
-                            ]);
-                            throw new \Exception("Insufficient supplier balance for refund. Required: {$supplierAmountToDeduct} USD, available: {$this->supplier->supplier_balance} USD");
+                    if ($originalStatus === 'withdrawn' || $originalStatus === 'available') {
+                        // Если средства уже доступны или выведены, списываем с баланса
+                        if ($dispute->supplier->supplier_balance < $supplierAmountToDeduct) {
+                            throw new \Exception("Insufficient supplier balance for refund. Required: {$supplierAmountToDeduct} USD");
                         }
-
-                        // Списываем из баланса поставщика
-                        $this->supplier->decrement('supplier_balance', $supplierAmountToDeduct);
-                        
-                        // Помечаем SupplierEarning как reversed (для учета)
-                        $supplierEarning->reverse('Refund after withdrawal');
-                    } elseif ($originalStatus === 'available') {
-                        // Средства уже переведены в supplier_balance командой release-earnings
-                        // Нужно списать из баланса И отменить SupplierEarning
-                        \Illuminate\Support\Facades\Log::info('ProductDispute refund: SupplierEarning status is available, deducting from balance', [
-                            'dispute_id' => $this->id,
-                            'supplier_id' => $this->supplier_id,
-                            'amount' => $supplierAmountToDeduct,
-                            'current_balance' => $this->supplier->supplier_balance,
-                        ]);
-
-                        // ВАЖНО: Проверяем, что баланс достаточен, и запрещаем отрицательный баланс
-                        if ($this->supplier->supplier_balance < $supplierAmountToDeduct) {
-                            \Illuminate\Support\Facades\Log::error('ProductDispute refund: Insufficient supplier balance for available earning', [
-                                'dispute_id' => $this->id,
-                                'supplier_id' => $this->supplier_id,
-                                'required' => $supplierAmountToDeduct,
-                                'available' => $this->supplier->supplier_balance,
-                            ]);
-                            throw new \Exception("Insufficient supplier balance for refund. Required: {$supplierAmountToDeduct} USD, available: {$this->supplier->supplier_balance} USD");
-                        }
-                        
-                        $this->supplier->decrement('supplier_balance', $supplierAmountToDeduct);
-                        
-                        // Отменяем SupplierEarning
-                        $supplierEarning->reverse('Product dispute refund');
-                    } elseif ($originalStatus === 'held') {
-                        // Средства еще в холде - просто отменяем SupplierEarning (средства еще не в балансе)
-                        \Illuminate\Support\Facades\Log::info('ProductDispute refund: SupplierEarning status is held, reversing without balance deduction', [
-                            'dispute_id' => $this->id,
-                            'supplier_id' => $this->supplier_id,
-                            'amount' => $supplierAmountToDeduct,
-                        ]);
-                        
-                        $supplierEarning->reverse('Product dispute refund');
-                    } else {
-                        \Illuminate\Support\Facades\Log::error('ProductDispute refund: Unexpected SupplierEarning status', [
-                            'dispute_id' => $this->id,
-                            'supplier_earning_id' => $supplierEarning->id,
-                            'status' => $originalStatus,
-                        ]);
-                        
-                        // Все равно пытаемся отменить
-                        $supplierEarning->reverse('Product dispute refund (unexpected status)');
+                        $dispute->supplier->decrement('supplier_balance', $supplierAmountToDeduct);
                     }
+                    
+                    $supplierEarning->reverse('Product dispute refund');
                 } else {
-                    // SupplierEarning не найден - возможно товар администратора или старая покупка
-                    // В этом случае списываем полную сумму из баланса (старая логика для совместимости)
-                    \Illuminate\Support\Facades\Log::warning('ProductDispute refund: SupplierEarning not found, using full refund_amount', [
-                        'dispute_id' => $this->id,
-                        'transaction_id' => $this->transaction_id,
-                        'supplier_id' => $this->supplier_id,
-                        'refund_amount' => $this->refund_amount,
+                    // КРИТИЧНО: Если SupplierEarning не найден, мы НЕ можем списывать полную сумму покупки (refund_amount),
+                    // так как она включает комиссию сервиса. Списываем 0 или бросаем ошибку для ручного разбора.
+                    \Illuminate\Support\Facades\Log::error('ProductDispute refund: SupplierEarning not found for supplier product', [
+                        'dispute_id' => $dispute->id,
+                        'transaction_id' => $dispute->transaction_id,
                     ]);
-
-                    // ВАЖНО: Проверяем, что баланс достаточен, и запрещаем отрицательный баланс
-                    if ($this->supplier->supplier_balance < $this->refund_amount) {
-                        \Illuminate\Support\Facades\Log::error('ProductDispute refund: Insufficient supplier balance (no SupplierEarning found)', [
-                            'dispute_id' => $this->id,
-                            'supplier_id' => $this->supplier_id,
-                            'required' => $this->refund_amount,
-                            'available' => $this->supplier->supplier_balance,
-                        ]);
-                        throw new \Exception("Insufficient supplier balance for refund. Required: {$this->refund_amount} USD, available: {$this->supplier->supplier_balance} USD");
-                    }
-                    
-                    $this->supplier->decrement('supplier_balance', $this->refund_amount);
+                    throw new \Exception("Supplier earning record not found. Please contact developer to resolve manually.");
                 }
             }
+
+            // Обновляем статус транзакции
+            $dispute->transaction->update(['status' => 'refunded']);
+
+            // Обновляем претензию
+            $dispute->update([
+                'status' => self::STATUS_RESOLVED,
+                'admin_decision' => self::DECISION_REFUND,
+                'admin_comment' => $comment,
+                'resolved_at' => now(),
+                'resolved_by' => $adminId,
+            ]);
+
+            // Уведомления
+            if ($dispute->supplier_id && $dispute->supplier) {
+                $dispute->notifySupplier();
+                $dispute->supplier->calculateSupplierRating();
+            }
+            $dispute->notifyCustomer();
+        });
+    }
 
             // Обновляем статус транзакции
             $this->transaction->update(['status' => 'refunded']);

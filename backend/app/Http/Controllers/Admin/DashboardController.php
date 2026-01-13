@@ -16,7 +16,7 @@ class DashboardController extends Controller
     {
         $period = $request->input('period', 'today');
         $startDate = null;
-        $endDate = Carbon::now()->endOfDay(); // по умолчанию до конца сегодняшнего дня
+        $endDate = Carbon::now()->endOfDay();
 
         switch ($period) {
             case 'today':
@@ -35,11 +35,6 @@ class DashboardController extends Controller
             case 'year':
                 $startDate = Carbon::now()->startOfYear()->startOfDay();
                 break;
-            case 'all':
-                // За весь период - не устанавливаем даты
-                $startDate = null;
-                $endDate = null;
-                break;
             case 'custom':
                 if ($request->filled('start_date')) {
                     $startDate = Carbon::parse($request->input('start_date'))->startOfDay();
@@ -50,87 +45,73 @@ class DashboardController extends Controller
                 break;
         }
 
-        $dateFilter = function ($query) use ($startDate, $endDate) {
-            if ($startDate) {
-                $query->whereBetween('created_at', [$startDate, $endDate]);
+        // КЕШИРОВАНИЕ: Сохраняем статистику на 10 минут (кроме кастомных дат)
+        $cacheKey = 'admin_dashboard_' . $period . ($period === 'custom' ? '_' . md5($startDate . $endDate) : '');
+        $data = \Illuminate\Support\Facades\Cache::remember($cacheKey, 600, function() use ($startDate, $endDate, $period) {
+            // Всего товаров в магазине (количество позиций)
+            $totalProducts = ServiceAccount::where('is_active', true)
+                ->whereNotNull('title')
+                ->whereNotNull('price')
+                ->count();
+
+            // Всего товара на сумму
+            $totalProductsValue = ServiceAccount::where('is_active', true)
+                ->whereNotNull('price')
+                ->selectRaw('SUM(JSON_LENGTH(accounts_data) * price) as total_value')
+                ->value('total_value') ?? 0;
+
+            // Доступно для продажи
+            $availableProducts = ServiceAccount::where('is_active', true)
+                ->selectRaw('SUM(GREATEST(0, JSON_LENGTH(accounts_data) - COALESCE(used, 0))) as total_available')
+                ->value('total_available') ?? 0;
+
+            // Покупки товаров за период
+            $purchasesQuery = Purchase::query();
+            if ($startDate && $endDate) {
+                $purchasesQuery->whereBetween('created_at', [$startDate, $endDate]);
             }
-        };
+            $purchasesInPeriod = $purchasesQuery->count();
 
-        // Всего товаров в магазине (количество позиций)
-        $totalProducts = ServiceAccount::where('is_active', true)
-            ->whereNotNull('title')
-            ->whereNotNull('price')
-            ->count();
+            // Продано за период (количество завершенных покупок)
+            $soldInPeriodQuery = Purchase::where('status', 'completed');
+            if ($startDate && $endDate) {
+                $soldInPeriodQuery->whereBetween('created_at', [$startDate, $endDate]);
+            }
+            $soldInPeriod = $soldInPeriodQuery->count();
 
-        // Всего товара на сумму
-        $allProducts = ServiceAccount::where('is_active', true)
-            ->whereNotNull('price')
-            ->get();
+            // Доход за период (сумма продаж товаров за период)
+            $revenueInPeriodQuery = Purchase::where('status', 'completed');
+            if ($startDate && $endDate) {
+                $revenueInPeriodQuery->whereBetween('created_at', [$startDate, $endDate]);
+            }
+            $revenueInPeriod = $revenueInPeriodQuery->sum('total_amount');
 
-        $totalProductsValue = $allProducts->sum(function ($product) {
-            $quantity = is_array($product->accounts_data) ? count($product->accounts_data) : 0;
-            return $quantity * (float)$product->price;
+            // Средний чек за период
+            $averageOrderValue = $soldInPeriod > 0 ? ($revenueInPeriod / $soldInPeriod) : 0;
+
+            // Всего пользователей
+            $totalUsers = User::where('is_admin', false)->where('is_main_admin', false)->count();
+
+            return [
+                'totalProducts' => $totalProducts,
+                'totalProductsValue' => $totalProductsValue,
+                'availableProducts' => $availableProducts,
+                'purchasesInPeriod' => $purchasesInPeriod,
+                'soldInPeriod' => $soldInPeriod,
+                'revenueInPeriod' => $revenueInPeriod,
+                'averageOrderValue' => $averageOrderValue,
+                'totalUsers' => $totalUsers,
+                'salesChartData' => $this->getSalesChartData(30),
+                'categoryChartData' => $this->getCategoryChartData(),
+                'topProducts' => $this->getTopProducts(5),
+            ];
         });
 
-        // Доступно для продажи
-        $availableProducts = $allProducts->sum(function ($product) {
-            $totalQuantity = is_array($product->accounts_data) ? count($product->accounts_data) : 0;
-            $soldCount = $product->used ?? 0;
-            return max(0, $totalQuantity - $soldCount);
-        });
-
-        // Покупки товаров за период
-        $purchasesQuery = Purchase::query();
-        if ($startDate && $endDate) {
-            $purchasesQuery->whereBetween('created_at', [$startDate, $endDate]);
-        }
-        $purchasesInPeriod = $purchasesQuery->count();
-
-        // Продано за период (количество завершенных покупок)
-        $soldInPeriodQuery = Purchase::where('status', 'completed');
-        if ($startDate && $endDate) {
-            $soldInPeriodQuery->whereBetween('created_at', [$startDate, $endDate]);
-        }
-        $soldInPeriod = $soldInPeriodQuery->count();
-
-        // Доход за период (сумма продаж товаров за период)
-        $revenueInPeriodQuery = Purchase::where('status', 'completed');
-        if ($startDate && $endDate) {
-            $revenueInPeriodQuery->whereBetween('created_at', [$startDate, $endDate]);
-        }
-        $revenueInPeriod = $revenueInPeriodQuery->sum('total_amount');
-
-        // Средний чек за период (только по завершенным покупкам)
-        $averageOrderValue = $soldInPeriod > 0 ? ($revenueInPeriod / $soldInPeriod) : 0;
-
-        // Всего пользователей
-        $totalUsers = User::where('is_admin', false)->where('is_main_admin', false)->count();
-
-        // Данные для графика продаж (последние 30 дней)
-        $salesChartData = $this->getSalesChartData(30);
-        
-        // Данные для графика по категориям
-        $categoryChartData = $this->getCategoryChartData();
-        
-        // Топ-5 продаваемых товаров
-        $topProducts = $this->getTopProducts(5);
-
-        return view('admin.dashboard', compact(
-            'totalProducts',
-            'totalProductsValue',
-            'availableProducts',
-            'purchasesInPeriod',
-            'soldInPeriod',
-            'revenueInPeriod',
-            'averageOrderValue',
-            'totalUsers',
-            'period',
-            'startDate',
-            'endDate',
-            'salesChartData',
-            'categoryChartData',
-            'topProducts'
-        ));
+        return view('admin.dashboard', array_merge($data, [
+            'period' => $period,
+            'startDate' => $startDate,
+            'endDate' => $endDate,
+        ]));
     }
 
     /**
@@ -139,21 +120,26 @@ class DashboardController extends Controller
      */
     private function getSalesChartData($days = 30)
     {
+        $startDate = Carbon::now()->subDays($days - 1)->startOfDay();
+        
+        // ОПТИМИЗИРОВАНО: Один запрос с группировкой вместо 30 запросов в цикле
+        $results = Purchase::where('status', 'completed')
+            ->where('created_at', '>=', $startDate)
+            ->selectRaw('DATE(created_at) as date, SUM(total_amount) as total')
+            ->groupBy('date')
+            ->get()
+            ->pluck('total', 'date')
+            ->toArray();
+
         $data = [];
         $labels = [];
         
         for ($i = $days - 1; $i >= 0; $i--) {
             $date = Carbon::now()->subDays($i);
-            $dayStart = $date->copy()->startOfDay();
-            $dayEnd = $date->copy()->endOfDay();
-            
-            // ИСПРАВЛЕНО: считаем продажи товаров из Purchase
-            $sales = Purchase::whereBetween('created_at', [$dayStart, $dayEnd])
-                ->where('status', 'completed')
-                ->sum('total_amount');
+            $dateKey = $date->format('Y-m-d');
             
             $labels[] = $date->format('d.m');
-            $data[] = round($sales, 2);
+            $data[] = round($results[$dateKey] ?? 0, 2);
         }
         
         return [

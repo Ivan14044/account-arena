@@ -31,6 +31,9 @@ class EmailTemplateController extends Controller
     {
         $validated = $request->validate($this->getRules(true));
 
+        // ВАЖНО: Санитизация данных для защиты от XSS
+        $validated = $this->sanitizeTemplateData($validated);
+
         $emailTemplate = EmailTemplate::create([
             'code' => $validated['code'],
             'name' => $validated['name'],
@@ -145,6 +148,9 @@ class EmailTemplateController extends Controller
     {
         $validated = $request->validate($this->getRules());
 
+        // ВАЖНО: Санитизация данных для защиты от XSS
+        $validated = $this->sanitizeTemplateData($validated);
+
         $emailTemplate->update($validated);
         $emailTemplate->saveTranslation($validated);
 
@@ -153,6 +159,28 @@ class EmailTemplateController extends Controller
             : route('admin.email-templates.index');
 
         return redirect($route)->with('success', 'Email template successfully updated.');
+    }
+
+    /**
+     * Санитизация данных шаблона для защиты от XSS
+     */
+    private function sanitizeTemplateData(array $data): array
+    {
+        foreach (config('langs') as $lang => $flag) {
+            foreach(\App\Models\EmailTemplate::TRANSLATION_FIELDS as $field) {
+                $key = $field . '.' . $lang;
+                if (isset($data[$key]) && is_string($data[$key])) {
+                    // Разрешаем базовые теги форматирования для писем
+                    $allowedTags = '<b><strong><i><em><u><br><p><ul><ol><li><a><div><span><h1><h2><h3><h4><h5><h6><table><thead><tbody><tr><th><td>';
+                    $data[$key] = strip_tags($data[$key], $allowedTags);
+                    
+                    // Удаляем опасные атрибуты
+                    $data[$key] = preg_replace('/on\w+\s*=\s*["\'][^"\']*["\']/i', '', $data[$key]);
+                    $data[$key] = preg_replace('/javascript:/i', '', $data[$key]);
+                }
+            }
+        }
+        return $data;
     }
 
     /**

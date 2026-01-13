@@ -33,54 +33,59 @@ class SettingController extends Controller
     {
         $validated = $request->validate($this->getRules($request->form));
 
-        foreach ($validated as $key => $value) {
-            // Для checkbox полей нужно сохранять даже если они false
-            if (in_array($key, ['support_chat_enabled', 'support_chat_greeting_enabled'])) {
-                Option::set($key, $request->has($key) ? true : false);
-            } elseif (!empty($value) || $value === '0' || $value === 0) {
-                Option::set($key, $value);
-            }
-        }
+        \Illuminate\Support\Facades\DB::transaction(function () use ($request, $validated) {
+            foreach ($validated as $key => $value) {
+                // Шифруем чувствительные данные
+                if (in_array($key, ['smtp_password', 'telegram_bot_token']) && !empty($value)) {
+                    $value = encrypt($value);
+                }
 
-        // Special handling for SMTP encryption: empty string should be saved as empty string (not skipped)
-        if ($request->form === 'smtp' && $request->has('smtp_encryption')) {
-            $encryption = $request->input('smtp_encryption');
-            Option::set('smtp_encryption', $encryption ?? '');
-        }
-
-
-        // Сохраняем сообщения для разных языков (приветствие)
-        if ($request->form === 'support_chat') {
-            foreach (config('langs') as $locale => $flag) {
-                $greetingKey = 'support_chat_greeting_message_' . $locale;
-                if ($request->has($greetingKey)) {
-                    $value = $request->input($greetingKey);
-                    // Convert null to empty string to avoid database constraint violation
-                    Option::set($greetingKey, $value ?? '');
+                // Для checkbox полей нужно сохранять даже если они false
+                if (in_array($key, ['support_chat_enabled', 'support_chat_greeting_enabled'])) {
+                    Option::set($key, $request->has($key) ? true : false);
+                } elseif (!empty($value) || $value === '0' || $value === 0) {
+                    Option::set($key, $value);
                 }
             }
-        }
 
-        // Очищаем кеш настроек чата поддержки при изменении настроек чата
+            // Special handling for SMTP encryption: empty string should be saved as empty string (not skipped)
+            if ($request->form === 'smtp' && $request->has('smtp_encryption')) {
+                $encryption = $request->input('smtp_encryption');
+                Option::set('smtp_encryption', $encryption ?? '');
+            }
+
+            // Сохраняем сообщения для разных языков (приветствие)
+            if ($request->form === 'support_chat') {
+                foreach (config('langs') as $locale => $flag) {
+                    $greetingKey = 'support_chat_greeting_message_' . $locale;
+                    if ($request->has($greetingKey)) {
+                        $value = $request->input($greetingKey);
+                        Option::set($greetingKey, $value ?? '');
+                    }
+                }
+            }
+
+            // Обработка настроек уведомлений
+            if ($request->form === 'notification_settings') {
+                $notificationSettings = AdminNotificationSetting::getOrCreateForUser(auth()->id());
+                $notificationSettings->update([
+                    'registration_enabled' => $request->has('registration_enabled'),
+                    'product_purchase_enabled' => $request->has('product_purchase_enabled'),
+                    'dispute_created_enabled' => $request->has('dispute_created_enabled'),
+                    'payment_enabled' => $request->has('payment_enabled'),
+                    'topup_enabled' => $request->has('topup_enabled'),
+                    'support_chat_enabled' => $request->has('support_chat_enabled'),
+                    'manual_delivery_enabled' => $request->has('manual_delivery_enabled'),
+                    'sound_enabled' => $request->has('sound_enabled'),
+                ]);
+            }
+        });
+
+        // Очищаем кеш настроек чата поддержки
         if ($request->form === 'support_chat') {
             foreach (config('langs') as $locale => $flag) {
                 Cache::forget('support_chat_settings_' . $locale);
             }
-        }
-
-        // Обработка настроек уведомлений
-        if ($request->form === 'notification_settings') {
-            $notificationSettings = AdminNotificationSetting::getOrCreateForUser(auth()->id());
-            $notificationSettings->update([
-                'registration_enabled' => $request->has('registration_enabled'),
-                'product_purchase_enabled' => $request->has('product_purchase_enabled'),
-                'dispute_created_enabled' => $request->has('dispute_created_enabled'),
-                'payment_enabled' => $request->has('payment_enabled'),
-                'topup_enabled' => $request->has('topup_enabled'),
-                'support_chat_enabled' => $request->has('support_chat_enabled'),
-                'manual_delivery_enabled' => $request->has('manual_delivery_enabled'),
-                'sound_enabled' => $request->has('sound_enabled'),
-            ]);
         }
 
         // Обработка настроек Telegram
@@ -88,8 +93,8 @@ class SettingController extends Controller
             Option::set('telegram_client_enabled', $request->has('telegram_client_enabled') ? true : false);
             
             if ($request->filled('telegram_bot_token')) {
+                // Токен уже зашифрован и сохранен в цикле выше
                 $botToken = $request->telegram_bot_token;
-                Option::set('telegram_bot_token', $botToken);
                 
                 // Validate bot token by calling /getMe API
                 try {
@@ -103,31 +108,23 @@ class SettingController extends Controller
                         if ($botUsername) {
                             Option::set('telegram_bot_username', $botUsername);
                             Option::set('telegram_bot_id', $botId);
-                            
-                            // Set support_chat_telegram_link with correct bot link
                             Option::set('support_chat_telegram_link', "https://t.me/{$botUsername}");
                             
-                            // Set webhook for receiving messages
                             $webhookUrl = config('app.url') . '/api/telegram/webhook';
                             $telegramBotService = new TelegramBotService();
                             $webhookSet = $telegramBotService->setWebhook($webhookUrl);
                             
                             if (!$webhookSet) {
-                                Log::warning('Failed to set Telegram webhook', [
-                                    'webhook_url' => $webhookUrl
-                                ]);
+                                Log::warning('Failed to set Telegram webhook', ['webhook_url' => $webhookUrl]);
                             }
                         }
                     } else {
                         return redirect()->route('admin.settings.index')
                             ->with('active_tab', 'telegram')
-                            ->withErrors(['telegram_bot_token' => 'Неверный токен бота. Проверьте правильность токена.']);
+                            ->withErrors(['telegram_bot_token' => 'Неверный токен бота.']);
                     }
                 } catch (\Exception $e) {
-                    Log::error('Telegram bot token validation error', [
-                        'error' => $e->getMessage()
-                    ]);
-                    
+                    Log::error('Telegram bot token validation error', ['error' => $e->getMessage()]);
                     return redirect()->route('admin.settings.index')
                         ->with('active_tab', 'telegram')
                         ->withErrors(['telegram_bot_token' => 'Ошибка при проверке токена бота: ' . $e->getMessage()]);
@@ -138,6 +135,39 @@ class SettingController extends Controller
         return redirect()->route('admin.settings.index')
             ->with('active_tab', $request->form)
             ->with('success', 'Настройки успешно сохранены.');
+    }
+
+    /**
+     * Тестирование отправки письма через SMTP
+     */
+    public function testSmtp()
+    {
+        try {
+            // ВАЖНО: Принудительно конфигурируем почту из сохраненных опций
+            \App\Services\EmailService::configureMailFromOptions();
+            
+            $user = auth()->user();
+            \Illuminate\Support\Facades\Mail::raw("Это тестовое письмо от Account Arena.\nЕсли вы получили это письмо, значит настройки SMTP работают корректно.\n\nТест выполнен: " . now()->format('d.m.Y H:i:s'), function ($message) use ($user) {
+                $message->to($user->email)
+                    ->subject('Тест SMTP - Account Arena');
+            });
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Тестовое письмо успешно отправлено на ' . $user->email . '. Пожалуйста, проверьте ваш почтовый ящик (включая папку Спам).'
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('SMTP Test failed', [
+                'admin_id' => auth()->id(),
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Ошибка при отправке тестового письма: ' . $e->getMessage()
+            ]);
+        }
     }
 
     /**

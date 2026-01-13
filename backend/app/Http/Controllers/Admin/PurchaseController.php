@@ -87,13 +87,15 @@ class PurchaseController extends Controller
             $products = ServiceAccount::where('id', $request->product_id)->get(['id', 'title']);
         }
 
-        // Статистика (кешируем на короткое время или оптимизируем запрос)
-        $stats = [
-            'total' => Purchase::count(),
-            'today' => Purchase::whereDate('created_at', today())->count(),
-            'this_month' => Purchase::whereMonth('created_at', now()->month)->count(),
-            'total_revenue' => Purchase::where('status', 'completed')->sum('total_amount'),
-        ];
+        // ВАЖНО: Кешируем статистику на 5 минут для снижения нагрузки на БД
+        $stats = \Illuminate\Support\Facades\Cache::remember('admin_purchases_stats', 300, function() {
+            return [
+                'total' => Purchase::count(),
+                'today' => Purchase::whereDate('created_at', today())->count(),
+                'this_month' => Purchase::whereMonth('created_at', now()->month)->count(),
+                'total_revenue' => Purchase::where('status', 'completed')->sum('total_amount'),
+            ];
+        });
 
         return view('admin.purchases.index', compact('purchases', 'users', 'products', 'stats'));
     }

@@ -20,7 +20,7 @@ class PromocodeController extends Controller
 
     public function index()
     {
-        $promocodes = Promocode::orderBy('id', 'desc')->get();
+        $promocodes = Promocode::orderBy('id', 'desc')->paginate(20);
 
         return view('admin.promocodes.index', compact('promocodes'));
     }
@@ -96,6 +96,12 @@ class PromocodeController extends Controller
 
     public function destroy(Promocode $promocode)
     {
+        // ВАЖНО: Защита удаления. Только главный администратор или создатель (если бы было поле creator_id).
+        // В данном случае ограничиваем для всех кроме Main Admin для безопасности.
+        if (!auth()->user()->is_main_admin) {
+            return redirect()->back()->with('error', 'У вас нет прав на удаление промокодов.');
+        }
+
         $promocode->delete();
 
         return redirect()->route('admin.promocodes.index')->with('success', 'Промокод успешно удален.');
@@ -103,6 +109,11 @@ class PromocodeController extends Controller
 
     public function bulkDestroy(Request $request)
     {
+        // ВАЖНО: Только главный администратор может выполнять массовые действия
+        if (!auth()->user()->is_main_admin) {
+            return response()->json(['message' => 'У вас нет прав на массовое удаление промокодов'], 403);
+        }
+
         $ids = array_filter(array_map('intval', (array)$request->input('ids', [])));
         if (empty($ids)) {
             return response()->json(['message' => 'No IDs provided'], 422);

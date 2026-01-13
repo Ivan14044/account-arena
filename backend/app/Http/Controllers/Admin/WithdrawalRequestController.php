@@ -70,68 +70,71 @@ class WithdrawalRequestController extends Controller
             return back()->with('error', 'Можно одобрить только запросы со статусом "В обработке".');
         }
 
-        // ВАЖНО: Синхронизируем баланс и проверяем доступность средств перед одобрением
-        // Это предотвращает одобрение запросов, для которых недостаточно средств
-        try {
-            $supplier = \App\Models\User::find($withdrawalRequest->supplier_id);
-            if (!$supplier) {
-                return back()->with('error', 'Поставщик не найден.');
-            }
+        // ВАЖНО: Используем транзакцию и блокировку пользователя для предотвращения Race Condition
+        return \Illuminate\Support\Facades\DB::transaction(function () use ($withdrawalRequest) {
+            try {
+                // Блокируем запись поставщика для эксклюзивного доступа к расчетам баланса
+                $supplier = \App\Models\User::lockForUpdate()->find($withdrawalRequest->supplier_id);
+                
+                if (!$supplier) {
+                    return back()->with('error', 'Поставщик не найден.');
+                }
 
-            // Синхронизируем баланс (переводим held -> available -> supplier_balance)
-            $this->syncSupplierBalance($supplier);
-            $supplier->refresh();
+                // Синхронизируем баланс (переводим held -> available -> supplier_balance)
+                // Теперь это происходит внутри транзакции
+                $this->syncSupplierBalance($supplier);
+                $supplier->refresh();
 
-            // Вычисляем доступную сумму с учетом pending запросов
-            $availableAmount = \App\Models\SupplierEarning::where('supplier_id', $supplier->id)
-                ->where(function($q) {
-                    $q->where('status', 'available')
-                      ->orWhere(function($q2) {
-                          $q2->where('status', 'held')
-                             ->whereNotNull('available_at')
-                             ->where('available_at', '<=', now());
-                      });
-                })->sum('amount');
+                // Вычисляем доступную сумму с учетом других pending запросов
+                $availableAmount = \App\Models\SupplierEarning::where('supplier_id', $supplier->id)
+                    ->where(function($q) {
+                        $q->where('status', 'available')
+                          ->orWhere(function($q2) {
+                              $q2->where('status', 'held')
+                                 ->whereNotNull('available_at')
+                                 ->where('available_at', '<=', now());
+                          });
+                    })->sum('amount');
 
-            // Вычитаем сумму других pending запросов (кроме текущего)
-            $pendingWithdrawals = WithdrawalRequest::where('supplier_id', $supplier->id)
-                ->where('status', 'pending')
-                ->where('id', '!=', $withdrawalRequest->id)
-                ->sum('amount');
-            
-            $availableAmount = max(0, $availableAmount - $pendingWithdrawals);
+                // Вычитаем сумму других pending запросов (кроме текущего)
+                $pendingWithdrawals = WithdrawalRequest::where('supplier_id', $supplier->id)
+                    ->where('status', 'pending')
+                    ->where('id', '!=', $withdrawalRequest->id)
+                    ->sum('amount');
+                
+                $availableAmount = max(0, $availableAmount - $pendingWithdrawals);
 
-            if ($availableAmount < $withdrawalRequest->amount) {
-                \Illuminate\Support\Facades\Log::warning('Withdrawal request approval rejected: insufficient funds', [
+                if ($availableAmount < $withdrawalRequest->amount) {
+                    \Illuminate\Support\Facades\Log::warning('Withdrawal request approval rejected: insufficient funds', [
+                        'withdrawal_request_id' => $withdrawalRequest->id,
+                        'supplier_id' => $supplier->id,
+                        'requested_amount' => $withdrawalRequest->amount,
+                        'available_amount' => $availableAmount,
+                    ]);
+                    return back()->with('error', 'Недостаточно средств для одобрения запроса. Доступно: ' . number_format($availableAmount, 2) . ' USD, запрошено: ' . number_format($withdrawalRequest->amount, 2) . ' USD');
+                }
+
+                $withdrawalRequest->update([
+                    'status' => 'approved',
+                    'processed_at' => now(),
+                ]);
+
+                \Illuminate\Support\Facades\Log::info('Withdrawal request approved', [
                     'withdrawal_request_id' => $withdrawalRequest->id,
                     'supplier_id' => $supplier->id,
-                    'requested_amount' => $withdrawalRequest->amount,
+                    'amount' => $withdrawalRequest->amount,
                     'available_amount' => $availableAmount,
                 ]);
-                return back()->with('error', 'Недостаточно средств для одобрения запроса. Доступно: ' . number_format($availableAmount, 2) . ' USD, запрошено: ' . number_format($withdrawalRequest->amount, 2) . ' USD');
+
+                return back()->with('success', 'Запрос на вывод средств одобрен.');
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error('Failed to approve withdrawal request', [
+                    'withdrawal_request_id' => $withdrawalRequest->id,
+                    'error' => $e->getMessage(),
+                ]);
+                throw $e; // Пробрасываем для отката транзакции
             }
-
-            $withdrawalRequest->update([
-                'status' => 'approved',
-                'processed_at' => now(),
-            ]);
-
-            \Illuminate\Support\Facades\Log::info('Withdrawal request approved', [
-                'withdrawal_request_id' => $withdrawalRequest->id,
-                'supplier_id' => $supplier->id,
-                'amount' => $withdrawalRequest->amount,
-                'available_amount' => $availableAmount,
-            ]);
-
-            return back()->with('success', 'Запрос на вывод средств одобрен.');
-        } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('Failed to approve withdrawal request', [
-                'withdrawal_request_id' => $withdrawalRequest->id,
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-            ]);
-            return back()->with('error', 'Ошибка при одобрении запроса: ' . $e->getMessage());
-        }
+        });
     }
 
     /**
