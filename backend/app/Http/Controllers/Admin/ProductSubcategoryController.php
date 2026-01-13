@@ -8,6 +8,13 @@ use Illuminate\Http\Request;
 
 class ProductSubcategoryController extends Controller
 {
+    protected $categoryService;
+
+    public function __construct(\App\Services\CategoryService $categoryService)
+    {
+        $this->categoryService = $categoryService;
+    }
+
     public function index()
     {
         // Получаем все подкатегории товаров с их родительскими категориями
@@ -126,11 +133,13 @@ class ProductSubcategoryController extends Controller
             ->whereNotNull('parent_id')
             ->firstOrFail();
         
-        // Отвязываем товары от подкатегории перед удалением
-        $subcategory->products()->update(['category_id' => null]);
-        $subcategory->delete();
+        $result = $this->categoryService->deleteCategory($subcategory);
 
-        return redirect()->route('admin.product-subcategories.index')->with('success', 'Подкатегория товаров успешно удалена.');
+        if (!$result['success']) {
+            return redirect()->route('admin.product-subcategories.index')->with('error', $result['message']);
+        }
+
+        return redirect()->route('admin.product-subcategories.index')->with('success', $result['message']);
     }
 
     private function getRules($id = false)

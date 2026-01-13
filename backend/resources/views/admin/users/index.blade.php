@@ -106,6 +106,9 @@
                         <button type="button" class="btn btn-filter" id="filterBlocked" data-filter="blocked">
                             Заблокированные
                         </button>
+                        <button type="button" class="btn btn-filter" id="filterPending" data-filter="pending">
+                            Ожидающие
+                        </button>
                         <button type="button" class="btn btn-filter" id="filterSuppliers" data-filter="suppliers">
                             Поставщики
                         </button>
@@ -164,6 +167,10 @@
                                 @if($user->is_blocked)
                                     <span class="badge badge-danger badge-modern">
                                         <i class="fas fa-ban mr-1"></i>Заблокирован
+                                    </span>
+                                @elseif($user->is_pending)
+                                    <span class="badge badge-warning badge-modern">
+                                        <i class="fas fa-clock mr-1"></i>Ожидает
                                     </span>
                                 @else
                                     <span class="badge badge-success badge-modern">
@@ -403,6 +410,13 @@
             $('#filterBlocked').on('click', function() {
                 table.search('').columns().search('');
                 table.column(3).search('Заблокирован').draw();
+                $('.btn-group-filter .btn').removeClass('active');
+                $(this).addClass('active');
+            });
+
+            $('#filterPending').on('click', function() {
+                table.search('').columns().search('');
+                table.column(3).search('Ожидает').draw();
                 $('.btn-group-filter .btn').removeClass('active');
                 $(this).addClass('active');
             });

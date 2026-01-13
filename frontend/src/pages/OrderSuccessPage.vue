@@ -885,13 +885,6 @@ const fetchPurchases = async (skipLoading = false) => {
         const authStore = useAuthStore();
         const token = authStore.token;
 
-        console.log('🔍 Fetching purchases...', {
-            url: '/purchases',
-            hasToken: !!token,
-            tokenStart: token ? token.substring(0, 20) + '...' : 'нет',
-            authStoreUser: authStore.user?.email
-        });
-
         if (!token) {
             toast.error(t('order_success.not_authorized'));
             await router.push('/login');
@@ -904,23 +897,14 @@ const fetchPurchases = async (skipLoading = false) => {
             }
         });
 
-        console.log('✅ Response received:', {
-            status: response.status,
-            success: response.data.success,
-            purchasesCount: response.data.purchases?.length || 0,
-            data: response.data
-        });
-
         if (response.data.success) {
             const newPurchases = response.data.purchases;
             updatePurchasesSmart(newPurchases);
-            console.log('✅ Purchases set:', purchases.value.length);
             
             // Скрываем прелоадеры, если это не фоновое обновление
             if (!skipLoading) {
                 loading.value = false;
                 loadingStore.reset();
-                console.log('✅ Preloaders hidden');
             }
 
             // Если товар выдан (есть покупки)

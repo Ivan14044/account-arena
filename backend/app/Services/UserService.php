@@ -24,12 +24,17 @@ class UserService
                 unset($data['password']);
             }
 
-            // Handle is_blocked logic (matching controller logic)
+            // Handle is_blocked/is_pending status logic
             if (isset($data['is_blocked'])) {
-                if ($data['is_blocked'] == 2) {
+                $statusValue = (int)$data['is_blocked'];
+                // 0 = Active, 1 = Blocked, 2 = Pending
+                if ($statusValue === 1) {
+                    $data['is_blocked'] = 1;
+                    $data['is_pending'] = 0;
+                } elseif ($statusValue === 2) {
                     $data['is_blocked'] = 0;
                     $data['is_pending'] = 1;
-                } elseif ($data['is_blocked'] == 0) {
+                } else {
                     $data['is_blocked'] = 0;
                     $data['is_pending'] = 0;
                 }

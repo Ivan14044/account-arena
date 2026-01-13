@@ -122,11 +122,14 @@ class DashboardController extends Controller
     {
         $startDate = Carbon::now()->subDays($days - 1)->startOfDay();
         
-        // ОПТИМИЗИРОВАНО: Один запрос с группировкой вместо 30 запросов в цикле
+        // ОПТИМИЗИРОВАНО: Используем прямое сравнение дат. 
+        // Для MySQL индекс на created_at будет работать эффективнее, если не оборачивать его в DATE() в WHERE.
+        // Группировка по DATE(created_at) всё равно нужна для агрегации.
         $results = Purchase::where('status', 'completed')
             ->where('created_at', '>=', $startDate)
             ->selectRaw('DATE(created_at) as date, SUM(total_amount) as total')
             ->groupBy('date')
+            ->orderBy('date', 'asc') // Добавлена сортировка для надежности
             ->get()
             ->pluck('total', 'date')
             ->toArray();

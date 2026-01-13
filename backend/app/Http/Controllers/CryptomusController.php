@@ -435,9 +435,6 @@ class CryptomusController extends Controller
             }
         }
 
-        $transaction->status = 'completed';
-        $transaction->save();
-
         Log::info('Cryptomus webhook: Processing payment', [
             'order_id' => $orderId,
             'transaction_id' => $transaction->id,
@@ -445,8 +442,8 @@ class CryptomusController extends Controller
         ]);
 
         return match ($metadata['payment_type']) {
-            'topup' => $this->handleTopUpWebhook($data, $metadata),
-            'guest' => $this->handleGuestWebhook($data, $metadata),
+            'topup' => $this->handleTopUpWebhook($data, $metadata, $transaction),
+            'guest' => $this->handleGuestWebhook($data, $metadata, $transaction),
             'user' => $this->handleUserPurchaseWebhook($data, $metadata, $transaction),
             default => $this->handleUnknownPaymentType($orderId),
         };
@@ -455,7 +452,7 @@ class CryptomusController extends Controller
     /**
      * Handle top-up webhook
      */
-    private function handleTopUpWebhook(array $data, array $metadata): JsonResponse
+    private function handleTopUpWebhook(array $data, array $metadata, Transaction $transaction): JsonResponse
     {
         $orderId = $data['order_id'] ?? null;
         $userId = $metadata['user_id'] ?? null;
@@ -478,6 +475,10 @@ class CryptomusController extends Controller
         }
 
         try {
+            // ВАЖНО: Обновляем статус транзакции ПЕРЕД пополнением
+            $transaction->status = 'completed';
+            $transaction->save();
+
             $balanceService = app(BalanceService::class);
 
             $balanceTransaction = $balanceService->topUp(
@@ -569,6 +570,10 @@ class CryptomusController extends Controller
         $promocode = trim((string)($metadata['promocode'] ?? ''));
 
         try {
+            // ВАЖНО: Обновляем статус транзакции ПЕРЕД созданием покупок
+            $transaction->status = 'completed';
+            $transaction->save();
+
             // ВАЖНО: Подготавливаем данные с проверкой наличия и актуальной цены
             $preparedProductsData = [];
             foreach ($productsData as $item) {
@@ -621,17 +626,19 @@ class CryptomusController extends Controller
             }
 
             $purchaseService = app(ProductPurchaseService::class);
+            // ВАЖНО: Передаем промокод и orderId для атомарной записи использования
             $purchases = $purchaseService->createMultiplePurchases(
                 $preparedProductsData,
                 $user->id,
                 null,
-                'crypto'
+                'crypto',
+                $promocode,
+                $orderId
             );
 
             $totalAmount = array_sum(array_column($preparedProductsData, 'total'));
 
             $this->sendPurchaseNotifications($user, $totalAmount, $purchases);
-            $this->recordPromocodeUsage($promocode, $user->id, $orderId);
 
             Log::info('Cryptomus webhook (User Purchase): Purchase completed', [
                 'user_id' => $user->id,
@@ -653,7 +660,7 @@ class CryptomusController extends Controller
     /**
      * Handle guest purchase webhook
      */
-    private function handleGuestWebhook(array $data, array $metadata): JsonResponse
+    private function handleGuestWebhook(array $data, array $metadata, Transaction $transaction): JsonResponse
     {
         $orderId = $data['order_id'] ?? null;
         $guestEmail = trim((string)($metadata['guest_email'] ?? ''));
@@ -673,7 +680,6 @@ class CryptomusController extends Controller
         }
 
         // ВАЖНО: Проверяем дублирование покупок для гостя
-        $transaction = Transaction::whereRaw("JSON_EXTRACT(metadata, '$.order_id') = ?", [$orderId])->first();
         if ($transaction) {
             $existingPurchase = \App\Models\Purchase::where('transaction_id', $transaction->id)->first();
             if ($existingPurchase) {
@@ -690,6 +696,10 @@ class CryptomusController extends Controller
         $promocode = trim((string)($metadata['promocode'] ?? ''));
 
         try {
+            // ВАЖНО: Обновляем статус транзакции ПЕРЕД созданием покупок
+            $transaction->status = 'completed';
+            $transaction->save();
+
             // ВАЖНО: Проверяем наличие товаров и актуальные цены перед созданием покупок
             $validatedProductsData = [];
             foreach ($productsData as $item) {
@@ -738,7 +748,8 @@ class CryptomusController extends Controller
                 return response()->json(['success' => false, 'message' => 'No valid products'], 400);
             }
             
-            GuestCartController::createGuestPurchases($guestEmail, $validatedProductsData, $promocode);
+            // ВАЖНО: Передаем промокод и orderId для атомарного создания
+            GuestCartController::createGuestPurchases($guestEmail, $validatedProductsData, $promocode, $orderId);
 
             $totalAmount = array_sum(array_column($validatedProductsData, 'total'));
 
@@ -764,8 +775,6 @@ class CryptomusController extends Controller
                 ]
             );
 
-            $this->recordPromocodeUsage($promocode, null, $orderId);
-
             Log::info('Cryptomus webhook (Guest): Guest purchase completed', [
                 'guest_email' => $guestEmail,
                 'order_id' => $orderId,
@@ -778,6 +787,7 @@ class CryptomusController extends Controller
                 'error' => $e->getMessage(),
                 'guest_email' => $guestEmail,
                 'order_id' => $orderId,
+                'trace' => $e->getTraceAsString(),
             ]);
             return \App\Http\Responses\ApiResponse::success();
         }
@@ -851,53 +861,5 @@ class CryptomusController extends Controller
             'user_email' => $user->email,
             'products_count' => count($purchases),
         ]);
-    }
-
-    /**
-     * Record promocode usage
-     */
-    private function recordPromocodeUsage(string $promocode, ?int $userId, string $orderId): void
-    {
-        if (empty($promocode)) {
-            return;
-        }
-
-        try {
-            DB::transaction(function () use ($promocode, $userId, $orderId) {
-                // Проверяем, не был ли промокод уже использован для этого заказа
-                $existingUsage = PromocodeUsage::where('order_id', (string)$orderId)->first();
-                if ($existingUsage) {
-                    Log::info('Cryptomus webhook: Promocode already used for this order', [
-                        'order_id' => $orderId,
-                        'user_id' => $userId,
-                        'promocode' => $promocode,
-                        'existing_usage_id' => $existingUsage->id,
-                    ]);
-                    return; // Промокод уже использован
-                }
-                
-                $promo = Promocode::where('code', $promocode)->lockForUpdate()->first();
-                if (!$promo) {
-                    return;
-                }
-
-                PromocodeUsage::create([
-                    'promocode_id' => $promo->id,
-                    'user_id' => $userId,
-                    'order_id' => (string)$orderId,
-                ]);
-
-                if ((int)$promo->usage_limit > 0 && (int)$promo->usage_count < (int)$promo->usage_limit) {
-                    $promo->increment('usage_count');
-                }
-            });
-        } catch (\Exception $e) {
-            Log::error('Failed to record promocode usage', [
-                'promocode' => $promocode,
-                'user_id' => $userId,
-                'order_id' => $orderId,
-                'error' => $e->getMessage()
-            ]);
-        }
     }
 }

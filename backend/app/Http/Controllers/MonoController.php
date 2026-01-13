@@ -139,15 +139,15 @@ class MonoController extends Controller
             }
         }
 
-        // Update Transaction status
-        $transaction->status = $status === 'success' ? 'completed' : ($status === 'failure' ? 'failed' : 'pending');
-        $transaction->save();
+        // ВАЖНО: Мы НЕ обновляем статус транзакции здесь.
+        // Мы сделаем это внутри обработчиков, чтобы гарантировать атомарность с созданием покупок.
+        // Если обработчик упадет, транзакция останется в статусе pending для возможности ручного разбора.
 
         // Route to appropriate handler based on payment type
         return match ($paymentMetadata['type']) {
-            'topup' => $this->handleTopUpWebhook($request, $invoiceId, $amount, $modifiedDate, $paymentMetadata),
-            'guest' => $this->handleGuestWebhook($request, $invoiceId, $amount, $modifiedDate, $paymentMetadata),
-            'user' => $this->handleUserPurchaseWebhook($request, $invoiceId, $amount, $modifiedDate, $paymentMetadata),
+            'topup' => $this->handleTopUpWebhook($request, $invoiceId, $amount, $modifiedDate, $paymentMetadata, $transaction),
+            'guest' => $this->handleGuestWebhook($request, $invoiceId, $amount, $modifiedDate, $paymentMetadata, $transaction),
+            'user' => $this->handleUserPurchaseWebhook($request, $invoiceId, $amount, $modifiedDate, $paymentMetadata, $transaction),
             default => $this->handleUnknownPaymentType($invoiceId),
         };
     }
@@ -396,9 +396,10 @@ class MonoController extends Controller
      * @param int $amount Amount in minimal units (kopecks) from webhook
      * @param int|null $modifiedDate Last modification timestamp from webhook
      * @param array $metadata Payment metadata parsed from reference
+     * @param Transaction $transaction Transaction model
      * @return JsonResponse
      */
-    private function handleTopUpWebhook(Request $request, string $invoiceId, int $amount, ?int $modifiedDate, array $metadata): JsonResponse
+    private function handleTopUpWebhook(Request $request, string $invoiceId, int $amount, ?int $modifiedDate, array $metadata, Transaction $transaction): JsonResponse
     {
         // Get user ID from metadata
         $userId = $metadata['user_id'] ?? null;
@@ -433,6 +434,10 @@ class MonoController extends Controller
         }
 
         try {
+            // ВАЖНО: Обновляем статус транзакции перед пополнением баланса
+            $transaction->status = 'completed';
+            $transaction->save();
+
             // Use BalanceService for safe balance top-up
             // BalanceService automatically checks for duplicates by invoice_id
             $balanceService = app(BalanceService::class);
@@ -512,9 +517,10 @@ class MonoController extends Controller
      * @param int $amount Amount in minimal units (kopecks) from webhook
      * @param int|null $modifiedDate Last modification timestamp from webhook
      * @param array $metadata Payment metadata parsed from reference
+     * @param Transaction $transaction Transaction model
      * @return JsonResponse
      */
-    private function handleUserPurchaseWebhook(Request $request, string $invoiceId, int $amount, ?int $modifiedDate, array $metadata): JsonResponse
+    private function handleUserPurchaseWebhook(Request $request, string $invoiceId, int $amount, ?int $modifiedDate, array $metadata, Transaction $transaction): JsonResponse
     {
         // Get user ID from metadata
         $userId = $metadata['user_id'] ?? null;
@@ -549,7 +555,6 @@ class MonoController extends Controller
 
         try {
             // ВАЖНО: Получаем транзакцию для проверки дублирования
-            $transaction = Transaction::whereRaw("JSON_EXTRACT(metadata, '$.invoice_id') = ?", [$invoiceId])->first();
             if ($transaction) {
                 $existingPurchase = \App\Models\Purchase::where('transaction_id', $transaction->id)->first();
                 if ($existingPurchase) {
@@ -565,6 +570,10 @@ class MonoController extends Controller
 
             $purchaseService = app(\App\Services\ProductPurchaseService::class);
             
+            // ВАЖНО: Обновляем статус транзакции ПЕРЕД созданием покупок
+            $transaction->status = 'completed';
+            $transaction->save();
+
             // Подготавливаем данные о товарах для создания покупок
             $preparedProductsData = [];
             foreach ($productsData as $item) {
@@ -618,11 +627,14 @@ class MonoController extends Controller
             }
             
             // Создаем покупки для авторизованного пользователя
+            // ВАЖНО: Передаем промокод и invoiceId для атомарной записи использования
             $purchases = $purchaseService->createMultiplePurchases(
                 $preparedProductsData,
                 $user->id,
                 null, // guest_email = null для авторизованных
-                'credit_card'
+                'credit_card',
+                $promocode,
+                $invoiceId
             );
 
             // Отправляем email уведомление пользователю
@@ -667,36 +679,6 @@ class MonoController extends Controller
                 'modified_date' => $modifiedDate,
             ]);
 
-            // Record promocode usage if exists (с проверкой дублирования)
-            if ($promocode !== '') {
-                DB::transaction(function () use ($promocode, $user, $invoiceId) {
-                    // Проверяем, не был ли промокод уже использован для этого заказа
-                    $existingUsage = PromocodeUsage::where('order_id', (string)$invoiceId)->first();
-                    if ($existingUsage) {
-                        Log::info('MonoBank Webhook (User Purchase): Promocode already used for this order', [
-                            'invoiceId' => $invoiceId,
-                            'user_id' => $user->id,
-                            'promocode' => $promocode,
-                            'existing_usage_id' => $existingUsage->id,
-                        ]);
-                        return; // Промокод уже использован
-                    }
-                    
-                    $promo = Promocode::where('code', $promocode)->lockForUpdate()->first();
-                    if ($promo) {
-                        PromocodeUsage::create([
-                            'promocode_id' => $promo->id,
-                            'user_id' => $user->id,
-                            'order_id' => (string)$invoiceId,
-                        ]);
-                        if ((int)$promo->usage_limit > 0 && (int)$promo->usage_count < (int)$promo->usage_limit) {
-                            $promo->usage_count = (int)$promo->usage_count + 1;
-                            $promo->save();
-                        }
-                    }
-                });
-            }
-
             return \App\Http\Responses\ApiResponse::success();
         } catch (\Exception $e) {
             Log::error('MonoBank Webhook (User Purchase): Processing failed', [
@@ -718,9 +700,10 @@ class MonoController extends Controller
      * @param int $amount Amount in minimal units (kopecks) from webhook
      * @param int|null $modifiedDate Last modification timestamp from webhook
      * @param array $metadata Payment metadata parsed from reference
+     * @param Transaction $transaction Transaction model
      * @return JsonResponse
      */
-    private function handleGuestWebhook(Request $request, string $invoiceId, int $amount, ?int $modifiedDate, array $metadata): JsonResponse
+    private function handleGuestWebhook(Request $request, string $invoiceId, int $amount, ?int $modifiedDate, array $metadata, Transaction $transaction): JsonResponse
     {
         // Get guest email from metadata
         $guestEmail = trim((string)($metadata['guest_email'] ?? ''));
@@ -743,7 +726,6 @@ class MonoController extends Controller
         }
 
         // ВАЖНО: Проверяем дублирование покупок для гостя
-        $transaction = Transaction::whereRaw("JSON_EXTRACT(metadata, '$.invoice_id') = ?", [$invoiceId])->first();
         if ($transaction) {
             $existingPurchase = \App\Models\Purchase::where('transaction_id', $transaction->id)->first();
             if ($existingPurchase) {
@@ -760,6 +742,10 @@ class MonoController extends Controller
         $promocode = trim((string)($metadata['promocode'] ?? ''));
 
         try {
+            // ВАЖНО: Обновляем статус транзакции ПЕРЕД созданием покупок
+            $transaction->status = 'completed';
+            $transaction->save();
+
             // ВАЖНО: Проверяем наличие товаров и актуальные цены перед созданием покупок
             $validatedProductsData = [];
             foreach ($productsData as $item) {
@@ -809,7 +795,8 @@ class MonoController extends Controller
             }
             
             // Создаем покупки для гостя
-            GuestCartController::createGuestPurchases($guestEmail, $validatedProductsData, $promocode);
+            // ВАЖНО: Передаем промокод и invoiceId для атомарной записи использования
+            GuestCartController::createGuestPurchases($guestEmail, $validatedProductsData, $promocode, $invoiceId);
 
             // Отправляем email уведомление гостю с информацией о покупке
             $totalAmount = array_sum(array_column($validatedProductsData, 'total'));
@@ -849,36 +836,6 @@ class MonoController extends Controller
                 'products_count' => count($validatedProductsData),
                 'modified_date' => $modifiedDate,
             ]);
-
-            // Record promocode usage if exists (с проверкой дублирования)
-            if ($promocode !== '') {
-                DB::transaction(function () use ($promocode, $guestEmail, $invoiceId) {
-                    // Проверяем, не был ли промокод уже использован для этого заказа
-                    $existingUsage = PromocodeUsage::where('order_id', (string)$invoiceId)->first();
-                    if ($existingUsage) {
-                        Log::info('MonoBank Webhook (Guest): Promocode already used for this order', [
-                            'invoiceId' => $invoiceId,
-                            'guest_email' => $guestEmail,
-                            'promocode' => $promocode,
-                            'existing_usage_id' => $existingUsage->id,
-                        ]);
-                        return; // Промокод уже использован
-                    }
-                    
-                    $promo = Promocode::where('code', $promocode)->lockForUpdate()->first();
-                    if ($promo) {
-                        PromocodeUsage::create([
-                            'promocode_id' => $promo->id,
-                            'user_id' => null, // Guest purchase
-                            'order_id' => (string)$invoiceId,
-                        ]);
-                        if ((int)$promo->usage_limit > 0 && (int)$promo->usage_count < (int)$promo->usage_limit) {
-                            $promo->usage_count = (int)$promo->usage_count + 1;
-                            $promo->save();
-                        }
-                    }
-                });
-            }
 
             return \App\Http\Responses\ApiResponse::success();
         } catch (\Exception $e) {

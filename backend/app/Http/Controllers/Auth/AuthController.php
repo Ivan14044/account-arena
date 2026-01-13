@@ -92,13 +92,13 @@ class AuthController extends Controller
             // токен для расширения со скоупом "extension" -> в cookie
             $extToken = $user->createToken('extension', ['extension'])->plainTextToken;
 
-            NotifierService::send(
+            NotifierService::sendFromTemplate(
                 'registration',
-                __('notifier.new_user_title'),
-                __('notifier.new_user_message', [
+                'admin_new_user',
+                [
                     'email' => $user->email,
                     'name' => $user->name,
-                ])
+                ]
             );
 
             return response()->json([
@@ -131,17 +131,18 @@ class AuthController extends Controller
                     'email' => [__('auth.account_blocked')],
                 ]);
             }
+
+            if ($user->is_pending) {
+                \Log::warning('[AUTH] Pending user attempt', ['email' => $request->email]);
+                throw ValidationException::withMessages([
+                    'email' => [__('auth.account_pending') ?? 'Ваш аккаунт ожидает подтверждения.'],
+                ]);
+            }
             
             \Log::info('[AUTH] User found and validated', ['user_id' => $user->id, 'email' => $user->email]);
 
             if ($request->boolean('remember')) {
                 Config::set('sanctum.expiration', 43200);
-            }
-
-            // Сбрасываем флаг is_pending если был установлен
-            if ($user->is_pending) {
-                $user->is_pending = 0;
-                $user->save();
             }
 
             // Токен для фронта (SPA)

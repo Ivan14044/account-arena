@@ -113,8 +113,9 @@
                                 <div class="form-group-modern">
                                     <label for="is_blocked" class="form-label-modern">Статус аккаунта</label>
                                     <select name="is_blocked" id="is_blocked" class="form-control form-control-modern @error('is_blocked') is-invalid @enderror">
-                                        <option value="0" {{ old('is_blocked', $user->is_blocked) == 0 ? 'selected' : '' }}>✅ Активен</option>
-                                        <option value="1" {{ old('is_blocked', $user->is_blocked) == 1 ? 'selected' : '' }}>🚫 Заблокирован</option>
+                                        <option value="0" {{ old('is_blocked', $user->getStatus()) == 'active' ? 'selected' : '' }}>✅ Активен</option>
+                                        <option value="1" {{ old('is_blocked', $user->getStatus()) == 'blocked' ? 'selected' : '' }}>🚫 Заблокирован</option>
+                                        <option value="2" {{ old('is_blocked', $user->getStatus()) == 'pending' ? 'selected' : '' }}>⏳ Ожидает (Pending)</option>
                                     </select>
                                     @error('is_blocked')
                                         <div class="invalid-feedback d-block">{{ $message }}</div>
@@ -286,7 +287,15 @@
                         @method('PUT')
                         <input type="hidden" name="name" value="{{ $user->name }}">
                         <input type="hidden" name="email" value="{{ $user->email }}">
-                        <input type="hidden" name="is_blocked" value="{{ $user->is_blocked ? 1 : 0 }}">
+                        @php
+                            $statusMap = [
+                                'active' => 0,
+                                'blocked' => 1,
+                                'pending' => 2
+                            ];
+                            $statusValue = $statusMap[$user->getStatus()] ?? 0;
+                        @endphp
+                        <input type="hidden" name="is_blocked" value="{{ $statusValue }}">
 
 
                         <div class="row">

@@ -123,61 +123,71 @@ class WithdrawalController extends Controller
      */
     public function store(Request $request)
     {
-        $supplier = auth()->user();
+        $user = auth()->user();
 
-        // Recompute available amount at the moment of request
-        $availableAmount = SupplierEarning::where('supplier_id', $supplier->id)
-            ->where(function($q) {
-                $q->where('status', 'available')
-                  ->orWhere(function($q2) {
-                      $q2->where('status', 'held')
-                         ->whereNotNull('available_at')
-                         ->where('available_at', '<=', now());
-                  });
-            })->sum('amount');
+        return \Illuminate\Support\Facades\DB::transaction(function () use ($request, $user) {
+            // Блокируем запись пользователя для предотвращения Race Condition
+            $supplier = \App\Models\User::lockForUpdate()->find($user->id);
 
-        // ВАЖНО: Вычитаем сумму уже созданных pending запросов на вывод
-        // Это предотвращает создание нескольких запросов, сумма которых превышает доступную
-        $pendingWithdrawals = WithdrawalRequest::where('supplier_id', $supplier->id)
-            ->where('status', 'pending')
-            ->sum('amount');
-        
-        $availableAmount = $availableAmount - $pendingWithdrawals;
+            // Recompute available amount at the moment of request (with locks)
+            $availableAmount = SupplierEarning::where('supplier_id', $supplier->id)
+                ->where(function($q) {
+                    $q->where('status', 'available')
+                      ->orWhere(function($q2) {
+                          $q2->where('status', 'held')
+                             ->whereNotNull('available_at')
+                             ->where('available_at', '<=', now());
+                      });
+                })
+                ->lockForUpdate()
+                ->sum('amount');
 
-        if ($availableAmount <= 0) {
+            // ВАЖНО: Вычитаем сумму уже созданных pending запросов на вывод
+            // Это предотвращает создание нескольких запросов, сумма которых превышает доступную
+            $pendingWithdrawals = WithdrawalRequest::where('supplier_id', $supplier->id)
+                ->where('status', 'pending')
+                ->lockForUpdate()
+                ->sum('amount');
+            
+            $maxAvailable = round($availableAmount - $pendingWithdrawals, 2);
+
+            if ($maxAvailable <= 0) {
+                return redirect()->route('supplier.withdrawals.index')
+                    ->with('error', 'Нет доступных средств для вывода. Возможно, у вас уже есть запросы на вывод в обработке.');
+            }
+
+            $request->validate([
+                'amount' => ['required','numeric','min:1','max:' . $maxAvailable],
+                'payment_method' => ['required', 'in:trc20,card_uah'],
+            ]);
+
+            $amount = round((float)$request->amount, 2);
+
+            // Check if supplier has the selected payment method
+            if ($request->payment_method == 'trc20' && !$supplier->trc20_wallet) {
+                return back()->with('error', 'TRC-20 кошелек не указан в реквизитах.');
+            }
+
+            if ($request->payment_method == 'card_uah' && !$supplier->card_number_uah) {
+                return back()->with('error', 'Номер карты не указан в реквизитах.');
+            }
+
+            // Get payment details based on method
+            $paymentDetails = $request->payment_method == 'trc20'
+                ? $supplier->trc20_wallet
+                : $supplier->card_number_uah;
+
+            WithdrawalRequest::create([
+                'supplier_id' => $supplier->id,
+                'amount' => $amount,
+                'payment_method' => $request->payment_method,
+                'payment_details' => $paymentDetails,
+                'status' => 'pending',
+            ]);
+
             return redirect()->route('supplier.withdrawals.index')
-                ->with('error', 'Нет доступных средств для вывода. Возможно, у вас уже есть запросы на вывод в обработке.');
-        }
-
-        $validated = $request->validate([
-            'amount' => ['required','numeric','min:1','max:' . $availableAmount],
-            'payment_method' => ['required', 'in:trc20,card_uah'],
-        ]);
-
-        // Check if supplier has the selected payment method
-        if ($validated['payment_method'] == 'trc20' && !$supplier->trc20_wallet) {
-            return back()->with('error', 'TRC-20 кошелек не указан в реквизитах.');
-        }
-
-        if ($validated['payment_method'] == 'card_uah' && !$supplier->card_number_uah) {
-            return back()->with('error', 'Номер карты не указан в реквизитах.');
-        }
-
-        // Get payment details based on method
-        $paymentDetails = $validated['payment_method'] == 'trc20'
-            ? $supplier->trc20_wallet
-            : $supplier->card_number_uah;
-
-        WithdrawalRequest::create([
-            'supplier_id' => $supplier->id,
-            'amount' => $validated['amount'],
-            'payment_method' => $validated['payment_method'],
-            'payment_details' => $paymentDetails,
-            'status' => 'pending',
-        ]);
-
-        return redirect()->route('supplier.withdrawals.index')
-            ->with('success', 'Запрос на вывод средств успешно создан!');
+                ->with('success', 'Запрос на вывод средств успешно создан!');
+        });
     }
 
     /**

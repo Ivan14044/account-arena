@@ -30,9 +30,26 @@ class CategoryService
     /**
      * Delete a category
      */
-    public function deleteCategory(Category $category): bool
+    public function deleteCategory(Category $category): array
     {
         return DB::transaction(function () use ($category) {
+            // ПРОВЕРКА: Если есть привязанные товары, запрещаем удаление
+            $productsCount = $category->products()->count();
+            if ($productsCount > 0) {
+                return [
+                    'success' => false,
+                    'message' => "Невозможно удалить категорию, так как к ней привязано {$productsCount} товаров. Сначала перенесите товары в другую категорию."
+                ];
+            }
+
+            // ПРОВЕРКА: Если есть подкатегории, также запрещаем
+            if ($category->children()->count() > 0) {
+                return [
+                    'success' => false,
+                    'message' => "Невозможно удалить категорию, так как у нее есть подкатегории. Сначала удалите или переместите их."
+                ];
+            }
+
             // Удаляем изображение категории, если оно существует
             if ($category->image_url) {
                 $imagePath = $category->getRawOriginal('image_url');
@@ -41,13 +58,15 @@ class CategoryService
                 }
             }
             
-            // Unlink products
+            // Unlink products (на всякий случай, хотя мы проверили выше)
             $category->products()->update(['category_id' => null]);
             
-            // Delete subcategories recursively if needed (or let DB cascade handle it)
-            // Current Model boot handles articles detach and children product unlink
-            
-            return $category->delete();
+            $category->delete();
+
+            return [
+                'success' => true,
+                'message' => 'Категория успешно удалена.'
+            ];
         });
     }
 

@@ -42,6 +42,14 @@ class PageController extends Controller
         );
 
         $page = Page::create($validated);
+
+        // Sanitize content before saving translations
+        if (isset($validated['content']) && is_array($validated['content'])) {
+            foreach ($validated['content'] as $lang => $content) {
+                $validated['content'][$lang] = $this->sanitizeHtml($content);
+            }
+        }
+
         $page->saveTranslation($validated);
 
         return redirect()->route('admin.pages.index')->with('success', 'Page successfully created.');
@@ -62,6 +70,14 @@ class PageController extends Controller
         $validated = $request->validate($this->getRules($page->id));
 
         $page->update($validated);
+
+        // Sanitize content before saving translations
+        if (isset($validated['content']) && is_array($validated['content'])) {
+            foreach ($validated['content'] as $lang => $content) {
+                $validated['content'][$lang] = $this->sanitizeHtml($content);
+            }
+        }
+
         $page->saveTranslation($validated);
 
         $route = $request->has('save')
@@ -76,6 +92,27 @@ class PageController extends Controller
         $page->delete();
 
         return redirect()->route('admin.pages.index')->with('success', 'Page successfully deleted.');
+    }
+
+    /**
+     * Sanitize HTML content to prevent XSS while keeping safe tags.
+     */
+    private function sanitizeHtml($html)
+    {
+        if (empty($html)) return $html;
+
+        // Список разрешенных тегов (для CKEditor)
+        $allowedTags = '<p><a><b><i><u><strong><em><ul><ol><li><br><h1><h2><h3><h4><h5><h6><img><blockquote><pre><code><table><thead><tbody><tr><th><td><hr>';
+        
+        // 1. Сначала используем strip_tags с белым списком
+        $sanitized = strip_tags($html, $allowedTags);
+        
+        // 2. Дополнительная очистка от опасных атрибутов (onmouseover, onclick, javascript: и т.д.)
+        $sanitized = preg_replace('/on\w+\s*=\s*".*?"/i', '', $sanitized);
+        $sanitized = preg_replace('/on\w+\s*=\s*\'.*?\'/i', '', $sanitized);
+        $sanitized = preg_replace('/javascript\s*:/i', '', $sanitized);
+        
+        return $sanitized;
     }
 
     private function getRules($id = false)

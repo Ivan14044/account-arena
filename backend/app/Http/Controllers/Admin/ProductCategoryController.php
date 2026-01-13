@@ -115,9 +115,13 @@ class ProductCategoryController extends Controller
             ->whereNull('parent_id')
             ->firstOrFail();
         
-        $this->categoryService->deleteCategory($category);
+        $result = $this->categoryService->deleteCategory($category);
 
-        return redirect()->route('admin.product-categories.index')->with('success', 'Категория товаров успешно удалена.');
+        if (!$result['success']) {
+            return redirect()->route('admin.product-categories.index')->with('error', $result['message']);
+        }
+
+        return redirect()->route('admin.product-categories.index')->with('success', $result['message']);
     }
 
     private function getRules($id = false)

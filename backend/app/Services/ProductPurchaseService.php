@@ -355,17 +355,21 @@ class ProductPurchaseService
      * @param int|null $userId ID пользователя (null для гостей)
      * @param string|null $guestEmail Email гостя (для гостевых покупок)
      * @param string $paymentMethod Метод оплаты
+     * @param string|null $promocode Промокод (опционально)
+     * @param string|null $orderId ID заказа/инвойса (опционально)
      * @return array Массив созданных покупок
      */
     public function createMultiplePurchases(
         array $productsData,
         ?int $userId = null,
         ?string $guestEmail = null,
-        string $paymentMethod = 'balance'
+        string $paymentMethod = 'balance',
+        ?string $promocode = null,
+        ?string $orderId = null
     ): array {
         $purchases = [];
         
-        DB::transaction(function () use ($productsData, $userId, $guestEmail, $paymentMethod, &$purchases) {
+        DB::transaction(function () use ($productsData, $userId, $guestEmail, $paymentMethod, $promocode, $orderId, &$purchases) {
             foreach ($productsData as $item) {
                 // ВАЖНО: Всегда блокируем товар для предотвращения race condition
                 // Не полагаемся на состояние объекта, всегда делаем новый запрос с блокировкой
@@ -413,6 +417,12 @@ class ProductPurchaseService
                 );
                 
                 $purchases[] = $result['purchase'];
+            }
+
+            // ВАЖНО: Записываем использование промокода ВНУТРИ транзакции создания покупок
+            // Это гарантирует атомарность: или покупка и промокод применены, или ничего.
+            if ($promocode) {
+                $this->recordPromocodeUsage($promocode, $userId, $orderId);
             }
         });
 
@@ -501,6 +511,63 @@ class ProductPurchaseService
                     ]);
                 }
             }
+        }
+    }
+
+    /**
+     * Записать использование промокода (внутри транзакции)
+     */
+    protected function recordPromocodeUsage(string $code, ?int $userId, ?string $orderId): void
+    {
+        if (empty($code)) {
+            return;
+        }
+
+        // Проверяем, не был ли промокод уже использован для этого заказа (order_id/invoice_id)
+        if ($orderId) {
+            $existingUsage = \App\Models\PromocodeUsage::where('order_id', (string)$orderId)->first();
+            if ($existingUsage) {
+                Log::info('Promocode usage record skipped: order_id already exists', [
+                    'order_id' => $orderId,
+                    'code' => $code,
+                ]);
+                return;
+            }
+        }
+
+        $promo = \App\Models\Promocode::where('code', $code)
+            ->where('is_active', true)
+            ->lockForUpdate()
+            ->first();
+
+        if ($promo) {
+            \App\Models\PromocodeUsage::create([
+                'promocode_id' => $promo->id,
+                'user_id' => $userId,
+                'order_id' => $orderId ? (string)$orderId : null,
+            ]);
+
+            // Если есть лимит, увеличиваем счетчик
+            if ((int)$promo->usage_limit > 0) {
+                // Мы уже проверили лимит в контроллере перед созданием инвойса, 
+                // но здесь делаем это еще раз для безопасности внутри транзакции
+                if ((int)$promo->usage_count < (int)$promo->usage_limit) {
+                    $promo->increment('usage_count');
+                } else {
+                    Log::warning('Promocode usage limit reached during processing', [
+                        'code' => $code,
+                        'order_id' => $orderId
+                    ]);
+                }
+            } else {
+                // Если лимит 0 (безлимит), всё равно увеличиваем счетчик для статистики
+                $promo->increment('usage_count');
+            }
+        } else {
+            Log::warning('Promocode not found or inactive during usage recording', [
+                'code' => $code,
+                'order_id' => $orderId
+            ]);
         }
     }
 }

@@ -95,6 +95,25 @@ class ProductModerationController extends Controller
                 if ($lockedProduct->moderation_status !== 'pending') {
                     throw new \Exception('Товар уже обработан другим администратором.');
                 }
+
+                // ВАЖНО: Дополнительная валидация критических полей перед одобрением
+                // Это предотвращает публикацию товаров с некорректными данными, 
+                // которые могли быть установлены в обход валидации при создании.
+                if (empty($lockedProduct->title)) {
+                    throw new \Exception('Критическая ошибка: Товар не имеет названия.');
+                }
+
+                if ($lockedProduct->price === null || $lockedProduct->price < 0.01) {
+                    throw new \Exception('Критическая ошибка: Цена товара должна быть больше нуля.');
+                }
+
+                if (!$lockedProduct->category_id) {
+                    throw new \Exception('Критическая ошибка: Товар не привязан к категории.');
+                }
+
+                if (empty($lockedProduct->accounts_data) || !is_array($lockedProduct->accounts_data)) {
+                    throw new \Exception('Критическая ошибка: Товар не содержит данных аккаунтов.');
+                }
                 
                 // Одобряем товар
                 $lockedProduct->update([

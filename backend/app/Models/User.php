@@ -13,6 +13,10 @@ class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;
 
+    const STATUS_ACTIVE = 'active';
+    const STATUS_BLOCKED = 'blocked';
+    const STATUS_PENDING = 'pending';
+
     protected $fillable = [
         'name',
         'email',
@@ -367,5 +371,19 @@ class User extends Authenticatable
         }
         
         return 0;
+    }
+
+    /**
+     * Получить строковый статус пользователя
+     */
+    public function getStatus(): string
+    {
+        if ($this->is_blocked) {
+            return self::STATUS_BLOCKED;
+        }
+        if ($this->is_pending) {
+            return self::STATUS_PENDING;
+        }
+        return self::STATUS_ACTIVE;
     }
 }

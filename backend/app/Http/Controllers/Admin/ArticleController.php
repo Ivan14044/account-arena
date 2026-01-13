@@ -52,6 +52,15 @@ class ArticleController extends Controller
 
         $article->categories()->sync($validated['categories'] ?? []);
 
+        // Sanitize content and short description before saving translations
+        foreach (['content', 'short'] as $field) {
+            if (isset($validated[$field]) && is_array($validated[$field])) {
+                foreach ($validated[$field] as $lang => $content) {
+                    $validated[$field][$lang] = $this->sanitizeHtml($content);
+                }
+            }
+        }
+
         $article->saveTranslation($validated);
 
         return redirect()->route('admin.articles.index')->with('success', 'Article successfully created.');
@@ -98,6 +107,16 @@ class ArticleController extends Controller
         ]);
 
         $article->categories()->sync($validated['categories'] ?? []);
+
+        // Sanitize content and short description before saving translations
+        foreach (['content', 'short'] as $field) {
+            if (isset($validated[$field]) && is_array($validated[$field])) {
+                foreach ($validated[$field] as $lang => $content) {
+                    $validated[$field][$lang] = $this->sanitizeHtml($content);
+                }
+            }
+        }
+
         $article->saveTranslation($validated);
 
         $route = $request->has('save')
@@ -113,6 +132,27 @@ class ArticleController extends Controller
         $article->delete();
 
         return redirect()->route('admin.articles.index')->with('success', 'Article successfully deleted.');
+    }
+
+    /**
+     * Sanitize HTML content to prevent XSS while keeping safe tags.
+     */
+    private function sanitizeHtml($html)
+    {
+        if (empty($html)) return $html;
+
+        // Список разрешенных тегов (для CKEditor)
+        $allowedTags = '<p><a><b><i><u><strong><em><ul><ol><li><br><h1><h2><h3><h4><h5><h6><img><blockquote><pre><code><table><thead><tbody><tr><th><td><hr>';
+        
+        // 1. Сначала используем strip_tags с белым списком
+        $sanitized = strip_tags($html, $allowedTags);
+        
+        // 2. Дополнительная очистка от опасных атрибутов (onmouseover, onclick, javascript: и т.д.)
+        $sanitized = preg_replace('/on\w+\s*=\s*".*?"/i', '', $sanitized);
+        $sanitized = preg_replace('/on\w+\s*=\s*\'.*?\'/i', '', $sanitized);
+        $sanitized = preg_replace('/javascript\s*:/i', '', $sanitized);
+        
+        return $sanitized;
     }
 
     private function getRules($id = false)

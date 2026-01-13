@@ -94,7 +94,7 @@ class GuestCartController extends Controller
      * Вызывается из webhook'ов платежных систем
      * Использует ProductPurchaseService для устранения дублирования кода
      */
-    public static function createGuestPurchases(string $guestEmail, array $productsData, ?string $promocode = null)
+    public static function createGuestPurchases(string $guestEmail, array $productsData, ?string $promocode = null, ?string $orderId = null)
     {
         $purchaseService = app(ProductPurchaseService::class);
         
@@ -104,7 +104,9 @@ class GuestCartController extends Controller
             $productsData, 
             null, // userId = null для гостей
             $guestEmail, 
-            'guest_purchase'
+            'guest_purchase',
+            $promocode,
+            $orderId
         );
     }
 }

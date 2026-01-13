@@ -174,6 +174,33 @@ class NotificationTemplateSeeder extends Seeder
                 'uk' => 'Ваше замовлення :order_number на товар ":product_title" успішно оброблено. Товар готовий до використання! Дані для доступу доступні в розділі "Мої покупки" у вашому профілі.',
             ],
         ]);
+
+        // Шаблон 7: Админ-уведомление о новом пользователе
+        $adminRegistrationTemplate = NotificationTemplate::firstOrCreate(
+            ['code' => 'admin_new_user'],
+            [
+                'name' => 'Админ: Уведомление о новом пользователе',
+                'is_mass' => 0,
+            ]
+        );
+
+        $adminRegistrationTemplate->update([
+            'name' => 'Админ: Уведомление о новом пользователе',
+            'is_mass' => 0,
+        ]);
+
+        $this->saveTranslations($adminRegistrationTemplate, [
+            'title' => [
+                'ru' => 'Новый пользователь зарегистрирован',
+                'en' => 'New user registered',
+                'uk' => 'Новий користувач зареєстрований',
+            ],
+            'message' => [
+                'ru' => 'Новый пользователь зарегистрирован, email: :email, имя: :name',
+                'en' => 'New user registered, email: :email, name: :name',
+                'uk' => 'Новий користувач зареєстрований, email: :email, ім\'я: :name',
+            ],
+        ]);
     }
 
     private function saveTranslations(NotificationTemplate $template, array $translations): void
