@@ -68,6 +68,55 @@
     position: relative;
 }
 
+/* Старый стиль для других страниц (горизонтальный layout) */
+.stat-card-body:has(.stat-content) {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.stat-icon {
+    width: 45px;
+    height: 45px;
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    flex-shrink: 0;
+}
+
+.stat-card-primary .stat-icon {
+    background: rgba(78, 115, 223, 0.1);
+    color: #4e73df;
+}
+.stat-card-success .stat-icon {
+    background: rgba(28, 200, 138, 0.1);
+    color: #1cc88a;
+}
+.stat-card-info .stat-icon {
+    background: rgba(54, 185, 204, 0.1);
+    color: #36b9cc;
+}
+.stat-card-warning .stat-icon {
+    background: rgba(246, 194, 62, 0.1);
+    color: #f6c23e;
+}
+.stat-card-danger .stat-icon {
+    background: rgba(231, 74, 59, 0.1);
+    color: #e74a3b;
+}
+
+.stat-content {
+    text-align: right;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 0;
+    margin-left: 1rem;
+}
+
 .stat-label {
     font-size: 0.75rem;
     color: #858796;
@@ -80,6 +129,13 @@
     width: 100%;
 }
 
+/* Для старого layout (когда есть .stat-content) */
+.stat-content .stat-label {
+    text-align: right;
+    margin-bottom: 0.375rem;
+    font-size: 0.7rem;
+}
+
 .stat-value {
     font-size: 2.25rem;
     font-weight: 700;
@@ -88,6 +144,13 @@
     margin-bottom: 0.75rem;
     text-align: center;
     width: 100%;
+}
+
+/* Для старого layout (когда есть .stat-content) */
+.stat-content .stat-value {
+    text-align: right;
+    margin-bottom: 0.375rem;
+    font-size: 1.75rem;
 }
 
 .stat-icon-bottom {
@@ -157,6 +220,32 @@
 }
 
 .stat-link:hover i {
+    transform: translateX(3px);
+}
+
+/* Старые ссылки в .stat-content */
+.stat-content a {
+    font-size: 0.8rem;
+    font-weight: 500;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    margin-top: 0.375rem;
+    transition: all 0.2s ease;
+    align-self: flex-end;
+}
+
+.stat-content a:hover {
+    text-decoration: underline;
+}
+
+.stat-content a i {
+    margin-left: 0.5rem;
+    font-size: 0.75rem;
+    transition: transform 0.2s ease;
+}
+
+.stat-content a:hover i {
     transform: translateX(3px);
 }
 
