@@ -97,8 +97,10 @@ class AdminNotification extends Model
         
         // Убираем плейсхолдеры типа (:method), (:Balance), (Balance) и т.д.
         $title = preg_replace('/\s*\(:?\w+\)/', '', $title);
-        // Убираем другие плейсхолдеры типа :email, :name и т.д.
+        // Убираем другие плейсхолдеры типа :email, :name, :products, :amount и т.д.
         $title = preg_replace('/:\w+/', '', $title);
+        // Убираем оставшиеся плейсхолдеры после запятых (например, ", products:")
+        $title = preg_replace('/,\s*\w+\s*:/', '', $title);
         // Убираем пустые скобки
         $title = preg_replace('/\s*\(\)/', '', $title);
         // Убираем запятые с пустыми значениями (например, "email: , name: ,")
@@ -181,12 +183,14 @@ class AdminNotification extends Model
             }
         }
         
-        // Убираем все плейсхолдеры
+        // Убираем все плейсхолдеры типа :email, :name, :products, :amount и т.д.
         $message = preg_replace('/:\w+/', '', $message);
         // Убираем плейсхолдеры в скобках типа (Balance), (Monobank) и т.д.
         $message = preg_replace('/\s*\(:?\w+\)/', '', $message);
         // Убираем пустые скобки
         $message = preg_replace('/\s*\(\)/', '', $message);
+        // Убираем оставшиеся плейсхолдеры после запятых (например, ", products:", ", email:")
+        $message = preg_replace('/,\s*\w+\s*:/', '', $message);
         // Убираем запятые с пустыми значениями
         $message = preg_replace('/,\s*email:\s*,/', ',', $message);
         $message = preg_replace('/,\s*name:\s*,/', ',', $message);
