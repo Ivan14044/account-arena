@@ -142,9 +142,9 @@ class NotificationTemplateSeeder extends Seeder
                 'uk' => 'Ваше замовлення прийнято в обробку',
             ],
             'message' => [
-                'ru' => 'Ваш заказ :order_number на товар ":product_title" принят в обработку. Товар будет выдан менеджером вручную в течение рабочего времени (Пн-Пт, 9:00-18:00 по МСК). Вы получите уведомление, когда товар будет готов.',
-                'en' => 'Your order :order_number for ":product_title" has been accepted for processing. The product will be delivered manually by a manager during business hours (Mon-Fri, 9:00-18:00 MSK). You will receive a notification when the product is ready.',
-                'uk' => 'Ваше замовлення :order_number на товар ":product_title" прийнято в обробку. Товар буде видано менеджером вручну протягом робочого часу (Пн-Пт, 9:00-18:00 за МСК). Ви отримаєте сповіщення, коли товар буде готовий.',
+                'ru' => 'Ваш заказ :order_number на товар ":product_title" принят в обработку. Товар будет выдан менеджером вручную в течение рабочего времени (Пн-Пт, 9:00-18:00 по Киеву). Вы получите уведомление, когда товар будет готов.',
+                'en' => 'Your order :order_number for ":product_title" has been accepted for processing. The product will be delivered manually by a manager during business hours (Mon-Fri, 9:00-18:00 Kyiv). You will receive a notification when the product is ready.',
+                'uk' => 'Ваше замовлення :order_number на товар ":product_title" прийнято в обробку. Товар буде видано менеджером вручну протягом робочого часу (Пн-Пт, 9:00-18:00 за Києвом). Ви отримаєте сповіщення, коли товар буде готовий.',
             ],
         ]);
 
