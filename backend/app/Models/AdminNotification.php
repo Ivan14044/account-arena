@@ -80,6 +80,11 @@ class AdminNotification extends Model
         $title = preg_replace('/:\w+/', '', $title);
         // Убираем пустые скобки
         $title = preg_replace('/\s*\(\)/', '', $title);
+        // Убираем запятые с пустыми значениями (например, "email: , name: ,")
+        $title = preg_replace('/,\s*email:\s*,/', ',', $title);
+        $title = preg_replace('/,\s*name:\s*,/', ',', $title);
+        $title = preg_replace('/,\s*product\s*:\s*,/', ',', $title);
+        $title = preg_replace('/,\s*amount:/', '', $title);
         // Убираем дублирование текста (если заголовок повторяется)
         // Проверяем, не начинается ли текст с повторения первых слов
         $words = explode(' ', trim($title));
@@ -89,6 +94,15 @@ class AdminNotification extends Model
             $rest = implode(' ', array_slice($words, min(3, floor(count($words) / 2))));
             if (strpos($rest, $firstPart) === 0) {
                 $title = $rest;
+            }
+        }
+        // Если после обработки остались только пустые значения, пытаемся перевести еще раз
+        if (empty(trim($title)) || preg_match('/^[\s,:\-]+$/', $title)) {
+            // Если текст стал пустым после удаления плейсхолдеров, используем оригинальный заголовок
+            $originalTitle = $this->title ?? '';
+            $titleLower = mb_strtolower($originalTitle);
+            if (strpos($titleLower, 'purcha') !== false || strpos($titleLower, 'purchase') !== false) {
+                $title = __('notifier.new_product_purchase_title');
             }
         }
         
@@ -150,6 +164,11 @@ class AdminNotification extends Model
         $message = preg_replace('/\s*\(:?\w+\)/', '', $message);
         // Убираем пустые скобки
         $message = preg_replace('/\s*\(\)/', '', $message);
+        // Убираем запятые с пустыми значениями
+        $message = preg_replace('/,\s*email:\s*,/', ',', $message);
+        $message = preg_replace('/,\s*name:\s*,/', ',', $message);
+        $message = preg_replace('/,\s*product\s*:\s*,/', ',', $message);
+        $message = preg_replace('/,\s*amount:/', '', $message);
         // Очищаем лишние знаки препинания (двойные запятые, пробелы)
         $message = preg_replace('/,\s*,/', ',', $message);
         $message = preg_replace('/\s+/', ' ', $message);
