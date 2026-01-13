@@ -4,13 +4,14 @@ namespace App\Console\Commands;
 
 use App\Models\Category;
 use App\Models\ServiceAccount;
+use App\Models\Banner;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Storage;
 
 class NormalizeImageUrls extends Command
 {
     protected $signature = 'images:normalize-urls';
-    protected $description = 'Normalize all image URLs in categories and products to relative paths.';
+    protected $description = 'Normalize all image URLs in categories, products, and banners to relative paths.';
 
     public function handle()
     {
@@ -18,6 +19,7 @@ class NormalizeImageUrls extends Command
 
         $categoriesFixed = 0;
         $productsFixed = 0;
+        $bannersFixed = 0;
 
         // Нормализация категорий
         $categories = Category::whereNotNull('image_url')->get();
@@ -47,8 +49,23 @@ class NormalizeImageUrls extends Command
             }
         }
 
+        // Нормализация баннеров
+        $banners = Banner::whereNotNull('image_url')->get();
+        foreach ($banners as $banner) {
+            $url = $banner->image_url;
+            $normalized = $this->normalizeUrl($url);
+            
+            if ($normalized !== $url) {
+                $banner->image_url = $normalized;
+                $banner->save();
+                $bannersFixed++;
+                $this->line("Fixed banner #{$banner->id}: {$url} -> {$normalized}");
+            }
+        }
+
         $this->info("Fixed {$categoriesFixed} category image URLs.");
         $this->info("Fixed {$productsFixed} product image URLs.");
+        $this->info("Fixed {$bannersFixed} banner image URLs.");
 
         return 0;
     }

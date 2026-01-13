@@ -37,10 +37,20 @@ class Banner extends Model
             return null;
         }
 
+        // Если это уже полный URL (начинается с http), возвращаем как есть
         if (str_starts_with($value, 'http')) {
             return $value;
         }
 
+        // Убираем начальный слеш, если есть
+        $value = ltrim($value, '/');
+        
+        // Если путь начинается с 'storage/', убираем его (Storage::url уже добавляет storage/)
+        if (str_starts_with($value, 'storage/')) {
+            $value = substr($value, 8);
+        }
+
+        // Формируем полный URL через Storage
         return \Illuminate\Support\Facades\Storage::disk('public')->url($value);
     }
 
