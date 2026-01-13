@@ -331,33 +331,37 @@
                 // Обновляем настройки каждые 60 секунд (на случай, если администратор изменил их)
                 setInterval(loadNotificationSettings, 60000);
                 
-                // Ждем полной загрузки DOM и меню перед началом обновлений
-                // Увеличиваем задержку, чтобы убедиться, что AdminLTE полностью загрузил меню
-                setTimeout(function () {
+                // Функция для попытки инициализации счетчика
+                function tryInitBadge() {
                     // Проверяем, что элемент существует перед началом обновлений
                     let $badgeElement = document.querySelector('#manual-delivery-count .badge') 
                                      || document.querySelector('#manual-delivery-count span.badge')
                                      || document.querySelector('#manual-delivery-count');
                     
                     if ($badgeElement) {
-                        // Элемент найден, начинаем обновления
+                        // Элемент найден, начинаем обновления немедленно
                         updateManualDeliveryBadge();
                         
-                        // Создаем интервал только один раз
+                        // Создаем интервал только один раз с меньшим интервалом (1 секунда)
                         if (!updateInterval) {
-                            updateInterval = setInterval(updateManualDeliveryBadge, 3000);
+                            updateInterval = setInterval(updateManualDeliveryBadge, 1000);
                         }
-                    } else {
-                        // Элемент не найден, пробуем еще раз через 2 секунды
-                        console.warn('[Manual Delivery Badge] Element not found on first try, retrying...');
-                        setTimeout(function () {
-                            updateManualDeliveryBadge();
-                            if (!updateInterval) {
-                                updateInterval = setInterval(updateManualDeliveryBadge, 3000);
-                            }
-                        }, 2000);
+                        return true;
                     }
-                }, 1000);
+                    return false;
+                }
+                
+                // Пытаемся инициализировать немедленно
+                if (!tryInitBadge()) {
+                    // Если элемент не найден, пробуем еще раз через небольшую задержку
+                    console.debug('[Manual Delivery Badge] Element not found on first try, retrying...');
+                    setTimeout(function () {
+                        if (!tryInitBadge()) {
+                            // Последняя попытка через 2 секунды
+                            setTimeout(tryInitBadge, 2000);
+                        }
+                    }, 500);
+                }
             });
         } else {
             setTimeout(initManualDeliveryBadge, 100);
