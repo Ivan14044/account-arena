@@ -30,7 +30,12 @@ class AdminNotification extends Model
      */
     public function getFormattedTitleAttribute(): string
     {
-        $title = $this->title;
+        $title = $this->title ?? '';
+        
+        // Если пусто, возвращаем пустую строку
+        if (empty($title)) {
+            return '';
+        }
         
         // Если это ключ перевода вида "notifier.xxx", переводим его
         if (strpos($title, 'notifier.') === 0) {
@@ -81,7 +86,12 @@ class AdminNotification extends Model
      */
     public function getFormattedMessageAttribute(): string
     {
-        $message = $this->message;
+        $message = $this->message ?? '';
+        
+        // Если пусто, возвращаем пустую строку
+        if (empty($message)) {
+            return '';
+        }
         
         // Если это ключ перевода вида "notifier.xxx", переводим его
         if (strpos($message, 'notifier.') === 0) {
