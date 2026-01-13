@@ -178,7 +178,12 @@ class AdminNotification extends Model
             }
         } elseif (strpos($message, 'notifier.') === 0) {
             // Если это ключ перевода вида "notifier.xxx", переводим его
-            $translated = __($message, [], 'ru'); // Принудительно используем русскую локаль
+            // Сначала пробуем с текущей локалью
+            $translated = __($message);
+            // Если результат на английском (старые записи), принудительно переводим на русский
+            if (preg_match('/^[A-Za-z\s,:\-]+$/', $translated) && $translated !== $message) {
+                $translated = __($message, [], 'ru');
+            }
             if ($translated !== $message) {
                 $message = $translated;
             }
