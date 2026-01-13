@@ -56,24 +56,25 @@
                                     <i class="fas fa-info-circle mr-1"></i>
                                     @php
                                         $type = $notification->type;
-                                        $typeLower = mb_strtolower($type);
-                                        // Если тип содержит пробелы или опечатки, пробуем найти по ключевым словам
-                                        if (strpos($type, ' ') !== false || strpos($typeLower, 'purcha') !== false) {
-                                            // Маппинг для типов с пробелами или опечатками
-                                            if (strpos($typeLower, 'purcha') !== false || strpos($typeLower, 'purchase') !== false) {
-                                                $type = 'product_purchase';
-                                            } elseif (strpos($typeLower, 'top') !== false || strpos($typeLower, 'balance') !== false) {
-                                                $type = 'balance_topup';
-                                            } elseif (strpos($typeLower, 'user') !== false) {
-                                                $type = 'new_user';
-                                            } elseif (strpos($typeLower, 'registration') !== false) {
-                                                $type = 'registration';
-                                            } elseif (strpos($typeLower, 'payment') !== false) {
-                                                $type = 'payment';
-                                            }
+                                        // Нормализуем тип - убираем пробелы и опечатки
+                                        $typeNormalized = str_replace(' ', '', mb_strtolower($type));
+                                        if (strpos($typeNormalized, 'purcha') !== false || strpos($typeNormalized, 'purchase') !== false) {
+                                            $type = 'product_purchase';
+                                        } elseif (strpos($typeNormalized, 'top') !== false || strpos($typeNormalized, 'balance') !== false) {
+                                            $type = 'balance_topup';
+                                        } elseif (strpos($typeNormalized, 'user') !== false) {
+                                            $type = 'new_user';
+                                        } elseif (strpos($typeNormalized, 'registration') !== false) {
+                                            $type = 'registration';
+                                        } elseif (strpos($typeNormalized, 'payment') !== false) {
+                                            $type = 'payment';
                                         }
+                                        // Принудительно используем русскую локаль для перевода типа
+                                        $oldLocale = app()->getLocale();
+                                        app()->setLocale('ru');
                                         $typeKey = 'notifier.types.' . $type;
                                         $translatedType = __($typeKey);
+                                        app()->setLocale($oldLocale);
                                         if ($translatedType === $typeKey) {
                                             // Если перевод не найден, форматируем сам тип
                                             $translatedType = ucfirst(str_replace('_', ' ', $type));

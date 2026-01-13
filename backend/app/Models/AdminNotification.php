@@ -50,21 +50,30 @@ class AdminNotification extends Model
         
         if (strpos($titleLower, 'purcha') !== false || strpos($titleLowerWithSpaces, 'purchase') !== false || strpos($titleLowerWithSpaces, 'purcha') !== false) {
             // Это похоже на уведомление о покупке
+            $oldLocale = app()->getLocale();
+            app()->setLocale('ru');
             $translated = __('notifier.new_product_purchase_title');
+            app()->setLocale($oldLocale);
             if ($translated !== 'notifier.new_product_purchase_title') {
                 $title = $translated;
                 $wasTranslated = true;
             }
         } elseif (strpos($titleLower, 'user') !== false && strpos($titleLower, 'new') !== false) {
             // Это похоже на уведомление о новом пользователе
+            $oldLocale = app()->getLocale();
+            app()->setLocale('ru');
             $translated = __('notifier.new_user_title');
+            app()->setLocale($oldLocale);
             if ($translated !== 'notifier.new_user_title') {
                 $title = $translated;
                 $wasTranslated = true;
             }
         } elseif (strpos($titleLower, 'payment') !== false && strpos($titleLower, 'new') !== false) {
             // Это похоже на уведомление о платеже
+            $oldLocale = app()->getLocale();
+            app()->setLocale('ru');
             $translated = __('notifier.new_payment_title');
+            app()->setLocale($oldLocale);
             if ($translated !== 'notifier.new_payment_title') {
                 $title = $translated;
                 $wasTranslated = true;
@@ -89,7 +98,10 @@ class AdminNotification extends Model
             }
             // Если перевод вернул английский текст (старые записи), пытаемся перевести на русский
             if ($wasTranslated && preg_match('/^[A-Za-z\s,:\-]+$/', $title) && strpos($originalTitle, 'notifier.') === 0) {
-                $translated = __($originalTitle, [], 'ru');
+                $oldLocale = app()->getLocale();
+                app()->setLocale('ru');
+                $translated = __($originalTitle);
+                app()->setLocale($oldLocale);
                 if ($translated !== $originalTitle) {
                     $title = $translated;
                 }
@@ -101,7 +113,10 @@ class AdminNotification extends Model
             $originalLower = mb_strtolower($originalTitle);
             $originalLowerNoSpaces = mb_strtolower(str_replace(' ', '', $originalTitle));
             if (strpos($originalLower, 'purcha') !== false || strpos($originalLowerNoSpaces, 'purcha') !== false) {
+                $oldLocale = app()->getLocale();
+                app()->setLocale('ru');
                 $title = __('notifier.new_product_purchase_title');
+                app()->setLocale($oldLocale);
                 $wasTranslated = true;
             }
         }
