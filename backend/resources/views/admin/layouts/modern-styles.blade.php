@@ -42,22 +42,16 @@
 .stat-card {
     background: white;
     border: 1px solid #e3e6f0;
-    border-radius: 0.5rem;
-    padding: 1.25rem;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
     margin-bottom: 1rem;
     transition: all 0.3s ease;
-    border-left: 4px solid;
     min-height: 140px; /* Фиксированная минимальная высота для выравнивания */
     height: 100%; /* Занимать всю высоту колонки */
     display: flex;
     flex-direction: column;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
-
-.stat-card-primary { border-left-color: #4e73df; }
-.stat-card-success { border-left-color: #1cc88a; }
-.stat-card-info { border-left-color: #36b9cc; }
-.stat-card-warning { border-left-color: #f6c23e; }
-.stat-card-danger { border-left-color: #e74a3b; }
 
 .stat-card:hover {
     transform: translateY(-3px);
@@ -66,133 +60,135 @@
 
 .stat-card-body {
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: space-between;
     flex: 1; /* Занимать все доступное пространство */
     min-height: 0; /* Позволить flex-элементам сжиматься */
-}
-
-.stat-icon {
-    width: 45px;
-    height: 45px;
-    border-radius: 0.5rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.25rem;
-}
-
-.stat-card-primary .stat-icon {
-    background: rgba(78, 115, 223, 0.1);
-    color: #4e73df;
-}
-.stat-card-success .stat-icon {
-    background: rgba(28, 200, 138, 0.1);
-    color: #1cc88a;
-}
-.stat-card-info .stat-icon {
-    background: rgba(54, 185, 204, 0.1);
-    color: #36b9cc;
-}
-.stat-card-warning .stat-icon {
-    background: rgba(246, 194, 62, 0.1);
-    color: #f6c23e;
-}
-.stat-card-danger .stat-icon {
-    background: rgba(231, 74, 59, 0.1);
-    color: #e74a3b;
-}
-
-.stat-content {
-    text-align: right;
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    min-height: 0; /* Позволить flex-элементам сжиматься */
+    position: relative;
 }
 
 .stat-label {
-    font-size: 0.7rem;
+    font-size: 0.75rem;
     color: #858796;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    font-weight: 600;
-    margin-bottom: 0.375rem;
+    font-weight: 500;
+    margin-bottom: 0.75rem;
     line-height: 1.2;
+    text-align: center;
+    width: 100%;
 }
 
 .stat-value {
-    font-size: 1.75rem;
+    font-size: 2.25rem;
     font-weight: 700;
     color: #2c3e50;
     line-height: 1.2;
-    margin-bottom: 0.375rem;
+    margin-bottom: 0.75rem;
+    text-align: center;
+    width: 100%;
+}
+
+.stat-icon-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 0.75rem;
+    font-size: 2rem;
+    color: #4e73df;
+    opacity: 0.8;
+}
+
+.stat-card-primary .stat-icon-bottom {
+    color: #4e73df;
+}
+.stat-card-success .stat-icon-bottom {
+    color: #1cc88a;
+}
+.stat-card-info .stat-icon-bottom {
+    color: #36b9cc;
+}
+.stat-card-warning .stat-icon-bottom {
+    color: #f6c23e;
+}
+.stat-card-danger .stat-icon-bottom {
+    color: #e74a3b;
 }
 
 /* Ссылки "Подробнее" в карточках статистики */
-.stat-card a {
+.stat-link {
     font-size: 0.8rem;
     font-weight: 500;
     text-decoration: none;
     display: inline-flex;
     align-items: center;
-    margin-top: 0.375rem;
+    align-self: flex-start;
+    margin-top: auto;
+    color: #4e73df;
     transition: all 0.2s ease;
 }
 
-.stat-card a:hover {
-    text-decoration: underline;
+.stat-card-primary .stat-link {
+    color: #4e73df;
+}
+.stat-card-success .stat-link {
+    color: #1cc88a;
+}
+.stat-card-info .stat-link {
+    color: #36b9cc;
+}
+.stat-card-warning .stat-link {
+    color: #f6c23e;
+}
+.stat-card-danger .stat-link {
+    color: #e74a3b;
 }
 
-.stat-card a i {
+.stat-link:hover {
+    text-decoration: underline;
+    opacity: 0.8;
+}
+
+.stat-link i {
     margin-left: 0.5rem;
     font-size: 0.75rem;
     transition: transform 0.2s ease;
 }
 
-.stat-card a:hover i {
+.stat-link:hover i {
     transform: translateX(3px);
 }
 
 /* Компактные карточки статистики (для страниц без ссылок "Подробнее") */
 .stat-card-compact {
-    min-height: 70px !important; /* Было 90px */
-    padding: 0.75rem 0.875rem !important; /* Было 0.875rem 1rem */
-}
-
-.stat-card-compact .stat-icon {
-    width: 32px !important; /* Было 38px */
-    height: 32px !important; /* Было 38px */
-    font-size: 0.95rem !important; /* Было 1.1rem */
-}
-
-.stat-card-compact .stat-value {
-    font-size: 1.35rem !important; /* Было 1.5rem */
-    line-height: 1.1 !important;
-    margin-bottom: 0.125rem !important;
+    min-height: 120px !important;
+    padding: 1.25rem !important;
 }
 
 .stat-card-compact .stat-label {
-    font-size: 0.6rem !important; /* Было 0.65rem */
-    margin-bottom: 0.125rem !important; /* Было 0.25rem */
-    line-height: 1.2;
-}
-
-/* Уменьшаем отступы для ссылок "Подробнее" в компактных карточках */
-.stat-card-compact a {
     font-size: 0.7rem !important;
-    margin-top: 0.25rem !important;
+    margin-bottom: 0.5rem !important;
 }
 
-.stat-card-compact a i {
-    font-size: 0.65rem !important;
+.stat-card-compact .stat-value {
+    font-size: 1.75rem !important;
+    margin-bottom: 0.5rem !important;
+}
+
+.stat-card-compact .stat-icon-bottom {
+    font-size: 1.5rem !important;
+    margin-bottom: 0.5rem !important;
+}
+
+.stat-card-compact .stat-link {
+    font-size: 0.75rem !important;
+    margin-top: auto !important;
+}
+
+.stat-card-compact .stat-link i {
+    font-size: 0.7rem !important;
     margin-left: 0.375rem !important;
-}
-
-/* Уменьшаем gap между иконкой и контентом */
-.stat-card-compact .stat-card-body {
-    gap: 0.75rem !important; /* Было 1rem */
 }
 
 /* КАРТОЧКИ */
