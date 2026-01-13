@@ -318,7 +318,9 @@ onMounted(async () => {
     console.log('[CatalogSection] onMounted, categoriesStore.list.length:', categoriesStore.list.length);
     await categoriesStore.fetchAll();
     console.log('[CatalogSection] After fetchAll, categoriesStore.list.length:', categoriesStore.list.length);
-    console.log('[CatalogSection] categories:', categories.value.length, categories.value);
+    console.log('[CatalogSection] categoriesStore.list:', JSON.stringify(categoriesStore.list, null, 2));
+    console.log('[CatalogSection] categories computed:', categories.value.length);
+    console.log('[CatalogSection] categories computed data:', JSON.stringify(categories.value, null, 2));
     // Убеждаемся, что товары загружены для подсчета
     if (!accountsStore.loaded) {
         await accountsStore.fetchAll();
