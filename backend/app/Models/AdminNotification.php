@@ -151,7 +151,10 @@ class AdminNotification extends Model
             $originalTitle = $this->title ?? '';
             $titleLower = mb_strtolower($originalTitle);
             if (strpos($titleLower, 'purcha') !== false || strpos($titleLower, 'purchase') !== false) {
+                $oldLocale = app()->getLocale();
+                app()->setLocale('ru');
                 $title = __('notifier.new_product_purchase_title');
+                app()->setLocale($oldLocale);
             }
         }
         
@@ -179,19 +182,28 @@ class AdminNotification extends Model
         $messageLowerWithSpaces = mb_strtolower($message);
         if (strpos($messageLower, 'purcha') !== false || strpos($messageLowerWithSpaces, 'purchase') !== false || strpos($messageLowerWithSpaces, 'purcha') !== false) {
             // Это похоже на сообщение о покупке
+            $oldLocale = app()->getLocale();
+            app()->setLocale('ru');
             $translated = __('notifier.new_product_purchase_message');
+            app()->setLocale($oldLocale);
             if ($translated !== 'notifier.new_product_purchase_message') {
                 $message = $translated;
             }
         } elseif (strpos($messageLower, 'user') !== false && (strpos($messageLower, 'new') !== false || strpos($messageLower, 'registered') !== false)) {
             // Это похоже на сообщение о новом пользователе
+            $oldLocale = app()->getLocale();
+            app()->setLocale('ru');
             $translated = __('notifier.new_user_message');
+            app()->setLocale($oldLocale);
             if ($translated !== 'notifier.new_user_message') {
                 $message = $translated;
             }
         } elseif (strpos($messageLower, 'payment') !== false && strpos($messageLower, 'new') !== false) {
             // Это похоже на сообщение о платеже
+            $oldLocale = app()->getLocale();
+            app()->setLocale('ru');
             $translated = __('notifier.new_payment_message');
+            app()->setLocale($oldLocale);
             if ($translated !== 'notifier.new_payment_message') {
                 $message = $translated;
             }
@@ -214,7 +226,10 @@ class AdminNotification extends Model
             // Если перевод вернул английский текст (старые записи), пытаемся перевести на русский
             $originalMessage = $this->message ?? '';
             if (preg_match('/^[A-Za-z\s,:\-]+$/', $message) && strpos($originalMessage, 'notifier.') === 0) {
-                $translated = __($originalMessage, [], 'ru');
+                $oldLocale = app()->getLocale();
+                app()->setLocale('ru');
+                $translated = __($originalMessage);
+                app()->setLocale($oldLocale);
                 if ($translated !== $originalMessage) {
                     $message = $translated;
                 }
