@@ -47,10 +47,17 @@ class CategoryController extends Controller
                 ];
             });
 
+            // Преобразуем относительный путь изображения в полный URL для фронтенда
+            $imageUrl = $category->image_url;
+            if ($imageUrl && !str_starts_with($imageUrl, 'http')) {
+                // Если путь относительный, добавляем базовый URL приложения
+                $imageUrl = url($imageUrl);
+            }
+
             return [
                 'id' => $category->id,
                 'type' => $category->type,
-                'image_url' => $category->image_url,
+                'image_url' => $imageUrl,
                 'name' => $name,
                 'translations' => $translations,
                 'subcategories' => $subcategories,
