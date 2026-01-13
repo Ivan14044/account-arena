@@ -72,7 +72,10 @@ class AdminNotification extends Model
         } elseif (strpos($title, 'notifier.') === 0) {
             // Если это ключ перевода вида "notifier.xxx", переводим его
             // Всегда используем русскую локаль для старых записей
-            $translated = __($title, [], 'ru');
+            $oldLocale = app()->getLocale();
+            app()->setLocale('ru');
+            $translated = __($title);
+            app()->setLocale($oldLocale);
             if ($translated !== $title) {
                 $title = $translated;
                 $wasTranslated = true;
@@ -180,7 +183,10 @@ class AdminNotification extends Model
         } elseif (strpos($message, 'notifier.') === 0) {
             // Если это ключ перевода вида "notifier.xxx", переводим его
             // Всегда используем русскую локаль для старых записей
-            $translated = __($message, [], 'ru');
+            $oldLocale = app()->getLocale();
+            app()->setLocale('ru');
+            $translated = __($message);
+            app()->setLocale($oldLocale);
             if ($translated !== $message) {
                 $message = $translated;
             }
