@@ -1,9 +1,9 @@
 <template>
-    <div class="fixed inset-0 pointer-events-none overflow-hidden">
+    <div class="fixed inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
         <div
             :class="[
-                'animated-gradient absolute w-[120vw] h-[120vh]',
-                isDark ? 'opacity-60 blur-[80px]' : 'opacity-40 blur-[70px]'
+                'animated-gradient absolute w-[120vw] h-[120vh] transition-opacity duration-700',
+                isDark ? 'opacity-50 blur-[60px] md:blur-[80px]' : 'opacity-30 blur-[50px] md:blur-[70px]'
             ]"
         />
     </div>
@@ -24,26 +24,26 @@ defineProps<{
         rgba(0, 170, 255, 0.75) 70%,
         rgba(0, 123, 255, 0.45) 90%
     );
-    animation: gradientMove 30s ease-in-out infinite;
-}
-
-.animated-gradient.paused {
-    animation-play-state: paused;
+    animation: gradientMove 45s ease-in-out infinite;
+    will-change: transform, opacity;
+    transform: translate3d(-18%, -18%, 0);
+    backface-visibility: hidden;
+    perspective: 1000px;
 }
 
 @keyframes gradientMove {
     0%,
     100% {
-        transform: translate(-18%, -18%) rotate(0deg) scale(1);
+        transform: translate3d(-18%, -18%, 0) rotate(0deg) scale(1);
     }
     25% {
-        transform: translate(-10%, -22%) rotate(20deg) scale(1.03);
+        transform: translate3d(-10%, -22%, 0) rotate(15deg) scale(1.02);
     }
     50% {
-        transform: translate(8%, -12%) rotate(40deg) scale(0.98);
+        transform: translate3d(8%, -12%, 0) rotate(30deg) scale(0.98);
     }
     75% {
-        transform: translate(-12%, 8%) rotate(25deg) scale(1.02);
+        transform: translate3d(-12%, 8%, 0) rotate(15deg) scale(1.01);
     }
 }
 </style>

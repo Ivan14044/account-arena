@@ -88,10 +88,27 @@ header {
 html,
 body {
     overflow-x: hidden;
+    min-height: 100%;
+    margin: 0;
+    padding: 0;
 }
 
 html {
     scroll-behavior: smooth;
+    overflow-y: auto;
+}
+
+body {
+    min-height: 100vh;
+    margin: 0;
+    padding: 0;
+    overflow-y: visible;
+}
+
+#app {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
 }
 
 button.swal2-confirm {
@@ -156,6 +173,20 @@ button.swal2-cancel {
 * {
     scrollbar-width: thin;
     scrollbar-color: rgba(100, 100, 100, 0.8) transparent;
+}
+
+/* Убеждаемся, что main элемент не имеет прозрачности */
+main {
+    position: relative;
+    z-index: 1;
+    opacity: 1 !important;
+    filter: none !important;
+}
+
+/* Убеждаемся, что все элементы внутри main не наследуют прозрачность */
+main > * {
+    opacity: 1 !important;
+    filter: none !important;
 }
 
 .glass-card {

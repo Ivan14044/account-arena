@@ -18,17 +18,13 @@
           'https://www.googletagmanager.com/gtm.js?id=' + i + dl; f.parentNode.insertBefore(j, f);
     })(window, document, 'script', 'dataLayer', 'GTM-TGGFZ32Q');</script>
   <!-- End Google Tag Manager -->
-  <script>
-    (function () {
-      const savedTheme = localStorage.getItem('theme');
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      const isDark = savedTheme === 'dark' || (!savedTheme && prefersDark);
-
-      document.documentElement.classList.toggle('dark', isDark);
-    })();
-  </script>
-
   <style>
+    header { position: fixed; top: 0; left: 0; height: 60px; width: 100%; z-index: 100; }
+    html, body { overflow-x: hidden; margin: 0; padding: 0; min-height: 100vh; background-color: #ffffff; }
+    .dark body { background-color: #030712; }
+    #app { min-height: 100vh; display: flex; flex-direction: column; }
+    main { flex: 1 0 auto; min-height: 100vh; }
+
     #app-preloader {
       position: fixed;
       top: 0;
@@ -56,10 +52,6 @@
     #app-preloader.preloader-hidden {
       opacity: 0;
       visibility: hidden;
-    }
-
-    .dark body {
-      background-color: #030712;
     }
 
     /* Контейнер для анимации */
@@ -110,6 +102,15 @@
       overflow: hidden;
     }
   </style>
+  <script>
+    (function () {
+      const savedTheme = localStorage.getItem('theme');
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const isDark = savedTheme === 'dark' || (!savedTheme && prefersDark);
+
+      document.documentElement.classList.toggle('dark', isDark);
+    })();
+  </script>
 </head>
 
 <body class="loading">
