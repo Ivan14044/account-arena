@@ -343,19 +343,18 @@ const getDeliveryTypeText = (product: any): string => {
     border: 1px solid rgba(226, 232, 240, 0.6);
     border-radius: 16px;
     padding: 12px 16px;
-    transition: none;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
     position: relative;
     overflow: hidden;
     transform: translateZ(0);
-    content-visibility: auto;
-    contain-intrinsic-size: 250px;
 }
 
 .dark .product-card {
-    background: rgba(30, 41, 59, 0.95);
-    border-color: rgba(51, 65, 85, 0.6);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    background: rgba(30, 41, 59, 0.7);
+    backdrop-filter: blur(12px);
+    border-color: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
 }
 
 .product-card::before {
@@ -364,31 +363,27 @@ const getDeliveryTypeText = (product: any): string => {
     left: 0;
     top: 0;
     bottom: 0;
-    width: 5px;
+    width: 4px;
     background: linear-gradient(180deg, #6c5ce7 0%, #a29bfe 100%);
     opacity: 0;
-    transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    border-radius: 16px 0 0 16px;
+    transition: opacity 0.3s ease;
+}
+
+.product-card:hover {
+    transform: translateX(4px) translateY(-2px);
+    background: rgba(255, 255, 255, 1);
+    box-shadow: 0 12px 24px rgba(108, 92, 231, 0.15);
+    border-color: rgba(108, 92, 231, 0.3);
+}
+
+.dark .product-card:hover {
+    background: rgba(30, 41, 59, 0.85);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+    border-color: rgba(108, 92, 231, 0.4);
 }
 
 .product-card:hover::before {
     opacity: 1;
-}
-
-.product-card:hover {
-    transition: transform 0.15s ease, box-shadow 0.15s ease, backdrop-filter 0.15s ease;
-    will-change: backdrop-filter, transform;
-    transform: translateX(6px) translateY(-2px) translateZ(0);
-    backdrop-filter: blur(8px);
-    background: rgba(255, 255, 255, 0.9);
-    box-shadow: 0 8px 24px rgba(108, 92, 231, 0.15);
-    border-color: rgba(108, 92, 231, 0.4);
-}
-
-.dark .product-card:hover {
-    background: rgba(30, 41, 59, 0.95);
-    box-shadow: 0 12px 32px rgba(108, 92, 231, 0.3);
-    border-color: rgba(108, 92, 231, 0.5);
 }
 
 /* Стили для товаров, которые закончились */
@@ -745,9 +740,10 @@ const getDeliveryTypeText = (product: any): string => {
     width: 100%;
 }
 
+/* Стили для кнопок */
 .btn-secondary {
-    background: #f8fafc;
-    border: 1px solid rgba(226, 232, 240, 0.8);
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
     padding: 10px;
     border-radius: 10px;
     cursor: pointer;
@@ -755,12 +751,24 @@ const getDeliveryTypeText = (product: any): string => {
     display: flex;
     align-items: center;
     justify-content: center;
+    transition: all 0.2s ease;
 }
 
 .dark .btn-secondary {
-    background: #1e293b;
-    border-color: #334155;
+    background: rgba(51, 65, 85, 0.4);
+    border-color: rgba(255, 255, 255, 0.1);
     color: #cbd5e1;
+}
+
+.btn-secondary:hover {
+    background: #e2e8f0;
+    color: #475569;
+}
+
+.dark .btn-secondary:hover {
+    background: rgba(51, 65, 85, 0.6);
+    border-color: rgba(255, 255, 255, 0.2);
+    color: white;
 }
 
 .btn-secondary.active {
@@ -770,8 +778,8 @@ const getDeliveryTypeText = (product: any): string => {
 }
 
 .btn-cart {
-    background: #f8fafc;
-    border: 1px solid rgba(226, 232, 240, 0.8);
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
     padding: 10px;
     border-radius: 10px;
     cursor: pointer;
@@ -784,37 +792,28 @@ const getDeliveryTypeText = (product: any): string => {
 }
 
 .dark .btn-cart {
-    background: #1e293b;
-    border-color: #334155;
+    background: rgba(51, 65, 85, 0.4);
+    border-color: rgba(255, 255, 255, 0.1);
     color: #cbd5e1;
 }
 
 .btn-cart:hover {
-    background: #f1f5f9;
+    background: #6c5ce7;
     border-color: #6c5ce7;
-    color: #6c5ce7;
-    box-shadow: 0 4px 12px rgba(108, 92, 231, 0.15);
+    color: white;
+    box-shadow: 0 4px 12px rgba(108, 92, 231, 0.3);
 }
 
 .dark .btn-cart:hover {
-    background: #334155;
+    background: #6c5ce7;
     border-color: #6c5ce7;
-    color: #a29bfe;
-    box-shadow: 0 4px 12px rgba(108, 92, 231, 0.3);
+    color: white;
+    box-shadow: 0 4px 20px rgba(108, 92, 231, 0.4);
 }
 
 .btn-cart:disabled {
     opacity: 0.5;
     cursor: not-allowed;
-    background: #f1f5f9;
-    border-color: #e2e8f0;
-    color: #94a3b8;
-}
-
-.dark .btn-cart:disabled {
-    background: #1e293b;
-    border-color: #334155;
-    color: #475569;
 }
 
 .btn-primary {
@@ -831,6 +830,17 @@ const getDeliveryTypeText = (product: any): string => {
     align-items: center;
     justify-content: center;
     gap: 8px;
+    transition: all 0.2s ease;
+}
+
+.btn-primary:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(108, 92, 231, 0.4);
+    filter: brightness(1.1);
+}
+
+.btn-primary:active:not(:disabled) {
+    transform: translateY(0);
 }
 
 @media (max-width: 1024px) {
