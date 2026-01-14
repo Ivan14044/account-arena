@@ -97,12 +97,12 @@ class PageController extends Controller
     /**
      * Sanitize HTML content to prevent XSS while keeping safe tags.
      */
-    private function sanitizeHtml($html)
+    protected function sanitizeHtml(?string $html): ?string
     {
         if (empty($html)) return $html;
 
         // Список разрешенных тегов (для CKEditor)
-        $allowedTags = '<p><a><b><i><u><strong><em><ul><ol><li><br><h1><h2><h3><h4><h5><h6><img><blockquote><pre><code><table><thead><tbody><tr><th><td><hr>';
+        $allowedTags = '<p><a><b><i><u><strong><em><ul><ol><li><br><h1><h2><h3><h4><h5><h6><img><blockquote><pre><code><table><thead><tbody><tr><th><td><hr><span><div><figure>';
         
         // 1. Сначала используем strip_tags с белым списком
         $sanitized = strip_tags($html, $allowedTags);
