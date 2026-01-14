@@ -238,9 +238,9 @@
                     <tbody>
                         @foreach ($serviceAccounts as $serviceAccount)
                         @php
-                            $totalQuantity = is_array($serviceAccount->accounts_data) ? count($serviceAccount->accounts_data) : 0;
+                            $availableCount = $serviceAccount->getAvailableStock();
+                            $totalQuantity = $serviceAccount->total_qty_from_json ?? (is_array($serviceAccount->accounts_data) ? count($serviceAccount->accounts_data) : 0);
                             $soldCount = $serviceAccount->used ?? 0;
-                            $availableCount = max(0, $totalQuantity - $soldCount);
                             $categoryId = $serviceAccount->category_id ?? null;
                             $categoryName = null;
                             if ($serviceAccount->category) {
@@ -311,17 +311,29 @@
                                 @endif
                             </td>
                             <td class="text-center align-middle">
-                                @if($availableCount > 0)
-                                    <span class="badge badge-success badge-modern font-weight-bold" style="font-size: 0.875rem;">
-                                        {{ $availableCount }} шт.
-                                    </span>
+                                @if($serviceAccount->requiresManualDelivery())
+                                    @if($serviceAccount->is_active)
+                                        <span class="badge badge-success badge-modern font-weight-bold" style="font-size: 0.875rem;">
+                                            В наличии
+                                        </span>
+                                    @else
+                                        <span class="badge badge-secondary badge-modern">
+                                            Нет в наличии
+                                        </span>
+                                    @endif
                                 @else
-                                    <span class="badge badge-secondary badge-modern">
-                                        Нет в наличии
-                                    </span>
-                                @endif
-                                @if($totalQuantity > 0)
-                                    <div><small class="text-muted">Всего: {{ $totalQuantity }}</small></div>
+                                    @if($availableCount > 0)
+                                        <span class="badge badge-success badge-modern font-weight-bold" style="font-size: 0.875rem;">
+                                            {{ $availableCount }} шт.
+                                        </span>
+                                    @else
+                                        <span class="badge badge-secondary badge-modern">
+                                            Нет в наличии
+                                        </span>
+                                    @endif
+                                    @if($totalQuantity > 0)
+                                        <div><small class="text-muted">Всего: {{ $totalQuantity }}</small></div>
+                                    @endif
                                 @endif
                             </td>
                             <td class="text-center align-middle">

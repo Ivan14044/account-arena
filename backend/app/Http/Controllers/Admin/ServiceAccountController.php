@@ -22,7 +22,7 @@ class ServiceAccountController extends Controller
                 'id', 'sku', 'title', 'price', 'used', 'is_active', 'delivery_type', 
                 'category_id', 'supplier_id', 'sort_order', 'created_at'
             ])
-            ->selectRaw('JSON_LENGTH(accounts_data) as total_qty')
+            ->selectRaw('JSON_LENGTH(accounts_data) as total_qty_from_json')
             ->orderBy('sort_order', 'asc')
             ->orderBy('id', 'desc')
             ->paginate(20);
