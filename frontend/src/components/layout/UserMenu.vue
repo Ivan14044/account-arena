@@ -40,12 +40,16 @@
         >
             <div
                 v-if="isOpen"
-                class="absolute top-[45px] right-0 bg-indigo-soft-200/90 dark:bg-gray-800/90 rounded-lg border !border-indigo-soft-400 dark:!border-gray-700 overflow-hidden min-w-[200px]"
+                class="absolute top-[45px] right-0 liquid-glass-wrapper rounded-lg overflow-hidden min-w-[200px] z-50"
             >
-                <div>
+                <div class="liquid-glass-effect"></div>
+                <div class="liquid-glass-tint"></div>
+                <div class="liquid-glass-shine"></div>
+                
+                <div class="liquid-glass-text flex flex-col w-full relative z-10">
                     <!-- Баланс (мобильная версия + всегда показываем) -->
                     <div
-                        class="px-4 py-3 border-b border-indigo-soft-400 dark:border-gray-700 bg-green-500/10 dark:bg-green-600/10"
+                        class="px-4 py-3 border-b border-white/10 dark:border-gray-700 bg-green-500/10 dark:bg-green-600/10"
                     >
                         <div class="flex items-center justify-between">
                             <span class="text-xs text-gray-600 dark:text-gray-400"
@@ -73,7 +77,7 @@
                     </div>
 
                     <button
-                        class="flex items-center gap-3 w-full px-4 py-3 text-sm text-left hover:bg-indigo-200 dark:hover:bg-gray-700 transition-colors relative"
+                        class="flex items-center gap-3 w-full px-4 py-3 text-sm text-left hover:bg-white/10 dark:hover:bg-gray-700/30 transition-colors relative"
                         @click="navigateTo('/balance/topup')"
                     >
                         <span class="relative z-10 flex whitespace-nowrap gap-2 items-center">
@@ -95,7 +99,7 @@
                     </button>
 
                     <button
-                        class="flex items-center gap-3 w-full px-4 py-3 text-sm text-left hover:bg-indigo-200 dark:hover:bg-gray-700 transition-colors relative"
+                        class="flex items-center gap-3 w-full px-4 py-3 text-sm text-left hover:bg-white/10 dark:hover:bg-gray-700/30 transition-colors relative"
                         @click="navigateTo('/profile')"
                     >
                         <span class="relative z-10 flex whitespace-nowrap gap-2 items-center">
@@ -104,10 +108,10 @@
                         </span>
                     </button>
                     <button
-                        class="flex items-center gap-3 w-full px-4 py-3 text-sm text-left hover:bg-indigo-200 dark:hover:bg-gray-700 transition-colors relative"
+                        class="flex items-center gap-3 w-full px-4 py-3 text-sm text-left hover:bg-white/10 dark:hover:bg-gray-700/30 transition-colors relative"
                         @click="handleAuthAction"
                     >
-                        <span class="relative z-10 flex whitespace-nowrap gap-2 items-center">
+                        <span class="relative z-10 flex whitespace-nowrap gap-2 items-center text-red-500 dark:text-red-400">
                             <LogOut class="w-5" />
                             {{ $t('auth.logoutLink') }}
                         </span>

@@ -30,17 +30,21 @@
         >
             <div
                 v-if="isOpen"
+                class="absolute top-[45px] liquid-glass-wrapper rounded-lg overflow-hidden min-w-[160px] z-50"
                 style="will-change: transform; transform: translateZ(0)"
-                class="absolute top-[45px] bg-indigo-soft-200/90 dark:bg-gray-800/90 rounded-lg border !border-indigo-soft-400 dark:!border-gray-700 overflow-hidden min-w-[160px]"
             >
-                <div>
+                <div class="liquid-glass-effect"></div>
+                <div class="liquid-glass-tint"></div>
+                <div class="liquid-glass-shine"></div>
+                
+                <div class="liquid-glass-text flex flex-col w-full relative z-10">
                     <button
                         v-for="language in languages"
                         :key="language.code"
-                        class="flex h-[44px] items-center gap-3 w-full px-4 text-sm text-left hover:bg-indigo-200 dark:hover:bg-gray-700 transition-colors relative"
+                        class="flex h-[44px] items-center gap-3 w-full px-4 text-sm text-left hover:bg-white/10 dark:hover:bg-gray-700/30 transition-colors relative"
                         :class="[
                             language.code === currentLocale
-                                ? 'text-gray-800 dark:text-blue-700 font-weight-bold'
+                                ? 'text-gray-800 dark:text-blue-400 font-bold'
                                 : 'text-gray-900 dark:!text-white'
                         ]"
                         @click="changeLanguage(language.code)"

@@ -27,113 +27,119 @@
             <div
                 v-if="isDropdownOpen"
                 ref="dropdownRef"
-                class="absolute right-0 top-[45px] w-80 bg-indigo-soft-200 border-indigo-soft-400 dark:border-gray-700 text-gray-900 dark:text-white dark:bg-gray-800 border rounded shadow-lg z-50 notification-dropdown"
+                class="absolute right-0 top-[45px] w-80 liquid-glass-wrapper rounded-lg overflow-hidden z-50 notification-dropdown"
                 role="dialog"
                 aria-label="Notifications dropdown"
             >
-                <!-- Header -->
-                <div class="px-4 py-3 border-b font-semibold flex justify-between items-center">
-                    <span>{{ $t('notifications.dropdown_title') }}</span>
-                    <button
-                        class="text-gray-900 dark:text-white text-2xl leading-none hover:opacity-70 transition-opacity"
-                        :aria-label="$t('notifications.close')"
-                        @click="closeDropdown"
-                    >
-                        ×
-                    </button>
-                </div>
+                <div class="liquid-glass-effect"></div>
+                <div class="liquid-glass-tint"></div>
+                <div class="liquid-glass-shine"></div>
+                
+                <div class="liquid-glass-text flex flex-col w-full relative z-10">
+                    <!-- Header -->
+                    <div class="px-4 py-3 border-b border-white/10 dark:border-gray-700 font-semibold flex justify-between items-center">
+                        <span>{{ $t('notifications.dropdown_title') }}</span>
+                        <button
+                            class="text-gray-900 dark:text-white text-2xl leading-none hover:opacity-70 transition-opacity"
+                            :aria-label="$t('notifications.close')"
+                            @click="closeDropdown"
+                        >
+                            ×
+                        </button>
+                    </div>
 
-                <!-- Notifications list -->
-                <div
-                    v-if="displayedItems.length > 0"
-                    ref="notificationsListRef"
-                    class="max-h-96 overflow-y-auto"
-                >
+                    <!-- Notifications list -->
                     <div
-                        v-for="item in displayedItems"
-                        :key="item.id"
-                        class="p-3 border-b transition hover:bg-indigo-50 dark:hover:bg-gray-700/50"
+                        v-if="displayedItems.length > 0"
+                        ref="notificationsListRef"
+                        class="max-h-96 overflow-y-auto"
                     >
-                        <div class="text-sm font-medium flex justify-between items-center gap-2">
-                            <span class="flex-1">{{ getTranslation(item, 'title') }}</span>
-                            <span
-                                v-if="!item.read_at"
-                                class="inline-block w-2 h-2 rounded-full bg-blue-500 shrink-0"
-                                :title="$t('notifications.new')"
-                                aria-label="New notification"
-                            />
-                        </div>
                         <div
-                            class="text-xs text-gray-600 dark:text-gray-300 mt-1"
-                            v-html="getTranslation(item, 'message')"
-                        />
-                        <div class="flex justify-between items-center mt-2">
-                            <time class="text-xs text-gray-500" :datetime="item.created_at">
-                                {{ formatDate(item.created_at) }}
-                            </time>
-                            <button
-                                v-if="!item.read_at"
-                                class="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-2 py-1 font-medium"
-                                :aria-label="$t('notifications.mark_as_read')"
-                                @click.stop="handleMarkAsRead(item)"
-                            >
-                                {{ $t('notifications.mark_as_read') }}
-                            </button>
+                            v-for="item in displayedItems"
+                            :key="item.id"
+                            class="p-3 border-b border-white/5 dark:border-gray-700/50 transition hover:bg-white/10 dark:hover:bg-gray-700/50"
+                        >
+                            <div class="text-sm font-medium flex justify-between items-center gap-2">
+                                <span class="flex-1">{{ getTranslation(item, 'title') }}</span>
+                                <span
+                                    v-if="!item.read_at"
+                                    class="inline-block w-2 h-2 rounded-full bg-blue-500 shrink-0"
+                                    :title="$t('notifications.new')"
+                                    aria-label="New notification"
+                                />
+                            </div>
+                            <div
+                                class="text-xs text-gray-600 dark:text-gray-300 mt-1"
+                                v-html="getTranslation(item, 'message')"
+                            />
+                            <div class="flex justify-between items-center mt-2">
+                                <time class="text-xs text-gray-500" :datetime="item.created_at">
+                                    {{ formatDate(item.created_at) }}
+                                </time>
+                                <button
+                                    v-if="!item.read_at"
+                                    class="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-2 py-1 font-medium"
+                                    :aria-label="$t('notifications.mark_as_read')"
+                                    @click.stop="handleMarkAsRead(item)"
+                                >
+                                    {{ $t('notifications.mark_as_read') }}
+                                </button>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Empty state -->
-                <div v-else class="p-4 text-sm text-gray-500 dark:text-gray-400 text-center">
-                    {{ $t('notifications.empty') }}
-                </div>
+                    <!-- Empty state -->
+                    <div v-else class="p-4 text-sm text-gray-500 dark:text-gray-400 text-center">
+                        {{ $t('notifications.empty') }}
+                    </div>
 
-                <!-- Mark all as read button -->
-                <div
-                    v-if="unreadCount > 2 && displayedItems.length > 0"
-                    class="px-4 py-2 border-t bg-indigo-100 dark:bg-gray-700"
-                >
-                    <button
-                        class="w-full text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-2 py-1 font-medium disabled:opacity-50"
-                        :disabled="isMarkingAll"
-                        @click="handleMarkAllAsRead"
+                    <!-- Mark all as read button -->
+                    <div
+                        v-if="unreadCount > 2 && displayedItems.length > 0"
+                        class="px-4 py-2 border-t border-white/10 dark:border-gray-700 bg-white/5 dark:bg-gray-700/30"
                     >
-                        {{ $t('notifications.mark_all_as_read') }}
-                    </button>
-                </div>
+                        <button
+                            class="w-full text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-2 py-1 font-medium disabled:opacity-50"
+                            :disabled="isMarkingAll"
+                            @click="handleMarkAllAsRead"
+                        >
+                            {{ $t('notifications.mark_all_as_read') }}
+                        </button>
+                    </div>
 
-                <!-- Load more button -->
-                <div v-if="hasMoreItems" class="border-t">
-                    <button
-                        class="w-full p-2 text-sm text-center hover:bg-indigo-200 dark:hover:bg-gray-700 transition focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50 flex items-center justify-center gap-2"
-                        :disabled="isLoading"
-                        @click="handleLoadMore"
-                    >
-                        <svg
-                            v-if="isLoading"
-                            class="w-4 h-4 animate-spin text-indigo-600 dark:text-indigo-400"
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
+                    <!-- Load more button -->
+                    <div v-if="hasMoreItems" class="border-t border-white/10 dark:border-gray-700">
+                        <button
+                            class="w-full p-2 text-sm text-center hover:bg-white/10 dark:hover:bg-gray-700/30 transition focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50 flex items-center justify-center gap-2"
+                            :disabled="isLoading"
+                            @click="handleLoadMore"
                         >
-                            <circle
-                                class="opacity-25"
-                                cx="12"
-                                cy="12"
-                                r="10"
-                                stroke="currentColor"
-                                stroke-width="4"
-                            ></circle>
-                            <path
-                                class="opacity-75"
-                                fill="currentColor"
-                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                            ></path>
-                        </svg>
-                        <span
-                            >{{ $t('notifications.dropdown_button') }} ({{ remainingCount }})</span
-                        >
-                    </button>
+                            <svg
+                                v-if="isLoading"
+                                class="w-4 h-4 animate-spin text-indigo-600 dark:text-indigo-400"
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                            >
+                                <circle
+                                    class="opacity-25"
+                                    cx="12"
+                                    cy="12"
+                                    r="10"
+                                    stroke="currentColor"
+                                    stroke-width="4"
+                                ></circle>
+                                <path
+                                    class="opacity-75"
+                                    fill="currentColor"
+                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                ></path>
+                            </svg>
+                            <span
+                                >{{ $t('notifications.dropdown_button') }} ({{ remainingCount }})</span
+                            >
+                        </button>
+                    </div>
                 </div>
             </div>
         </Transition>

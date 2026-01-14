@@ -345,6 +345,64 @@ main > * {
 }
 
 /* ============================================
+   LIQUID GLASS EFFECT UTILITIES
+   ============================================ */
+
+.liquid-glass-wrapper {
+    position: relative;
+    box-shadow: 0 6px 6px rgba(0, 0, 0, 0.2), 0 0 20px rgba(0, 0, 0, 0.1);
+    cursor: default;
+    isolation: isolate;
+}
+
+.liquid-glass-effect {
+    position: absolute;
+    z-index: 0;
+    inset: 0;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    filter: url(#header-glass-distortion);
+    overflow: hidden;
+    isolation: isolate;
+    border-radius: inherit;
+}
+
+.liquid-glass-tint {
+    z-index: 1;
+    position: absolute;
+    inset: 0;
+    background: rgba(255, 255, 255, 0.25);
+    border-radius: inherit;
+}
+
+.dark .liquid-glass-tint {
+    background: rgba(31, 41, 55, 0.4);
+}
+
+.liquid-glass-shine {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    overflow: hidden;
+    border-radius: inherit;
+    box-shadow: 
+        inset 2px 2px 1px 0 rgba(255, 255, 255, 0.5),
+        inset -1px -1px 1px 1px rgba(255, 255, 255, 0.5);
+    pointer-events: none;
+}
+
+.dark .liquid-glass-shine {
+    box-shadow: 
+        inset 2px 2px 1px 0 rgba(255, 255, 255, 0.1),
+        inset -1px -1px 1px 1px rgba(255, 255, 255, 0.1);
+}
+
+.liquid-glass-text {
+    z-index: 3;
+    position: relative;
+}
+
+/* ============================================
    ОПТИМИЗАЦИЯ ПРОИЗВОДИТЕЛЬНОСТИ
    ============================================ */
 
