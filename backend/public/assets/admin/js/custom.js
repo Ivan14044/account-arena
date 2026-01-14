@@ -290,12 +290,33 @@
                 }
             },
             error: function (xhr, status, error) {
-                console.debug('[Manual Delivery Badge] Error updating badge:', error);
+                // Если 404 - маршрут не найден, прекращаем попытки
+                if (xhr.status === 404) {
+                    console.warn('[Manual Delivery Badge] Route not found (404). Stopping badge updates.');
+                    if (updateInterval) {
+                        clearTimeout(updateInterval);
+                        updateInterval = null;
+                    }
+                    return;
+                }
+                
+                // Для других ошибок просто логируем
+                console.debug('[Manual Delivery Badge] Error updating badge:', {
+                    status: xhr.status,
+                    statusText: xhr.statusText,
+                    error: error
+                });
+                
+                // При ошибке увеличиваем интервал до 5 секунд, чтобы не перегружать сервер
+                updateInterval = setTimeout(updateManualDeliveryBadge, 5000);
             },
             complete: function() {
-                // Планируем следующее обновление через 2 секунды (вместо жесткого setInterval)
-                // Это предотвращает наложение запросов если сервер тормозит
-                updateInterval = setTimeout(updateManualDeliveryBadge, 2000);
+                // Планируем следующее обновление только если нет ошибки 404
+                if (updateInterval !== null) {
+                    // Планируем следующее обновление через 2 секунды (вместо жесткого setInterval)
+                    // Это предотвращает наложение запросов если сервер тормозит
+                    updateInterval = setTimeout(updateManualDeliveryBadge, 2000);
+                }
             }
         });
     }
