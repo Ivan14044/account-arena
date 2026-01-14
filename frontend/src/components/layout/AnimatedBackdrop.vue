@@ -3,9 +3,8 @@
         <div
             :class="[
                 'animated-gradient absolute w-[120vw] h-[120vh]',
-                isDark ? 'opacity-60 blur-[60px]' : 'opacity-40 blur-[50px]'
+                isDark ? 'opacity-60 blur-[80px]' : 'opacity-40 blur-[70px]'
             ]"
-            style="transition: opacity 0.2s ease-in-out, filter 0.2s ease-in-out; will-change: opacity, filter;"
         />
     </div>
 </template>
