@@ -1,11 +1,39 @@
 <template>
     <div class="fixed inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
-        <div
+        <svg
+            viewBox="0 0 1000 1000"
+            preserveAspectRatio="xMidYMid slice"
             :class="[
-                'animated-gradient absolute w-[120vw] h-[120vh] transition-opacity duration-700',
-                isDark ? 'opacity-50 blur-[40px] md:blur-[60px]' : 'opacity-30 blur-[30px] md:blur-[50px]'
+                'absolute inset-0 w-full h-full transition-opacity duration-700',
+                isDark ? 'opacity-50' : 'opacity-30'
             ]"
-        />
+            xmlns="http://www.w3.org/2000/svg"
+        >
+            <defs>
+                <radialGradient id="grad1" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
+                    <stop offset="0%" stop-color="rgba(255, 106, 0, 0.8)" />
+                    <stop offset="100%" stop-color="rgba(255, 106, 0, 0)" />
+                </radialGradient>
+                <radialGradient id="grad2" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
+                    <stop offset="0%" stop-color="rgba(255, 0, 204, 0.8)" />
+                    <stop offset="100%" stop-color="rgba(255, 0, 204, 0)" />
+                </radialGradient>
+                <radialGradient id="grad3" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
+                    <stop offset="0%" stop-color="rgba(0, 170, 255, 0.8)" />
+                    <stop offset="100%" stop-color="rgba(0, 170, 255, 0)" />
+                </radialGradient>
+                <radialGradient id="grad4" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
+                    <stop offset="0%" stop-color="rgba(0, 123, 255, 0.8)" />
+                    <stop offset="100%" stop-color="rgba(0, 123, 255, 0)" />
+                </radialGradient>
+            </defs>
+
+            <!-- Blobs -->
+            <circle class="blob blob-1" cx="200" cy="200" r="450" fill="url(#grad1)" />
+            <circle class="blob blob-2" cx="800" cy="300" r="500" fill="url(#grad2)" />
+            <circle class="blob blob-3" cx="300" cy="800" r="550" fill="url(#grad3)" />
+            <circle class="blob blob-4" cx="900" cy="900" r="400" fill="url(#grad4)" />
+        </svg>
     </div>
 </template>
 
@@ -16,34 +44,51 @@ defineProps<{
 </script>
 
 <style scoped>
-.animated-gradient {
-    background: linear-gradient(
-        120deg,
-        rgba(255, 106, 0, 0.35) 10%,
-        rgba(255, 0, 204, 0.55) 35%,
-        rgba(0, 170, 255, 0.75) 70%,
-        rgba(0, 123, 255, 0.45) 90%
-    );
-    animation: gradientMove 45s ease-in-out infinite;
-    will-change: transform, opacity, filter;
-    transform: translate3d(-18%, -18%, 0);
-    backface-visibility: hidden;
-    perspective: 1000px;
+.blob {
+    will-change: transform;
+    mix-blend-mode: normal;
 }
 
-@keyframes gradientMove {
-    0%,
-    100% {
-        transform: translate3d(-18%, -18%, 0) rotate(0deg) scale(1);
+.blob-1 {
+    animation: move1 45s ease-in-out infinite;
+}
+.blob-2 {
+    animation: move2 50s ease-in-out infinite;
+}
+.blob-3 {
+    animation: move3 55s ease-in-out infinite;
+}
+.blob-4 {
+    animation: move4 40s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .blob {
+        animation: none !important;
     }
-    25% {
-        transform: translate3d(-10%, -22%, 0) rotate(15deg) scale(1.02);
-    }
-    50% {
-        transform: translate3d(8%, -12%, 0) rotate(30deg) scale(0.98);
-    }
-    75% {
-        transform: translate3d(-12%, 8%, 0) rotate(15deg) scale(1.01);
-    }
+}
+
+@keyframes move1 {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    33% { transform: translate(100px, 150px) scale(1.1); }
+    66% { transform: translate(-50px, 200px) scale(0.9); }
+}
+
+@keyframes move2 {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    33% { transform: translate(-150px, 50px) scale(0.95); }
+    66% { transform: translate(-100px, -100px) scale(1.05); }
+}
+
+@keyframes move3 {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    33% { transform: translate(50px, -150px) scale(1.05); }
+    66% { transform: translate(150px, -50px) scale(0.95); }
+}
+
+@keyframes move4 {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    33% { transform: translate(-100px, -100px) scale(1.1); }
+    66% { transform: translate(-200px, 50px) scale(0.9); }
 }
 </style>

@@ -5,7 +5,7 @@
         >
             <div class="w-full">
                 <div class="flex items-center justify-end absolute top-3 right-3">
-                    <LanguageSelect />
+                    <LanguageSelector />
                 </div>
                 <div class="flex items-center justify-center mb-6 -mt-2 w-full">
                     <router-link to="/" class="flex items-center flex-col">
@@ -120,7 +120,7 @@ import { ref } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useAuthStore } from '../../stores/auth';
 import SocialAuthButtons from './SocialAuthButtons.vue';
-import LanguageSelect from '@/components/layout/LanguageSelect.vue';
+import LanguageSelector from '@/components/layout/LanguageSelector.vue';
 import logo from '@/assets/logo.webp';
 
 const email = ref('');
