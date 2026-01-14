@@ -33,46 +33,121 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 import { useOptionStore } from '../stores/options';
 import { useI18n } from 'vue-i18n';
 import MobileMenu from './MobileMenu.vue';
 import { Menu } from 'lucide-vue-next';
+import { scrollToElement } from '@/utils/scrollToElement';
 
 const serviceOption = useOptionStore();
 const router = useRouter();
+const route = useRoute();
 const { locale } = useI18n();
 const isMobileMenuOpen = ref(false);
 
 interface MenuItem {
     title: string;
     link: string;
-    is_blank: boolean;
+    is_blank?: boolean;
+    is_scroll?: boolean; // Для якорных ссылок
 }
 
 function parseJson<T>(str: string, fallback: T): T {
+    if (!str || typeof str !== 'string') {
+        return fallback;
+    }
     try {
-        return JSON.parse(str) as T;
-    } catch {
+        const parsed = JSON.parse(str);
+        return parsed as T;
+    } catch (e) {
+        console.warn('[MainMenu] JSON parse error:', e, 'String:', str.substring(0, 100));
         return fallback;
     }
 }
 
 const headerMenu = computed<MenuItem[]>(() => {
-    const raw = serviceOption.options.header_menu;
+    // Проверяем, загружены ли опции
+    if (!serviceOption.isLoaded) {
+        return [];
+    }
+    
+    const options = serviceOption.options;
+    let optionsObj: Record<string, any>;
+    
+    // Нормализуем options - может быть массивом или объектом
+    if (Array.isArray(options)) {
+        optionsObj = {};
+        try {
+            options.forEach(option => {
+                if (option && option.key) {
+                    optionsObj[option.key] = option.value;
+                }
+            });
+        } catch (e) {
+            console.error('[MainMenu] Error in forEach:', e);
+            return [];
+        }
+    } else if (typeof options === 'object' && options !== null && !Array.isArray(options)) {
+        optionsObj = options;
+    } else {
+        return [];
+    }
+    
+    const raw = optionsObj.header_menu;
     if (!raw) return [];
 
     const menusByLocale = parseJson<Record<string, string>>(raw, {});
-    const menuStr = menusByLocale[locale.value] ?? '[]';
+    const menuStr = menusByLocale[locale.value] ?? menusByLocale['ru'] ?? '[]';
 
     return parseJson<MenuItem[]>(menuStr, []);
 });
 
-function handleClick(_item: MenuItem) {
-    if (_item.is_blank) {
-        window.open(_item.link, '_blank');
-    } else {
-        router.push(_item.link);
+function handleClick(item: MenuItem) {
+    if (!item || !item.link) {
+        console.warn('[MainMenu] Invalid item or link:', item);
+        return;
     }
+    
+    if (item.is_blank) {
+        window.open(item.link, '_blank', 'noopener,noreferrer');
+        isMobileMenuOpen.value = false;
+        return;
+    }
+
+    // Если это якорная ссылка и мы на главной странице
+    if (item.is_scroll && route.path === '/') {
+        scrollToElement(item.link);
+        isMobileMenuOpen.value = false;
+        return;
+    }
+
+    // Если это якорная ссылка, но мы не на главной
+    if (item.is_scroll && route.path !== '/') {
+        router.push('/').then(() => {
+            // Небольшая задержка для загрузки страницы, затем скролл
+            setTimeout(() => {
+                scrollToElement(item.link);
+            }, 300);
+        }).catch(err => {
+            console.error('[MainMenu] Navigation error:', err);
+            if (err.name !== 'NavigationDuplicated') {
+                window.location.href = item.link;
+            }
+        });
+        isMobileMenuOpen.value = false;
+        return;
+    }
+
+    // Обычная навигация
+    router.push(item.link).then(() => {
+        console.log('[MainMenu] Navigation successful to:', item.link);
+    }).catch(err => {
+        console.error('[MainMenu] Navigation error:', err);
+        if (err.name !== 'NavigationDuplicated') {
+            window.location.href = item.link;
+        }
+    });
+    isMobileMenuOpen.value = false;
 }
 </script>

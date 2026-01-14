@@ -8,6 +8,8 @@ use App\Models\AdminNotificationSetting;
 use App\Services\TelegramBotService;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 
@@ -138,35 +140,97 @@ class SettingController extends Controller
     }
 
     /**
-     * Тестирование отправки письма через SMTP
+     * Тестирование SMTP настроек перед сохранением
+     * 
+     * Позволяет проверить SMTP настройки перед их сохранением.
+     * Использует временную конфигурацию из формы для проверки подключения.
+     *
+     * @param Request $request HTTP запрос с SMTP настройками
+     * @return \Illuminate\Http\JsonResponse JSON ответ с результатом тестирования
      */
-    public function testSmtp()
+    public function testSmtp(Request $request)
     {
+        $validated = $request->validate([
+            'from_address' => ['required', 'email', 'max:255'],
+            'from_name' => ['required', 'string', 'max:255'],
+            'host' => ['required', 'string', 'max:255'],
+            'port' => ['required', 'integer', 'min:1', 'max:65535'],
+            'encryption' => ['nullable', 'string', 'in:tls,ssl'],
+            'username' => ['required', 'string', 'max:255'],
+            'password' => ['required', 'string'],
+        ]);
+
         try {
-            // ВАЖНО: Принудительно конфигурируем почту из сохраненных опций
-            \App\Services\EmailService::configureMailFromOptions();
+            // Настраиваем временную SMTP конфигурацию для теста
+            $encryption = !empty($validated['encryption']) ? $validated['encryption'] : null;
             
-            $user = auth()->user();
-            \Illuminate\Support\Facades\Mail::raw("Это тестовое письмо от Account Arena.\nЕсли вы получили это письмо, значит настройки SMTP работают корректно.\n\nТест выполнен: " . now()->format('d.m.Y H:i:s'), function ($message) use ($user) {
-                $message->to($user->email)
-                    ->subject('Тест SMTP - Account Arena');
+            Config::set('mail.mailers.test', [
+                'transport' => 'smtp',
+                'host' => $validated['host'],
+                'port' => $validated['port'],
+                'encryption' => $encryption,
+                'username' => $validated['username'],
+                'password' => $validated['password'],
+                'timeout' => 10,
+                'auth_mode' => null,
+            ]);
+
+            Config::set('mail.default', 'test');
+
+            Config::set('mail.from', [
+                'address' => $validated['from_address'],
+                'name' => $validated['from_name'],
+            ]);
+
+            // Отправляем тестовое письмо
+            $testEmail = $validated['from_address'];
+            
+            Mail::send('emails.test', [
+                'host' => $validated['host'],
+                'port' => $validated['port'],
+                'encryption' => $encryption ?? 'Не используется',
+                'from_address' => $validated['from_address'],
+                'from_name' => $validated['from_name'],
+                'timestamp' => now()->format('d.m.Y H:i:s'),
+            ], function ($message) use ($testEmail) {
+                $message->to($testEmail)
+                        ->subject('Тест SMTP настроек - Account Arena');
             });
+
+            Log::info('SMTP test successful', [
+                'host' => $validated['host'],
+                'port' => $validated['port'],
+                'encryption' => $encryption,
+                'from' => $validated['from_address'],
+            ]);
 
             return response()->json([
                 'success' => true,
-                'message' => 'Тестовое письмо успешно отправлено на ' . $user->email . '. Пожалуйста, проверьте ваш почтовый ящик (включая папку Спам).'
+                'message' => 'Тестовое письмо успешно отправлено! Пожалуйста, проверьте ваш почтовый ящик ' . $testEmail . ' (включая папку Спам).',
             ]);
         } catch (\Exception $e) {
-            \Log::error('SMTP Test failed', [
-                'admin_id' => auth()->id(),
+            Log::error('SMTP test failed', [
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
+                'host' => $validated['host'] ?? null,
+                'port' => $validated['port'] ?? null,
             ]);
+
+            $errorMessage = 'Ошибка при отправке тестового письма: ' . $e->getMessage();
+            
+            // Более понятные сообщения об ошибках для пользователя
+            if (str_contains($e->getMessage(), 'Connection timed out')) {
+                $errorMessage = 'Не удалось подключиться к SMTP серверу. Пожалуйста, проверьте правильность хоста и порта, а также убедитесь, что сервер доступен из вашей сети.';
+            } elseif (str_contains($e->getMessage(), 'Authentication failed')) {
+                $errorMessage = 'Ошибка аутентификации. Пожалуйста, проверьте правильность логина и пароля.';
+            } elseif (str_contains($e->getMessage(), 'Could not connect to host')) {
+                $errorMessage = 'Не удалось подключиться к хосту. Пожалуйста, проверьте правильность SMTP сервера.';
+            }
 
             return response()->json([
                 'success' => false,
-                'message' => 'Ошибка при отправке тестового письма: ' . $e->getMessage()
-            ]);
+                'message' => $errorMessage,
+            ], 422);
         }
     }
 
@@ -220,6 +284,9 @@ class SettingController extends Controller
             'telegram' => [
                 'telegram_client_enabled' => ['nullable', 'boolean'],
                 'telegram_bot_token' => ['nullable', 'string', 'max:255'],
+            ],
+            'pixel' => [
+                'facebook_pixel_id' => ['nullable', 'string', 'max:255'],
             ],
             default => [],
         };

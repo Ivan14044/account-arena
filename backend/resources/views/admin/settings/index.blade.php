@@ -52,6 +52,11 @@
                         <i class="fab fa-telegram mr-2"></i>Telegram
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="tab_pixel" data-toggle="pill" href="#content_pixel" role="tab">
+                        <i class="fab fa-facebook mr-2"></i>Facebook Pixel
+                    </a>
+                </li>
             </ul>
         </div>
         <div class="card-body">
@@ -175,10 +180,16 @@
                             </small>
                         </div>
 
-                        <button type="submit" class="btn btn-primary mt-3">Save</button>
-                        <button type="button" class="btn btn-info mt-3 ml-2" id="test-smtp-btn">
-                            <i class="fas fa-paper-plane mr-2"></i>Отправить тестовое письмо
-                        </button>
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save mr-2"></i>Сохранить настройки
+                            </button>
+                            <button type="button" class="btn btn-info ml-2" id="test-smtp-btn">
+                                <i class="fas fa-vial mr-2"></i>Протестировать подключение
+                            </button>
+                        </div>
+                        
+                        <div id="smtp-test-result" class="mt-3" style="display: none;"></div>
                     </form>
                 </div>
 
@@ -467,6 +478,40 @@
                     </form>
                 </div>
 
+                <!-- Facebook Pixel Settings -->
+                <div class="tab-pane fade" id="content_pixel" role="tabpanel">
+                    <form method="POST" action="{{ route('admin.settings.store') }}">
+                        <input type="hidden" name="form" value="pixel">
+                        @csrf
+
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i>
+                            <strong>Информация:</strong> Настройте Facebook Pixel для отслеживания конверсий и ретаргетинга.
+                            Получите Pixel ID в <a href="https://business.facebook.com/events_manager" target="_blank" class="alert-link">Facebook Events Manager</a>.
+                        </div>
+
+                        <div class="form-group">
+                            <label for="facebook_pixel_id">Facebook Pixel ID</label>
+                            <input type="text" class="form-control @error('facebook_pixel_id') is-invalid @enderror"
+                                id="facebook_pixel_id" name="facebook_pixel_id"
+                                value="{{ old('facebook_pixel_id', \App\Models\Option::get('facebook_pixel_id', '')) }}"
+                                placeholder="123456789012345">
+                            @error('facebook_pixel_id')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                            <small class="form-text text-muted">
+                                Введите ваш Facebook Pixel ID (обычно это 15-16 цифр). Оставьте пустым, чтобы отключить Pixel.
+                            </small>
+                        </div>
+
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save mr-2"></i>Сохранить настройки
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
             </div>
         </div>
     </div>
@@ -490,24 +535,50 @@ $(document).ready(function() {
     $('#test-smtp-btn').on('click', function() {
         const btn = $(this);
         const originalHtml = btn.html();
+        const resultDiv = $('#smtp-test-result');
         
-        btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-2"></i>Отправка...');
+        // Собираем данные из формы
+        const formData = {
+            from_address: $('#smtp_from_address').val(),
+            from_name: $('#smtp_from_name').val(),
+            host: $('#smtp_host').val(),
+            port: $('#smtp_port').val(),
+            encryption: $('#smtp_encryption').val(),
+            username: $('#smtp_username').val(),
+            password: $('#smtp_password').val(),
+            _token: '{{ csrf_token() }}'
+        };
+
+        // Проверка обязательных полей
+        if (!formData.from_address || !formData.host || !formData.port || !formData.username || !formData.password) {
+            resultDiv.html('<div class="alert alert-danger"><i class="fas fa-exclamation-circle"></i> Пожалуйста, заполните все обязательные поля перед тестированием.</div>').show();
+            return;
+        }
+
+        // Блокируем кнопку и показываем индикатор загрузки
+        btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-2"></i> Тестирование...');
+        resultDiv.hide();
         
         $.ajax({
             url: '{{ route("admin.settings.test-smtp") }}',
             method: 'POST',
-            data: {
-                _token: '{{ csrf_token() }}'
-            },
+            data: formData,
             success: function(response) {
                 if (response.success) {
-                    toastr.success(response.message);
+                    resultDiv.html('<div class="alert alert-success"><i class="fas fa-check-circle"></i> ' + response.message + '</div>').show();
                 } else {
-                    toastr.error(response.message);
+                    resultDiv.html('<div class="alert alert-danger"><i class="fas fa-times-circle"></i> ' + response.message + '</div>').show();
                 }
             },
             error: function(xhr) {
-                toastr.error('Ошибка при выполнении теста: ' . (xhr.responseJSON ? xhr.responseJSON.message : 'Неизвестная ошибка'));
+                let errorMessage = 'Произошла неизвестная ошибка при тестировании SMTP';
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    errorMessage = xhr.responseJSON.message;
+                } else if (xhr.responseJSON && xhr.responseJSON.errors) {
+                    const errors = Object.values(xhr.responseJSON.errors).flat();
+                    errorMessage = errors.join('<br>');
+                }
+                resultDiv.html('<div class="alert alert-danger"><i class="fas fa-times-circle"></i> ' + errorMessage + '</div>').show();
             },
             complete: function() {
                 btn.prop('disabled', false).html(originalHtml);

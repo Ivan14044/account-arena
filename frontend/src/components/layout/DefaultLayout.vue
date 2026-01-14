@@ -8,6 +8,7 @@
         <Footer v-if="!route.meta.requiresGuest" />
         <ScrollToTop />
         <CookieBanner />
+        <FacebookPixel />
     </div>
 </template>
 
@@ -21,6 +22,7 @@ import Footer from '@/components/layout/MainFooter.vue';
 import CookieBanner from '@/components/CookieBanner.vue';
 import ScrollToTop from '@/components/ScrollToTop.vue';
 import AnimatedBackdrop from '@/components/layout/AnimatedBackdrop.vue';
+import FacebookPixel from '@/components/FacebookPixel.vue';
 
 defineProps<{
     isLoading: boolean;
