@@ -440,3 +440,8 @@ main > * {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
 }
+
+/* Глобальное отключение переходов для мгновенной смены темы */
+.disable-transitions *:not(.theme-switcher):not(.theme-switcher *):not(.theme-switcher__toggle) {
+    transition: none !important;
+}

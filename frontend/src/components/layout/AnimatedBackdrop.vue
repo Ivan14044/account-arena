@@ -3,7 +3,7 @@
         <div
             :class="[
                 'animated-gradient absolute w-[120vw] h-[120vh] transition-opacity duration-700',
-                isDark ? 'opacity-50 blur-[60px] md:blur-[80px]' : 'opacity-30 blur-[50px] md:blur-[70px]'
+                isDark ? 'opacity-50 blur-[40px] md:blur-[60px]' : 'opacity-30 blur-[30px] md:blur-[50px]'
             ]"
         />
     </div>
@@ -25,7 +25,7 @@ defineProps<{
         rgba(0, 123, 255, 0.45) 90%
     );
     animation: gradientMove 45s ease-in-out infinite;
-    will-change: transform, opacity;
+    will-change: transform, opacity, filter;
     transform: translate3d(-18%, -18%, 0);
     backface-visibility: hidden;
     perspective: 1000px;

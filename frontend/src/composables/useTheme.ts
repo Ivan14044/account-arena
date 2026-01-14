@@ -7,8 +7,24 @@ export function useTheme() {
     const applyTheme = (dark: boolean) => {
         if (isDark.value === dark) return;
         isDark.value = dark;
-        document.documentElement.classList.toggle('dark', dark);
-        localStorage.setItem('theme', dark ? 'dark' : 'light');
+
+        // Отключаем переходы для всего сайта, кроме переключателя
+        document.documentElement.classList.add('disable-transitions');
+
+        // Используем requestAnimationFrame для синхронизации с циклом отрисовки браузера
+        requestAnimationFrame(() => {
+            document.documentElement.classList.toggle('dark', dark);
+            
+            // В следующем кадре включаем переходы обратно
+            requestAnimationFrame(() => {
+                document.documentElement.classList.remove('disable-transitions');
+            });
+        });
+
+        // Сохранение в localStorage делаем в setTimeout, чтобы не блокировать UI
+        setTimeout(() => {
+            localStorage.setItem('theme', dark ? 'dark' : 'light');
+        }, 0);
     };
 
     const toggleTheme = () => applyTheme(!isDark.value);
