@@ -69,26 +69,26 @@ defineProps<{
 }
 
 @keyframes move1 {
-    0%, 100% { transform: translate(0, 0) scale(1); }
-    33% { transform: translate(100px, 150px) scale(1.1); }
-    66% { transform: translate(-50px, 200px) scale(0.9); }
+    0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+    33% { transform: translate3d(100px, 150px, 0) scale(1.1); }
+    66% { transform: translate3d(-50px, 200px, 0) scale(0.9); }
 }
 
 @keyframes move2 {
-    0%, 100% { transform: translate(0, 0) scale(1); }
-    33% { transform: translate(-150px, 50px) scale(0.95); }
-    66% { transform: translate(-100px, -100px) scale(1.05); }
+    0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+    33% { transform: translate3d(-150px, 50px, 0) scale(0.95); }
+    66% { transform: translate3d(-100px, -100px, 0) scale(1.05); }
 }
 
 @keyframes move3 {
-    0%, 100% { transform: translate(0, 0) scale(1); }
-    33% { transform: translate(50px, -150px) scale(1.05); }
-    66% { transform: translate(150px, -50px) scale(0.95); }
+    0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+    33% { transform: translate3d(50px, -150px, 0) scale(1.05); }
+    66% { transform: translate3d(150px, -50px, 0) scale(0.95); }
 }
 
 @keyframes move4 {
-    0%, 100% { transform: translate(0, 0) scale(1); }
-    33% { transform: translate(-100px, -100px) scale(1.1); }
-    66% { transform: translate(-200px, 50px) scale(0.9); }
+    0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+    33% { transform: translate3d(-100px, -100px, 0) scale(1.1); }
+    66% { transform: translate3d(-200px, 50px, 0) scale(0.9); }
 }
 </style>

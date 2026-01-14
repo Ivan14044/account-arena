@@ -154,8 +154,15 @@ const isAuthenticated = computed(() => !!authStore.user);
 // Форматирование баланса
 const formatBalance = (balance: number | string) => {
     const currency = optionStore.getOption('currency', 'USD');
-    const numBalance = typeof balance === 'string' ? parseFloat(balance) : balance;
-    return `${numBalance.toFixed(2)} ${currency.toUpperCase()}`;
+    const numBalance = typeof balance === 'string' ? parseFloat(balance) : Number(balance);
+    
+    // Используем Intl.NumberFormat для консистентности
+    return new Intl.NumberFormat('ru-RU', {
+        style: 'currency',
+        currency: currency,
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    }).format(numBalance);
 };
 
 const handleAuthAction = () => {

@@ -134,13 +134,13 @@
                             {{ formatPriceValue(product.price) }}
                         </span>
                         <div class="price">
-                            {{ formattedTotalPrice || formatPriceValue((product.current_price || product.price) * (quantity || 1)) }}
+                            {{ localFormattedTotalPrice }}
                         </div>
                     </div>
                     <div class="price-per-unit">
                         {{
                             $t('account.detail.price_per_unit', {
-                                price: formattedPrice || formatPriceValue(product.current_price || product.price),
+                                price: localFormattedPrice,
                                 quantity: quantity || 1
                             })
                         }}
@@ -280,6 +280,28 @@ import { useI18n } from 'vue-i18n';
 import { useOptionStore } from '@/stores/options';
 import { useProductTitle } from '@/composables/useProductTitle';
 
+// Кэшируем форматтеры для производительности ГЛОБАЛЬНО (вне компонента)
+const priceFormatters = new Map<string, Intl.NumberFormat>();
+
+const getPriceFormatter = (currency: string) => {
+    if (!priceFormatters.has(currency)) {
+        priceFormatters.set(
+            currency,
+            new Intl.NumberFormat('ru-RU', {
+                style: 'currency',
+                currency: currency,
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            })
+        );
+    }
+    return priceFormatters.get(currency)!;
+};
+
+const formatPriceValue = (price: number, currency: string) => {
+    return getPriceFormatter(currency).format(price);
+};
+
 const props = defineProps<{
     product: any;
     quantity?: number;
@@ -299,20 +321,24 @@ const { t } = useI18n();
 const optionStore = useOptionStore();
 const { getProductTitle, getProductDescription } = useProductTitle();
 
+const currentCurrency = computed(() => optionStore.getOption('currency', 'USD'));
+
 const displayTitle = computed(() => props.cachedTitle || getProductTitle(props.product));
 const displayDescription = computed(() => props.cachedDescription || getProductDescription(props.product));
 const discountPercentRounded = computed(() => props.discountPercentRounded || Math.round(props.product.discount_percent || 0));
 const isInStock = computed(() => props.product.quantity > 0);
 
-const formatPriceValue = (price: number) => {
-    const currency = optionStore.getOption('currency', 'USD');
-    return new Intl.NumberFormat('ru-RU', {
-        style: 'currency',
-        currency: currency,
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-    }).format(price);
-};
+const localFormattedPrice = computed(() => {
+    if (props.formattedPrice) return props.formattedPrice;
+    const price = props.product.current_price || props.product.price;
+    return formatPriceValue(price, currentCurrency.value);
+});
+
+const localFormattedTotalPrice = computed(() => {
+    if (props.formattedTotalPrice) return props.formattedTotalPrice;
+    const price = props.product.current_price || props.product.price;
+    return formatPriceValue(price * (props.quantity || 1), currentCurrency.value);
+});
 
 const formatStockQuantity = (product: any): string => {
     if (product.quantity >= 999) return t('account.in_stock') || 'В наличии';
@@ -343,16 +369,24 @@ const getDeliveryTypeText = (product: any): string => {
     border: 1px solid rgba(226, 232, 240, 0.6);
     border-radius: 16px;
     padding: 12px 16px;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+                box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+                border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                background-color 0.3s ease;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
     position: relative;
     overflow: hidden;
+    /* GPU acceleration */
     transform: translateZ(0);
+    backface-visibility: hidden;
+    /* Оптимизация рендеринга */
+    contain: content;
 }
 
 .dark .product-card {
     background: rgba(30, 41, 59, 0.7);
-    backdrop-filter: blur(12px);
+    /* Упрощаем backdrop-filter для повышения FPS */
+    backdrop-filter: blur(8px);
     border-color: rgba(255, 255, 255, 0.08);
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
 }
@@ -370,7 +404,7 @@ const getDeliveryTypeText = (product: any): string => {
 }
 
 .product-card:hover {
-    transform: translateX(4px) translateY(-2px);
+    transform: translate3d(4px, -2px, 0);
     background: rgba(255, 255, 255, 1);
     box-shadow: 0 12px 24px rgba(108, 92, 231, 0.15);
     border-color: rgba(108, 92, 231, 0.3);
@@ -431,7 +465,7 @@ const getDeliveryTypeText = (product: any): string => {
 }
 
 .product-image-wrapper.clickable:hover {
-    transform: scale(1.08) rotate(2deg);
+    transform: translate3d(0, 0, 0) scale(1.08) rotate(2deg);
     box-shadow: 0 8px 20px rgba(108, 92, 231, 0.25);
     border-color: rgba(108, 92, 231, 0.4);
 }

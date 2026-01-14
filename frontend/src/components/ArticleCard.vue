@@ -1,18 +1,19 @@
 <template>
     <div
-        class="article-card group h-full flex flex-col relative overflow-hidden rounded-2xl bg-white/20 dark:bg-white/[0.02] backdrop-blur-xl border border-black/10 dark:border-white/[0.08] hover:border-black/20 dark:hover:border-white/[0.15] transition-all duration-500 shadow-lg before:absolute before:inset-0 before:bg-gradient-to-br before:from-white/60 dark:before:from-white/[0.08] before:to-transparent before:pointer-events-none cursor-pointer"
+        class="article-card group h-full flex flex-col relative overflow-hidden rounded-2xl bg-white/20 dark:bg-white/[0.02] backdrop-blur-md border border-black/10 dark:border-white/[0.08] hover:border-black/20 dark:hover:border-white/[0.15] transition-all duration-500 shadow-lg before:absolute before:inset-0 before:bg-gradient-to-br before:from-white/60 dark:before:from-white/[0.08] before:to-transparent before:pointer-events-none cursor-pointer"
         role="link"
         tabindex="0"
         :aria-label="title"
         @click="goToArticle"
         @keydown.enter="goToArticle"
+        style="contain: content; transform: translateZ(0); backface-visibility: hidden;"
     >
         <div class="relative aspect-video overflow-hidden bg-gray-100 dark:bg-white/[0.04]">
             <ImageWithFallback :src="imageUrl" :alt="title" class="w-full h-full object-contain" />
         </div>
 
         <div
-            class="relative p-4 flex flex-col flex-1 bg-gradient-to-t from-black/[0.01] to-transparent dark:from-black/[0.02] backdrop-blur-sm"
+            class="relative p-4 flex flex-col flex-1 bg-gradient-to-t from-black/[0.01] to-transparent dark:from-black/[0.02]"
         >
             <h3
                 class="text-xl font-semibold text-gray-900 dark:text-white mb-2 line-clamp-2"
@@ -96,7 +97,7 @@ function goToArticle() {
 }
 
 .article-card:hover {
-    transform: translateY(-4px);
+    transform: translate3d(0, -4px, 0);
     box-shadow: 0 12px 25px rgba(0, 0, 0, 0.15);
 }
 

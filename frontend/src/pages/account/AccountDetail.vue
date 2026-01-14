@@ -6,16 +6,6 @@
                 isDark ? 'text-gray-100' : 'text-gray-900'
             ]"
         >
-            <!-- Анимированный градиентный фон -->
-            <div class="fixed inset-0 pointer-events-none overflow-hidden">
-                <div
-                    :class="[
-                        'animated-gradient absolute w-[120vw] h-[120vh]',
-                        isDark ? 'opacity-60 blur-[80px]' : 'opacity-40 blur-[70px]'
-                    ]"
-                />
-            </div>
-
             <div class="relative">
                 <main>
                     <!-- Breadcrumbs и кнопка назад -->
@@ -506,6 +496,24 @@ import { useLoadingStore } from '@/stores/loading';
 import { useProductTitle } from '@/composables/useProductTitle';
 import SimilarProducts from '@/components/products/SimilarProducts.vue';
 
+// Кэшируем форматтеры для производительности ГЛОБАЛЬНО
+const globalPriceFormatters = new Map<string, Intl.NumberFormat>();
+
+const getGlobalPriceFormatter = (currency: string) => {
+    if (!globalPriceFormatters.has(currency)) {
+        globalPriceFormatters.set(
+            currency,
+            new Intl.NumberFormat('ru-RU', {
+                style: 'currency',
+                currency: currency,
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            })
+        );
+    }
+    return globalPriceFormatters.get(currency)!;
+};
+
 const route = useRoute();
 const router = useRouter();
 const accountsStore = useAccountsStore();
@@ -630,12 +638,7 @@ function formatPrice(value: number): string {
     const num = Number(value ?? 0);
     const currency = optionStore.getOption('currency', 'USD');
     try {
-        return new Intl.NumberFormat('ru-RU', {
-            style: 'currency',
-            currency: currency,
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-        }).format(num);
+        return getGlobalPriceFormatter(currency).format(num);
     } catch {
         return `${currency} ${num.toFixed(2)}`;
     }
@@ -722,40 +725,12 @@ watch(
 </script>
 
 <style scoped>
-/* Анимированный градиент - точно как на других страницах */
-.animated-gradient {
-    background: linear-gradient(
-        120deg,
-        rgba(255, 106, 0, 0.35) 10%,
-        rgba(255, 0, 204, 0.55) 35%,
-        rgba(0, 170, 255, 0.75) 70%,
-        rgba(0, 123, 255, 0.45) 90%
-    );
-    animation: gradientMove 30s ease-in-out infinite;
-}
-
-@keyframes gradientMove {
-    0%,
-    100% {
-        transform: translate(-18%, -18%) rotate(0deg) scale(1);
-    }
-    25% {
-        transform: translate(-10%, -22%) rotate(20deg) scale(1.03);
-    }
-    50% {
-        transform: translate(8%, -12%) rotate(40deg) scale(0.98);
-    }
-    75% {
-        transform: translate(-12%, 8%) rotate(25deg) scale(1.02);
-    }
-}
-
 /* Glass button - точно как на других страницах */
 .glass-button {
     background: rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(10px);
+    backdrop-filter: blur(8px);
     border: 1px solid rgba(255, 255, 255, 0.1);
-    transition: all 0.3s ease;
+    transition: background-color 0.3s ease, border-color 0.3s ease, transform 0.3s ease;
 }
 
 .glass-button:hover {
@@ -766,9 +741,13 @@ watch(
 /* Glass card - точно как на других страницах */
 .glass-card {
     background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01));
-    backdrop-filter: blur(20px);
+    backdrop-filter: blur(12px);
     border: 1px solid rgba(255, 255, 255, 0.08);
     box-shadow: 0 8px 30px rgba(2, 6, 23, 0.35);
+    /* GPU acceleration */
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    contain: content;
 }
 
 /* Big hero card - точно как на ServicePage */
@@ -796,7 +775,7 @@ watch(
 }
 
 .product-image-wrapper:hover {
-    transform: translateY(-4px);
+    transform: translate3d(0, -4px, 0);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
     border-color: rgba(139, 92, 231, 0.3);
 }
@@ -1265,7 +1244,7 @@ watch(
 .stat-card:hover {
     background: rgba(255, 255, 255, 0.05);
     border-color: rgba(255, 255, 255, 0.15);
-    transform: translateY(-4px);
+    transform: translate3d(0, -4px, 0);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
 }
 

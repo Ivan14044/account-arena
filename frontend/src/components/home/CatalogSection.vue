@@ -387,13 +387,18 @@ onMounted(async () => {
     align-items: center;
     gap: 10px;
     padding: 14px 22px;
-    background: rgba(255, 255, 255, 0.8);
-    backdrop-filter: blur(10px);
+    background: rgba(255, 255, 255, 0.85);
+    /* Упрощаем backdrop-filter для повышения FPS - оставляем только на активных или убираем совсем */
+    backdrop-filter: none; 
     border: 1px solid rgba(226, 232, 240, 0.8);
     border-radius: 14px;
     cursor: pointer;
-    /* Оптимизация: только transform и opacity для GPU acceleration */
-    transition: transform 0.2s ease, opacity 0.2s ease, box-shadow 0.2s ease;
+    /* Оптимизация: только конкретные свойства */
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), 
+                background-color 0.2s ease, 
+                border-color 0.2s ease, 
+                box-shadow 0.2s ease, 
+                color 0.2s ease;
     font-size: 15px;
     font-weight: 600;
     color: #1f2937;
@@ -406,6 +411,7 @@ onMounted(async () => {
     overflow: hidden;
     /* GPU acceleration */
     transform: translateZ(0);
+    backface-visibility: hidden;
     isolation: isolate;
 }
 
@@ -769,7 +775,7 @@ onMounted(async () => {
         rgba(108, 92, 231, 0.12) 0%,
         rgba(162, 155, 254, 0.12) 100%
     );
-    backdrop-filter: blur(8px);
+    backdrop-filter: none;
     color: #6c5ce7;
     border: 1px solid rgba(108, 92, 231, 0.2);
     border-radius: 11px;

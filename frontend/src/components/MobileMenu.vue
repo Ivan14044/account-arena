@@ -81,15 +81,16 @@ const handleClick = (item: any) => {
 <style scoped>
 .slide-x-enter-from,
 .slide-x-leave-to {
-    transform: translateX(-100%);
+    transform: translate3d(-100%, 0, 0);
 }
 .slide-x-enter-to,
 .slide-x-leave-from {
-    transform: translateX(0%);
+    transform: translate3d(0%, 0, 0);
 }
 .slide-x-enter-active,
 .slide-x-leave-active {
     transition: transform 300ms ease-in-out;
+    will-change: transform;
 }
 
 .fade-enter-from,
@@ -106,15 +107,16 @@ const handleClick = (item: any) => {
 <style>
 .slide-x-enter-from,
 .slide-x-leave-to {
-    transform: translateX(-100%);
+    transform: translate3d(-100%, 0, 0);
 }
 .slide-x-enter-to,
 .slide-x-leave-from {
-    transform: translateX(0%);
+    transform: translate3d(0%, 0, 0);
 }
 .slide-x-enter-active,
 .slide-x-leave-active {
     transition: transform 300ms ease-in-out;
+    will-change: transform;
 }
 
 .fade-enter-from,

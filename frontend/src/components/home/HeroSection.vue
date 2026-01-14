@@ -267,7 +267,7 @@ onMounted(async () => {
 
 .ad-banner:hover {
     will-change: transform;
-    transform: translateY(-6px);
+    transform: translate3d(0, -6px, 0);
     box-shadow: 0 10px 35px rgba(0, 0, 0, 0.15);
 }
 
@@ -364,7 +364,7 @@ onMounted(async () => {
 
 .ad-banner-wide:hover {
     will-change: transform;
-    transform: translateY(-6px);
+    transform: translate3d(0, -6px, 0);
     box-shadow: 0 10px 35px rgba(0, 0, 0, 0.15);
 }
 

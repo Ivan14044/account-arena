@@ -99,6 +99,24 @@ const props = defineProps<{
     filters?: FilterProps;
 }>();
 
+// Кэшируем форматтеры ГЛОБАЛЬНО
+const globalPriceFormatters = new Map<string, Intl.NumberFormat>();
+
+const getGlobalPriceFormatter = (currency: string) => {
+    if (!globalPriceFormatters.has(currency)) {
+        globalPriceFormatters.set(
+            currency,
+            new Intl.NumberFormat('ru-RU', {
+                style: 'currency',
+                currency: currency,
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            })
+        );
+    }
+    return globalPriceFormatters.get(currency)!;
+};
+
 const accountsStore = useAccountsStore();
 const productCartStore = useProductCartStore();
 const categoriesStore = useProductCategoriesStore();
@@ -115,20 +133,21 @@ const currentPage = ref(1);
 
 // КРИТИЧЕСКАЯ ОПТИМИЗАЦИЯ: Мемоизация accounts computed
 // Кэш для accounts с мемоизацией по locale и списку
-const accountsCache = ref<{
+interface AccountsCache {
     locale: string;
     listLength: number;
+    currency: string;
     data: any[];
-} | null>(null);
+}
+const accountsCache = ref<AccountsCache | null>(null);
 
 // КРИТИЧЕСКАЯ ОПТИМИЗАЦИЯ: Предвычисляем ВСЕ значения для всех товаров
-// Это избавляет от множественных вызовов функций при рендеринге
 const accounts = computed(() => {
     const currentLocale = locale.value;
     const listLength = accountsStore.list.length;
     const currency = optionStore.getOption('currency', 'USD');
     
-    // Проверяем кэш - если локаль, длина списка и валюта не изменились, возвращаем кэш
+    // Проверяем кэш
     if (accountsCache.value && 
         accountsCache.value.locale === currentLocale && 
         accountsCache.value.listLength === listLength &&
@@ -136,31 +155,20 @@ const accounts = computed(() => {
         return accountsCache.value.data;
     }
     
-    // Создаем форматтер один раз для всех цен
-    const priceFormatter = new Intl.NumberFormat('ru-RU', {
-        style: 'currency',
-        currency: currency,
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-    });
+    const priceFormatter = getGlobalPriceFormatter(currency);
     
-    // Создаем новый массив только если изменилась локаль, список или валюта
-    // КРИТИЧЕСКАЯ ОПТИМИЗАЦИЯ: Используем Object.assign вместо spread для лучшей производительности
     const data = accountsStore.list.map(account => {
-        const cached = Object.assign({}, account);
-        // Предвычисляем все значения один раз
+        const cached: any = Object.assign({}, account);
         cached._cachedTitle = getProductTitle(account);
         cached._cachedDescription = getProductDescription(account);
         cached._discountPercentRounded = account.discount_percent 
             ? Math.round(account.discount_percent) 
             : 0;
-        // Предвычисляем форматированную цену
         const priceToFormat = account.current_price || account.price;
         cached._formattedPrice = priceFormatter.format(priceToFormat);
         return cached;
     });
     
-    // Сохраняем в кэш
     accountsCache.value = {
         locale: currentLocale,
         listLength,
@@ -172,30 +180,20 @@ const accounts = computed(() => {
 });
 
 // КРИТИЧЕСКАЯ ОПТИМИЗАЦИЯ: Обогащаем displayedAccounts предвычисленными quantity, isFavorite и ценами
-// Это избавляет от множественных вызовов getQuantity(), isFavorite(), formatPrice() и formatTotalPrice() в шаблоне
 const enrichedDisplayedAccounts = computed(() => {
     const currency = optionStore.getOption('currency', 'USD');
-    const priceFormatter = new Intl.NumberFormat('ru-RU', {
-        style: 'currency',
-        currency: currency,
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-    });
+    const priceFormatter = getGlobalPriceFormatter(currency);
+    const favoritesSetValue = favorites.value;
+    const quantitiesValue = quantities.value;
     
     return displayedAccounts.value.map(account => {
-        const enriched = Object.assign({}, account);
-        // Предвычисляем quantity для каждого товара
-        const quantity = quantities.value[account.id] || 1;
+        const enriched: any = Object.assign({}, account);
+        const quantity = quantitiesValue[account.id] || 1;
         enriched._cachedQuantity = quantity;
-        // Предвычисляем isFavorite для каждого товара
-        enriched._isFavorite = favorites.value.has(account.id);
+        enriched._isFavorite = favoritesSetValue.has(account.id);
         
-        // Предвычисляем форматированные цены
         const price = account.current_price || account.price;
-        enriched._formattedPrice = priceFormatter.format(price);
         enriched._formattedTotalPrice = priceFormatter.format(price * quantity);
-        
-        // Сохраняем delivery_type для использования в шаблоне
         enriched.delivery_type = account.delivery_type || 'automatic';
         
         return enriched;
@@ -203,18 +201,14 @@ const enrichedDisplayedAccounts = computed(() => {
 });
 
 // КРИТИЧЕСКАЯ ОПТИМИЗАЦИЯ: Объединение всех фильтров в один проход
-// Вместо множественных filter операций делаем один проход
-// Кэш для категорий (избегаем повторных find операций)
 const categoryCache = ref<Map<number, Set<number>>>(new Map());
 
-// КРИТИЧЕСКАЯ ОПТИМИЗАЦИЯ: Используем Set для favorites для O(1) проверки
 const favoritesSet = computed(() => favorites.value);
 
 const filteredAccounts = computed(() => {
     const filters = props.filters;
     const accountsList = accounts.value;
     
-    // Ранний выход если нет фильтров или все фильтры пустые
     if (!filters || 
         (filters.categoryId === null && 
          filters.subcategoryId === null && 
@@ -224,17 +218,14 @@ const filteredAccounts = computed(() => {
         return accountsList;
     }
     
-    // Подготовка данных для фильтрации один раз
     const categoryId = filters.categoryId;
     const subcategoryId = filters.subcategoryId;
     const hideOutOfStock = filters.hideOutOfStock;
     const showFavoritesOnly = filters.showFavoritesOnly;
     const searchQuery = filters.searchQuery?.toLowerCase().trim();
     
-    // КРИТИЧЕСКАЯ ОПТИМИЗАЦИЯ: Кэшируем categoryIds для избежания повторных find
     let categoryIds: Set<number> | null = null;
     if (categoryId !== null && categoryId !== undefined && subcategoryId === null) {
-        // Проверяем кэш категорий
         if (categoryCache.value.has(categoryId)) {
             categoryIds = categoryCache.value.get(categoryId)!;
         } else {
@@ -245,37 +236,29 @@ const filteredAccounts = computed(() => {
         }
     }
     
-    // Подготовка поискового запроса один раз (только если есть поиск)
     const queryWords = searchQuery 
         ? searchQuery.split(/\s+/).filter(w => w.length > 0)
         : null;
     
-    // Используем Set для быстрой проверки избранного
     const favoritesSetValue = favoritesSet.value;
     
-    // ОДИН проход по массиву вместо множественных filter
     return accountsList.filter(account => {
-        // Фильтр по подкатегории (самый селективный - проверяем первым)
         if (subcategoryId !== null && subcategoryId !== undefined) {
             if (account.category?.id !== subcategoryId) return false;
         } 
-        // Фильтр по категории (включая подкатегории)
         else if (categoryId !== null && categoryId !== undefined && categoryIds) {
             const accountCategoryId = account.category?.id;
             if (!accountCategoryId || !categoryIds.has(accountCategoryId)) return false;
         }
         
-        // Фильтр по наличию (быстрая проверка)
-        if (hideOutOfStock && !isInStock(account)) {
+        if (hideOutOfStock && account.quantity <= 0) {
             return false;
         }
         
-        // Фильтр по избранному (O(1) проверка через Set)
         if (showFavoritesOnly && !favoritesSetValue.has(account.id)) {
             return false;
         }
         
-        // Фильтр по поиску (самый тяжелый - проверяем последним)
         if (queryWords && queryWords.length > 0) {
             const title = ((account as any)._cachedTitle || '').toLowerCase();
             const description = ((account as any)._cachedDescription || '').toLowerCase();
@@ -291,7 +274,6 @@ const filteredAccounts = computed(() => {
     });
 });
 
-// Показываем только видимые карточки (пагинация)
 const displayedAccounts = computed(() => {
     const endIndex = currentPage.value * itemsPerPage;
     return filteredAccounts.value.slice(0, endIndex);
@@ -308,18 +290,12 @@ const loadMore = () => {
 const retryFetch = async () => {
     try {
         accountsStore.loaded = false;
-        await accountsStore.fetchAll(true); // true для форсированного обновления
-        console.log('[AccountSection] Повторная загрузка выполнена:', accountsStore.list.length);
+        await accountsStore.fetchAll(true);
     } catch (err) {
         console.error('[AccountSection] Ошибка при повторной загрузке:', err);
     }
 };
 
-// Оптимизация для больших списков через content-visibility CSS
-// Это позволяет браузеру пропускать рендеринг невидимых элементов
-
-// КРИТИЧЕСКАЯ ОПТИМИЗАЦИЯ: Объединяем все watch на фильтры в один
-// Это избегает множественных пересчетов и улучшает производительность
 watch(
     () => [
         props.filters?.categoryId,
@@ -333,17 +309,11 @@ watch(
     }
 );
 
-// Quantity management
 const quantities = ref<Record<number, number>>({});
-
-const getQuantity = (accountId: number) => {
-    return quantities.value[accountId] || 1;
-};
 
 const increaseQuantity = (accountId: number) => {
     const current = quantities.value[accountId] || 1;
     quantities.value[accountId] = current + 1;
-    // Принудительно обновляем enrichedDisplayedAccounts через изменение ref
     quantities.value = { ...quantities.value };
 };
 
@@ -351,15 +321,12 @@ const decreaseQuantity = (accountId: number) => {
     const current = quantities.value[accountId] || 1;
     if (current > 1) {
         quantities.value[accountId] = current - 1;
-        // Принудительно обновляем enrichedDisplayedAccounts через изменение ref
         quantities.value = { ...quantities.value };
     }
 };
 
-// Favorites management (с сохранением в localStorage)
 const FAVORITES_STORAGE_KEY = 'product_favorites';
 
-// Загружаем избранное из localStorage при инициализации
 const loadFavoritesFromStorage = (): Set<number> => {
     try {
         const stored = localStorage.getItem(FAVORITES_STORAGE_KEY);
@@ -373,7 +340,6 @@ const loadFavoritesFromStorage = (): Set<number> => {
     return new Set();
 };
 
-// Сохраняем избранное в localStorage
 const saveFavoritesToStorage = (favs: Set<number>) => {
     try {
         localStorage.setItem(FAVORITES_STORAGE_KEY, JSON.stringify([...favs]));
@@ -390,32 +356,24 @@ const toggleFavorite = (accountId: number) => {
     } else {
         favorites.value.add(accountId);
     }
-    // Создаем новый Set для реактивности
     favorites.value = new Set(favorites.value);
     saveFavoritesToStorage(favorites.value);
 };
 
-const isFavorite = (accountId: number) => {
-    return favorites.value.has(accountId);
-};
-
 // Actions
 const addToCart = (account: any) => {
-    // КРИТИЧЕСКАЯ ОПТИМИЗАЦИЯ: Используем предвычисленное quantity
-    const quantity = (account as any)._cachedQuantity || getQuantity(account.id);
+    const quantity = (account as any)._cachedQuantity || 1;
 
-    if (!isInStock(account)) {
+    if (account.quantity <= 0) {
         toast.error(t('account.out_of_stock'));
         return;
     }
 
-    // Для товаров с ручной выдачей (quantity >= 999) нет ограничения на количество
     if (account.quantity < 999 && quantity > account.quantity) {
         toast.error(t('account.detail.available_only', { count: account.quantity }));
         return;
     }
 
-    // Используем цену со скидкой, если она есть
     const priceToUse = account.current_price || account.price;
     productCartStore.addItem(
         {
@@ -432,24 +390,19 @@ const addToCart = (account: any) => {
         })
     );
 
-    // Сбрасываем количество после добавления
     quantities.value[account.id] = 1;
-    // Принудительно обновляем enrichedDisplayedAccounts
     quantities.value = { ...quantities.value };
 };
 
 const buyNow = (account: any) => {
-    // КРИТИЧЕСКАЯ ОПТИМИЗАЦИЯ: Используем предвычисленное quantity
-    const quantity = (account as any)._cachedQuantity || getQuantity(account.id);
+    const quantity = (account as any)._cachedQuantity || 1;
 
-    if (!isInStock(account)) {
+    if (account.quantity <= 0) {
         toast.error(t('account.out_of_stock'));
         return;
     }
 
-    // Очищаем корзину товаров и добавляем только этот товар
     productCartStore.clearCart();
-    // Используем цену со скидкой, если она есть
     const priceToUse = account.current_price || account.price;
     productCartStore.addItem(
         {
@@ -459,148 +412,26 @@ const buyNow = (account: any) => {
         quantity
     );
 
-    // Переходим на страницу оформления заказа
     router.push('/checkout');
 };
 
-// Функции для отображения наличия товара
-const isInStock = (account: any): boolean => {
-    // Для товаров с ручной выдачей (quantity = 999) считаем, что товар в наличии
-    // если он активен (is_active) или quantity > 0
-    return account.quantity > 0;
-};
-
-const formatStockQuantity = (account: any): string => {
-    // Для товаров с ручной выдачей, когда quantity = 999, показываем "В наличии"
-    if (account.quantity >= 999) {
-        return 'В наличии';
-    }
-    // Для обычных товаров показываем количество
-    return account.quantity > 0 ? account.quantity.toString() : '0';
-};
-
-// Функции для отображения способа выдачи товара
-const getDeliveryTypeLabel = (account: any): string => {
-    const deliveryType = account.delivery_type || 'automatic';
-    try {
-        if (deliveryType === 'manual') {
-            return t('account.delivery.manual') || 'Ручная выдача';
-        }
-        return t('account.delivery.automatic') || 'Авто-выдача';
-    } catch (e) {
-        // Fallback если переводы не загружены
-        return deliveryType === 'manual' ? 'Ручная выдача' : 'Авто-выдача';
-    }
-};
-
-const getDeliveryTypeText = (account: any): string => {
-    const deliveryType = account.delivery_type || 'automatic';
-    try {
-        if (deliveryType === 'manual') {
-            return t('account.delivery.manual_description') || 'Товар выдается менеджером вручную после обработки заказа';
-        }
-        return t('account.delivery.automatic_description') || 'Товар выдается автоматически сразу после оплаты';
-    } catch (e) {
-        // Fallback если переводы не загружены
-        return deliveryType === 'manual' 
-            ? 'Товар выдается менеджером вручную после обработки заказа'
-            : 'Товар выдается автоматически сразу после оплаты';
-    }
-};
-
-// const truncateText = (text: string, maxLength: number) => {
-//     if (!text) return '';
-//     const stripped = text.replace(/<[^>]*>/g, '');
-//     return stripped.length > maxLength ? stripped.substring(0, maxLength) + '…' : stripped;
-// };
-
-// КРИТИЧЕСКАЯ ОПТИМИЗАЦИЯ: Мемоизация formatPrice
-// Кэш для форматированных цен
-const priceFormatterCache = ref<Map<string, string>>(new Map());
-
-const formatPrice = (price: number) => {
-    const currency = optionStore.getOption('currency', 'USD');
-    const cacheKey = `${price}_${currency}`;
-    
-    // Проверяем кэш
-    if (priceFormatterCache.value.has(cacheKey)) {
-        return priceFormatterCache.value.get(cacheKey)!;
-    }
-    
-    // Форматируем и кэшируем
-    const formatter = new Intl.NumberFormat('ru-RU', {
-        style: 'currency',
-        currency: currency,
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-    });
-    const formatted = formatter.format(price);
-    priceFormatterCache.value.set(cacheKey, formatted);
-    return formatted;
-};
-
-// КРИТИЧЕСКАЯ ОПТИМИЗАЦИЯ: Мемоизация formatTotalPrice
-const formatTotalPrice = (price: number, quantity: number) => {
-    const total = price * quantity;
-    const currency = optionStore.getOption('currency', 'USD');
-    const cacheKey = `${total}_${currency}`;
-    
-    // Проверяем кэш
-    if (priceFormatterCache.value.has(cacheKey)) {
-        return priceFormatterCache.value.get(cacheKey)!;
-    }
-    
-    // Форматируем и кэшируем
-    const formatter = new Intl.NumberFormat('ru-RU', {
-        style: 'currency',
-        currency: currency,
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-    });
-    const formatted = formatter.format(total);
-    priceFormatterCache.value.set(cacheKey, formatted);
-    return formatted;
-};
-
 onMounted(async () => {
-    // Загружаем категории для фильтрации по подкатегориям
     await categoriesStore.fetchAll();
     try {
-        // Загружаем только если еще не загружены (предзагрузка в App.vue)
-        const wasLoaded = accountsStore.loaded;
-        console.log('[AccountSection] Состояние загрузки товаров перед проверкой:', { loaded: wasLoaded, count: accountsStore.list.length });
-        
         if (!accountsStore.loaded) {
             await optionStore.fetchData();
             await accountsStore.fetchAll();
         }
-        
-        // Логируем успешную загрузку с количеством товаров
-        console.log('[AccountSection] Товары загружены:', {
-            count: accountsStore.list.length,
-            loaded: accountsStore.loaded,
-            wasPreloaded: wasLoaded
-        });
     } catch (err: any) {
-        // Улучшенное логирование ошибок с деталями
-        const errorDetails = {
-            status: err?.response?.status,
-            statusText: err?.response?.statusText,
-            message: err?.message,
-            url: err?.config?.url,
-            responseData: err?.response?.data
-        };
-        console.error('[AccountSection] Ошибка загрузки товаров:', errorDetails);
-        console.error('[AccountSection] Полная ошибка:', err);
+        console.error('[AccountSection] Ошибка загрузки товаров:', err);
     }
 });
 </script>
 
 <style scoped>
-/* Grid container styles */
-.space-y-5 > :deep(.product-card) {
-    /* Ensure cards in the list have proper spacing if needed, 
-       though space-y-5 handles it */
+.space-y-5 {
+    content-visibility: auto;
+    contain-intrinsic-size: 100px 1000px;
 }
 
 /* Skeleton Loaders */

@@ -126,8 +126,6 @@ onMounted(() => {
         const img = new Image();
         img.src = `/img/lang/${lang.code}.svg`;
     });
-
-    document.addEventListener('mousedown', handleClickOutside);
 });
 
 onUnmounted(() => {

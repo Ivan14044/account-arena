@@ -493,16 +493,16 @@ onBeforeUnmount(() => {
 @keyframes bounceOnce {
     0%,
     100% {
-        transform: translateY(0);
+        transform: translate3d(0, 0, 0);
     }
     25% {
-        transform: translateY(-4px);
+        transform: translate3d(0, -4px, 0);
     }
     50% {
-        transform: translateY(0);
+        transform: translate3d(0, 0, 0);
     }
     75% {
-        transform: translateY(-2px);
+        transform: translate3d(0, -2px, 0);
     }
 }
 

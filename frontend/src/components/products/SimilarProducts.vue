@@ -5,6 +5,7 @@
             <ProductCard
                 v-for="(product, index) in products"
                 :key="product.id"
+                v-memo="[product.id, product.quantity, product.has_discount, getQuantity(product.id), isFavorite(product.id)]"
                 :product="product"
                 :index="index"
                 :quantity="getQuantity(product.id)"
