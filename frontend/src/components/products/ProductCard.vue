@@ -384,9 +384,7 @@ const getDeliveryTypeText = (product: any): string => {
 }
 
 .dark .product-card {
-    background: rgba(30, 41, 59, 0.7);
-    /* Упрощаем backdrop-filter для повышения FPS */
-    backdrop-filter: blur(8px);
+    background: rgba(30, 41, 59, 0.95);
     border-color: rgba(255, 255, 255, 0.08);
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
 }
@@ -510,7 +508,6 @@ const getDeliveryTypeText = (product: any): string => {
     border-radius: 12px;
     box-shadow: 0 2px 8px rgba(239, 68, 68, 0.35);
     border: 1px solid rgba(255, 255, 255, 0.2);
-    backdrop-filter: blur(8px);
 }
 
 .product-card.with-discount {
@@ -785,7 +782,7 @@ const getDeliveryTypeText = (product: any): string => {
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.2s ease;
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
 }
 
 .dark .btn-secondary {
@@ -822,7 +819,7 @@ const getDeliveryTypeText = (product: any): string => {
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.2s ease;
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
 }
 
 .dark .btn-cart {
@@ -864,7 +861,7 @@ const getDeliveryTypeText = (product: any): string => {
     align-items: center;
     justify-content: center;
     gap: 8px;
-    transition: all 0.2s ease;
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
 }
 
 .btn-primary:hover:not(:disabled) {

@@ -535,7 +535,6 @@ onMounted(async () => {
 
 .category-btn.active .category-count {
     background: rgba(255, 255, 255, 0.25);
-    backdrop-filter: blur(10px);
     color: #ffffff;
     border-color: rgba(255, 255, 255, 0.3);
     box-shadow: 0 2px 8px rgba(255, 255, 255, 0.2);
@@ -801,7 +800,6 @@ onMounted(async () => {
 
 .subcategory-btn.active .subcategory-count {
     background: rgba(255, 255, 255, 0.25);
-    backdrop-filter: blur(10px);
     color: #ffffff;
     border-color: rgba(255, 255, 255, 0.3);
     box-shadow: 0 1px 6px rgba(255, 255, 255, 0.2);
