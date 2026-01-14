@@ -1865,7 +1865,6 @@ const password = ref('');
 const password_confirmation = ref('');
 type FormErrors = Record<string, string[]>;
 const errors = ref<FormErrors>({});
-const { t } = useI18n();
 
 // Voucher
 const voucherCode = ref('');
