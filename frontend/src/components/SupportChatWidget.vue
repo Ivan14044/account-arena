@@ -1003,6 +1003,11 @@ const loadMessages = async () => {
                 chat.value.status = response.data.chat.status;
             }
 
+            // Обновляем статус печати из ответа (оптимизация: убираем отдельный запрос)
+            if (response.data.is_typing !== undefined) {
+                adminIsTyping.value = response.data.is_typing;
+            }
+
             // Проверяем новые сообщения для уведомлений
             const newMessages = response.data.messages.filter((m: any) => !oldMessageIds.has(m.id));
             if (newMessages.length > 0) {
@@ -1098,29 +1103,12 @@ const handleTyping = () => {
     }
 };
 
-// Проверка статуса печати администратора
-const checkAdminTyping = async () => {
-    if (!chat.value || !isChatOpen.value) return;
-
-    try {
-        const response = await axios.get(`/support-chat/${chat.value.id}/typing/status`, {
-            timeout: 3000
-        });
-        if (response.data.success) {
-            adminIsTyping.value = response.data.is_typing || false;
-        }
-    } catch {
-        // Игнорируем ошибки
-    }
-};
-
-// Polling для обновления сообщений и статуса печати
+// Polling для обновления сообщений
 const startPolling = () => {
     stopPolling();
     pollInterval = window.setInterval(() => {
         if (chat.value && isChatOpen.value) {
             loadMessages();
-            checkAdminTyping();
         }
     }, 3000);
 };

@@ -29,6 +29,7 @@ class EventServiceProvider extends ServiceProvider
         \App\Models\ServiceAccount::observe(\App\Observers\ServiceAccountObserver::class);
         \App\Models\Option::observe(\App\Observers\OptionObserver::class);
         \App\Models\Category::observe(\App\Observers\CategoryObserver::class);
+        \App\Models\Article::observe(\App\Observers\ArticleObserver::class);
     }
 
     /**

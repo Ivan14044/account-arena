@@ -99,11 +99,8 @@ onMounted(async () => {
                     // Ошибка не блокирует загрузку других данных благодаря Promise.allSettled
                 }), // Предзагрузка товаров
             bannersStore
-                .fetchBanners('home_top')
-                .catch(e => console.error('[APP] Ошибка загрузки banners home_top:', e)), // Предзагрузка обычных баннеров с изображениями
-            bannersStore
-                .fetchBanners('home_top_wide')
-                .catch(e => console.error('[APP] Ошибка загрузки banners home_top_wide:', e)) // Предзагрузка широкого баннера с изображением
+                .fetchAll()
+                .catch(e => console.error('[APP] Ошибка загрузки banners:', e)) // Предзагрузка всех баннеров одним запросом
         ];
 
         // Уведомления загружаем только для авторизованных пользователей

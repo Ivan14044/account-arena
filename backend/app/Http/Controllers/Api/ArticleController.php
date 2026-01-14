@@ -14,48 +14,52 @@ class ArticleController extends Controller
         $offset = max((int) $request->input('offset', 0), 0);
         $categoryId = $request->input('category_id');
 
-        $query = Article::with(['translations', 'categories.translations'])
-            ->where('status', 'published')
-            ->orderByDesc('id');
+        $cacheKey = "articles_list_{$limit}_{$offset}_{$categoryId}";
 
-        if (filter_var($categoryId, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]) !== false) {
-            $query->whereHas('categories', fn($q) => $q->where('categories.id', (int) $categoryId));
-        }
+        return \Illuminate\Support\Facades\Cache::remember($cacheKey, 3600, function() use ($limit, $offset, $categoryId) {
+            $query = Article::with(['translations', 'categories.translations'])
+                ->where('status', 'published')
+                ->orderByDesc('id');
 
-        $total = (clone $query)->count();
+            if (filter_var($categoryId, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]) !== false) {
+                $query->whereHas('categories', fn($q) => $q->where('categories.id', (int) $categoryId));
+            }
 
-        $articles = $query->offset($offset)->limit($limit)->get();
+            $total = (clone $query)->count();
 
-        $items = $articles->map(function ($article) {
-            $item = $article->toArray();
+            $articles = $query->offset($offset)->limit($limit)->get();
 
-            $item['translations'] = $article->translations
-                ->groupBy('locale')
-                ->map(fn($t) => $t->pluck('value', 'code')->toArray())
-                ->toArray();
+            $items = $articles->map(function ($article) {
+                $item = $article->toArray();
 
-            $item['categories'] = $article->categories
-                ->map(function ($cat) {
-                    $c = $cat->toArray();
+                $item['translations'] = $article->translations
+                    ->groupBy('locale')
+                    ->map(fn($t) => $t->pluck('value', 'code')->toArray())
+                    ->toArray();
 
-                    $c['translations'] = $cat->translations
-                        ->groupBy('locale')
-                        ->map(fn($t) => $t->pluck('value', 'code')->toArray())
-                        ->toArray();
+                $item['categories'] = $article->categories
+                    ->map(function ($cat) {
+                        $c = $cat->toArray();
 
-                    return $c;
-                })
-                ->values()
-                ->toArray();
+                        $c['translations'] = $cat->translations
+                            ->groupBy('locale')
+                            ->map(fn($t) => $t->pluck('value', 'code')->toArray())
+                            ->toArray();
 
-            return $item;
-        })->values()->toArray();
+                        return $c;
+                    })
+                    ->values()
+                    ->toArray();
 
-        return response()->json([
-            'success' => true,
-            'total' => $total,
-            'items' => $items,
-        ]);
+                return $item;
+            })->values()->toArray();
+
+            return response()->json([
+                'success' => true,
+                'total' => $total,
+                'items' => $items,
+            ]);
+        });
     }
 
     public function show(Article $article)
@@ -64,29 +68,33 @@ class ArticleController extends Controller
             return response()->json(['message' => 'Article not found'], 404);
         }
 
-        $article->loadMissing(['translations', 'categories']);
+        $cacheKey = "article_show_{$article->id}";
 
-        $data = $article->toArray();
-        $data['translations'] = $article->translations
-            ->groupBy('locale')
-            ->map(fn($translations) => $translations->pluck('value', 'code'));
+        return \Illuminate\Support\Facades\Cache::remember($cacheKey, 3600, function() use ($article) {
+            $article->loadMissing(['translations', 'categories.translations']);
 
-        $data['categories'] = $article->categories
-            ->map(function ($cat) {
-                $c = $cat->toArray();
+            $data = $article->toArray();
+            $data['translations'] = $article->translations
+                ->groupBy('locale')
+                ->map(fn($translations) => $translations->pluck('value', 'code'));
 
-                $c['translations'] = $cat->translations
-                    ->groupBy('locale')
-                    ->map(fn ($t) => $t->pluck('value', 'code'))
-                    ->toArray();
+            $data['categories'] = $article->categories
+                ->map(function ($cat) {
+                    $c = $cat->toArray();
 
-                unset($c['pivot']);
+                    $c['translations'] = $cat->translations
+                        ->groupBy('locale')
+                        ->map(fn ($t) => $t->pluck('value', 'code'))
+                        ->toArray();
 
-                return $c;
-            })
-            ->values()
-            ->toArray();
+                    unset($c['pivot']);
 
-        return response()->json($data);
+                    return $c;
+                })
+                ->values()
+                ->toArray();
+
+            return response()->json($data);
+        });
     }
 }

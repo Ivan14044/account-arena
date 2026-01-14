@@ -172,6 +172,7 @@ class SupportChatController extends Controller
         return response()->json([
             'success' => true,
             'messages' => $messages,
+            'is_typing' => $chat->isTyping('admin'), // Добавляем статус печати в ответ
             'chat' => [
                 'id' => $chat->id,
                 'status' => $chat->status,

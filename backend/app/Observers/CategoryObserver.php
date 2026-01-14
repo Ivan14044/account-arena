@@ -24,6 +24,7 @@ class CategoryObserver
         // Также очищаем кеш товаров, так как изменение категории может повлиять на счетчики в каталоге
         Cache::forget('active_accounts_list');
         Cache::forget('active_accounts_list_v2');
+        Cache::forget('active_accounts_list_v3');
         
         Log::info('Categories and dependent accounts cache cleared');
     }

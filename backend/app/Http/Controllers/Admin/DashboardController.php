@@ -48,22 +48,28 @@ class DashboardController extends Controller
         // КЕШИРОВАНИЕ: Сохраняем статистику на 10 минут (кроме кастомных дат)
         $cacheKey = 'admin_dashboard_' . $period . ($period === 'custom' ? '_' . md5($startDate . $endDate) : '');
         $data = \Illuminate\Support\Facades\Cache::remember($cacheKey, 600, function() use ($startDate, $endDate, $period) {
-            // Всего товаров в магазине (количество позиций)
-            $totalProducts = ServiceAccount::where('is_active', true)
-                ->whereNotNull('title')
-                ->whereNotNull('price')
-                ->count();
+            // ОПТИМИЗИРОВАНО: Значения "всего" через SQL агрегацию с учетом типов доставки
+            $stats = ServiceAccount::where('is_active', true)
+                ->where(function($query) {
+                    $query->where('moderation_status', 'approved')
+                          ->orWhereNull('supplier_id');
+                })
+                ->selectRaw("
+                    COUNT(*) as total_products,
+                    SUM(CASE 
+                        WHEN delivery_type = 'manual' THEN 999 
+                        ELSE GREATEST(0, JSON_LENGTH(accounts_data) - COALESCE(used, 0)) 
+                    END) as available_products,
+                    SUM(CASE 
+                        WHEN delivery_type = 'manual' THEN 999 * price 
+                        ELSE GREATEST(0, JSON_LENGTH(accounts_data) - COALESCE(used, 0)) * price 
+                    END) as total_value
+                ")
+                ->first();
 
-            // Всего товара на сумму
-            $totalProductsValue = ServiceAccount::where('is_active', true)
-                ->whereNotNull('price')
-                ->selectRaw('SUM(JSON_LENGTH(accounts_data) * price) as total_value')
-                ->value('total_value') ?? 0;
-
-            // Доступно для продажи
-            $availableProducts = ServiceAccount::where('is_active', true)
-                ->selectRaw('SUM(GREATEST(0, JSON_LENGTH(accounts_data) - COALESCE(used, 0))) as total_available')
-                ->value('total_available') ?? 0;
+            $totalProducts = (int)($stats->total_products ?? 0);
+            $totalProductsValue = (float)($stats->total_value ?? 0);
+            $availableProducts = (int)($stats->available_products ?? 0);
 
             // Покупки товаров за период
             $purchasesQuery = Purchase::query();

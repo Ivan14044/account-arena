@@ -23,8 +23,11 @@ class Option extends Model
 
     public static function get(string $name, $defaultValue = null)
     {
-        $value = self::where('name', $name)->value('value');
+        // Используем кеширование всех опций для минимизации запросов к БД
+        $options = \Illuminate\Support\Facades\Cache::remember('site_options_all', 3600, function() {
+            return self::pluck('value', 'name')->toArray();
+        });
 
-        return $value !== null ? $value : $defaultValue;
+        return $options[$name] ?? $defaultValue;
     }
 }

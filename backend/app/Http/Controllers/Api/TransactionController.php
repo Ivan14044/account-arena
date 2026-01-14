@@ -16,7 +16,12 @@ class TransactionController extends Controller
         }
 
         $query = $user->transactions()
-            ->with('subscription.service', 'serviceAccount');
+            ->with([
+                'subscription.service', 
+                'serviceAccount' => function($q) {
+                    $q->select('id', 'title', 'title_en', 'title_uk', 'sku');
+                }
+            ]);
 
         // Filter by status
         if ($request->filled('status')) {

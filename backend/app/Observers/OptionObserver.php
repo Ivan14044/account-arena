@@ -17,6 +17,7 @@ class OptionObserver
     private function clearOptionsCache(): void
     {
         Cache::forget('site_options');
+        Cache::forget('site_options_all');
         Cache::forget('purchase_rules');
         Log::info('Options cache cleared');
     }

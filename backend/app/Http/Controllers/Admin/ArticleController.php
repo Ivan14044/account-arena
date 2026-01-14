@@ -15,12 +15,12 @@ class ArticleController extends Controller
         $articles = Article::withRussianTitle()
             ->with(['categories.translations'])
             ->orderBy('id', 'desc')
-            ->get();
+            ->paginate(20);
 
         $statistics = [
-            'total' => $articles->count(),
-            'published' => $articles->where('status', 'published')->count(),
-            'draft' => $articles->where('status', 'draft')->count(),
+            'total' => Article::count(),
+            'published' => Article::where('status', 'published')->count(),
+            'draft' => Article::where('status', 'draft')->count(),
         ];
 
         return view('admin.articles.index', compact('articles', 'statistics'));

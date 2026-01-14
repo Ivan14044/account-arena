@@ -27,14 +27,59 @@ export const useBannersStore = defineStore('banners', () => {
     // Ошибки для каждой позиции
     const errorsByPosition = ref<Record<string, string | null>>({});
 
+    const allLoaded = ref(false);
+    const isLoadingAll = ref(false);
+
+    /**
+     * Загрузить все баннеры одним запросом
+     */
+    const fetchAll = async (force = false): Promise<Record<string, Banner[]>> => {
+        if (allLoaded.value && !force) {
+            return bannersByPosition.value;
+        }
+
+        if (isLoadingAll.value) {
+            return new Promise(resolve => {
+                const checkInterval = setInterval(() => {
+                    if (!isLoadingAll.value) {
+                        clearInterval(checkInterval);
+                        resolve(bannersByPosition.value);
+                    }
+                }, 50);
+            });
+        }
+
+        isLoadingAll.value = true;
+        try {
+            const response = await axios.get('/banners/all');
+            const data = response.data || {};
+            
+            // Обновляем все баннеры
+            bannersByPosition.value = data;
+            allLoaded.value = true;
+
+            // Предзагружаем изображения всех баннеров
+            Object.values(data).forEach((banners: any) => {
+                preloadBannerImages(banners);
+            });
+
+            return data;
+        } catch (error) {
+            console.error('[BannersStore] Ошибка при загрузке всех баннеров:', error);
+            return bannersByPosition.value;
+        } finally {
+            isLoadingAll.value = false;
+        }
+    };
+
     /**
      * Загрузить баннеры для определённой позиции
      * Использует кеширование - повторные вызовы не делают запрос к API
      */
     const fetchBanners = async (position: string): Promise<Banner[]> => {
-        // Если баннеры уже загружены, возвращаем их из кеша
-        if (bannersByPosition.value[position]) {
-            return bannersByPosition.value[position];
+        // Если все баннеры уже загружены, возвращаем из кеша
+        if (bannersByPosition.value[position] || allLoaded.value) {
+            return bannersByPosition.value[position] || [];
         }
 
         // Если уже идёт загрузка, ждём её завершения
