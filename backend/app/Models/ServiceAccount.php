@@ -400,106 +400,58 @@ class ServiceAccount extends Model
     public function getSimilarProducts(int $limit = 6)
     {
         return Cache::remember(
-            "similar_products_{$this->id}_{$limit}",
+            "similar_products_v2_{$this->id}_{$limit}",
             3600, // Кеш на 1 час
             function() use ($limit) {
-                $query = ServiceAccount::with('category')
+                // Базовый запрос
+                $query = ServiceAccount::with(['category', 'supplier'])
                     ->where('is_active', true)
                     ->where('id', '!=', $this->id) // Исключаем текущий товар
                     ->whereNotNull('title')
-                    ->whereNotNull('price');
+                    ->whereNotNull('price')
+                    ->select([
+                        'id', 'sku', 'title', 'title_en', 'title_uk', 
+                        'price', 'discount_percent', 'discount_start_date', 'discount_end_date',
+                        'image_url', 'category_id', 'supplier_id', 'delivery_type', 'created_at', 'used'
+                    ])
+                    ->selectRaw('JSON_LENGTH(accounts_data) as total_qty_from_json');
 
-                $scores = collect();
-
-                // 1. Фильтр по категории (40% веса)
+                // 1. Приоритет: Та же категория (самый сильный сигнал)
+                $categoryProducts = collect();
                 if ($this->category_id) {
                     $categoryProducts = (clone $query)
                         ->where('category_id', $this->category_id)
+                        ->limit($limit)
                         ->get();
-                    
-                    foreach ($categoryProducts as $product) {
-                        $score = $scores->get($product->id, 0);
-                        $scores->put($product->id, $score + 40);
-                    }
                 }
 
-                // 2. Фильтр по цене (30% веса)
-                if ($this->price > 0) {
-                    $priceRange = $this->price * 0.3; // ±30%
+                // 2. Если не набрали лимит, ищем в похожем ценовом диапазоне (±30%)
+                if ($categoryProducts->count() < $limit && $this->price > 0) {
+                    $priceRange = $this->price * 0.3;
                     $minPrice = max(0, $this->price - $priceRange);
                     $maxPrice = $this->price + $priceRange;
                     
                     $priceProducts = (clone $query)
                         ->whereBetween('price', [$minPrice, $maxPrice])
+                        ->whereNotIn('id', $categoryProducts->pluck('id'))
+                        ->limit($limit - $categoryProducts->count())
                         ->get();
                     
-                    foreach ($priceProducts as $product) {
-                        $score = $scores->get($product->id, 0);
-                        // Чем ближе цена, тем больше баллов
-                        $priceDiff = abs($product->price - $this->price) / $this->price;
-                        $priceScore = 30 * (1 - min($priceDiff, 1));
-                        $scores->put($product->id, $score + $priceScore);
-                    }
+                    $categoryProducts = $categoryProducts->concat($priceProducts);
                 }
 
-                // 3. Анализ ключевых слов (20% веса)
-                $currentTitleWords = $this->extractKeywords($this->title);
-                $currentDescWords = $this->extractKeywords($this->description ?? '');
-                
-                if (!empty($currentTitleWords) || !empty($currentDescWords)) {
-                    $allProducts = (clone $query)->get();
-                    foreach ($allProducts as $product) {
-                        $productTitleWords = $this->extractKeywords($product->title);
-                        $productDescWords = $this->extractKeywords($product->description ?? '');
-                        
-                        $titleMatch = count(array_intersect($currentTitleWords, $productTitleWords));
-                        $descMatch = count(array_intersect($currentDescWords, $productDescWords));
-                        
-                        $keywordScore = min(20, ($titleMatch * 2 + $descMatch) * 2);
-                        $score = $scores->get($product->id, 0);
-                        $scores->put($product->id, $score + $keywordScore);
-                    }
-                }
-
-                // 4. Поставщик (10% веса)
-                if ($this->supplier_id) {
-                    $supplierProducts = (clone $query)
-                        ->where('supplier_id', $this->supplier_id)
-                        ->get();
-                    
-                    foreach ($supplierProducts as $product) {
-                        $score = $scores->get($product->id, 0);
-                        $scores->put($product->id, $score + 10);
-                    }
-                }
-
-                // Сортируем по баллам и берем топ
-                $productIds = $scores->sortDesc()->take($limit)->keys()->toArray();
-                
-                if (empty($productIds)) {
-                    // Fallback: просто товары из той же категории или любые активные
-                    if ($this->category_id) {
-                        return (clone $query)
-                            ->where('category_id', $this->category_id)
-                            ->limit($limit)
-                            ->get();
-                    }
-                    
-                    // Если нет категории, возвращаем любые активные товары
-                    return (clone $query)
-                        ->limit($limit)
+                // 3. Если всё еще мало, берем последние добавленные товары
+                if ($categoryProducts->count() < $limit) {
+                    $recentProducts = (clone $query)
+                        ->whereNotIn('id', $categoryProducts->pluck('id'))
                         ->orderBy('created_at', 'desc')
+                        ->limit($limit - $categoryProducts->count())
                         ->get();
+                    
+                    $categoryProducts = $categoryProducts->concat($recentProducts);
                 }
 
-                return ServiceAccount::with('category')
-                    ->whereIn('id', $productIds)
-                    ->get()
-                    ->sortBy(function($product) use ($scores) {
-                        return -$scores->get($product->id, 0);
-                    })
-                    ->take($limit)
-                    ->values();
+                return $categoryProducts->take($limit)->values();
             }
         );
     }

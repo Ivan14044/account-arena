@@ -17,6 +17,7 @@ class ServiceAccountObserver
     private function clearAccountsCache(): void
     {
         Cache::forget('active_accounts_list');
+        Cache::forget('active_accounts_list_v2');
         Log::info('ServiceAccount cache cleared');
     }
 

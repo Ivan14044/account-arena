@@ -17,7 +17,15 @@ class CategoryObserver
     private function clearCategoriesCache(): void
     {
         Cache::forget('categories_list');
-        Log::info('Categories cache cleared');
+        Cache::forget('categories_tree_all');
+        Cache::forget('categories_tree_product');
+        Cache::forget('categories_tree_article');
+        
+        // Также очищаем кеш товаров, так как изменение категории может повлиять на счетчики в каталоге
+        Cache::forget('active_accounts_list');
+        Cache::forget('active_accounts_list_v2');
+        
+        Log::info('Categories and dependent accounts cache cleared');
     }
 
     /**

@@ -14,11 +14,14 @@ class BannerController extends Controller
     public function index(Request $request)
     {
         $position = $request->get('position', 'home_top');
+        $cacheKey = "banners_pos_{$position}";
         
-        $banners = Banner::active()
-            ->byPosition($position)
-            ->orderBy('order')
-            ->get(['id', 'title', 'title_en', 'title_uk', 'image_url', 'link', 'position', 'open_new_tab', 'order']);
+        $banners = \Illuminate\Support\Facades\Cache::remember($cacheKey, 3600, function () use ($position) {
+            return Banner::active()
+                ->byPosition($position)
+                ->orderBy('order')
+                ->get(['id', 'title', 'title_en', 'title_uk', 'image_url', 'link', 'position', 'open_new_tab', 'order']);
+        });
 
         return response()->json($banners);
     }
@@ -28,11 +31,15 @@ class BannerController extends Controller
      */
     public function all()
     {
-        $banners = Banner::active()
-            ->orderBy('position')
-            ->orderBy('order')
-            ->get(['id', 'title', 'title_en', 'title_uk', 'image_url', 'link', 'position', 'open_new_tab', 'order'])
-            ->groupBy('position');
+        $cacheKey = "banners_all";
+        
+        $banners = \Illuminate\Support\Facades\Cache::remember($cacheKey, 3600, function () {
+            return Banner::active()
+                ->orderBy('position')
+                ->orderBy('order')
+                ->get(['id', 'title', 'title_en', 'title_uk', 'image_url', 'link', 'position', 'open_new_tab', 'order'])
+                ->groupBy('position');
+        });
 
         return response()->json($banners);
     }

@@ -75,15 +75,19 @@ class CategoryService
      */
     public function getCategories(string $type = null): Collection
     {
-        $query = Category::with(['translations', 'children.translations']);
+        $cacheKey = 'categories_tree_' . ($type ?? 'all');
+        
+        return Cache::remember($cacheKey, 3600, function () use ($type) {
+            $query = Category::with(['translations', 'children.translations']);
 
-        if ($type === Category::TYPE_PRODUCT) {
-            $query->productCategories()->parentCategories();
-        } elseif ($type === Category::TYPE_ARTICLE) {
-            $query->articleCategories();
-        }
+            if ($type === Category::TYPE_PRODUCT) {
+                $query->productCategories()->parentCategories();
+            } elseif ($type === Category::TYPE_ARTICLE) {
+                $query->articleCategories();
+            }
 
-        return $query->get();
+            return $query->get();
+        });
     }
 
     /**
@@ -91,10 +95,14 @@ class CategoryService
      */
     public function getSubcategories(int $parentId): Collection
     {
-        return Category::where('parent_id', $parentId)
-            ->where('type', Category::TYPE_PRODUCT)
-            ->with('translations')
-            ->get();
+        $cacheKey = "subcategories_of_{$parentId}";
+        
+        return Cache::remember($cacheKey, 3600, function () use ($parentId) {
+            return Category::where('parent_id', $parentId)
+                ->where('type', Category::TYPE_PRODUCT)
+                ->with('translations')
+                ->get();
+        });
     }
 
     /**

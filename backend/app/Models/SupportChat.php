@@ -180,4 +180,45 @@ class SupportChat extends Model
             $query->where('support_chat_id', $this->id);
         })->sum('file_size');
     }
+
+    /**
+     * Установить статус "печатает" для пользователя или администратора
+     */
+    public function setTyping(string $type, ?int $userId = null): void
+    {
+        $key = "chat_typing_{$this->id}_{$type}";
+        if ($userId) {
+            $key .= "_{$userId}";
+        }
+        
+        // Кэшируем на 5 секунд
+        \Illuminate\Support\Facades\Cache::put($key, true, 5);
+        
+        // Групповой ключ для быстрой проверки всех админов или всех пользователей
+        $groupKey = "chat_typing_group_{$this->id}_{$type}";
+        \Illuminate\Support\Facades\Cache::put($groupKey, true, 5);
+    }
+
+    /**
+     * Проверить, печатает ли кто-то в чате указанного типа
+     */
+    public function isTyping(string $type): bool
+    {
+        return \Illuminate\Support\Facades\Cache::has("chat_typing_group_{$this->id}_{$type}");
+    }
+
+    /**
+     * Остановить статус "печатает"
+     */
+    public function stopTyping(string $type, ?int $userId = null): void
+    {
+        $key = "chat_typing_{$this->id}_{$type}";
+        if ($userId) {
+            $key .= "_{$userId}";
+        }
+        \Illuminate\Support\Facades\Cache::forget($key);
+        
+        // Мы не удаляем groupKey здесь, так как другие могут всё еще печатать.
+        // Он сам протухнет через 5 секунд. Это допустимый компромисс для производительности.
+    }
 }

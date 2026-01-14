@@ -259,8 +259,7 @@ class SupportChatController extends Controller
         }
         
         // Останавливаем индикатор печати
-        $key = 'support_chat_typing_' . $chat->id . '_admin_' . $admin->id;
-        Cache::forget($key);
+        $chat->stopTyping('admin', $admin->id);
         
         // Обновляем время последнего сообщения
         $chat->update([
@@ -283,8 +282,7 @@ class SupportChatController extends Controller
             $chat = SupportChat::findOrFail($id);
             $admin = $request->user();
             
-            $key = 'support_chat_typing_' . $chat->id . '_admin_' . $admin->id;
-            Cache::put($key, true, 5);
+            $chat->setTyping('admin', $admin->id);
             
             return response()->json(['success' => true]);
         } catch (\Exception $e) {
@@ -301,8 +299,7 @@ class SupportChatController extends Controller
             $chat = SupportChat::findOrFail($id);
             $admin = $request->user();
             
-            $key = 'support_chat_typing_' . $chat->id . '_admin_' . $admin->id;
-            Cache::forget($key);
+            $chat->stopTyping('admin', $admin->id);
             
             return response()->json(['success' => true]);
         } catch (\Exception $e) {
@@ -317,16 +314,9 @@ class SupportChatController extends Controller
     {
         try {
             $chat = SupportChat::findOrFail($id);
-            $isTyping = false;
             
-            if ($chat->user_id) {
-                $key = 'support_chat_typing_' . $chat->id . '_' . $chat->user_id;
-                $isTyping = Cache::has($key);
-            } elseif ($chat->guest_email) {
-                $emailKey = md5($chat->guest_email);
-                $key = 'support_chat_typing_' . $chat->id . '_' . $emailKey;
-                $isTyping = Cache::has($key);
-            }
+            // Проверяем, печатает ли пользователь или гость (используем групповые ключи для O(1))
+            $isTyping = $chat->isTyping('user') || $chat->isTyping('guest');
             
             return response()->json([
                 'success' => true,

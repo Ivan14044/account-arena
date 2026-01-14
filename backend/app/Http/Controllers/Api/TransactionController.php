@@ -37,9 +37,9 @@ class TransactionController extends Controller
             $query->where('payment_method', $request->payment_method);
         }
 
-        $transactions = $query->orderBy('created_at', 'desc')->get();
+        $transactions = $query->orderBy('created_at', 'desc')->paginate($request->input('per_page', 20));
 
-        $data = $transactions->map(function ($transaction) {
+        $data = $transactions->getCollection()->map(function ($transaction) {
             return [
                 'id' => $transaction->id,
                 'amount' => $transaction->amount,
@@ -53,7 +53,15 @@ class TransactionController extends Controller
             ];
         });
 
-        return response()->json($data);
+        return response()->json([
+            'data' => $data,
+            'meta' => [
+                'current_page' => $transactions->currentPage(),
+                'last_page' => $transactions->lastPage(),
+                'per_page' => $transactions->perPage(),
+                'total' => $transactions->total(),
+            ]
+        ]);
     }
 }
 

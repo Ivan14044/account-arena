@@ -157,14 +157,17 @@ class SupportChatController extends Controller
             ->orderBy('created_at', 'asc')
             ->get();
         
-        // Отмечаем сообщения от админов как прочитанные
-        $chat->messages()
+        // Отмечаем сообщения от админов как прочитанные (только если есть непрочитанные)
+        $unreadAdminMessages = $chat->messages()
             ->where('sender_type', SupportMessage::SENDER_ADMIN)
-            ->where('is_read', false)
-            ->update([
+            ->where('is_read', false);
+            
+        if ($unreadAdminMessages->exists()) {
+            $unreadAdminMessages->update([
                 'is_read' => true,
                 'read_at' => now(),
             ]);
+        }
         
         return response()->json([
             'success' => true,
@@ -429,15 +432,13 @@ class SupportChatController extends Controller
             if ($chat->user_id !== $user->id) {
                 return response()->json(['success' => false, 'message' => 'У вас нет доступа к этому чату'], 403);
             }
+            $chat->setTyping('user', $user->id);
         } else {
             if (!$request->has('email') || $chat->guest_email !== $request->input('email')) {
                 return response()->json(['success' => false, 'message' => 'У вас нет доступа к этому чату'], 403);
             }
+            $chat->setTyping('guest'); // Для гостей используем общий ключ guest для чата
         }
-        
-        // Сохраняем в кеш с ключом по chat_id и user_id/email
-        $key = 'support_chat_typing_' . $chatId . '_' . ($user ? $user->id : md5($request->input('email')));
-        \Illuminate\Support\Facades\Cache::put($key, true, 5); // 5 секунд
         
         return response()->json(['success' => true]);
     }
@@ -455,15 +456,13 @@ class SupportChatController extends Controller
             if ($chat->user_id !== $user->id) {
                 return response()->json(['success' => false, 'message' => 'У вас нет доступа к этому чату'], 403);
             }
+            $chat->stopTyping('user', $user->id);
         } else {
             if (!$request->has('email') || $chat->guest_email !== $request->input('email')) {
                 return response()->json(['success' => false, 'message' => 'У вас нет доступа к этому чату'], 403);
             }
+            $chat->stopTyping('guest');
         }
-        
-        // Удаляем из кеша
-        $key = 'support_chat_typing_' . $chatId . '_' . ($user ? $user->id : md5($request->input('email')));
-        \Illuminate\Support\Facades\Cache::forget($key);
         
         return response()->json(['success' => true]);
     }
@@ -481,35 +480,16 @@ class SupportChatController extends Controller
             if ($chat->user_id !== $user->id) {
                 return response()->json(['success' => false, 'message' => 'У вас нет доступа к этому чату'], 403);
             }
-            // Проверяем, печатает ли администратор (любой админ для этого чата)
-            $isTyping = false;
-            $admins = \App\Models\User::where('is_admin', true)->pluck('id');
-            foreach ($admins as $adminId) {
-                $key = 'support_chat_typing_' . $chatId . '_admin_' . $adminId;
-                if (\Illuminate\Support\Facades\Cache::has($key)) {
-                    $isTyping = true;
-                    break;
-                }
-            }
         } else {
             if (!$request->has('email') || $chat->guest_email !== $request->input('email')) {
                 return response()->json(['success' => false, 'message' => 'У вас нет доступа к этому чату'], 403);
             }
-            // Проверяем, печатает ли администратор
-            $isTyping = false;
-            $admins = \App\Models\User::where('is_admin', true)->pluck('id');
-            foreach ($admins as $adminId) {
-                $key = 'support_chat_typing_' . $chatId . '_admin_' . $adminId;
-                if (\Illuminate\Support\Facades\Cache::has($key)) {
-                    $isTyping = true;
-                    break;
-                }
-            }
         }
         
+        // Проверяем, печатает ли администратор (используем групповой ключ для O(1))
         return response()->json([
             'success' => true,
-            'is_typing' => $isTyping,
+            'is_typing' => $chat->isTyping('admin'),
         ]);
     }
 }

@@ -114,49 +114,34 @@ const categoriesCache = ref<Map<string, ProductCategory[]>>(new Map());
 // КРИТИЧЕСКАЯ ОПТИМИЗАЦИЯ: Предвычисляем все счетчики товаров один раз
 // Это избавляет от множественных filter операций при каждом вызове
 const productCounts = computed(() => {
-    const categoryCounts = new Map<number, number>();
-    const subcategoryCounts = new Map<number, number>();
+    const directCounts = new Map<number, number>();
     
-    // Создаем Map для быстрого доступа к подкатегориям по категории
-    const categoryToSubcategories = new Map<number, Set<number>>();
-    categoriesStore.list.forEach(category => {
-        if (category.subcategories && category.subcategories.length > 0) {
-            const subIds = new Set(category.subcategories.map(sub => sub.id));
-            categoryToSubcategories.set(category.id, subIds);
+    // 1. Считаем товары напрямую в каждой категории/подкатегории (O(N) по товарам)
+    accountsStore.list.forEach(account => {
+        const catId = account.category?.id;
+        if (catId) {
+            directCounts.set(catId, (directCounts.get(catId) || 0) + 1);
         }
     });
     
-    // Один проход по всем товарам для подсчета
-    accountsStore.list.forEach(account => {
-        const accountCategoryId = account.category?.id;
-        if (!accountCategoryId) return;
+    const categoryCounts = new Map<number, number>();
+    const subcategoryCounts = new Map<number, number>();
+    
+    // 2. Рассчитываем итоговые счетчики (O(M) по категориям)
+    categoriesStore.list.forEach(category => {
+        // Прямые товары в родительской категории
+        let totalForCategory = directCounts.get(category.id) || 0;
         
-        // Подсчет для подкатегорий
-        if (!subcategoryCounts.has(accountCategoryId)) {
-            subcategoryCounts.set(accountCategoryId, 0);
+        // Товары в подкатегориях
+        if (category.subcategories && category.subcategories.length > 0) {
+            category.subcategories.forEach(sub => {
+                const subCount = directCounts.get(sub.id) || 0;
+                subcategoryCounts.set(sub.id, subCount);
+                totalForCategory += subCount;
+            });
         }
-        subcategoryCounts.set(accountCategoryId, subcategoryCounts.get(accountCategoryId)! + 1);
         
-        // Подсчет для категорий (включая товары в подкатегориях)
-        categoryToSubcategories.forEach((subIds, categoryId) => {
-            if (subIds.has(accountCategoryId) || accountCategoryId === categoryId) {
-                if (!categoryCounts.has(categoryId)) {
-                    categoryCounts.set(categoryId, 0);
-                }
-                categoryCounts.set(categoryId, categoryCounts.get(categoryId)! + 1);
-            }
-        });
-        
-        // Также проверяем, является ли accountCategoryId самой категорией (без подкатегорий)
-        const isDirectCategory = categoriesStore.list.some(cat => 
-            cat.id === accountCategoryId && (!cat.subcategories || cat.subcategories.length === 0)
-        );
-        if (isDirectCategory) {
-            if (!categoryCounts.has(accountCategoryId)) {
-                categoryCounts.set(accountCategoryId, 0);
-            }
-            categoryCounts.set(accountCategoryId, categoryCounts.get(accountCategoryId)! + 1);
-        }
+        categoryCounts.set(category.id, totalForCategory);
     });
     
     return { categoryCounts, subcategoryCounts };

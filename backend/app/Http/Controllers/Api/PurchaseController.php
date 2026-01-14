@@ -64,60 +64,66 @@ class PurchaseController extends Controller
             $query->where('status', $request->status);
         }
         
-        $purchases = $query->orderBy('created_at', 'desc')
-            ->get()
-            ->map(function ($purchase) {
-                $productTitle = $purchase->serviceAccount ? [
-                    'title' => $purchase->serviceAccount->title,
-                    'title_en' => $purchase->serviceAccount->title_en,
-                    'title_uk' => $purchase->serviceAccount->title_uk,
-                ] : null;
-                
-                return [
-                    'id' => $purchase->id,
-                    'order_number' => $purchase->order_number,
-                    'transaction_id' => $purchase->transaction_id,
-                    'product' => [
-                        'id' => $purchase->serviceAccount->id,
-                        'title' => $productTitle,
-                        'image_url' => $purchase->serviceAccount->image_url,
-                    ],
-                    'quantity' => $purchase->quantity,
-                    'price' => $purchase->price,
-                    'total_amount' => $purchase->total_amount,
-                    'account_data' => $purchase->account_data,
-                    'status' => $purchase->status,
-                    'purchased_at' => $purchase->created_at->format('Y-m-d H:i:s'),
-                    'service_name' => $productTitle,
-                    'amount' => $purchase->total_amount,
-                    'currency' => $purchase->transaction ? $purchase->transaction->currency : Option::get('currency', 'USD'),
-                    'payment_method' => $purchase->transaction ? $purchase->transaction->payment_method : 'unknown',
-                    'created_at' => $purchase->created_at->format('Y-m-d H:i:s'),
-                    'has_dispute' => $purchase->transaction && $purchase->transaction->dispute ? true : false,
-                    'dispute' => $purchase->transaction && $purchase->transaction->dispute ? [
-                        'id' => $purchase->transaction->dispute->id,
-                        'status' => $purchase->transaction->dispute->status,
-                        'admin_decision' => $purchase->transaction->dispute->admin_decision,
-                    ] : null,
-                    'status_history' => $purchase->statusHistory->map(function ($history) {
-                        return [
-                            'id' => $history->id,
-                            'old_status' => $history->old_status,
-                            'new_status' => $history->new_status,
-                            'reason' => $history->reason,
-                            'changed_by' => $history->changedBy ? [
-                                'id' => $history->changedBy->id,
-                                'name' => $history->changedBy->name,
-                                'email' => $history->changedBy->email,
-                            ] : null,
-                            'created_at' => $history->created_at->format('Y-m-d H:i:s'),
-                        ];
-                    })->toArray(),
-                ];
-            });
+        $purchases = $query->orderBy('created_at', 'desc')->paginate($request->input('per_page', 50));
+        
+        $mappedPurchases = collect($purchases->items())->map(function ($purchase) {
+            $productTitle = $purchase->serviceAccount ? [
+                'title' => $purchase->serviceAccount->title,
+                'title_en' => $purchase->serviceAccount->title_en,
+                'title_uk' => $purchase->serviceAccount->title_uk,
+            ] : null;
+            
+            return [
+                'id' => $purchase->id,
+                'order_number' => $purchase->order_number,
+                'transaction_id' => $purchase->transaction_id,
+                'product' => [
+                    'id' => $purchase->serviceAccount ? $purchase->serviceAccount->id : null,
+                    'title' => $productTitle,
+                    'image_url' => $purchase->serviceAccount ? $purchase->serviceAccount->image_url : null,
+                ],
+                'quantity' => $purchase->quantity,
+                'price' => $purchase->price,
+                'total_amount' => $purchase->total_amount,
+                'account_data' => $purchase->account_data,
+                'status' => $purchase->status,
+                'purchased_at' => $purchase->created_at->format('Y-m-d H:i:s'),
+                'service_name' => $productTitle,
+                'amount' => $purchase->total_amount,
+                'currency' => $purchase->transaction ? $purchase->transaction->currency : Option::get('currency', 'USD'),
+                'payment_method' => $purchase->transaction ? $purchase->transaction->payment_method : 'unknown',
+                'created_at' => $purchase->created_at->format('Y-m-d H:i:s'),
+                'has_dispute' => $purchase->transaction && $purchase->transaction->dispute ? true : false,
+                'dispute' => $purchase->transaction && $purchase->transaction->dispute ? [
+                    'id' => $purchase->transaction->dispute->id,
+                    'status' => $purchase->transaction->dispute->status,
+                    'admin_decision' => $purchase->transaction->dispute->admin_decision,
+                ] : null,
+                'status_history' => $purchase->statusHistory->map(function ($history) {
+                    return [
+                        'id' => $history->id,
+                        'old_status' => $history->old_status,
+                        'new_status' => $history->new_status,
+                        'reason' => $history->reason,
+                        'changed_by' => $history->changedBy ? [
+                            'id' => $history->changedBy->id,
+                            'name' => $history->changedBy->name,
+                            'email' => $history->changedBy->email,
+                        ] : null,
+                        'created_at' => $history->created_at->format('Y-m-d H:i:s'),
+                    ];
+                })->toArray(),
+            ];
+        });
         
         return \App\Http\Responses\ApiResponse::success([
-            'purchases' => $purchases,
+            'purchases' => $mappedPurchases,
+            'meta' => [
+                'current_page' => $purchases->currentPage(),
+                'last_page' => $purchases->lastPage(),
+                'per_page' => $purchases->perPage(),
+                'total' => $purchases->total(),
+            ]
         ]);
     }
     
