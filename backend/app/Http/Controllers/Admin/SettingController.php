@@ -18,32 +18,14 @@ class SettingController extends Controller
         $currency = Option::get('currency');
         $notificationSettings = AdminNotificationSetting::getOrCreateForUser(auth()->id());
         
-        // Настройки Telegram
-        $botToken = Option::get('telegram_bot_token', '');
-        if (!empty($botToken)) {
-            try {
-                $botToken = decrypt($botToken);
-            } catch (\Exception $e) {
-                // Not encrypted or wrong key
-            }
-        }
-
         $telegramSettings = [
             'enabled' => Option::get('telegram_client_enabled', false),
-            'bot_token' => $botToken,
+            'bot_token' => Option::get('telegram_bot_token', ''), // Автоматически расшифруется в Option::get
             'bot_username' => Option::get('telegram_bot_username', ''),
             'bot_id' => Option::get('telegram_bot_id', ''),
         ];
 
-        // SMTP Password decryption for view
-        $smtpPassword = Option::get('smtp_password', '');
-        if (!empty($smtpPassword)) {
-            try {
-                $smtpPassword = decrypt($smtpPassword);
-            } catch (\Exception $e) {
-                // Not encrypted
-            }
-        }
+        $smtpPassword = Option::get('smtp_password', ''); // Автоматически расшифруется в Option::get
 
         return view('admin.settings.index', compact('currency', 'notificationSettings', 'telegramSettings', 'smtpPassword'));
     }
@@ -54,28 +36,8 @@ class SettingController extends Controller
 
         \Illuminate\Support\Facades\DB::transaction(function () use ($request, $validated) {
             foreach ($validated as $key => $value) {
-                // Шифруем чувствительные данные только если они изменились или еще не зашифрованы
-                if (in_array($key, ['smtp_password', 'telegram_bot_token'])) {
-                    if (!empty($value)) {
-                        $currentValue = Option::get($key, '');
-                        $decryptedCurrent = '';
-                        
-                        if (!empty($currentValue)) {
-                            try {
-                                $decryptedCurrent = decrypt($currentValue);
-                            } catch (\Exception $e) {
-                                // Not encrypted
-                            }
-                        }
-
-                        // Если значение изменилось, шифруем и сохраняем
-                        if ($value !== $decryptedCurrent) {
-                            $value = encrypt($value);
-                            Option::set($key, $value);
-                        }
-                    }
-                    continue; // Переходим к следующему полю, так как мы уже обработали это
-                }
+                // ВАЖНО: Option::set теперь сам шифрует чувствительные поля.
+                // Нам не нужно делать это здесь вручную.
 
                 // Для checkbox полей нужно сохранять даже если они false
                 if (in_array($key, ['support_chat_enabled', 'support_chat_greeting_enabled', 'smtp_verify_peer'])) {

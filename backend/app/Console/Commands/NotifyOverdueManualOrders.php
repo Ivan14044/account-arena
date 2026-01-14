@@ -32,7 +32,9 @@ class NotifyOverdueManualOrders extends Command
 
         // Находим заказы в статусе processing старше 24 часов
         // И проверяем, что последнее напоминание было более 24 часов назад (или его не было)
+        // ВАЖНО: Исключаем заказы со статусом "ожидает пополнения", так как менеджер не может их выдать
         $overdueOrders = Purchase::where('status', Purchase::STATUS_PROCESSING)
+            ->where('is_waiting_stock', false)
             ->where('created_at', '<', now()->subHours(24))
             ->where(function($query) {
                 $query->whereNull('last_reminder_at')
