@@ -182,7 +182,7 @@ class AccountController extends Controller
         $similar = $account->getSimilarProducts(6);
 
         $data = $similar->map(function ($item) {
-            // Используем метод getAvailableStock() из модели, который уже учитывает ручную выдачу
+            // Используем метод getAvailableStock() из модели, который теперь учитывает total_qty_from_json
             $availableCount = $item->getAvailableStock();
             
             // Для total_quantity и sold - только для автоматической выдачи
@@ -190,14 +190,14 @@ class AccountController extends Controller
             $isManualDelivery = ($deliveryType === 'manual');
             
             if ($isManualDelivery) {
-                // Для товаров с ручной выдачей total_quantity и sold не имеют смысла
                 $totalQuantity = 0;
                 $soldCount = 0;
             } else {
-                // Для автоматической выдачи - стандартная логика
-                $accountsData = $item->accounts_data ?? [];
-                $totalQuantity = is_array($accountsData) ? count($accountsData) : 0;
-                $soldCount = $item->used ?? 0;
+                // Пытаемся взять из pre-calculated поля или из массива
+                $totalQuantity = isset($item->total_qty_from_json) 
+                    ? (int)$item->total_qty_from_json 
+                    : (is_array($item->accounts_data) ? count($item->accounts_data) : 0);
+                $soldCount = (int)($item->used ?? 0);
             }
 
             return [
@@ -211,7 +211,7 @@ class AccountController extends Controller
                 'description_uk' => $item->description_uk,
                 'price' => $item->price,
                 'discount_percent' => $item->discount_percent,
-                'current_price' => $item->getPriceWithCommission(), // ВАЖНО: Используем getPriceWithCommission() для применения комиссии
+                'current_price' => $item->getPriceWithCommission(),
                 'has_discount' => $item->hasActiveDiscount(),
                 'image_url' => $item->image_url,
                 'category' => $item->category ? [

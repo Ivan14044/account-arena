@@ -275,21 +275,28 @@ class ServiceAccount extends Model
             return $this->is_active ? 999 : 0;
         }
         
-        // Для автоматической выдачи - стандартная логика подсчета из accounts_data
-        $accountsData = $this->accounts_data ?? [];
-        
-        // ВАЖНО: Проверяем, что accounts_data является массивом
-        if (!is_array($accountsData)) {
-            // Если это строка (JSON), пытаемся декодировать
-            if (is_string($accountsData) && !empty($accountsData)) {
-                $decoded = json_decode($accountsData, true);
-                $accountsData = is_array($decoded) ? $decoded : [];
-            } else {
-                $accountsData = [];
+        // Для автоматической выдачи - приоритетно используем пре-подсчитанное значение
+        // если оно было выбрано в SQL (JSON_LENGTH(accounts_data))
+        if (isset($this->total_qty_from_json)) {
+            $totalQty = (int)$this->total_qty_from_json;
+        } else {
+            // Иначе - стандартная логика подсчета из accounts_data
+            $accountsData = $this->accounts_data ?? [];
+            
+            // ВАЖНО: Проверяем, что accounts_data является массивом
+            if (!is_array($accountsData)) {
+                // Если это строка (JSON), пытаемся декодировать
+                if (is_string($accountsData) && !empty($accountsData)) {
+                    $decoded = json_decode($accountsData, true);
+                    $accountsData = is_array($decoded) ? $decoded : [];
+                } else {
+                    $accountsData = [];
+                }
             }
+            
+            $totalQty = count($accountsData);
         }
         
-        $totalQty = count($accountsData);
         $used = (int)($this->used ?? 0);
         
         // Гарантируем, что результат не отрицательный
