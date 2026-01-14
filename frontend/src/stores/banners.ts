@@ -186,6 +186,7 @@ export const useBannersStore = defineStore('banners', () => {
 
     return {
         bannersByPosition,
+        fetchAll,
         fetchBanners,
         getBanners,
         isLoaded,
