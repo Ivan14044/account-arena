@@ -21,30 +21,33 @@ const route = useRoute();
 
 // Получаем Pixel ID из настроек
 const pixelId = computed(() => {
+    // Ждем загрузки опций
     if (!optionStore.isLoaded) return null;
     
     const options = optionStore.options;
-    let optionsObj: Record<string, any>;
-    
-    if (Array.isArray(options)) {
-        optionsObj = {};
-        options.forEach(option => {
-            if (option && option.key) {
-                optionsObj[option.key] = option.value;
-            }
-        });
-    } else if (typeof options === 'object' && options !== null) {
-        optionsObj = options;
-    } else {
+    if (!options || typeof options !== 'object' || Array.isArray(options)) {
         return null;
     }
     
-    const pixelIdValue = optionsObj.facebook_pixel_id;
-    return pixelIdValue && pixelIdValue.trim() ? pixelIdValue.trim() : null;
+    const pixelIdValue = options.facebook_pixel_id;
+    if (!pixelIdValue || typeof pixelIdValue !== 'string') {
+        return null;
+    }
+    
+    const trimmed = pixelIdValue.trim();
+    return trimmed || null;
 });
 
 onMounted(() => {
     if (!pixelId.value) return;
+
+    // Проверяем, не загружен ли уже Pixel
+    if (window.fbq) {
+        // Pixel уже загружен, просто инициализируем
+        window.fbq('init', pixelId.value);
+        window.fbq('track', 'PageView');
+        return;
+    }
 
     // Инициализация Facebook Pixel
     !function(f,b,e,v,n,t,s) {
@@ -62,11 +65,23 @@ onMounted(() => {
         s.parentNode.insertBefore(t,s)
     }(window, document,'script','https://connect.facebook.net/en_US/fbevents.js');
 
-    // Инициализация пикселя с ID
-    if (window.fbq && pixelId.value) {
-        window.fbq('init', pixelId.value);
-        window.fbq('track', 'PageView');
-    }
+    // Инициализация пикселя с ID после загрузки скрипта
+    const initPixel = () => {
+        if (window.fbq && pixelId.value) {
+            try {
+                window.fbq('init', pixelId.value);
+                window.fbq('track', 'PageView');
+            } catch (error) {
+                console.error('[FacebookPixel] Error initializing pixel:', error);
+            }
+        } else {
+            // Повторяем попытку через небольшую задержку
+            setTimeout(initPixel, 100);
+        }
+    };
+
+    // Ждем загрузки скрипта
+    setTimeout(initPixel, 100);
 });
 
 // Отслеживание событий при навигации
