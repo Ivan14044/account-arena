@@ -780,6 +780,41 @@ const getDeliveryTypeText = (product: any): string => {
     display: flex;
     align-items: center;
     justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.dark .btn-cart {
+    background: #1e293b;
+    border-color: #334155;
+    color: #cbd5e1;
+}
+
+.btn-cart:hover {
+    background: #f1f5f9;
+    border-color: #6c5ce7;
+    color: #6c5ce7;
+    box-shadow: 0 4px 12px rgba(108, 92, 231, 0.15);
+}
+
+.dark .btn-cart:hover {
+    background: #334155;
+    border-color: #6c5ce7;
+    color: #a29bfe;
+    box-shadow: 0 4px 12px rgba(108, 92, 231, 0.3);
+}
+
+.btn-cart:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: #f1f5f9;
+    border-color: #e2e8f0;
+    color: #94a3b8;
+}
+
+.dark .btn-cart:disabled {
+    background: #1e293b;
+    border-color: #334155;
+    color: #475569;
 }
 
 .btn-primary {

@@ -1,11 +1,12 @@
 <template>
     <div v-if="products.length > 0" class="similar-products-section">
         <h2 class="section-title">{{ $t('products.similar.title') }}</h2>
-        <div class="products-list">
+        <div class="products-list space-y-5">
             <ProductCard
-                v-for="product in products"
+                v-for="(product, index) in products"
                 :key="product.id"
                 :product="product"
+                :index="index"
                 :quantity="getQuantity(product.id)"
                 :is-favorite="isFavorite(product.id)"
                 @increase-quantity="increaseQuantity"
@@ -229,8 +230,6 @@ onMounted(async () => {
 }
 
 .products-list {
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
+    width: 100%;
 }
 </style>
