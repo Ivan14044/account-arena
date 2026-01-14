@@ -94,15 +94,15 @@ Route::prefix('/admin')
             // Purchases (покупки товаров)
             Route::resource('purchases', PurchaseController::class)->only(['index', 'show', 'destroy']);
 
-            // Manual Delivery - счетчик для badge (доступен всем админам)
+            // Manual Delivery - счетчик для badge и статистика (доступны всем админам)
             Route::get('manual-delivery/count', [ManualDeliveryController::class, 'getPendingCount'])->name('manual-delivery.count');
+            Route::get('manual-delivery/statistics', [ManualDeliveryController::class, 'statistics'])->name('manual-delivery.statistics');
             
             // Manual Delivery (ручная обработка заказов) - только для главного администратора
             Route::middleware(['admin.main'])->group(function () {
                 Route::get('manual-delivery', [ManualDeliveryController::class, 'index'])->name('manual-delivery.index');
                 Route::get('manual-delivery/{purchase}', [ManualDeliveryController::class, 'show'])->name('manual-delivery.show');
                 Route::post('manual-delivery/{purchase}/process', [ManualDeliveryController::class, 'process'])->name('manual-delivery.process');
-                Route::get('manual-delivery/statistics', [ManualDeliveryController::class, 'statistics'])->name('manual-delivery.statistics');
             });
 
             // Purchase Rules (правила покупки)
