@@ -6,9 +6,17 @@ const isDark = ref(false); // глобальный синглтон
 export function useTheme() {
     const applyTheme = (dark: boolean) => {
         if (isDark.value === dark) return;
-        isDark.value = dark;
-        document.documentElement.classList.toggle('dark', dark);
-        localStorage.setItem('theme', dark ? 'dark' : 'light');
+        
+        // Используем requestAnimationFrame для плавного применения темы без блокировки UI
+        requestAnimationFrame(() => {
+            isDark.value = dark;
+            document.documentElement.classList.toggle('dark', dark);
+            
+            // Откладываем localStorage в следующий тик, чтобы не блокировать рендеринг
+            setTimeout(() => {
+                localStorage.setItem('theme', dark ? 'dark' : 'light');
+            }, 0);
+        });
     };
 
     const toggleTheme = () => applyTheme(!isDark.value);

@@ -158,6 +158,56 @@ button.swal2-cancel {
     scrollbar-color: rgba(100, 100, 100, 0.8) transparent;
 }
 
+/* Глобальные переходы для плавного переключения темы */
+html body,
+html div,
+html span,
+html section,
+html article,
+html header,
+html footer,
+html main,
+html nav,
+html button,
+html input,
+html textarea,
+html select,
+html label,
+html a,
+html p,
+html h1,
+html h2,
+html h3,
+html h4,
+html h5,
+html h6,
+html li,
+html ul,
+html ol,
+html table,
+html td,
+html th {
+    transition-property: background-color, border-color, color, fill, stroke, box-shadow, opacity;
+    transition-duration: 0.2s;
+    transition-timing-function: ease-in-out;
+}
+
+/* Исключения для элементов, которые не должны иметь общих переходов */
+svg,
+svg *,
+circle,
+path,
+rect,
+stop,
+.blob,
+.blobs,
+.preloader-logo,
+.navigation-pulse,
+.no-transition,
+.no-transition * {
+    transition: none !important;
+}
+
 .glass-card {
     backdrop-filter: blur(10px);
     background: rgba(255, 255, 255, 0.2);

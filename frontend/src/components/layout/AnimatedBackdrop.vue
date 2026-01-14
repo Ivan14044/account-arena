@@ -1,27 +1,19 @@
 <template>
-    <div ref="backdropRef" class="fixed inset-0 pointer-events-none overflow-hidden">
+    <div class="fixed inset-0 pointer-events-none overflow-hidden">
         <div
             :class="[
-                'animated-gradient absolute w-[120vw] h-[120vh] transition-all duration-300',
-                isDark ? 'opacity-60 blur-[80px]' : 'opacity-40 blur-[70px]',
-                { paused: !isVisible }
+                'animated-gradient absolute w-[120vw] h-[120vh]',
+                isDark ? 'opacity-60 blur-[60px]' : 'opacity-40 blur-[50px]'
             ]"
+            style="transition: opacity 0.2s ease-in-out, filter 0.2s ease-in-out; will-change: opacity, filter;"
         />
     </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-import { useIntersectionObserver } from '@/composables/useIntersectionObserver';
-
 defineProps<{
     isDark?: boolean;
 }>();
-
-const backdropRef = ref<HTMLElement | null>(null);
-const { isVisible } = useIntersectionObserver(backdropRef, {
-    rootMargin: '100px' // начинать анимацию за 100px до появления
-});
 </script>
 
 <style scoped>
