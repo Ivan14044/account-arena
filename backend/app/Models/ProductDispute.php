@@ -242,38 +242,6 @@ class ProductDispute extends Model
         });
     }
 
-            // Обновляем статус транзакции
-            $this->transaction->update(['status' => 'refunded']);
-
-            // Обновляем претензию
-            $this->update([
-                'status' => self::STATUS_RESOLVED,
-                'admin_decision' => self::DECISION_REFUND,
-                'admin_comment' => $comment,
-                'resolved_at' => now(),
-                'resolved_by' => $adminId,
-            ]);
-
-            // Отправляем уведомление поставщику (только если товар от поставщика)
-            if ($this->supplier_id && $this->supplier) {
-                $this->notifySupplier();
-                
-                // Пересчитываем рейтинг поставщика
-                $this->supplier->calculateSupplierRating();
-            }
-
-            // Отправляем уведомление покупателю
-            $this->notifyCustomer();
-
-            \Illuminate\Support\Facades\Log::info('ProductDispute refund completed', [
-                'dispute_id' => $this->id,
-                'transaction_id' => $this->transaction_id,
-                'refund_amount' => $this->refund_amount,
-                'supplier_id' => $this->supplier_id,
-            ]);
-        });
-    }
-
     /**
      * Обработать претензию с заменой товара
      */
