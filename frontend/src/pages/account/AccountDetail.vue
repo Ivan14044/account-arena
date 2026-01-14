@@ -494,6 +494,9 @@ import { useToast } from 'vue-toastification';
 import { useI18n } from 'vue-i18n';
 import { useLoadingStore } from '@/stores/loading';
 import { useProductTitle } from '@/composables/useProductTitle';
+import { useSeo } from '@/composables/useSeo';
+import { useStructuredData } from '@/composables/useStructuredData';
+import { useHreflang } from '@/composables/useHreflang';
 import SimilarProducts from '@/components/products/SimilarProducts.vue';
 
 // Кэшируем форматтеры для производительности ГЛОБАЛЬНО
@@ -535,6 +538,99 @@ const favorites = ref<Set<number>>(new Set());
 const description = computed(() => {
     return account.value ? getProductDescription(account.value, true) : '';
 });
+
+// SEO мета-теги
+const id = computed(() => route.params.id as string);
+useSeo({
+    title: () => account.value ? getProductTitle(account.value) : 'Товар',
+    description: () => {
+        if (!account.value) return '';
+        const desc = getProductDescription(account.value, true);
+        return desc ? desc.substring(0, 160) : '';
+    },
+    ogImage: () => account.value?.image_url || '/img/logo_trans.webp',
+    canonical: () => `https://account-arena.com/seo/products/${id.value}`,
+    ogType: 'product'
+});
+
+// Structured Data: Product Schema и BreadcrumbList Schema
+useStructuredData(() => {
+    if (!account.value) return [];
+    
+    const productTitle = getProductTitle(account.value);
+    const productDescription = getProductDescription(account.value, true);
+    const imageUrl = account.value.image_url 
+        ? (account.value.image_url.startsWith('http') 
+            ? account.value.image_url 
+            : `https://account-arena.com${account.value.image_url.startsWith('/') ? account.value.image_url : '/' + account.value.image_url}`)
+        : 'https://account-arena.com/img/logo_trans.webp';
+    
+    // Product Schema
+    const productSchema: any = {
+        '@context': 'https://schema.org',
+        '@type': 'Product',
+        'name': productTitle,
+        'description': productDescription ? productDescription.substring(0, 160) : productTitle,
+        'image': imageUrl,
+        'brand': {
+            '@type': 'Brand',
+            'name': 'Account Arena'
+        },
+        'offers': {
+            '@type': 'Offer',
+            'price': account.value.price || 0,
+            'priceCurrency': optionStore.getOption('currency', 'USD'),
+            'availability': (account.value.quantity ?? 0) > 0
+                ? 'https://schema.org/InStock'
+                : 'https://schema.org/OutOfStock',
+            'url': `https://account-arena.com/account/${id.value}`
+        }
+    };
+    
+    if (account.value.sku) {
+        productSchema['sku'] = account.value.sku;
+    }
+    if (account.value.category) {
+        productSchema['category'] = account.value.category.name;
+    }
+    
+    // BreadcrumbList Schema
+    const breadcrumbs: any[] = [
+        {
+            '@type': 'ListItem',
+            'position': 1,
+            'name': 'Главная',
+            'item': 'https://account-arena.com/'
+        }
+    ];
+    
+    if (account.value.category) {
+        breadcrumbs.push({
+            '@type': 'ListItem',
+            'position': 2,
+            'name': account.value.category.name,
+            'item': `https://account-arena.com/categories/${account.value.category.id}`
+        });
+    }
+    
+    breadcrumbs.push({
+        '@type': 'ListItem',
+        'position': account.value.category ? 3 : 2,
+        'name': productTitle,
+        'item': `https://account-arena.com/account/${id.value}`
+    });
+    
+    const breadcrumbSchema = {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        'itemListElement': breadcrumbs
+    };
+    
+    return [productSchema, breadcrumbSchema];
+});
+
+// Hreflang для мультиязычности
+useHreflang(() => `/account/${id.value}`);
 
 // Загрузка избранных из localStorage
 const loadFavorites = () => {

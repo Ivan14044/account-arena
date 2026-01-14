@@ -59,6 +59,9 @@ class ProductController extends Controller
         // Структурированные данные
         $structuredData = $this->getProductStructuredData($product, $title, $description, $locale);
         
+        // SPA версия для пользователей (alternate)
+        $spaUrl = url('/account/' . $id);
+        
         return view('seo.product', compact(
             'product',
             'title',
@@ -72,7 +75,8 @@ class ProductController extends Controller
             'ogImage',
             'alternateUrls',
             'breadcrumbs',
-            'structuredData'
+            'structuredData',
+            'spaUrl'
         ));
     }
     

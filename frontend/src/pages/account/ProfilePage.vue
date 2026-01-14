@@ -1840,8 +1840,18 @@ import { POSITION, useToast } from 'vue-toastification';
 import { useI18n } from 'vue-i18n';
 import { useRouter, useRoute } from 'vue-router';
 import { useLoadingStore } from '@/stores/loading';
+import { useSeo } from '@/composables/useSeo';
 import axios from '@/bootstrap'; // Используем настроенный axios из bootstrap
 import { useProductTitle } from '@/composables/useProductTitle';
+
+const { t } = useI18n();
+
+// SEO мета-теги (noindex для служебной страницы)
+useSeo({
+    title: () => t('profile.title') || 'Профиль',
+    description: () => 'Управление профилем и настройками аккаунта Account Arena',
+    noindex: true
+});
 
 const toast = useToast();
 const { getProductTitle } = useProductTitle();

@@ -73,6 +73,11 @@
     {{-- Canonical URL --}}
     <link rel="canonical" href="{{ url()->current() }}">
     
+    {{-- Alternate link to SPA version (for users) --}}
+    @if(isset($spaUrl) && $spaUrl)
+    <link rel="alternate" href="{{ $spaUrl }}" type="text/html">
+    @endif
+    
     {{-- Favicon --}}
     <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
     

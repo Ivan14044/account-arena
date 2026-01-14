@@ -80,10 +80,21 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { useSeo } from '@/composables/useSeo';
 import SocialAuthButtons from './SocialAuthButtons.vue';
 import LanguageSelector from '@/components/layout/LanguageSelector.vue';
 import { useAuthStore } from '../../stores/auth';
 import logo from '@/assets/logo.webp';
+
+const { t } = useI18n();
+
+// SEO мета-теги (noindex для служебной страницы)
+useSeo({
+    title: () => t('auth.forgotPasswordTitle') || 'Восстановление пароля',
+    description: () => t('auth.forgotPasswordSubtitle') || 'Восстановите доступ к своему аккаунту Account Arena',
+    noindex: true
+});
 
 const authStore = useAuthStore();
 

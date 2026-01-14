@@ -101,9 +101,20 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
+import { useI18n } from 'vue-i18n';
+import { useSeo } from '@/composables/useSeo';
 import LanguageSelector from '@/components/layout/LanguageSelector.vue';
 import { useAuthStore } from '../../stores/auth';
 import logo from '@/assets/logo.webp';
+
+const { t } = useI18n();
+
+// SEO мета-теги (noindex для служебной страницы)
+useSeo({
+    title: () => t('auth.resetPasswordTitle') || 'Сброс пароля',
+    description: () => t('auth.resetPasswordSubtitle') || 'Установите новый пароль для вашего аккаунта Account Arena',
+    noindex: true
+});
 
 const props = defineProps({
     token: {

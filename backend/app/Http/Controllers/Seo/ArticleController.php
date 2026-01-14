@@ -121,6 +121,9 @@ class ArticleController extends Controller
         // Структурированные данные для статьи
         $structuredData = $this->getArticleStructuredData($article, $title, $content, $locale);
         
+        // SPA версия для пользователей (alternate)
+        $spaUrl = url('/articles/' . $id);
+        
         return view('seo.article', compact(
             'article',
             'title',
@@ -133,7 +136,8 @@ class ArticleController extends Controller
             'ogImage',
             'ogType',
             'alternateUrls',
-            'structuredData'
+            'structuredData',
+            'spaUrl'
         ))->with('ogType', 'article');
     }
     

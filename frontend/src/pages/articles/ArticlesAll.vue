@@ -84,6 +84,8 @@ import ArticleCard from '../../components/ArticleCard.vue';
 import { useRoute, useRouter } from 'vue-router';
 import BackLink from '../../components/layout/BackLink.vue';
 import { useLoadingStore } from '../../stores/loading';
+import { useSeo } from '@/composables/useSeo';
+import { useHreflang } from '@/composables/useHreflang';
 
 const { t, locale } = useI18n();
 const articlesStore = useArticlesStore();
@@ -196,6 +198,37 @@ onMounted(async () => {
 watch([limit, offset, categoryId], () => {
     fetchPageWithLoader();
 });
+
+// SEO мета-теги
+const canonicalPath = computed(() => {
+    const isCategory = typeof categoryId.value === 'number';
+    const page = routePage.value;
+    if (page <= 1) {
+        return isCategory ? `/categories/${categoryId.value}` : '/articles';
+    }
+    return isCategory 
+        ? `/categories/${categoryId.value}/page/${page}` 
+        : `/articles/page/${page}`;
+});
+
+useSeo({
+    title: () => {
+        const title = pageTitle.value;
+        return title || 'Статьи';
+    },
+    description: () => {
+        if (isCategoryPage.value && categoryTextHtml.value) {
+            const text = categoryTextHtml.value.replace(/<[^>]*>/g, '').trim();
+            return text ? text.substring(0, 160) : t('articles.description') || '';
+        }
+        return t('articles.description') || 'Читайте полезные статьи и инструкции на Account Arena';
+    },
+    ogImage: '/img/logo_trans.webp',
+    canonical: () => canonicalPath.value
+});
+
+// Hreflang для мультиязычности
+useHreflang(() => canonicalPath.value);
 
 async function fetchPage() {
     await articlesStore.fetchArticlesPage({

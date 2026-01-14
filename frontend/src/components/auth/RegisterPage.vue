@@ -131,10 +131,21 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import { useAuthStore } from '../../stores/auth';
+import { useSeo } from '@/composables/useSeo';
 import LanguageSelector from '@/components/layout/LanguageSelector.vue';
 import SocialAuthButtons from './SocialAuthButtons.vue';
 import logo from '@/assets/logo.webp';
+
+const { t } = useI18n();
+
+// SEO мета-теги (noindex для служебной страницы)
+useSeo({
+    title: () => t('auth.registerTitle') || 'Регистрация',
+    description: () => t('auth.registerSubtitle') || 'Создайте новый аккаунт в Account Arena',
+    noindex: true
+});
 
 const name = ref('');
 const email = ref('');

@@ -27,7 +27,6 @@
                 </div>
 
                 <div class="p-6">
-                    <h1 class="text-3xl md:text-4xl font-semibold mb-5">{{ article.title }}</h1>
                     <div class="mb-5 flex flex-wrap gap-1">
                         <router-link
                             v-for="category in article.categories"
@@ -58,6 +57,9 @@ import { useRoute, useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { useArticlesStore } from '../../stores/articles';
 import { useLoadingStore } from '@/stores/loading';
+import { useSeo } from '@/composables/useSeo';
+import { useStructuredData } from '@/composables/useStructuredData';
+import { useHreflang } from '@/composables/useHreflang';
 import BackLink from '../../components/layout/BackLink.vue';
 import ImageWithFallback from '../../components/ImageWithFallback.vue';
 import type { Category } from '../../types/article';
@@ -118,6 +120,105 @@ function formatDate(dateVal: Date | string | number): string {
         return '';
     }
 }
+
+// SEO мета-теги
+useSeo({
+    title: () => article.value?.title || 'Статья',
+    description: () => {
+        if (!article.value?.content) return '';
+        // Удаляем HTML теги и ограничиваем длину
+        const text = article.value.content.replace(/<[^>]*>/g, '').trim();
+        return text ? text.substring(0, 160) : '';
+    },
+    ogImage: () => article.value?.img || '/img/logo_trans.webp',
+    canonical: () => `https://account-arena.com/seo/articles/${id}`,
+    ogType: 'article'
+});
+
+// Structured Data: Article Schema и BreadcrumbList Schema
+useStructuredData(() => {
+    if (!article.value) return [];
+    
+    const articleTitle = article.value.title || 'Статья';
+    const articleContent = article.value.content || '';
+    const textContent = articleContent.replace(/<[^>]*>/g, '').trim();
+    const imageUrl = article.value.img 
+        ? (article.value.img.startsWith('http') 
+            ? article.value.img 
+            : `https://account-arena.com${article.value.img.startsWith('/') ? article.value.img : '/' + article.value.img}`)
+        : 'https://account-arena.com/img/logo_trans.webp';
+    
+    // Article Schema
+    const articleData: any = {
+        '@context': 'https://schema.org',
+        '@type': 'Article',
+        'headline': articleTitle,
+        'description': textContent ? textContent.substring(0, 160) : articleTitle,
+        'datePublished': article.value.created_at || new Date().toISOString(),
+        'dateModified': article.value.updated_at || article.value.created_at || new Date().toISOString(),
+        'author': {
+            '@type': 'Organization',
+            'name': 'Account Arena'
+        },
+        'publisher': {
+            '@type': 'Organization',
+            'name': 'Account Arena',
+            'logo': {
+                '@type': 'ImageObject',
+                'url': 'https://account-arena.com/img/logo_trans.webp'
+            }
+        },
+        'image': imageUrl
+    };
+    
+    if (article.value.categories && article.value.categories.length > 0) {
+        articleData['articleSection'] = resolveCategoryName(article.value.categories[0]);
+    }
+    
+    // BreadcrumbList Schema
+    const breadcrumbs: any[] = [
+        {
+            '@type': 'ListItem',
+            'position': 1,
+            'name': 'Главная',
+            'item': 'https://account-arena.com/'
+        },
+        {
+            '@type': 'ListItem',
+            'position': 2,
+            'name': 'Статьи',
+            'item': 'https://account-arena.com/articles'
+        }
+    ];
+    
+    if (article.value.categories && article.value.categories.length > 0) {
+        const category = article.value.categories[0];
+        breadcrumbs.push({
+            '@type': 'ListItem',
+            'position': 3,
+            'name': resolveCategoryName(category),
+            'item': `https://account-arena.com/categories/${category.id}`
+        });
+    }
+    
+    breadcrumbs.push({
+        '@type': 'ListItem',
+        'position': article.value.categories && article.value.categories.length > 0 ? 4 : 3,
+        'name': articleTitle,
+        'item': `https://account-arena.com/articles/${id}`
+    });
+    
+    const breadcrumbSchema = {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        'itemListElement': breadcrumbs
+    };
+    
+    return [articleData, breadcrumbSchema];
+});
+
+// Hreflang для мультиязычности
+useHreflang(() => `/articles/${id}`);
 </script>
 
 <style scoped>
