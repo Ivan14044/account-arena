@@ -622,7 +622,6 @@ useSeo({
 
 const router = useRouter();
 const toast = useToast();
-const { t } = useI18n();
 const { getProductTitle } = useProductTitle();
 const loadingStore = useLoadingStore();
 
