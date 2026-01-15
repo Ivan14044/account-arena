@@ -34,5 +34,8 @@ Disallow: /*?*ref=*
 Disallow: /*?*token=*
 Disallow: /*?*auth=*
 
+# Блокируем старые URL /products/{id} (редирект на /account/{id})
+Disallow: /products/
+
 # Sitemap
 Sitemap: https://account-arena.com/sitemap.xml

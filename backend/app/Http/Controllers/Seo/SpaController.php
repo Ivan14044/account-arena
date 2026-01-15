@@ -157,7 +157,7 @@ class SpaController extends Controller
                 'og:description' => $desc,
                 'og:type' => 'product',
                 'og:image' => $product->image_url ? (str_starts_with($product->image_url, 'http') ? $product->image_url : url($product->image_url)) : url('/img/logo_trans.webp'),
-                'canonical' => url("/seo/products/{$product->id}"),
+                'canonical' => rtrim(url("/seo/products/{$product->id}"), '/'),
                 'schema' => $schema
             ];
         } catch (\Exception $e) { return []; }
@@ -217,7 +217,7 @@ class SpaController extends Controller
                 'og:description' => $desc,
                 'og:type' => 'article',
                 'og:image' => $article->img ? $this->normalizeArticleImageUrl($article->img) : url('/img/logo_trans.webp'),
-                'canonical' => url("/seo/articles/{$id}"),
+                'canonical' => rtrim(url("/seo/articles/{$id}"), '/'),
                 'schema' => $schema
             ];
         } catch (\Exception $e) { return []; }
@@ -232,12 +232,23 @@ class SpaController extends Controller
             return $path;
         }
 
+        // Убираем двойной /storage/ если он есть
+        $path = preg_replace('#/storage//storage/#', '/storage/', $path);
+        $path = preg_replace('#^storage//storage/#', 'storage/', $path);
+        
+        // Нормализуем путь: убираем лишние слэши
         $normalized = '/' . ltrim($path, '/');
+        
+        // Если путь уже содержит storage, не добавляем повторно через Storage::url
         if (str_starts_with(ltrim($path, '/'), 'storage/')) {
             return url($normalized);
         }
 
-        return url(Storage::url($path));
+        $storageUrl = Storage::url($path);
+        // Дополнительная проверка на двойной /storage/ после Storage::url
+        $storageUrl = preg_replace('#/storage//storage/#', '/storage/', $storageUrl);
+        
+        return url($storageUrl);
     }
 
     private function getCategoryMetaTags(int $id, string $locale): array
@@ -254,6 +265,12 @@ class SpaController extends Controller
             }
             
             $desc = $category->translate('meta_description', $locale);
+            
+            // Очищаем дублирование слова "accounts" если оно есть в сохраненном описании
+            if ($desc) {
+                $desc = preg_replace('/\b(accounts|аккаунты|акаунти)\s+\1\b/iu', '$1', $desc);
+            }
+            
             if ($this->isDescriptionTooShort($desc)) {
                 // Генерируем осмысленное описание на основе названия категории
                 $desc = $this->getCategoryDescription($name, $locale);
@@ -265,7 +282,7 @@ class SpaController extends Controller
                 'description' => $desc,
                 'og:title' => $name,
                 'og:description' => $desc,
-                'canonical' => url("/seo/categories/{$id}"),
+                'canonical' => rtrim(url("/seo/categories/{$id}"), '/'),
             ];
         } catch (\Exception $e) { 
             return ['status' => 404];
@@ -298,7 +315,7 @@ class SpaController extends Controller
             'description' => $description,
             'og:title' => $title,
             'og:description' => $description,
-            'canonical' => url('/categories')
+            'canonical' => rtrim(url('/categories'), '/')
         ];
     }
 
@@ -316,13 +333,32 @@ class SpaController extends Controller
      */
     private function getCategoryDescription(string $name, string $locale): string
     {
-        $templates = [
-            'ru' => 'Купить аккаунты ' . $name . ' — описание категории, варианты и актуальные предложения на Account Arena.',
-            'en' => 'Buy ' . $name . ' accounts — category overview, options and current offers on Account Arena.',
-            'uk' => 'Купити акаунти ' . $name . ' — опис категорії, варіанти та актуальні пропозиції на Account Arena.'
-        ];
+        // Проверяем, содержит ли название уже слово "accounts" (в разных вариантах)
+        $nameLower = mb_strtolower($name);
+        $hasAccounts = str_contains($nameLower, 'accounts') || str_contains($nameLower, 'аккаунты') || str_contains($nameLower, 'акаунти');
+        
+        if ($hasAccounts) {
+            // Если название уже содержит "accounts", не добавляем его повторно
+            $templates = [
+                'ru' => 'Купить ' . $name . ' — описание категории, варианты и актуальные предложения на Account Arena.',
+                'en' => 'Buy ' . $name . ' — category overview, options and current offers on Account Arena.',
+                'uk' => 'Купити ' . $name . ' — опис категорії, варіанти та актуальні пропозиції на Account Arena.'
+            ];
+        } else {
+            // Если названия нет, добавляем "аккаунты"
+            $templates = [
+                'ru' => 'Купить аккаунты ' . $name . ' — описание категории, варианты и актуальные предложения на Account Arena.',
+                'en' => 'Buy ' . $name . ' accounts — category overview, options and current offers on Account Arena.',
+                'uk' => 'Купити акаунти ' . $name . ' — опис категорії, варіанти та актуальні пропозиції на Account Arena.'
+            ];
+        }
 
-        return $templates[$locale] ?? $templates['ru'];
+        $description = $templates[$locale] ?? $templates['ru'];
+        
+        // Дополнительная очистка: убираем дублирование слова "accounts" если оно есть
+        $description = preg_replace('/\b(accounts|аккаунты|акаунти)\s+\1\b/iu', '$1', $description);
+        
+        return $description;
     }
     
     private function getHomeMetaTags(string $locale): array
@@ -385,7 +421,7 @@ class SpaController extends Controller
             'description' => $pageData['desc'],
             'og:title' => $pageData['title'],
             'og:description' => $pageData['desc'],
-            'canonical' => url("/" . ($requestPath ?: $page)),
+            'canonical' => rtrim(url("/" . ($requestPath ?: $page)), '/'),
         ];
     }
 
@@ -406,7 +442,7 @@ class SpaController extends Controller
                 'description' => $desc,
                 'og:title' => $title,
                 'og:description' => $desc,
-                'canonical' => url("/" . $slug),
+                'canonical' => rtrim(url("/" . $slug), '/'),
             ];
         } catch (\Exception $e) {
             return [];
@@ -431,7 +467,7 @@ class SpaController extends Controller
             'title' => $titles[$locale] ?? $titles['ru'],
             'h1' => $titles[$locale] ?? $titles['ru'],
             'description' => $descriptions[$locale] ?? $descriptions['ru'],
-            'canonical' => url('/seo/articles'), // Используем /seo/ путь для каноникала списка статей
+            'canonical' => rtrim(url('/seo/articles'), '/'), // Используем /seo/ путь для каноникала списка статей
         ];
     }
     

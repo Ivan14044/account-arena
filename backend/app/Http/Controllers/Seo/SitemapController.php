@@ -40,10 +40,22 @@ class SitemapController extends Controller
                 $xml .= $this->generateUrl($url, 0.8, 'weekly', 'ru', $lastmod);
             }
             
-            // SEO страницы категорий
-            $categories = Category::all();
+            // SEO страницы категорий (только те, у которых есть хотя бы одно название)
+            $categories = Category::with('translations')->get();
             
             foreach ($categories as $category) {
+                // Проверяем, что у категории есть хотя бы одно название (на любом языке)
+                $hasName = $category->translations()
+                    ->where('code', 'name')
+                    ->whereNotNull('value')
+                    ->where('value', '!=', '')
+                    ->exists();
+                
+                // Если нет названия, пропускаем категорию
+                if (!$hasName) {
+                    continue;
+                }
+                
                 $url = $baseUrl . '/seo/categories/' . $category->id;
                 $xml .= $this->generateUrl($url, 0.7, 'weekly', 'ru');
             }

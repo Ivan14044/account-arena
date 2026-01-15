@@ -27,7 +27,22 @@
             <article class="article-card border rounded-lg p-4 hover:shadow-lg transition">
                 @if($article->img)
                 <div class="mb-4">
-                    <img src="{{ \Illuminate\Support\Facades\Storage::url($article->img) }}" 
+                    @php
+                        $imgPath = $article->img;
+                        // Убираем двойной /storage/ если он есть
+                        $imgPath = preg_replace('#/storage//storage/#', '/storage/', $imgPath);
+                        $imgPath = preg_replace('#^storage//storage/#', 'storage/', $imgPath);
+                        
+                        // Если путь уже содержит storage/, используем его напрямую
+                        if (str_starts_with(ltrim($imgPath, '/'), 'storage/')) {
+                            $imageUrl = url('/' . ltrim($imgPath, '/'));
+                        } else {
+                            $imageUrl = \Illuminate\Support\Facades\Storage::url($imgPath);
+                            // Дополнительная проверка на двойной /storage/ после Storage::url
+                            $imageUrl = preg_replace('#/storage//storage/#', '/storage/', $imageUrl);
+                        }
+                    @endphp
+                    <img src="{{ $imageUrl }}" 
                          alt="{{ $article->translate('title', $locale) }}" 
                          class="w-full rounded-lg"
                          loading="lazy"

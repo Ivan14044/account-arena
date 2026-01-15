@@ -221,7 +221,10 @@ Route::get('/sitemap.xml', [\App\Http\Controllers\Seo\SitemapController::class, 
 
 // SPA-роуты с инжекцией мета-тегов (обрабатываются через nginx -> Laravel)
 Route::get('/account/{id}', [\App\Http\Controllers\Seo\SpaController::class, 'index'])->where('id', '.*')->name('spa.account');
-Route::get('/products/{id}', [\App\Http\Controllers\Seo\SpaController::class, 'index'])->where('id', '.*')->name('spa.products'); // Alias
+// Редирект старых /products/{id} на /account/{id} для избежания дублей
+Route::get('/products/{id}', function ($id) {
+    return redirect('/account/' . $id, 301);
+})->where('id', '.*')->name('spa.products.redirect');
 Route::get('/articles/{id}', [\App\Http\Controllers\Seo\SpaController::class, 'index'])->where('id', '\d+')->name('spa.article');
 Route::get('/articles', [\App\Http\Controllers\Seo\SpaController::class, 'index'])->name('spa.articles');
 Route::get('/categories/{id}', [\App\Http\Controllers\Seo\SpaController::class, 'index'])->where('id', '\d+')->name('spa.category');

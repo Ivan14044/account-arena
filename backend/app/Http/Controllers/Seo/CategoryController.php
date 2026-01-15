@@ -39,6 +39,11 @@ class CategoryController extends Controller
         $metaTitle = $category->translate('meta_title', $locale) ?? $name;
         $metaDescription = $category->translate('meta_description', $locale);
         
+        // Очищаем дублирование слова "accounts" если оно есть в сохраненном описании
+        if ($metaDescription) {
+            $metaDescription = preg_replace('/\b(accounts|аккаунты|акаунти)\s+\1\b/iu', '$1', $metaDescription);
+        }
+        
         // Генерируем осмысленное описание, если оно пустое или слишком короткое
         if ($this->isDescriptionTooShort($metaDescription)) {
             $metaDescription = $this->getCategoryDescription($name, $locale);
@@ -165,12 +170,31 @@ class CategoryController extends Controller
      */
     private function getCategoryDescription(string $name, string $locale): string
     {
-        $templates = [
-            'ru' => 'Купить аккаунты ' . $name . ' — описание категории, варианты и актуальные предложения на Account Arena.',
-            'en' => 'Buy ' . $name . ' accounts — category overview, options and current offers on Account Arena.',
-            'uk' => 'Купити акаунти ' . $name . ' — опис категорії, варіанти та актуальні пропозиції на Account Arena.'
-        ];
+        // Проверяем, содержит ли название уже слово "accounts" (в разных вариантах)
+        $nameLower = mb_strtolower($name);
+        $hasAccounts = str_contains($nameLower, 'accounts') || str_contains($nameLower, 'аккаунты') || str_contains($nameLower, 'акаунти');
+        
+        if ($hasAccounts) {
+            // Если название уже содержит "accounts", не добавляем его повторно
+            $templates = [
+                'ru' => 'Купить ' . $name . ' — описание категории, варианты и актуальные предложения на Account Arena.',
+                'en' => 'Buy ' . $name . ' — category overview, options and current offers on Account Arena.',
+                'uk' => 'Купити ' . $name . ' — опис категорії, варіанти та актуальні пропозиції на Account Arena.'
+            ];
+        } else {
+            // Если названия нет, добавляем "аккаунты"
+            $templates = [
+                'ru' => 'Купить аккаунты ' . $name . ' — описание категории, варианты и актуальные предложения на Account Arena.',
+                'en' => 'Buy ' . $name . ' accounts — category overview, options and current offers on Account Arena.',
+                'uk' => 'Купити акаунти ' . $name . ' — опис категорії, варіанти та актуальні пропозиції на Account Arena.'
+            ];
+        }
 
-        return $templates[$locale] ?? $templates['ru'];
+        $description = $templates[$locale] ?? $templates['ru'];
+        
+        // Дополнительная очистка: убираем дублирование слова "accounts" если оно есть
+        $description = preg_replace('/\b(accounts|аккаунты|акаунти)\s+\1\b/iu', '$1', $description);
+        
+        return $description;
     }
 }

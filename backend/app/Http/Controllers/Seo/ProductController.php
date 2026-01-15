@@ -64,6 +64,9 @@ class ProductController extends Controller
         // SPA версия для пользователей (alternate)
         $spaUrl = url('/account/' . $id);
         
+        // Open Graph type для товаров
+        $ogType = 'product';
+        
         return view('seo.product', compact(
             'product',
             'title',
@@ -75,6 +78,7 @@ class ProductController extends Controller
             'pageTitle',
             'locale',
             'ogImage',
+            'ogType',
             'alternateUrls',
             'breadcrumbs',
             'structuredData',

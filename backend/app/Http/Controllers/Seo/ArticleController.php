@@ -204,12 +204,22 @@ class ArticleController extends Controller
             return $path;
         }
 
+        // Убираем двойной /storage/ если он есть
+        $path = preg_replace('#/storage//storage/#', '/storage/', $path);
+        $path = preg_replace('#^storage//storage/#', 'storage/', $path);
+        
+        // Нормализуем путь: убираем лишние слэши
         $normalized = '/' . ltrim($path, '/');
-        // Если путь уже содержит storage, не добавляем повторно
+        
+        // Если путь уже содержит storage, не добавляем повторно через Storage::url
         if (str_starts_with(ltrim($path, '/'), 'storage/')) {
             return url($normalized);
         }
 
-        return url(Storage::url($path));
+        $storageUrl = Storage::url($path);
+        // Дополнительная проверка на двойной /storage/ после Storage::url
+        $storageUrl = preg_replace('#/storage//storage/#', '/storage/', $storageUrl);
+        
+        return url($storageUrl);
     }
 }
