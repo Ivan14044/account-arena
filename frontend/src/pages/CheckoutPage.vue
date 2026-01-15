@@ -731,9 +731,6 @@ watch(isZeroTotalWithServices, val => {
 });
 
 const processMonoPayment = async () => {
-    // Показываем сообщение о подготовке заказа
-    loadingStore.start(t('checkout.preparing_product'));
-
     try {
         // Проверяем, гость или авторизованный пользователь
         const isGuest = !authStore.isAuthenticated;
@@ -742,7 +739,6 @@ const processMonoPayment = async () => {
             // Гостевой платеж (только для товаров)
             if (!guestEmail.value || !guestEmail.value.trim()) {
                 toast.error(t('checkout.guest_email_required_short'));
-                loadingStore.stop();
                 return;
             }
 
@@ -761,7 +757,6 @@ const processMonoPayment = async () => {
                 await new Promise(resolve => setTimeout(resolve, 500));
                 window.location.href = data.url;
             } else {
-                loadingStore.stop();
                 toast.error(t('checkout.payment_error'));
             }
         } else {
@@ -781,7 +776,6 @@ const processMonoPayment = async () => {
                 await new Promise(resolve => setTimeout(resolve, 500));
                 window.location.href = data.url;
             } else {
-                loadingStore.stop();
                 toast.error(t('checkout.payment_error'));
             }
         }
@@ -790,14 +784,10 @@ const processMonoPayment = async () => {
         const errMsg =
             (error && (error as any).response?.data?.message) || t('checkout.payment_error');
         toast.error(errMsg as string);
-        loadingStore.stop();
     }
 };
 
 const processCryptoPayment = async () => {
-    // Показываем сообщение о подготовке заказа
-    loadingStore.start(t('checkout.preparing_product'));
-
     try {
         // Проверяем, гость или авторизованный пользователь
         const isGuest = !authStore.isAuthenticated;
@@ -806,7 +796,6 @@ const processCryptoPayment = async () => {
             // Гостевой платеж (только для товаров)
             if (!guestEmail.value || !guestEmail.value.trim()) {
                 toast.error(t('checkout.guest_email_required_short'));
-                loadingStore.stop();
                 return;
             }
 
@@ -825,7 +814,6 @@ const processCryptoPayment = async () => {
                 await new Promise(resolve => setTimeout(resolve, 500));
                 window.location.href = data.url;
             } else {
-                loadingStore.stop();
                 toast.error(t('checkout.payment_error'));
             }
         } else {
@@ -845,7 +833,6 @@ const processCryptoPayment = async () => {
                 await new Promise(resolve => setTimeout(resolve, 500));
                 window.location.href = data.url;
             } else {
-                loadingStore.stop();
                 toast.error(t('checkout.payment_error'));
             }
         }
@@ -854,7 +841,6 @@ const processCryptoPayment = async () => {
         const errMsg =
             (error && (error as any).response?.data?.message) || t('checkout.payment_error');
         toast.error(errMsg as string);
-        loadingStore.stop();
     }
 };
 
