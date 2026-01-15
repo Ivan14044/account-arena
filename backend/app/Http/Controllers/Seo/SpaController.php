@@ -232,10 +232,14 @@ class SpaController extends Controller
         
         // H1 Injection (для ботов)
         if (isset($metaTags['h1'])) {
-            $h1Html = '<h1 style="display:none">' . htmlspecialchars($metaTags['h1'], ENT_QUOTES, 'UTF-8') . '</h1>';
-            // Инжектируем в начало body
+            $h1Html = "\n  " . '<h1 style="display:none">' . htmlspecialchars($metaTags['h1'], ENT_QUOTES, 'UTF-8') . '</h1>';
+            // Инжектируем после открывающего тега body
             if (strpos($html, '<body') !== false) {
-                $html = preg_replace('/(<body[^>]*>)/i', "$1\n  " . $h1Html, $html);
+                // Ищем конец тега <body ...>
+                $bodyPos = strpos($html, '>', strpos($html, '<body'));
+                if ($bodyPos !== false) {
+                    $html = substr_replace($html, $h1Html, $bodyPos + 1, 0);
+                }
             }
         }
         
