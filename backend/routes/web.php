@@ -217,6 +217,10 @@ Route::get('/account/{id}', [\App\Http\Controllers\Seo\SpaController::class, 'in
 Route::get('/articles/{id}', [\App\Http\Controllers\Seo\SpaController::class, 'index'])->where('id', '\d+')->name('spa.article');
 Route::get('/articles', [\App\Http\Controllers\Seo\SpaController::class, 'index'])->name('spa.articles');
 Route::get('/categories/{id}', [\App\Http\Controllers\Seo\SpaController::class, 'index'])->where('id', '\d+')->name('spa.category');
+Route::get('/become-supplier', [\App\Http\Controllers\Seo\SpaController::class, 'index'])->name('spa.become-supplier');
+Route::get('/conditions', [\App\Http\Controllers\Seo\SpaController::class, 'index'])->name('spa.conditions');
+Route::get('/payment-refund', [\App\Http\Controllers\Seo\SpaController::class, 'index'])->name('spa.payment-refund');
+Route::get('/contacts', [\App\Http\Controllers\Seo\SpaController::class, 'index'])->name('spa.contacts');
 Route::get('/', [\App\Http\Controllers\Seo\SpaController::class, 'index'])->name('spa.home');
 
 // Sitemap
