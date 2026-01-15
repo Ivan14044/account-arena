@@ -54,5 +54,50 @@
         {!! $seoText !!}
     </div>
     @endif
+    
+    {{-- Внутренняя перелинковка: Связанные товары --}}
+    @if($article->categories && $article->categories->count() > 0)
+        @php
+            $categoryIds = $article->categories->pluck('id')->toArray();
+            $relatedProducts = \App\Models\ServiceAccount::whereIn('category_id', $categoryIds)
+                ->where('is_active', true)
+                ->limit(5)
+                ->get();
+        @endphp
+        @if($relatedProducts->count() > 0)
+        <div class="related-products mt-12 pt-8 border-t border-gray-200">
+            <h2 class="text-2xl font-semibold mb-4">Рекомендуемые товары</h2>
+            <ul class="space-y-2">
+                @foreach($relatedProducts as $product)
+                    <li>
+                        <a href="{{ url('/seo/products/' . $product->id) }}" 
+                           class="text-blue-600 hover:text-blue-800 hover:underline">
+                            @php
+                                $productTitle = $locale === 'uk' ? ($product->title_uk ?: $product->title) : 
+                                               ($locale === 'en' ? ($product->title_en ?: $product->title) : $product->title);
+                            @endphp
+                            {{ $productTitle }}
+                        </a>
+                    </li>
+                @endforeach
+            </ul>
+        </div>
+        @endif
+        
+        {{-- Связанные категории --}}
+        <div class="related-categories mt-8 pt-8 border-t border-gray-200">
+            <h2 class="text-2xl font-semibold mb-4">Категории</h2>
+            <ul class="space-y-2">
+                @foreach($article->categories as $category)
+                    <li>
+                        <a href="{{ url('/seo/categories/' . $category->id) }}" 
+                           class="text-blue-600 hover:text-blue-800 hover:underline">
+                            {{ $category->translate('name', $locale) ?: $category->name }}
+                        </a>
+                    </li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
 </article>
 @endsection

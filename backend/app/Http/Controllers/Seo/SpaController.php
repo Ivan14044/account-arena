@@ -200,10 +200,20 @@ class SpaController extends Controller
     {
         try {
             $category = Category::find($id);
-            if (!$category) return [];
+            if (!$category) {
+                return ['status' => 404];
+            }
             
             $name = $category->translate('name', $locale);
-            $desc = $category->translate('meta_description', $locale) ?: $name . ' - Account Arena';
+            if (empty($name)) {
+                $name = 'Category ' . $id;
+            }
+            
+            $desc = $category->translate('meta_description', $locale);
+            if (empty($desc)) {
+                // Генерируем описание на основе названия категории
+                $desc = __('Купить :name аккаунты на Account Arena. Быстрая доставка, гарантия качества.', ['name' => $name], $locale);
+            }
             
             return [
                 'title' => $name . ' - Account Arena',
@@ -213,7 +223,9 @@ class SpaController extends Controller
                 'og:description' => $desc,
                 'canonical' => url("/seo/categories/{$id}"),
             ];
-        } catch (\Exception $e) { return []; }
+        } catch (\Exception $e) { 
+            return ['status' => 404];
+        }
     }
     
     private function getHomeMetaTags(string $locale): array

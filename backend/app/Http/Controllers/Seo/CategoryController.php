@@ -32,8 +32,18 @@ class CategoryController extends Controller
         
         // Получаем переводы для текущей локали
         $name = $category->translate('name', $locale);
+        if (empty($name)) {
+            $name = 'Category ' . $id;
+        }
+        
         $metaTitle = $category->translate('meta_title', $locale) ?? $name;
         $metaDescription = $category->translate('meta_description', $locale);
+        
+        // Генерируем описание, если его нет
+        if (empty($metaDescription)) {
+            $metaDescription = __('Купить :name аккаунты на Account Arena. Быстрая доставка, гарантия качества.', ['name' => $name], $locale);
+        }
+        
         $seoText = $category->translate('text', $locale);
         $instruction = $category->translate('instruction', $locale);
         

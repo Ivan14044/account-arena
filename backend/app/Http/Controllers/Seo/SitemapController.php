@@ -85,7 +85,8 @@ class SitemapController extends Controller
         });
         
         return response($sitemap, 200)
-            ->header('Content-Type', 'application/xml; charset=utf-8');
+            ->header('Content-Type', 'application/xml; charset=utf-8')
+            ->header('X-Content-Type-Options', 'nosniff');
     }
     
     /**

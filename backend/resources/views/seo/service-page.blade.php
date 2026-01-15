@@ -1,10 +1,12 @@
 @extends('seo.layout')
 
 @push('structured-data')
-@if(isset($structuredData))
-<script type="application/ld+json">
-{!! json_encode($structuredData, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) !!}
-</script>
+@if(isset($structuredData) && is_array($structuredData))
+    @foreach($structuredData as $schema)
+    <script type="application/ld+json">
+{!! json_encode($schema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) !!}
+    </script>
+    @endforeach
 @endif
 @endpush
 
@@ -13,15 +15,29 @@
     {{-- H1 заголовок --}}
     <h1 class="text-4xl font-bold mb-6 text-gray-900">{{ $title }}</h1>
     
-    {{-- SEO-контент --}}
+    {{-- SEO-контент с улучшенной структурой --}}
     @if($content)
     <div class="seo-content prose prose-lg max-w-none mb-8">
         {!! $content !!}
     </div>
     @else
     <div class="seo-content prose prose-lg max-w-none mb-8">
-        <p class="text-gray-600">{{ $metaDescription }}</p>
-    </div>
+        <p class="text-gray-600 text-lg leading-relaxed">{{ $metaDescription }}</p>
+        
+        {{-- Базовая структура для пустого контента --}}
+        <div class="mt-8 space-y-6">
+            <section>
+                <h2 class="text-2xl font-semibold mb-4 text-gray-900">Основная информация</h2>
+                <p class="text-gray-700 leading-relaxed">{{ $metaDescription }}</p>
+            </section>
+            
+            <section>
+                <h2 class="text-2xl font-semibold mb-4 text-gray-900">Дополнительные детали</h2>
+                <p class="text-gray-700 leading-relaxed">
+                    Для получения более подробной информации, пожалуйста, свяжитесь с нашей службой поддержки или посетите интерактивную версию страницы.
+                </p>
+            </section>
+        </div>
     @endif
     
     {{-- Ссылка на SPA версию для пользователей --}}

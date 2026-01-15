@@ -94,6 +94,61 @@
     </div>
     @endif
     
+    {{-- Внутренняя перелинковка: Похожие товары --}}
+    @if($product->category)
+        @php
+            $similarProducts = \App\Models\ServiceAccount::where('category_id', $product->category_id)
+                ->where('is_active', true)
+                ->where('id', '!=', $product->id)
+                ->limit(5)
+                ->get();
+        @endphp
+        @if($similarProducts->count() > 0)
+        <div class="similar-products mt-12 pt-8 border-t border-gray-200">
+            <h2 class="text-2xl font-semibold mb-4">Похожие товары</h2>
+            <ul class="space-y-2">
+                @foreach($similarProducts as $similar)
+                    <li>
+                        <a href="{{ url('/seo/products/' . $similar->id) }}" 
+                           class="text-blue-600 hover:text-blue-800 hover:underline">
+                            @php
+                                $similarTitle = $locale === 'uk' ? ($similar->title_uk ?: $similar->title) : 
+                                               ($locale === 'en' ? ($similar->title_en ?: $similar->title) : $similar->title);
+                            @endphp
+                            {{ $similarTitle }}
+                        </a>
+                    </li>
+                @endforeach
+            </ul>
+        </div>
+        @endif
+        
+        {{-- Связанные статьи из категории --}}
+        @php
+            $relatedArticles = \App\Models\Article::whereHas('categories', function($q) use ($product) {
+                $q->where('categories.id', $product->category_id);
+            })
+            ->where('status', 'published')
+            ->limit(3)
+            ->get();
+        @endphp
+        @if($relatedArticles->count() > 0)
+        <div class="related-articles mt-8 pt-8 border-t border-gray-200">
+            <h2 class="text-2xl font-semibold mb-4">Полезные статьи</h2>
+            <ul class="space-y-2">
+                @foreach($relatedArticles as $article)
+                    <li>
+                        <a href="{{ url('/seo/articles/' . $article->id) }}" 
+                           class="text-blue-600 hover:text-blue-800 hover:underline">
+                            {{ $article->translate('title', $locale) ?: $article->title }}
+                        </a>
+                    </li>
+                @endforeach
+            </ul>
+        </div>
+        @endif
+    @endif
+    
     {{-- Кнопка покупки (для Vue.js гидратации) --}}
     <div id="product-buy-button" data-product-id="{{ $product->id }}"></div>
 </article>

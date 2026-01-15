@@ -6,6 +6,19 @@ Disallow: /api/
 Disallow: /supplier/
 Disallow: /vendor/
 
+# Разрешаем AI-ботов для индексации в AI-среде
+User-agent: GPTBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
 # Блокируем параметры фильтров и сортировок
 Disallow: /*?*sort=*
 Disallow: /*?*filter=*
