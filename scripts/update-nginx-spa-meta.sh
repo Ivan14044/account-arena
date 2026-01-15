@@ -62,15 +62,15 @@ server {
         fastcgi_param REQUEST_URI $request_uri;
     }
 
-    # SPA Routes with Meta Injection (FIXED REGEX)
-    location ~ ^/(account|articles|categories|become-supplier|conditions|payment-refund|contacts) {
-        if ($uri ~ \.(jpg|jpeg|png|gif|ico|css|js|svg|woff|woff2|ttf|eot|webp|json|xml|map)$) { return 404; }
-        fastcgi_pass unix:/var/run/php/php8.2-fpm.sock;
-        fastcgi_index index.php;
-        fastcgi_param SCRIPT_FILENAME /var/www/account-arena/backend/public/index.php;
-        include fastcgi_params;
-        fastcgi_param REQUEST_URI $request_uri;
-    }
+# SPA Routes with Meta Injection (INCLUDING ALIASES AND ALL DYNAMIC PATHS)
+location ~ ^/(account|products|articles|categories|become-supplier|suppliers|conditions|replace-conditions|payment-refund|contacts) {
+    if ($uri ~ \.(jpg|jpeg|png|gif|ico|css|js|svg|woff|woff2|ttf|eot|webp|json|xml|map)$) { return 404; }
+    fastcgi_pass unix:/var/run/php/php8.2-fpm.sock;
+    fastcgi_index index.php;
+    fastcgi_param SCRIPT_FILENAME /var/www/account-arena/backend/public/index.php;
+    include fastcgi_params;
+    fastcgi_param REQUEST_URI $request_uri;
+}
 
     # Home Page with Meta Injection
     location = / {

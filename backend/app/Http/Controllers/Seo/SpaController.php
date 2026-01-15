@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\ServiceAccount;
 use App\Models\Article;
 use App\Models\Category;
+use App\Models\Page;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
@@ -64,9 +65,9 @@ class SpaController extends Controller
     {
         $path = trim($request->path(), '/');
         
-        // Товары
-        if (preg_match('#^account/(.+)$#i', $path, $matches)) {
-            return $this->getProductMetaTags($matches[1], $locale);
+        // Алиасы для товаров
+        if (preg_match('#^(account|products)/(.+)$#i', $path, $matches)) {
+            return $this->getProductMetaTags($matches[2], $locale, $matches[1]);
         }
         
         // Статьи (деталка)
@@ -89,24 +90,25 @@ class SpaController extends Controller
             return $this->getArticlesListMetaTags($locale);
         }
 
-        // Сервисные страницы
-        if ($path === 'become-supplier') {
-            return $this->getServicePageMetaTags('become-supplier', $locale);
+        // Сервисные страницы (с алиасами)
+        $serviceAliases = [
+            'suppliers' => 'become-supplier',
+            'become-supplier' => 'become-supplier',
+            'conditions' => 'conditions',
+            'replace-conditions' => 'conditions',
+            'payment-refund' => 'payment-refund',
+            'contacts' => 'contacts'
+        ];
+
+        if (isset($serviceAliases[$path])) {
+            return $this->getServicePageMetaTags($serviceAliases[$path], $locale, $path);
         }
-        if ($path === 'conditions') {
-            return $this->getServicePageMetaTags('conditions', $locale);
-        }
-        if ($path === 'payment-refund') {
-            return $this->getServicePageMetaTags('payment-refund', $locale);
-        }
-        if ($path === 'contacts') {
-            return $this->getServicePageMetaTags('contacts', $locale);
-        }
-        
-        return [];
+
+        // Динамические страницы из базы данных (slug)
+        return $this->getDynamicPageMetaTags($path, $locale);
     }
 
-    private function getProductMetaTags(string $idOrSku, string $locale): array
+    private function getProductMetaTags(string $idOrSku, string $locale, string $requestPrefix = 'account'): array
     {
         try {
             $product = ServiceAccount::where('is_active', true)
@@ -151,7 +153,7 @@ class SpaController extends Controller
             ];
         } catch (\Exception $e) { return []; }
     }
-    
+
     private function getArticleMetaTags(int $id, string $locale): array
     {
         try {
@@ -228,15 +230,9 @@ class SpaController extends Controller
             'uk' => 'Купуйте якісні акаунти для ігор, соцмереж та сервісів. Швидка доставка, гарантія якості, найкращі ціни на ринку.'
         ];
 
-        $h1Titles = [
-            'ru' => 'Магазин цифровых товаров и премиум аккаунтов',
-            'en' => 'Digital goods and premium accounts store',
-            'uk' => 'Магазин цифрових товарів та преміум акаунтів'
-        ];
-
         return [
             'title' => $titles[$locale] ?? $titles['ru'],
-            'h1' => $h1Titles[$locale] ?? $h1Titles['ru'],
+            // Удаляем h1 отсюда, так как он есть в HeroSection.vue, чтобы избежать дублей
             'description' => $descriptions[$locale] ?? $descriptions['ru'],
             'og:title' => 'Account Arena',
             'og:description' => $descriptions[$locale] ?? $descriptions['ru'],
@@ -244,7 +240,7 @@ class SpaController extends Controller
         ];
     }
     
-    private function getServicePageMetaTags(string $page, string $locale): array
+    private function getServicePageMetaTags(string $page, string $locale, string $requestPath = null): array
     {
         $data = [
             'become-supplier' => [
@@ -260,7 +256,7 @@ class SpaController extends Controller
             'payment-refund' => [
                 'ru' => ['title' => 'Оплата и возврат - Account Arena', 'desc' => 'Информация о способах оплаты и политике возврата денежных средств.'],
                 'en' => ['title' => 'Payment and Refund - Account Arena', 'desc' => 'Information about payment methods and refund policy.'],
-                'uk' => ['title' => 'Оплата та повернення - Account Arena', 'desc' => 'Інформація про способи оплати та політику повернення коштів.']
+                'uk' => ['title' => 'Оплата та повернення - Account Arena', 'desc' => 'Інформація про способи оплаты та політику повернення коштів.']
             ],
             'contacts' => [
                 'ru' => ['title' => 'Контакты - Account Arena', 'desc' => 'Свяжитесь с нами для получения поддержки или по вопросам сотрудничества.'],
@@ -277,8 +273,32 @@ class SpaController extends Controller
             'description' => $pageData['desc'],
             'og:title' => $pageData['title'],
             'og:description' => $pageData['desc'],
-            'canonical' => url("/" . $page),
+            'canonical' => url("/" . ($requestPath ?: $page)),
         ];
+    }
+
+    private function getDynamicPageMetaTags(string $slug, string $locale): array
+    {
+        try {
+            $page = Page::where('slug', $slug)->where('is_active', true)->first();
+            if (!$page) {
+                return [];
+            }
+
+            $title = $page->translate('meta_title', $locale) ?: $page->translate('title', $locale);
+            $desc = $page->translate('meta_description', $locale) ?: Str::limit(strip_tags($page->translate('content', $locale)), 160);
+
+            return [
+                'title' => ($title ?: 'Page') . ' - Account Arena',
+                'h1' => $page->translate('title', $locale),
+                'description' => $desc,
+                'og:title' => $title,
+                'og:description' => $desc,
+                'canonical' => url("/" . $slug),
+            ];
+        } catch (\Exception $e) {
+            return [];
+        }
     }
 
     private function getArticlesListMetaTags(string $locale): array

@@ -744,5 +744,19 @@
                 "answer": "Our support team will help resolve any situation. We strive for fair solutions for all parties."
             }
         }
+    },
+    "meta": {
+        "home": {
+            "title": "Account Arena - Digital Accounts Marketplace",
+            "description": "Buy high-quality accounts for games, social networks and services. Fast delivery, quality guarantee, best prices on the market."
+        },
+        "conditions": {
+            "title": "Replacement Conditions - Account Arena",
+            "description": "Read our digital goods replacement conditions."
+        },
+        "suppliers": {
+            "title": "Become a Supplier - Account Arena",
+            "description": "Learn how to become a supplier and start selling your accounts on Account Arena."
+        }
     }
 }
