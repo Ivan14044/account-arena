@@ -46,10 +46,10 @@ class SpaController extends Controller
     private function getMetaTagsForRoute(Request $request): array
     {
         $path = trim($request->path(), '/');
-        $locale = app()->getLocale();
+        $locale = $request->get('lang', app()->getLocale());
         
-        // DEBUG
-        // return ['title' => 'PATH: ' . $path];
+        // LOG FOR DEBUG
+        \Illuminate\Support\Facades\Log::info('SPA SEO Path: ' . $path);
         
         // Товары
         if (preg_match('#^account/(.+)$#i', $path, $matches)) {
@@ -76,7 +76,10 @@ class SpaController extends Controller
             return $this->getArticlesListMetaTags($locale);
         }
         
-        return [];
+        return [
+            'title' => 'Unknown Path: ' . $path,
+            'description' => 'Path debugging active'
+        ];
     }
     
     private function getProductMetaTags(string $idOrSku, string $locale): array
@@ -171,17 +174,19 @@ class SpaController extends Controller
     
     private function injectMetaTags(string $html, array $metaTags): string
     {
-        // 1. Очищаем старые теги, если они есть в шаблоне
-        $html = preg_replace('/<title>.*?<\/title>/i', '', $html);
-        $html = preg_replace('/<meta name="description".*?>/i', '', $html);
-        $html = preg_replace('/<link rel="canonical".*?>/i', '', $html);
+        // 1. Очищаем ВСЕ возможные старые теги, чтобы избежать дублей
+        $html = preg_replace('/<title>.*?<\/title>/is', '', $html);
+        $html = preg_replace('/<meta name="description".*?>/is', '', $html);
+        $html = preg_replace('/<meta property="og:.*?".*?>/is', '', $html);
+        $html = preg_replace('/<meta name="twitter:.*?".*?>/is', '', $html);
+        $html = preg_replace('/<link rel="canonical".*?>/is', '', $html);
+        $html = preg_replace('/<link rel="alternate" hreflang=".*?".*?>/is', '', $html);
         
         $headTags = [];
         
         // Title
-        if (isset($metaTags['title'])) {
-            $headTags[] = '<title>' . htmlspecialchars($metaTags['title'], ENT_QUOTES, 'UTF-8') . '</title>';
-        }
+        $titleText = $metaTags['title'] ?? 'Account Arena';
+        $headTags[] = '<title>' . htmlspecialchars($titleText, ENT_QUOTES, 'UTF-8') . '</title>';
         
         // Description
         if (isset($metaTags['description'])) {
@@ -198,7 +203,6 @@ class SpaController extends Controller
             if (isset($metaTags[$prop])) {
                 $content = htmlspecialchars($metaTags[$prop], ENT_QUOTES, 'UTF-8');
                 $headTags[] = "<meta property=\"{$prop}\" content=\"{$content}\">";
-                // Twitter cards duplicate
                 $twitterName = str_replace('og:', 'twitter:', $prop);
                 $headTags[] = "<meta name=\"{$twitterName}\" content=\"{$content}\">";
             }
@@ -209,17 +213,18 @@ class SpaController extends Controller
         $currentUrl = url()->current();
         foreach ($locales as $loc) {
             $langUrl = $currentUrl . (str_contains($currentUrl, '?') ? '&' : '?') . 'lang=' . $loc;
-            $headTags[] = '<link rel="alternate" hreflang="' . $loc . '" href="' . $langUrl . '">';
+            $headTags[] = '<link rel="alternate" hreflang="' . $loc . '" href="' . htmlspecialchars($langUrl, ENT_QUOTES, 'UTF-8') . '">';
         }
-        $headTags[] = '<link rel="alternate" hreflang="x-default" href="' . $currentUrl . '">';
+        $headTags[] = '<link rel="alternate" hreflang="x-default" href="' . htmlspecialchars($currentUrl, ENT_QUOTES, 'UTF-8') . '">';
         
-        // Вставка в HEAD
-        $injectedHead = implode("\n  ", $headTags);
-        if (preg_match('/<\/head>/i', $html, $matches, PREG_OFFSET_CAPTURE)) {
-            $html = substr_replace($html, "  " . $injectedHead . "\n", $matches[0][1], 0);
+        // Вставка в HEAD (сразу после <head>)
+        $injectedHead = implode("\n    ", $headTags);
+        if (preg_match('/<head>/i', $html, $matches, PREG_OFFSET_CAPTURE)) {
+            $insertPos = $matches[0][1] + strlen($matches[0][0]);
+            $html = substr_replace($html, "\n    " . $injectedHead . "\n", $insertPos, 0);
         }
         
-        // Вставка H1 в BODY
+        // Вставка H1 в BODY (скрытый для SEO)
         if (isset($metaTags['h1'])) {
             $h1Html = "\n  " . '<h1 style="display:none">' . htmlspecialchars($metaTags['h1'], ENT_QUOTES, 'UTF-8') . '</h1>' . "\n";
             if (preg_match('/<body[^>]*>/i', $html, $matches, PREG_OFFSET_CAPTURE)) {
