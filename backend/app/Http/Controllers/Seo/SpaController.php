@@ -126,7 +126,12 @@ class SpaController extends Controller
             }
             
             $title = $this->getLocalizedField($product, 'title', $locale);
-            $desc = $this->getLocalizedField($product, 'meta_description', $locale) ?: Str::limit(strip_tags($this->getLocalizedField($product, 'description', $locale)), 160);
+            $rawDesc = $this->getLocalizedField($product, 'description', $locale);
+            // Очищаем описание от внешних URL для мета-тегов
+            $cleanDesc = $rawDesc ? preg_replace('/https?:\/\/\S+/i', '', $rawDesc) : '';
+            $cleanDesc = trim(preg_replace('/\s+/', ' ', (string)$cleanDesc));
+            $desc = $this->getLocalizedField($product, 'meta_description', $locale)
+                ?: Str::limit(strip_tags($cleanDesc), 160);
             
             // Микроразметка Product
             $schema = [

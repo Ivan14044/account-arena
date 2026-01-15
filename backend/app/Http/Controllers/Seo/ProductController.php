@@ -24,8 +24,11 @@ class ProductController extends Controller
         $title = $this->getLocalizedField($product, 'title', $locale);
         $description = $this->getLocalizedField($product, 'description', $locale);
         $metaTitle = $this->getLocalizedField($product, 'meta_title', $locale) ?? $title;
-        $metaDescription = $this->getLocalizedField($product, 'meta_description', $locale) ?? 
-            Str::limit(strip_tags($description), 160);
+        // Очищаем описание от внешних URL для мета-тегов
+        $cleanDescription = $description ? preg_replace('/https?:\/\/\S+/i', '', $description) : '';
+        $cleanDescription = trim(preg_replace('/\s+/', ' ', (string)$cleanDescription));
+        $metaDescription = $this->getLocalizedField($product, 'meta_description', $locale) ??
+            Str::limit(strip_tags($cleanDescription), 160);
         $seoText = $this->getLocalizedField($product, 'seo_text', $locale);
         $instruction = $this->getLocalizedField($product, 'instruction', $locale);
         $additionalDescription = $this->getLocalizedField($product, 'additional_description', $locale);
@@ -57,7 +60,7 @@ class ProductController extends Controller
         $breadcrumbs = $this->getBreadcrumbs($product, $locale, $title);
         
         // Структурированные данные
-        $structuredData = $this->getProductStructuredData($product, $title, $description, $locale);
+        $structuredData = $this->getProductStructuredData($product, $title, $cleanDescription, $locale);
         
         // SPA версия для пользователей (alternate)
         $spaUrl = url('/account/' . $id);
