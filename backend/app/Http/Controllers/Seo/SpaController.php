@@ -33,20 +33,33 @@ class SpaController extends Controller
         
         $html = file_get_contents($indexPath);
         
-        $metaTags = $this->getMetaTagsForRoute($request);
+        // Детекция языка (Query -> Cookie -> Header -> Default)
+        $locale = $request->get('lang');
+        if (!$locale) {
+            $locale = $request->cookie('locale');
+        }
+        if (!$locale) {
+            $locale = substr($request->server('HTTP_ACCEPT_LANGUAGE'), 0, 2);
+        }
+        if (!in_array($locale, ['ru', 'en', 'uk'])) {
+            $locale = 'ru'; // Дефолт для вашего региона
+        }
+        
+        app()->setLocale($locale);
+        
+        $metaTags = $this->getMetaTagsForRoute($request, $locale);
         
         if (!empty($metaTags)) {
-            $html = $this->injectMetaTags($html, $metaTags);
+            $html = $this->injectMetaTags($html, $metaTags, $locale);
         }
         
         return response($html, 200)
             ->header('Content-Type', 'text/html; charset=utf-8');
     }
     
-    private function getMetaTagsForRoute(Request $request): array
+    private function getMetaTagsForRoute(Request $request, string $locale): array
     {
         $path = trim($request->path(), '/');
-        $locale = $request->get('lang', app()->getLocale());
         
         // Товары
         if (preg_match('#^account/(.+)$#i', $path, $matches)) {
@@ -166,8 +179,11 @@ class SpaController extends Controller
         ];
     }
     
-    private function injectMetaTags(string $html, array $metaTags): string
+    private function injectMetaTags(string $html, array $metaTags, string $locale): string
     {
+        // 0. Обновляем язык в теге HTML
+        $html = preg_replace('/<html lang=".*?"/i', '<html lang="' . $locale . '"', $html);
+
         // 1. Очищаем ВСЕ возможные старые теги, чтобы избежать дублей
         $html = preg_replace('/<title>.*?<\/title>/is', '', $html);
         $html = preg_replace('/<meta name="description".*?>/is', '', $html);
@@ -205,11 +221,17 @@ class SpaController extends Controller
         // Hreflang
         $locales = ['ru', 'en', 'uk'];
         $currentUrl = url()->current();
+        
+        // Очищаем URL от lang параметров для генерации чистых ссылок hreflang
+        $cleanUrl = preg_replace('/[?&]lang=[^&]*/', '', $currentUrl);
+        $cleanUrl = rtrim($cleanUrl, '?&');
+        $hasQuery = str_contains($cleanUrl, '?');
+
         foreach ($locales as $loc) {
-            $langUrl = $currentUrl . (str_contains($currentUrl, '?') ? '&' : '?') . 'lang=' . $loc;
+            $langUrl = $cleanUrl . ($hasQuery ? '&' : '?') . 'lang=' . $loc;
             $headTags[] = '<link rel="alternate" hreflang="' . $loc . '" href="' . htmlspecialchars($langUrl, ENT_QUOTES, 'UTF-8') . '">';
         }
-        $headTags[] = '<link rel="alternate" hreflang="x-default" href="' . htmlspecialchars($currentUrl, ENT_QUOTES, 'UTF-8') . '">';
+        $headTags[] = '<link rel="alternate" hreflang="x-default" href="' . htmlspecialchars($cleanUrl, ENT_QUOTES, 'UTF-8') . '">';
         
         // Вставка в HEAD (сразу после <head>)
         $injectedHead = implode("\n    ", $headTags);
