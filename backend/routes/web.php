@@ -216,12 +216,16 @@ Route::prefix('seo')->name('seo.')->group(function () {
     Route::get('/payment-refund', [\App\Http\Controllers\Seo\ServicePageController::class, 'paymentRefund'])->name('payment-refund');
 });
 
+// Sitemap (нужно ДО catch-all, чтобы не попадал в SPA)
+Route::get('/sitemap.xml', [\App\Http\Controllers\Seo\SitemapController::class, 'index'])->name('sitemap');
+
 // SPA-роуты с инжекцией мета-тегов (обрабатываются через nginx -> Laravel)
 Route::get('/account/{id}', [\App\Http\Controllers\Seo\SpaController::class, 'index'])->where('id', '.*')->name('spa.account');
 Route::get('/products/{id}', [\App\Http\Controllers\Seo\SpaController::class, 'index'])->where('id', '.*')->name('spa.products'); // Alias
 Route::get('/articles/{id}', [\App\Http\Controllers\Seo\SpaController::class, 'index'])->where('id', '\d+')->name('spa.article');
 Route::get('/articles', [\App\Http\Controllers\Seo\SpaController::class, 'index'])->name('spa.articles');
 Route::get('/categories/{id}', [\App\Http\Controllers\Seo\SpaController::class, 'index'])->where('id', '\d+')->name('spa.category');
+Route::get('/categories', [\App\Http\Controllers\Seo\SpaController::class, 'index'])->name('spa.categories');
 Route::get('/become-supplier', [\App\Http\Controllers\Seo\SpaController::class, 'index'])->name('spa.become-supplier');
 Route::get('/suppliers', [\App\Http\Controllers\Seo\SpaController::class, 'index'])->name('spa.suppliers'); // Alias
 Route::get('/conditions', [\App\Http\Controllers\Seo\SpaController::class, 'index'])->name('spa.conditions');
@@ -231,10 +235,8 @@ Route::get('/contacts', [\App\Http\Controllers\Seo\SpaController::class, 'index'
 Route::get('/', [\App\Http\Controllers\Seo\SpaController::class, 'index'])->name('spa.home');
 
 // Поддержка любых других динамических страниц (slug)
-Route::get('/{slug}', [\App\Http\Controllers\Seo\SpaController::class, 'index'])->where('slug', '^(?!api|admin|auth|supplier|storage|img|js|css).*$');
-
-// Sitemap
-Route::get('/sitemap.xml', [\App\Http\Controllers\Seo\SitemapController::class, 'index'])->name('sitemap');
+Route::get('/{slug}', [\App\Http\Controllers\Seo\SpaController::class, 'index'])
+    ->where('slug', '^(?!api|admin|auth|supplier|storage|img|js|css|seo|sitemap\.xml|robots\.txt).*$');
 
 // Redirect /login to /admin/login for convenience
 Route::get('/login', function () {

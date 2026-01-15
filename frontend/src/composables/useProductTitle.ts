@@ -56,23 +56,48 @@ export function useProductTitle() {
     ): string => {
         let description = getLocalizedField<string>(product, 'description');
 
-        // Обработка ссылок: добавляем rel="nofollow noopener" для внешних ссылок
-        if (description && description.includes('<a')) {
+        // Обработка ссылок: добавляем rel="nofollow noopener noreferrer" для внешних ссылок
+        if (description) {
             const hostname = typeof window !== 'undefined' ? window.location.hostname : 'account-arena.com';
-            description = description.replace(/<a\s+(?:[^>]*?\s+)?href=(["'])(.*?)\1/gi, (match, quote, url) => {
-                // Если ссылка внешняя (начинается с http и не содержит наш хост)
-                if (url.startsWith('http') && !url.includes(hostname)) {
-                    let newMatch = match;
-                    if (!newMatch.toLowerCase().includes('rel=')) {
-                        newMatch = newMatch.replace(/<a/i, '<a rel="nofollow noopener"');
+            const urlRegex = /(https?:\/\/[^\s<]+)/g;
+
+            // Если ссылки уже есть в HTML, дополняем атрибуты
+            if (description.includes('<a')) {
+                description = description.replace(/<a\s+(?:[^>]*?\s+)?href=(["'])(.*?)\1/gi, (match, quote, url) => {
+                    // Если ссылка внешняя (начинается с http и не содержит наш хост)
+                    if (url.startsWith('http') && !url.includes(hostname)) {
+                        let newMatch = match;
+                        if (!newMatch.toLowerCase().includes('rel=')) {
+                            newMatch = newMatch.replace(/<a/i, '<a rel="nofollow noopener noreferrer"');
+                        } else {
+                            // Добавляем недостающие значения rel
+                            newMatch = newMatch.replace(/rel=(["'])(.*?)\1/i, (relMatch, relQuote, relValue) => {
+                                const relParts = relValue.split(/\s+/);
+                                ['nofollow', 'noopener', 'noreferrer'].forEach((val) => {
+                                    if (!relParts.includes(val)) {
+                                        relParts.push(val);
+                                    }
+                                });
+                                return `rel=${relQuote}${relParts.join(' ')}${relQuote}`;
+                            });
+                        }
+                        if (!newMatch.toLowerCase().includes('target=')) {
+                            newMatch = newMatch.replace(/<a/i, '<a target="_blank"');
+                        }
+                        return newMatch;
                     }
-                    if (!newMatch.toLowerCase().includes('target=')) {
-                        newMatch = newMatch.replace(/<a/i, '<a target="_blank"');
+                    return match;
+                });
+            } else if (description.match(urlRegex)) {
+                // Если ссылки указаны простым текстом, превращаем их в <a>
+                description = description.replace(urlRegex, (url) => {
+                    const isExternal = url.startsWith('http') && !url.includes(hostname);
+                    if (isExternal) {
+                        return `<a href="${url}" target="_blank" rel="nofollow noopener noreferrer">${url}</a>`;
                     }
-                    return newMatch;
-                }
-                return match;
-            });
+                    return `<a href="${url}">${url}</a>`;
+                });
+            }
         }
 
         return newLine

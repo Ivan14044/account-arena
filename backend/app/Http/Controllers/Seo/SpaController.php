@@ -79,6 +79,11 @@ class SpaController extends Controller
         if (preg_match('#^categories/(\d+)$#i', $path, $matches)) {
             return $this->getCategoryMetaTags((int)$matches[1], $locale);
         }
+
+        // Список категорий
+        if ($path === 'categories') {
+            return $this->getCategoriesListMetaTags($locale);
+        }
         
         // Главная
         if ($path === '' || $path === '/') {
@@ -226,6 +231,36 @@ class SpaController extends Controller
         } catch (\Exception $e) { 
             return ['status' => 404];
         }
+    }
+
+    /**
+     * Мета-теги для списка категорий
+     */
+    private function getCategoriesListMetaTags(string $locale): array
+    {
+        $titles = [
+            'ru' => 'Категории аккаунтов - Account Arena',
+            'en' => 'Account Categories - Account Arena',
+            'uk' => 'Категорії акаунтів - Account Arena'
+        ];
+
+        $descriptions = [
+            'ru' => 'Просмотрите категории аккаунтов и выберите подходящие предложения на Account Arena.',
+            'en' => 'Browse account categories and choose suitable offers on Account Arena.',
+            'uk' => 'Перегляньте категорії акаунтів та оберіть відповідні пропозиції на Account Arena.'
+        ];
+
+        $title = $titles[$locale] ?? $titles['ru'];
+        $description = $descriptions[$locale] ?? $descriptions['ru'];
+
+        return [
+            'title' => $title,
+            'h1' => $title,
+            'description' => $description,
+            'og:title' => $title,
+            'og:description' => $description,
+            'canonical' => url('/categories')
+        ];
     }
     
     private function getHomeMetaTags(string $locale): array
@@ -414,7 +449,8 @@ class SpaController extends Controller
         
         // Вставка H1 в BODY (скрытый для SEO) - только если это не главная страница
         // На главной H1 уже есть в HeroSection.vue, чтобы избежать дублей
-        if (isset($metaTags['h1']) && !request()->is('/')) {
+        $isHomePage = request()->path() === '' || request()->path() === '/';
+        if (isset($metaTags['h1']) && !$isHomePage) {
             $h1Html = "\n  " . '<h1 style="display:none">' . htmlspecialchars($metaTags['h1'], ENT_QUOTES, 'UTF-8') . '</h1>' . "\n";
             if (preg_match('/<body[^>]*>/i', $html, $matches, PREG_OFFSET_CAPTURE)) {
                 $insertPos = $matches[0][1] + strlen($matches[0][0]);

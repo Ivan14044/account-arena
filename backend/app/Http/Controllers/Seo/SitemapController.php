@@ -18,7 +18,8 @@ class SitemapController extends Controller
     {
         // Кэшируем sitemap на 24 часа
         $sitemap = Cache::remember('sitemap_xml', 60 * 60 * 24, function () {
-            $baseUrl = config('app.url');
+            // Единый стандарт URL без слэша в конце
+            $baseUrl = rtrim(config('app.url'), '/');
             $locales = ['ru', 'en', 'uk'];
             
             $xml = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
