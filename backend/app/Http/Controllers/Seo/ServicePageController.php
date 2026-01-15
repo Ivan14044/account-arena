@@ -125,8 +125,10 @@ class ServicePageController extends Controller
         $metaTitle = $metaTitle ?: $title;
         $metaDescription = $metaDescription ?: Str::limit(strip_tags($content ?: $title), 160);
         
-        // Формируем уникальный title
-        $pageTitle = $metaTitle . ' - Account Arena';
+        // Формируем уникальный title (не дублируем бренд)
+        $pageTitle = str_contains($metaTitle, 'Account Arena')
+            ? $metaTitle
+            : $metaTitle . ' - Account Arena';
         
         // Hreflang альтернативные URL
         $alternateUrls = $this->getAlternateUrls($routeName);
