@@ -6,7 +6,11 @@
             class="fixed inset-0 z-[9999] flex items-center justify-center"
         >
             <div class="flex flex-col items-center">
-                <img :src="logo" alt="Loading..." class="w-32 h-32 object-contain loader-pulse" />
+                <img
+                    :src="logo"
+                    alt="Account Arena loading logo"
+                    class="w-32 h-32 object-contain loader-pulse"
+                />
             </div>
         </div>
     </Transition>

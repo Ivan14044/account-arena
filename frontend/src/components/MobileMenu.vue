@@ -14,7 +14,7 @@
                         >
                             <img
                                 :src="logo"
-                                alt="Logo"
+                                alt="Account Arena Logo"
                                 class="w-8 h-8 object-contain rounded-full"
                             />
                             <span class="text-white text-xl font-bold">Account Arena</span>

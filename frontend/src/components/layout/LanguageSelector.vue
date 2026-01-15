@@ -6,7 +6,11 @@
             class="cursor-pointer gap-[7px] text-sm leading-4 hover:bg-indigo-200 dark:hover:bg-gray-700 transition-all duration-300 pl-2 pr-1 pl-lg-3 pr-lg-2 py-2 rounded-lg flex items-center"
             @click="toggleDropdown"
         >
-            <img :src="`/img/lang/${currentLanguage.code}.svg`" style="width: 24px; height: 16px" />
+            <img
+                :src="`/img/lang/${currentLanguage.code}.svg`"
+                :alt="currentLanguage.name"
+                style="width: 24px; height: 16px"
+            />
             <Globe v-if="!currentLanguage.code" class="w-5 h-5 text-gray-600" />
             <span class="d-flex">
                 <span class="hidden xl:flex text-[15px]">{{ currentLanguage.name }}</span>
@@ -53,6 +57,7 @@
                             <span class="pr-2 flex items-center">
                                 <img
                                     :src="`/img/lang/${language.code}.svg`"
+                                    :alt="language.name"
                                     class="w-6 h-4 object-cover transition-opacity duration-300 align-middle inline-block"
                                 />
                             </span>

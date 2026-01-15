@@ -7,7 +7,7 @@
             <div class="flex flex-col items-center">
                 <img
                     :src="logo"
-                    alt="Loading..."
+                    alt="Account Arena loading logo"
                     class="w-24 h-24 object-contain navigation-pulse"
                 />
                 <!-- Показываем кастомное сообщение, если оно есть -->

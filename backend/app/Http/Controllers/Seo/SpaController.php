@@ -127,9 +127,8 @@ class SpaController extends Controller
             
             $title = $this->getLocalizedField($product, 'title', $locale);
             $rawDesc = $this->getLocalizedField($product, 'description', $locale);
-            // Очищаем описание от внешних URL для мета-тегов
-            $cleanDesc = $rawDesc ? preg_replace('/https?:\/\/\S+/i', '', $rawDesc) : '';
-            $cleanDesc = trim(preg_replace('/\s+/', ' ', (string)$cleanDesc));
+            // Очищаем описание для мета-тегов (URL + эмодзи)
+            $cleanDesc = $this->sanitizeMetaDescription($rawDesc);
             $desc = $this->getLocalizedField($product, 'meta_description', $locale)
                 ?: Str::limit(strip_tags($cleanDesc), 160);
             
@@ -164,6 +163,24 @@ class SpaController extends Controller
         } catch (\Exception $e) { return []; }
     }
 
+    /**
+     * Санитизация описания для мета-тегов: удаляем URL и эмодзи
+     */
+    private function sanitizeMetaDescription(?string $description): string
+    {
+        if (!$description) {
+            return '';
+        }
+
+        // Удаляем URL из описания
+        $text = preg_replace('/https?:\/\/\S+/i', '', $description);
+        // Удаляем эмодзи для более «делового» сниппета
+        $text = preg_replace('/[\x{1F300}-\x{1F6FF}\x{1F900}-\x{1F9FF}\x{1FA70}-\x{1FAFF}\x{2600}-\x{27BF}]/u', '', $text);
+        $text = preg_replace('/\s+/', ' ', (string)$text);
+
+        return trim($text);
+    }
+
     private function getArticleMetaTags(int $id, string $locale): array
     {
         try {
@@ -181,7 +198,7 @@ class SpaController extends Controller
                 '@type' => 'Article',
                 'headline' => $title,
                 'description' => $desc,
-                'image' => $article->img ? url(Storage::url($article->img)) : url('/img/logo_trans.webp'),
+                'image' => $article->img ? $this->normalizeArticleImageUrl($article->img) : url('/img/logo_trans.webp'),
                 'author' => ['@type' => 'Organization', 'name' => 'Account Arena'],
                 'publisher' => [
                     '@type' => 'Organization',
@@ -199,11 +216,28 @@ class SpaController extends Controller
                 'og:title' => $title,
                 'og:description' => $desc,
                 'og:type' => 'article',
-                'og:image' => $article->img ? url(Storage::url($article->img)) : url('/img/logo_trans.webp'),
+                'og:image' => $article->img ? $this->normalizeArticleImageUrl($article->img) : url('/img/logo_trans.webp'),
                 'canonical' => url("/seo/articles/{$id}"),
                 'schema' => $schema
             ];
         } catch (\Exception $e) { return []; }
+    }
+
+    /**
+     * Нормализация URL изображения статьи (без двойного /storage)
+     */
+    private function normalizeArticleImageUrl(string $path): string
+    {
+        if (str_starts_with($path, 'http')) {
+            return $path;
+        }
+
+        $normalized = '/' . ltrim($path, '/');
+        if (str_starts_with(ltrim($path, '/'), 'storage/')) {
+            return url($normalized);
+        }
+
+        return url(Storage::url($path));
     }
 
     private function getCategoryMetaTags(int $id, string $locale): array
@@ -220,9 +254,9 @@ class SpaController extends Controller
             }
             
             $desc = $category->translate('meta_description', $locale);
-            if (empty($desc)) {
-                // Генерируем описание на основе названия категории
-                $desc = __('Купить :name аккаунты на Account Arena. Быстрая доставка, гарантия качества.', ['name' => $name], $locale);
+            if ($this->isDescriptionTooShort($desc)) {
+                // Генерируем осмысленное описание на основе названия категории
+                $desc = $this->getCategoryDescription($name, $locale);
             }
             
             return [
@@ -266,6 +300,29 @@ class SpaController extends Controller
             'og:description' => $description,
             'canonical' => url('/categories')
         ];
+    }
+
+    /**
+     * Проверяем, что описание не слишком короткое
+     */
+    private function isDescriptionTooShort(?string $description): bool
+    {
+        $text = trim((string)$description);
+        return $text === '' || mb_strlen($text) < 40;
+    }
+
+    /**
+     * Генерация осмысленного описания для категории
+     */
+    private function getCategoryDescription(string $name, string $locale): string
+    {
+        $templates = [
+            'ru' => 'Купить аккаунты ' . $name . ' — описание категории, варианты и актуальные предложения на Account Arena.',
+            'en' => 'Buy ' . $name . ' accounts — category overview, options and current offers on Account Arena.',
+            'uk' => 'Купити акаунти ' . $name . ' — опис категорії, варіанти та актуальні пропозиції на Account Arena.'
+        ];
+
+        return $templates[$locale] ?? $templates['ru'];
     }
     
     private function getHomeMetaTags(string $locale): array

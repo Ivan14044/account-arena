@@ -5,7 +5,11 @@
             expandPadding ? 'm-[-1.5rem]' : ''
         ]"
     >
-        <img :src="logo" alt="Loading..." class="w-16 h-16 object-contain spin-slow-reverse" />
+        <img
+            :src="logo"
+            alt="Account Arena loading logo"
+            class="w-16 h-16 object-contain spin-slow-reverse"
+        />
     </div>
 </template>
 

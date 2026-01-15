@@ -110,10 +110,7 @@ class ArticleController extends Controller
         $ogImage = null;
         $ogType = 'article';
         if ($article->img) {
-            $ogImage = Storage::url($article->img);
-            if (!str_starts_with($ogImage, 'http')) {
-                $ogImage = url($ogImage);
-            }
+            $ogImage = $this->normalizeArticleImageUrl($article->img);
         }
         
         // Hreflang альтернативные URL
@@ -187,10 +184,7 @@ class ArticleController extends Controller
         ];
         
         if ($article->img) {
-            $imageUrl = Storage::url($article->img);
-            if (!str_starts_with($imageUrl, 'http')) {
-                $imageUrl = url($imageUrl);
-            }
+            $imageUrl = $this->normalizeArticleImageUrl($article->img);
             $data['image'] = $imageUrl;
         }
         
@@ -199,5 +193,23 @@ class ArticleController extends Controller
         }
         
         return $data;
+    }
+
+    /**
+     * Нормализация URL изображения статьи (без двойного /storage)
+     */
+    private function normalizeArticleImageUrl(string $path): string
+    {
+        if (str_starts_with($path, 'http')) {
+            return $path;
+        }
+
+        $normalized = '/' . ltrim($path, '/');
+        // Если путь уже содержит storage, не добавляем повторно
+        if (str_starts_with(ltrim($path, '/'), 'storage/')) {
+            return url($normalized);
+        }
+
+        return url(Storage::url($path));
     }
 }

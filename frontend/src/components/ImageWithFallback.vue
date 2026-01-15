@@ -3,7 +3,7 @@
         <img
             v-if="didError"
             :src="ERROR_IMG_SRC"
-            alt="Error loading image"
+            :alt="computedAlt"
             class="w-full h-full"
             v-bind="$attrs"
             :data-original-url="src"
@@ -11,7 +11,7 @@
         <img
             v-else
             :src="computedSrc"
-            :alt="alt"
+            :alt="computedAlt"
             v-bind="$attrs"
             class="w-full h-full object-cover"
             @error="handleError"
@@ -40,6 +40,9 @@ function handleError() {
 }
 
 const styleObject = props.style as any;
+
+// Важно: всегда иметь осмысленный alt, даже если не передан в props
+const computedAlt = computed(() => props.alt || 'Account Arena image');
 
 const computedSrc = computed(() => {
     if (!props.src || props.src === 'null' || props.src === 'undefined') {

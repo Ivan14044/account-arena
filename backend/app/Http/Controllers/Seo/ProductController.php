@@ -24,9 +24,8 @@ class ProductController extends Controller
         $title = $this->getLocalizedField($product, 'title', $locale);
         $description = $this->getLocalizedField($product, 'description', $locale);
         $metaTitle = $this->getLocalizedField($product, 'meta_title', $locale) ?? $title;
-        // Очищаем описание от внешних URL для мета-тегов
-        $cleanDescription = $description ? preg_replace('/https?:\/\/\S+/i', '', $description) : '';
-        $cleanDescription = trim(preg_replace('/\s+/', ' ', (string)$cleanDescription));
+        // Очищаем описание для мета-тегов (URL + эмодзи)
+        $cleanDescription = $this->sanitizeMetaDescription($description);
         $metaDescription = $this->getLocalizedField($product, 'meta_description', $locale) ??
             Str::limit(strip_tags($cleanDescription), 160);
         $seoText = $this->getLocalizedField($product, 'seo_text', $locale);
@@ -182,6 +181,24 @@ class ProductController extends Controller
         }
         
         return $data;
+    }
+
+    /**
+     * Санитизация описания для мета-тегов: удаляем URL и эмодзи
+     */
+    private function sanitizeMetaDescription(?string $description): string
+    {
+        if (!$description) {
+            return '';
+        }
+
+        // Удаляем URL из описания
+        $text = preg_replace('/https?:\/\/\S+/i', '', $description);
+        // Удаляем эмодзи для более «делового» сниппета
+        $text = preg_replace('/[\x{1F300}-\x{1F6FF}\x{1F900}-\x{1F9FF}\x{1FA70}-\x{1FAFF}\x{2600}-\x{27BF}]/u', '', $text);
+        $text = preg_replace('/\s+/', ' ', (string)$text);
+
+        return trim($text);
     }
     
     /**

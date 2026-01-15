@@ -39,9 +39,9 @@ class CategoryController extends Controller
         $metaTitle = $category->translate('meta_title', $locale) ?? $name;
         $metaDescription = $category->translate('meta_description', $locale);
         
-        // Генерируем описание, если его нет
-        if (empty($metaDescription)) {
-            $metaDescription = __('Купить :name аккаунты на Account Arena. Быстрая доставка, гарантия качества.', ['name' => $name], $locale);
+        // Генерируем осмысленное описание, если оно пустое или слишком короткое
+        if ($this->isDescriptionTooShort($metaDescription)) {
+            $metaDescription = $this->getCategoryDescription($name, $locale);
         }
         
         $seoText = $category->translate('text', $locale);
@@ -129,8 +129,8 @@ class CategoryController extends Controller
     private function getCategoryStructuredData(Category $category, string $name, ?string $seoText, string $locale): array
     {
         $description = Str::limit(strip_tags($seoText ?? ''), 160);
-        if (empty($description)) {
-            $description = $name . ' - Account Arena';
+        if ($this->isDescriptionTooShort($description)) {
+            $description = $this->getCategoryDescription($name, $locale);
         }
         
         $data = [
@@ -149,5 +149,28 @@ class CategoryController extends Controller
         }
         
         return $data;
+    }
+
+    /**
+     * Проверяем, что описание не слишком короткое
+     */
+    private function isDescriptionTooShort(?string $description): bool
+    {
+        $text = trim((string)$description);
+        return $text === '' || mb_strlen($text) < 40;
+    }
+
+    /**
+     * Генерация осмысленного описания для категории
+     */
+    private function getCategoryDescription(string $name, string $locale): string
+    {
+        $templates = [
+            'ru' => 'Купить аккаунты ' . $name . ' — описание категории, варианты и актуальные предложения на Account Arena.',
+            'en' => 'Buy ' . $name . ' accounts — category overview, options and current offers on Account Arena.',
+            'uk' => 'Купити акаунти ' . $name . ' — опис категорії, варіанти та актуальні пропозиції на Account Arena.'
+        ];
+
+        return $templates[$locale] ?? $templates['ru'];
     }
 }
