@@ -48,6 +48,9 @@ class SpaController extends Controller
         $path = trim($request->path(), '/');
         $locale = app()->getLocale();
         
+        // DEBUG
+        // return ['title' => 'PATH: ' . $path];
+        
         // Товары
         if (preg_match('#^account/(.+)$#i', $path, $matches)) {
             return $this->getProductMetaTags($matches[1], $locale);

@@ -216,6 +216,7 @@ Route::prefix('seo')->name('seo.')->group(function () {
 Route::get('/account/{id}', [\App\Http\Controllers\Seo\SpaController::class, 'index'])->where('id', '.*')->name('spa.account');
 Route::get('/articles/{id}', [\App\Http\Controllers\Seo\SpaController::class, 'index'])->where('id', '\d+')->name('spa.article');
 Route::get('/articles', [\App\Http\Controllers\Seo\SpaController::class, 'index'])->name('spa.articles');
+Route::get('/categories/{id}', [\App\Http\Controllers\Seo\SpaController::class, 'index'])->where('id', '\d+')->name('spa.category');
 Route::get('/', [\App\Http\Controllers\Seo\SpaController::class, 'index'])->name('spa.home');
 
 // Sitemap
