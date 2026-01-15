@@ -6,12 +6,12 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     
     {{-- SEO Meta Tags --}}
-    <title>{{ $pageTitle ?? config('app.name') }}</title>
+    <title>{{ $pageTitle ?? 'Account Arena' }}</title>
     <meta name="description" content="{{ Str::limit($metaDescription ?? '', 160) }}">
     <meta name="robots" content="{{ $robots ?? 'index, follow' }}">
     
     {{-- Open Graph --}}
-    <meta property="og:title" content="{{ $pageTitle ?? config('app.name') }}">
+    <meta property="og:title" content="{{ $pageTitle ?? 'Account Arena' }}">
     <meta property="og:description" content="{{ Str::limit($metaDescription ?? '', 160) }}">
     <meta property="og:type" content="{{ $ogType ?? 'website' }}">
     <meta property="og:url" content="{{ url()->current() }}">
@@ -19,14 +19,14 @@
     <meta property="og:image" content="{{ $ogImage }}">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
-    <meta property="og:image:alt" content="{{ $pageTitle ?? config('app.name') }}">
+    <meta property="og:image:alt" content="{{ $pageTitle ?? 'Account Arena' }}">
     @endif
-    <meta property="og:site_name" content="{{ config('app.name') }}">
+    <meta property="og:site_name" content="Account Arena">
     <meta property="og:locale" content="{{ str_replace('_', '-', $locale ?? app()->getLocale()) }}">
     
     {{-- Twitter Cards --}}
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="{{ $pageTitle ?? config('app.name') }}">
+    <meta name="twitter:title" content="{{ $pageTitle ?? 'Account Arena' }}">
     <meta name="twitter:description" content="{{ Str::limit($metaDescription ?? '', 160) }}">
     @if(isset($ogImage) && $ogImage)
     <meta name="twitter:image" content="{{ $ogImage }}">
@@ -70,8 +70,8 @@
         <link rel="alternate" hreflang="x-default" href="{{ url()->current() }}">
     @endif
     
-    {{-- Canonical URL --}}
-    <link rel="canonical" href="{{ url()->current() }}">
+    {{-- Canonical URL (единый стандарт: без слэша в конце) --}}
+    <link rel="canonical" href="{{ rtrim(url()->current(), '/') }}">
     
     {{-- Alternate link to SPA version (for users) --}}
     @if(isset($spaUrl) && $spaUrl)

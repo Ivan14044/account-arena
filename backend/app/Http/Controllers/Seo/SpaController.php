@@ -242,13 +242,16 @@ class SpaController extends Controller
             'uk' => 'Купуйте якісні акаунти для ігор, соцмереж та сервісів. Швидка доставка, гарантія якості, найкращі ціни на ринку.'
         ];
 
+        $title = $titles[$locale] ?? $titles['ru'];
+        $description = $descriptions[$locale] ?? $descriptions['ru'];
+        
         return [
-            'title' => $titles[$locale] ?? $titles['ru'],
+            'title' => $title,
             // Удаляем h1 отсюда, так как он есть в HeroSection.vue, чтобы избежать дублей
-            'description' => $descriptions[$locale] ?? $descriptions['ru'],
-            'og:title' => 'Account Arena',
-            'og:description' => $descriptions[$locale] ?? $descriptions['ru'],
-            'canonical' => url('/'),
+            'description' => $description,
+            'og:title' => $title, // Согласован с title
+            'og:description' => $description,
+            'canonical' => rtrim(url('/'), '/'), // Единый стандарт: без слэша
         ];
     }
     
@@ -363,9 +366,9 @@ class SpaController extends Controller
             $headTags[] = '<meta name="description" content="' . htmlspecialchars($metaTags['description'], ENT_QUOTES, 'UTF-8') . '">';
         }
         
-        // Canonical (с учетом текущих query параметров для пагинации)
+        // Canonical (единый стандарт: без слэша в конце, с учетом пагинации)
         if (isset($metaTags['canonical'])) {
-            $canonicalUrl = $metaTags['canonical'];
+            $canonicalUrl = rtrim($metaTags['canonical'], '/'); // Убираем слэш в конце
             if (request()->has('page')) {
                 $canonicalUrl .= (str_contains($canonicalUrl, '?') ? '&' : '?') . 'page=' . request()->get('page');
             }
@@ -409,8 +412,9 @@ class SpaController extends Controller
             $html = substr_replace($html, "\n    " . $injectedHead . "\n", $insertPos, 0);
         }
         
-        // Вставка H1 в BODY (скрытый для SEO)
-        if (isset($metaTags['h1'])) {
+        // Вставка H1 в BODY (скрытый для SEO) - только если это не главная страница
+        // На главной H1 уже есть в HeroSection.vue, чтобы избежать дублей
+        if (isset($metaTags['h1']) && !request()->is('/')) {
             $h1Html = "\n  " . '<h1 style="display:none">' . htmlspecialchars($metaTags['h1'], ENT_QUOTES, 'UTF-8') . '</h1>' . "\n";
             if (preg_match('/<body[^>]*>/i', $html, $matches, PREG_OFFSET_CAPTURE)) {
                 $insertPos = $matches[0][1] + strlen($matches[0][0]);

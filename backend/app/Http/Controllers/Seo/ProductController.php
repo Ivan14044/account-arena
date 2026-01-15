@@ -39,7 +39,7 @@ class ProductController extends Controller
         }
         
         // Формируем уникальный title
-        $pageTitle = $metaTitle ?: ($title . ' - ' . config('app.name'));
+        $pageTitle = $metaTitle ?: ($title . ' - Account Arena');
         
         // Open Graph изображение
         $ogImage = null;
@@ -132,7 +132,7 @@ class ProductController extends Controller
     {
         $descriptionText = Str::limit(strip_tags($description ?? ''), 160);
         if (empty($descriptionText)) {
-            $descriptionText = $title . ' - ' . config('app.name');
+            $descriptionText = $title . ' - Account Arena';
         }
         
         $data = [
@@ -142,7 +142,7 @@ class ProductController extends Controller
             'description' => $descriptionText,
             'brand' => [
                 '@type' => 'Brand',
-                'name' => config('app.name')
+                'name' => 'Account Arena'
             ],
             'offers' => [
                 '@type' => 'Offer',

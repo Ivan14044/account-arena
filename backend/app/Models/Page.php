@@ -27,4 +27,24 @@ class Page extends Model
     {
         return $this->hasMany(PageTranslation::class);
     }
+    
+    /**
+     * Получить перевод для указанного поля и локали
+     */
+    public function translate(string $code, string $locale = null): ?string
+    {
+        $locale = $locale ?? app()->getLocale();
+        
+        // Загружаем переводы, если они еще не загружены
+        if (!$this->relationLoaded('translations')) {
+            $this->load('translations');
+        }
+        
+        $translation = $this->translations
+            ->where('locale', $locale)
+            ->where('code', $code)
+            ->first();
+
+        return $translation ? $translation->value : null;
+    }
 }

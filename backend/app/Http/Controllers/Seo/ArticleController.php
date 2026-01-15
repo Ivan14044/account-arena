@@ -22,9 +22,9 @@ class ArticleController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(12);
         
-        $pageTitle = __('articles.title', [], $locale) . ' - ' . config('app.name');
+        $pageTitle = __('articles.title', [], $locale) . ' - Account Arena';
         $metaDescription = __('articles.description', [], $locale) ?? 
-            'Читайте полезные статьи и инструкции на ' . config('app.name');
+            'Читайте полезные статьи и инструкции на Account Arena';
         
         // Open Graph изображение (дефолтное или логотип)
         $ogImage = url('/favicon.ico');
@@ -104,7 +104,7 @@ class ArticleController extends Controller
         }
         
         // Формируем уникальный title
-        $pageTitle = $metaTitle ?: ($title . ' - ' . config('app.name'));
+        $pageTitle = $metaTitle ?: ($title . ' - Account Arena');
         
         // Open Graph изображение
         $ogImage = null;
@@ -174,11 +174,11 @@ class ArticleController extends Controller
             'dateModified' => $article->updated_at->toIso8601String(),
             'author' => [
                 '@type' => 'Organization',
-                'name' => config('app.name')
+                'name' => 'Account Arena'
             ],
             'publisher' => [
                 '@type' => 'Organization',
-                'name' => config('app.name'),
+                'name' => 'Account Arena',
                 'logo' => [
                     '@type' => 'ImageObject',
                     'url' => url('/favicon.ico')

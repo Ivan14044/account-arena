@@ -97,21 +97,29 @@ class ServicePageController extends Controller
         $page = $this->getPageBySlug($slug);
         
         if (!$page) {
-            abort(404);
-        }
-        
-        // Получаем локализованные поля
-        $title = $this->getLocalizedField($page, 'title', $locale);
-        $content = $this->getLocalizedField($page, 'content', $locale);
-        $metaTitle = $this->getLocalizedField($page, 'meta_title', $locale);
-        $metaDescription = $this->getLocalizedField($page, 'meta_description', $locale);
-        
-        // Fallback на i18n, если контент пуст
-        if (empty($title) || empty($content)) {
+            // Если страница не найдена в БД, используем fallback
             $fallback = $this->getFallbackContent($slug, $locale);
-            $title = $title ?: $fallback['title'];
-            $content = $content ?: '<p>' . $fallback['description'] . '</p>';
-            $metaDescription = $metaDescription ?: $fallback['description'];
+            $title = $fallback['title'];
+            $content = '<p>' . $fallback['description'] . '</p>';
+            $metaTitle = $title;
+            $metaDescription = $fallback['description'];
+        } else {
+            // Загружаем переводы
+            $page->load('translations');
+            
+            // Получаем локализованные поля
+            $title = $this->getLocalizedField($page, 'title', $locale);
+            $content = $this->getLocalizedField($page, 'content', $locale);
+            $metaTitle = $this->getLocalizedField($page, 'meta_title', $locale);
+            $metaDescription = $this->getLocalizedField($page, 'meta_description', $locale);
+            
+            // Fallback на i18n, если контент пуст
+            if (empty($title) || empty($content)) {
+                $fallback = $this->getFallbackContent($slug, $locale);
+                $title = $title ?: $fallback['title'];
+                $content = $content ?: '<p>' . $fallback['description'] . '</p>';
+                $metaDescription = $metaDescription ?: $fallback['description'];
+            }
         }
         
         $metaTitle = $metaTitle ?: $title;

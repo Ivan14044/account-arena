@@ -69,7 +69,7 @@ class CategoryController extends Controller
         }
         
         // Формируем уникальный title (не дублирует H1)
-        $pageTitle = $metaTitle ?: ($name . ' - ' . config('app.name'));
+        $pageTitle = $metaTitle ?: ($name . ' - Account Arena');
         
         // Open Graph изображение
         $ogImage = null;
@@ -130,7 +130,7 @@ class CategoryController extends Controller
     {
         $description = Str::limit(strip_tags($seoText ?? ''), 160);
         if (empty($description)) {
-            $description = $name . ' - ' . config('app.name');
+            $description = $name . ' - Account Arena';
         }
         
         $data = [
