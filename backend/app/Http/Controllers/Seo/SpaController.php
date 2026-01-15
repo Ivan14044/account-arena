@@ -33,27 +33,30 @@ class SpaController extends Controller
         
         $html = file_get_contents($indexPath);
         
-        // Детекция языка (Query -> Cookie -> Header -> Default)
-        $locale = $request->get('lang');
-        if (!$locale) {
-            $locale = $request->cookie('locale');
-        }
-        if (!$locale) {
-            $locale = substr($request->server('HTTP_ACCEPT_LANGUAGE'), 0, 2);
-        }
-        if (!in_array($locale, ['ru', 'en', 'uk'])) {
-            $locale = 'ru'; // Дефолт для вашего региона
-        }
+        // Детекция языка
+        $locale = $request->get('lang') ?: $request->cookie('locale') ?: substr($request->server('HTTP_ACCEPT_LANGUAGE'), 0, 2);
+        if (!in_array($locale, ['ru', 'en', 'uk'])) $locale = 'ru';
         
         app()->setLocale($locale);
         
         $metaTags = $this->getMetaTagsForRoute($request, $locale);
         
+        // Если сущность не найдена - отдаем честный 404 для поисковиков
+        $status = 200;
+        if (isset($metaTags['status']) && $metaTags['status'] === 404) {
+            $status = 404;
+            $metaTags = [
+                'title' => '404 - Page Not Found',
+                'description' => 'Sorry, the page you are looking for does not exist.',
+                'robots' => 'noindex, follow'
+            ];
+        }
+        
         if (!empty($metaTags)) {
             $html = $this->injectMetaTags($html, $metaTags, $locale);
         }
         
-        return response($html, 200)
+        return response($html, $status)
             ->header('Content-Type', 'text/html; charset=utf-8');
     }
     
@@ -97,11 +100,30 @@ class SpaController extends Controller
                     $query->where('id', $idOrSku)->orWhere('sku', $idOrSku);
                 })->first();
             
-            if (!$product) return [];
+            if (!$product) {
+                return ['status' => 404];
+            }
             
             $title = $this->getLocalizedField($product, 'title', $locale);
             $desc = $this->getLocalizedField($product, 'meta_description', $locale) ?: Str::limit(strip_tags($this->getLocalizedField($product, 'description', $locale)), 160);
             
+            // Микроразметка Product
+            $schema = [
+                '@context' => 'https://schema.org/',
+                '@type' => 'Product',
+                'name' => $title,
+                'description' => $desc,
+                'sku' => $product->sku ?: $product->id,
+                'image' => $product->image_url ? (str_starts_with($product->image_url, 'http') ? $product->image_url : url($product->image_url)) : url('/img/logo_trans.webp'),
+                'offers' => [
+                    '@type' => 'Offer',
+                    'priceCurrency' => 'USD',
+                    'price' => $product->price,
+                    'availability' => 'https://schema.org/InStock',
+                    'url' => url()->current()
+                ]
+            ];
+
             return [
                 'title' => ($title ?: 'Product ' . $idOrSku) . ' - Account Arena',
                 'h1' => $title,
@@ -111,6 +133,7 @@ class SpaController extends Controller
                 'og:type' => 'product',
                 'og:image' => $product->image_url ? (str_starts_with($product->image_url, 'http') ? $product->image_url : url($product->image_url)) : url('/img/logo_trans.webp'),
                 'canonical' => url("/seo/products/{$product->id}"),
+                'schema' => $schema
             ];
         } catch (\Exception $e) { return []; }
     }
@@ -119,11 +142,30 @@ class SpaController extends Controller
     {
         try {
             $article = Article::where('status', 'published')->find($id);
-            if (!$article) return [];
+            if (!$article) {
+                return ['status' => 404];
+            }
             
             $title = $article->translate('title', $locale);
             $desc = $article->translate('meta_description', $locale) ?: Str::limit(strip_tags($article->translate('content', $locale)), 160);
             
+            // Микроразметка Article
+            $schema = [
+                '@context' => 'https://schema.org',
+                '@type' => 'Article',
+                'headline' => $title,
+                'description' => $desc,
+                'image' => $article->img ? url(Storage::url($article->img)) : url('/img/logo_trans.webp'),
+                'author' => ['@type' => 'Organization', 'name' => 'Account Arena'],
+                'publisher' => [
+                    '@type' => 'Organization',
+                    'name' => 'Account Arena',
+                    'logo' => ['@type' => 'ImageObject', 'url' => url('/img/logo_trans.webp')]
+                ],
+                'datePublished' => $article->created_at->toIso8601String(),
+                'dateModified' => $article->updated_at->toIso8601String()
+            ];
+
             return [
                 'title' => ($title ?: 'Article ' . $id) . ' - Account Arena',
                 'h1' => $title,
@@ -133,6 +175,7 @@ class SpaController extends Controller
                 'og:type' => 'article',
                 'og:image' => $article->img ? url(Storage::url($article->img)) : url('/img/logo_trans.webp'),
                 'canonical' => url("/seo/articles/{$id}"),
+                'schema' => $schema
             ];
         } catch (\Exception $e) { return []; }
     }
@@ -191,6 +234,7 @@ class SpaController extends Controller
         $html = preg_replace('/<meta name="twitter:.*?".*?>/is', '', $html);
         $html = preg_replace('/<link rel="canonical".*?>/is', '', $html);
         $html = preg_replace('/<link rel="alternate" hreflang=".*?".*?>/is', '', $html);
+        $html = preg_replace('/<meta name="robots".*?>/is', '', $html);
         
         $headTags = [];
         
@@ -198,14 +242,21 @@ class SpaController extends Controller
         $titleText = $metaTags['title'] ?? 'Account Arena';
         $headTags[] = '<title>' . htmlspecialchars($titleText, ENT_QUOTES, 'UTF-8') . '</title>';
         
+        // Robots
+        $headTags[] = '<meta name="robots" content="' . ($metaTags['robots'] ?? 'index, follow') . '">';
+        
         // Description
         if (isset($metaTags['description'])) {
             $headTags[] = '<meta name="description" content="' . htmlspecialchars($metaTags['description'], ENT_QUOTES, 'UTF-8') . '">';
         }
         
-        // Canonical
+        // Canonical (с учетом текущих query параметров для пагинации)
         if (isset($metaTags['canonical'])) {
-            $headTags[] = '<link rel="canonical" href="' . htmlspecialchars($metaTags['canonical'], ENT_QUOTES, 'UTF-8') . '">';
+            $canonicalUrl = $metaTags['canonical'];
+            if (request()->has('page')) {
+                $canonicalUrl .= (str_contains($canonicalUrl, '?') ? '&' : '?') . 'page=' . request()->get('page');
+            }
+            $headTags[] = '<link rel="canonical" href="' . htmlspecialchars($canonicalUrl, ENT_QUOTES, 'UTF-8') . '">';
         }
         
         // Open Graph & Twitter
@@ -233,6 +284,11 @@ class SpaController extends Controller
         }
         $headTags[] = '<link rel="alternate" hreflang="x-default" href="' . htmlspecialchars($cleanUrl, ENT_QUOTES, 'UTF-8') . '">';
         
+        // Микроразметка (JSON-LD)
+        if (isset($metaTags['schema'])) {
+            $headTags[] = '<script type="application/ld+json">' . json_encode($metaTags['schema'], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . '</script>';
+        }
+
         // Вставка в HEAD (сразу после <head>)
         $injectedHead = implode("\n    ", $headTags);
         if (preg_match('/<head>/i', $html, $matches, PREG_OFFSET_CAPTURE)) {
