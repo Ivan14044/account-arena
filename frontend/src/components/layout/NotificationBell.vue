@@ -1,5 +1,5 @@
 <template>
-    <div v-if="isAuthenticated" class="relative flex items-center">
+    <div v-if="isAuthenticated" ref="containerRef" class="relative" style="overflow: visible;">
         <button
             class="relative px-2 px-lg-3 h-[32px] flex items-center justify-center rounded-lg transition-all duration-300 hover:bg-indigo-200 dark:hover:bg-gray-700"
             :class="{ 'bounce-once': shouldAnimate }"
@@ -24,11 +24,10 @@
             leave-from-class="opacity-100 translate-y-0"
             leave-to-class="opacity-0 -translate-y-2"
         >
-            <!-- Адаптивное позиционирование уведомлений для мобильных экранов -->
             <div
                 v-if="isDropdownOpen"
                 ref="dropdownRef"
-                class="absolute top-[45px] left-1/2 -translate-x-1/2 w-[calc(100vw-16px)] max-w-[360px] sm:left-auto sm:translate-x-0 sm:right-0 sm:w-80 liquid-glass-wrapper rounded-lg overflow-hidden z-50 notification-dropdown"
+                class="notification-menu-dropdown absolute top-full mt-2 right-0 w-80 z-[9999]"
                 role="dialog"
                 aria-label="Notifications dropdown"
             >
@@ -58,7 +57,7 @@
                         <div
                             v-for="item in displayedItems"
                             :key="item.id"
-                            class="p-3 border-b border-white/5 dark:border-gray-700/50 transition hover:bg-white/10 dark:hover:bg-gray-700/50"
+                            class="p-3 border-b border-white/5 dark:border-gray-700/50 transition hover:bg-indigo-200 dark:hover:bg-gray-700"
                         >
                             <div class="text-sm font-medium flex justify-between items-center gap-2">
                                 <span class="flex-1">{{ getTranslation(item, 'title') }}</span>
@@ -111,7 +110,7 @@
                     <!-- Load more button -->
                     <div v-if="hasMoreItems" class="border-t border-white/10 dark:border-gray-700">
                         <button
-                            class="w-full p-2 text-sm text-center hover:bg-white/10 dark:hover:bg-gray-700/30 transition focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50 flex items-center justify-center gap-2"
+                            class="w-full p-2 text-sm text-center hover:bg-indigo-200 dark:hover:bg-gray-700 transition focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50 flex items-center justify-center gap-2"
                             :disabled="isLoading"
                             @click="handleLoadMore"
                         >
@@ -165,6 +164,7 @@ const ANIMATION_DURATION = 2000;
 
 // State
 const isDropdownOpen = ref(false);
+const containerRef = ref(null);
 const dropdownRef = ref(null);
 const notificationsListRef = ref(null);
 const isLoading = ref(false);
@@ -450,7 +450,20 @@ watch(isAuthenticated, async isAuth => {
 
 // Click outside handler
 const handleClickOutside = event => {
-    if (dropdownRef.value && !dropdownRef.value.contains(event.target)) {
+    const target = event.target;
+    
+    // ИГНОРИРУЕМ клики внутри модального окна поддержки
+    const supportModal = document.querySelector('.support-modal-container');
+    if (supportModal && supportModal.contains(target)) {
+        return;
+    }
+    
+    if (
+        containerRef.value && 
+        !containerRef.value.contains(target) &&
+        dropdownRef.value &&
+        !dropdownRef.value.contains(target)
+    ) {
         if (isDropdownOpen.value) {
             closeDropdown();
         }
@@ -532,10 +545,77 @@ onBeforeUnmount(() => {
     height: auto;
 }
 
+/* Liquid Glass Effect для dropdown уведомлений */
+.notification-menu-dropdown {
+    position: absolute;
+    box-shadow: 0 6px 6px rgba(0, 0, 0, 0.2), 0 0 20px rgba(0, 0, 0, 0.1);
+    border-radius: 0.5rem;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.notification-menu-dropdown .liquid-glass-effect {
+    position: absolute;
+    z-index: 0;
+    inset: 0;
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
+    filter: url(#header-glass-distortion);
+    overflow: hidden;
+    isolation: isolate;
+    border-radius: 0.5rem;
+}
+
+.notification-menu-dropdown .liquid-glass-tint {
+    z-index: 1;
+    position: absolute;
+    inset: 0;
+    background: rgba(255, 255, 255, 0.25);
+    border-radius: 0.5rem;
+}
+
+.dark .notification-menu-dropdown .liquid-glass-tint {
+    background: rgba(31, 41, 55, 0.4);
+}
+
+.notification-menu-dropdown .liquid-glass-shine {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    overflow: hidden;
+    border-radius: 0.5rem;
+    box-shadow: 
+        inset 2px 2px 1px 0 rgba(255, 255, 255, 0.5),
+        inset -1px -1px 1px 1px rgba(255, 255, 255, 0.5);
+    pointer-events: none;
+}
+
+.dark .notification-menu-dropdown .liquid-glass-shine {
+    box-shadow: 
+        inset 2px 2px 1px 0 rgba(255, 255, 255, 0.1),
+        inset -1px -1px 1px 1px rgba(255, 255, 255, 0.1);
+}
+
+.notification-menu-dropdown .liquid-glass-text {
+    z-index: 3;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+.notification-menu-dropdown .liquid-glass-text > div {
+    color: #1f2937;
+}
+
+.dark .notification-menu-dropdown .liquid-glass-text > div {
+    color: #f9fafb;
+}
+
 @media (max-width: 992px) {
-    .notification-dropdown {
+    .notification-menu-dropdown {
         left: 10px !important;
-        position: fixed !important;
+        right: auto !important;
         width: calc(100% - 20px) !important;
         top: 59px !important;
     }

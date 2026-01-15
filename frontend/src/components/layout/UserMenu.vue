@@ -1,8 +1,11 @@
 <template>
-    <div v-if="isAuthenticated" id="userMenu" ref="dropdownRef" class="d-flex gap-5 relative">
+    <div v-if="isAuthenticated" id="userMenu" ref="dropdownRef" class="flex gap-5 relative" style="overflow: visible;">
         <button
-            class="px-2 px-lg-3 d-flex py-2 h-[32px] text-base leading-4 items-center rounded-lg hover:bg-indigo-200 dark:hover:bg-gray-700 transition-all duration-300 group"
+            ref="buttonRef"
+            class="px-2 lg:px-3 flex py-2 h-[32px] text-base leading-4 items-center rounded-lg hover:bg-indigo-200 dark:hover:bg-gray-700 transition-all duration-300 group"
             @click="toggleDropdown"
+            :aria-label="$t('auth.userMenu') || 'User menu'"
+            :aria-expanded="isOpen"
         >
             <User class="w-5 h-5 flex-shrink-0" />
 
@@ -38,10 +41,10 @@
             leave-from-class="opacity-100 translate-y-0"
             leave-to-class="opacity-0 -translate-y-2"
         >
-            <!-- Адаптивное позиционирование пользовательского меню для мобильных экранов -->
             <div
                 v-if="isOpen"
-                class="absolute top-[45px] left-1/2 -translate-x-1/2 w-[calc(100vw-16px)] max-w-[340px] min-w-0 sm:left-auto sm:translate-x-0 sm:right-0 sm:w-auto sm:max-w-none sm:min-w-[200px] liquid-glass-wrapper rounded-lg overflow-hidden z-50"
+                ref="menuRef"
+                class="user-menu-dropdown absolute top-full mt-2 right-0 min-w-[160px] z-[9999]"
             >
                 <div class="liquid-glass-effect"></div>
                 <div class="liquid-glass-tint"></div>
@@ -78,7 +81,7 @@
                     </div>
 
                     <button
-                        class="flex items-center gap-3 w-full px-4 py-3 text-sm text-left hover:bg-white/10 dark:hover:bg-gray-700/30 transition-colors relative"
+                        class="flex items-center gap-3 w-full px-4 py-3 text-sm text-left hover:bg-indigo-200 dark:hover:bg-gray-700 transition-colors relative"
                         @click="navigateTo('/balance/topup')"
                     >
                         <span class="relative z-10 flex whitespace-nowrap gap-2 items-center">
@@ -100,7 +103,7 @@
                     </button>
 
                     <button
-                        class="flex items-center gap-3 w-full px-4 py-3 text-sm text-left hover:bg-white/10 dark:hover:bg-gray-700/30 transition-colors relative"
+                        class="flex items-center gap-3 w-full px-4 py-3 text-sm text-left hover:bg-indigo-200 dark:hover:bg-gray-700 transition-colors relative"
                         @click="navigateTo('/profile')"
                     >
                         <span class="relative z-10 flex whitespace-nowrap gap-2 items-center">
@@ -109,7 +112,7 @@
                         </span>
                     </button>
                     <button
-                        class="flex items-center gap-3 w-full px-4 py-3 text-sm text-left hover:bg-white/10 dark:hover:bg-gray-700/30 transition-colors relative"
+                        class="flex items-center gap-3 w-full px-4 py-3 text-sm text-left hover:bg-indigo-200 dark:hover:bg-gray-700 transition-colors relative"
                         @click="handleAuthAction"
                     >
                         <span class="relative z-10 flex whitespace-nowrap gap-2 items-center text-red-500 dark:text-red-400">
@@ -150,6 +153,8 @@ const notificationStore = useNotificationStore();
 const router = useRouter();
 const isOpen = ref(false);
 const dropdownRef = ref<HTMLElement | null>(null);
+const buttonRef = ref<HTMLElement | null>(null);
+const menuRef = ref<HTMLElement | null>(null);
 const isAuthenticated = computed(() => !!authStore.user);
 
 // Форматирование баланса
@@ -188,7 +193,20 @@ const toggleDropdown = () => {
 };
 
 const handleClickOutside = (event: MouseEvent) => {
-    if (dropdownRef.value && !dropdownRef.value.contains(event.target as Node)) {
+    const target = event.target as Node;
+    
+    // ИГНОРИРУЕМ клики внутри модального окна поддержки
+    const supportModal = document.querySelector('.support-modal-container');
+    if (supportModal && supportModal.contains(target)) {
+        return;
+    }
+    
+    if (
+        dropdownRef.value && 
+        !dropdownRef.value.contains(target) &&
+        menuRef.value &&
+        !menuRef.value.contains(target)
+    ) {
         isOpen.value = false;
     }
 };
@@ -201,3 +219,72 @@ onUnmounted(() => {
     document.removeEventListener('mousedown', handleClickOutside);
 });
 </script>
+
+<style scoped>
+/* Liquid Glass Effect для dropdown меню пользователя */
+.user-menu-dropdown {
+    position: absolute;
+    box-shadow: 0 6px 6px rgba(0, 0, 0, 0.2), 0 0 20px rgba(0, 0, 0, 0.1);
+    border-radius: 0.5rem; /* rounded-lg */
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.user-menu-dropdown .liquid-glass-effect {
+    position: absolute;
+    z-index: 0;
+    inset: 0;
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
+    filter: url(#header-glass-distortion);
+    overflow: hidden;
+    isolation: isolate;
+    border-radius: 0.5rem;
+}
+
+.user-menu-dropdown .liquid-glass-tint {
+    z-index: 1;
+    position: absolute;
+    inset: 0;
+    background: rgba(255, 255, 255, 0.25);
+    border-radius: 0.5rem;
+}
+
+.dark .user-menu-dropdown .liquid-glass-tint {
+    background: rgba(31, 41, 55, 0.4);
+}
+
+.user-menu-dropdown .liquid-glass-shine {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    overflow: hidden;
+    border-radius: 0.5rem;
+    box-shadow: 
+        inset 2px 2px 1px 0 rgba(255, 255, 255, 0.5),
+        inset -1px -1px 1px 1px rgba(255, 255, 255, 0.5);
+    pointer-events: none;
+}
+
+.dark .user-menu-dropdown .liquid-glass-shine {
+    box-shadow: 
+        inset 2px 2px 1px 0 rgba(255, 255, 255, 0.1),
+        inset -1px -1px 1px 1px rgba(255, 255, 255, 0.1);
+}
+
+.user-menu-dropdown .liquid-glass-text {
+    z-index: 3;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+.user-menu-dropdown .liquid-glass-text button {
+    color: #1f2937; /* text-gray-900 */
+}
+
+.dark .user-menu-dropdown .liquid-glass-text button {
+    color: #f9fafb; /* dark:text-white */
+}
+</style>
