@@ -188,6 +188,7 @@ class SpaController extends Controller
     {
         return [
             'title' => 'Account Arena - Маркетплейс цифровых аккаунтов',
+            'h1' => 'Account Arena - Маркетплейс цифровых аккаунтов',
             'description' => 'Купите качественные аккаунты для игр, соцсетей и сервисов. Быстрая доставка, гарантия качества, лучшие цены на рынке.',
             'og:title' => 'Account Arena',
             'og:description' => 'Купите качественные аккаунты для игр, соцсетей и сервисов',
@@ -205,6 +206,7 @@ class SpaController extends Controller
     {
         return [
             'title' => 'Статьи - Account Arena',
+            'h1' => 'Статьи',
             'description' => 'Читайте полезные статьи и инструкции на Account Arena',
             'og:title' => 'Статьи - Account Arena',
             'og:description' => 'Читайте полезные статьи и инструкции',
@@ -226,6 +228,15 @@ class SpaController extends Controller
         if (isset($metaTags['title'])) {
             // Заменяем существующий title
             $html = preg_replace('/<title>.*?<\/title>/i', "<title>{$metaTags['title']}</title>", $html);
+        }
+        
+        // H1 Injection (для ботов)
+        if (isset($metaTags['h1'])) {
+            $h1Html = '<h1 style="display:none">' . htmlspecialchars($metaTags['h1'], ENT_QUOTES, 'UTF-8') . '</h1>';
+            // Инжектируем в начало body
+            if (strpos($html, '<body') !== false) {
+                $html = preg_replace('/(<body[^>]*>)/i', "$1\n  " . $h1Html, $html);
+            }
         }
         
         // Description
