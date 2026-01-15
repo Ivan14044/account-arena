@@ -196,10 +196,8 @@ const strengthLabels = ['Weak', 'Medium', 'Strong', 'VeryStrong'];
 
 const requirements = computed(() => ({
     length: { met: password.value.length >= 8 },
-    uppercase: { met: /[A-Z]/.test(password.value) },
-    lowercase: { met: /[a-z]/.test(password.value) },
-    number: { met: /[0-9]/.test(password.value) },
-    symbol: { met: /[^A-Za-z0-9]/.test(password.value) }
+    letters: { met: /[a-zA-Zа-яА-ЯёЁ]/.test(password.value) },
+    numbers: { met: /[0-9]/.test(password.value) }
 }));
 
 const passwordStrength = computed(() => {
@@ -208,9 +206,14 @@ const passwordStrength = computed(() => {
     const reqs = requirements.value;
     
     if (reqs.length.met) score++;
-    if (reqs.uppercase.met && reqs.lowercase.met) score++;
-    if (reqs.number.met) score++;
-    if (reqs.symbol.met) score++;
+    if (reqs.letters.met) score++;
+    if (reqs.numbers.met) score++;
+    
+    // Бонус за сложность: разный регистр ИЛИ спецсимволы
+    if ((/[A-ZА-ЯЁ]/.test(password.value) && /[a-zа-яё]/.test(password.value)) || 
+        /[^A-Za-z0-9а-яА-ЯёЁ]/.test(password.value)) {
+        score++;
+    }
     
     return Math.min(score, 4);
 });
