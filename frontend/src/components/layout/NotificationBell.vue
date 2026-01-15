@@ -24,10 +24,11 @@
             leave-from-class="opacity-100 translate-y-0"
             leave-to-class="opacity-0 -translate-y-2"
         >
+            <!-- Адаптивное позиционирование уведомлений для мобильных экранов -->
             <div
                 v-if="isDropdownOpen"
                 ref="dropdownRef"
-                class="absolute right-0 top-[45px] w-80 liquid-glass-wrapper rounded-lg overflow-hidden z-50 notification-dropdown"
+                class="absolute top-[45px] left-1/2 -translate-x-1/2 w-[calc(100vw-16px)] max-w-[360px] sm:left-auto sm:translate-x-0 sm:right-0 sm:w-80 liquid-glass-wrapper rounded-lg overflow-hidden z-50 notification-dropdown"
                 role="dialog"
                 aria-label="Notifications dropdown"
             >

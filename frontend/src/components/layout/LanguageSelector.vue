@@ -32,9 +32,10 @@
             leave-from-class="opacity-100 translate-y-0"
             leave-to-class="opacity-0 -translate-y-2"
         >
+            <!-- Адаптивное позиционирование списка языков для мобильных экранов -->
             <div
                 v-if="isOpen"
-                class="absolute top-[45px] liquid-glass-wrapper rounded-lg overflow-hidden min-w-[160px] z-50"
+                class="absolute top-[45px] left-1/2 -translate-x-1/2 w-[calc(100vw-16px)] max-w-[320px] min-w-0 sm:left-0 sm:translate-x-0 sm:w-auto sm:max-w-none sm:min-w-[160px] liquid-glass-wrapper rounded-lg overflow-hidden z-50"
                 style="will-change: transform; transform: translateZ(0)"
             >
                 <div class="liquid-glass-effect"></div>
