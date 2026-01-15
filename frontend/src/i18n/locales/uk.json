@@ -31,7 +31,17 @@
         "resetPasswordTitle": "Сбросить пароль",
         "resetPasswordSubtitle": "Введіть новий пароль для вашого аккаунта.",
         "resetPasswordSubmit": "Сбросить пароль",
-        "resetPasswordSuccess": "Пароль успішно змінено."
+        "resetPasswordSuccess": "Пароль успішно змінено.",
+        "passwordRequirements": "Вимоги до пароля:",
+        "reqLength": "Мінімум 8 символів",
+        "reqUppercase": "Великі літери",
+        "reqLowercase": "Малі літери",
+        "reqNumber": "Цифри",
+        "reqSymbol": "Спецсимволи (!@#$%^&*)",
+        "strengthWeak": "Слабкий",
+        "strengthMedium": "Середній",
+        "strengthStrong": "Надійний",
+        "strengthVeryStrong": "Дуже надійний"
     },
     "services": {
         "title": "Оберіть свій <span class='gradient-text bg-gradient-2'>творчий</span> інструмент",

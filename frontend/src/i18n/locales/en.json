@@ -31,7 +31,17 @@
         "resetPasswordTitle": "Reset password",
         "resetPasswordSubtitle": "Enter a new password for your account.",
         "resetPasswordSubmit": "Reset password",
-        "resetPasswordSuccess": "Password successfully reset."
+        "resetPasswordSuccess": "Password successfully reset.",
+        "passwordRequirements": "Password requirements:",
+        "reqLength": "Minimum 8 characters",
+        "reqUppercase": "Uppercase letters",
+        "reqLowercase": "Lowercase letters",
+        "reqNumber": "Numbers",
+        "reqSymbol": "Special characters (!@#$%^&*)",
+        "strengthWeak": "Weak",
+        "strengthMedium": "Medium",
+        "strengthStrong": "Strong",
+        "strengthVeryStrong": "Very Strong"
     },
     "services": {
         "title": "<span class='gradient-text bg-gradient-2'>Creative</span> Tools Hub",

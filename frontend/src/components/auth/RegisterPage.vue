@@ -78,6 +78,43 @@
                                 required
                             />
                         </div>
+
+                        <!-- Индикатор сложности пароля -->
+                        <div v-if="password" class="mt-2 space-y-2">
+                            <div class="flex gap-1 h-1.5 w-full">
+                                <div 
+                                    v-for="i in 4" :key="i"
+                                    class="h-full flex-1 rounded-full transition-all duration-500"
+                                    :class="[
+                                        passwordStrength >= i 
+                                            ? strengthColors[passwordStrength - 1] 
+                                            : 'bg-gray-200 dark:bg-gray-700'
+                                    ]"
+                                ></div>
+                            </div>
+                            <div class="flex justify-between items-center text-[11px] font-medium">
+                                <span :class="strengthTextColors[passwordStrength - 1]">
+                                    {{ $t(`auth.strength${strengthLabels[passwordStrength - 1]}`) }}
+                                </span>
+                            </div>
+                            
+                            <!-- Список требований -->
+                            <ul class="grid grid-cols-2 gap-x-4 gap-y-1 mt-2">
+                                <li 
+                                    v-for="(req, key) in requirements" 
+                                    :key="key"
+                                    class="flex items-center gap-1.5 text-[11px] transition-colors duration-300"
+                                    :class="req.met ? 'text-green-500' : 'text-gray-400'"
+                                >
+                                    <svg class="w-3 h-3 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                                        <path v-if="req.met" fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                        <circle v-else cx="10" cy="10" r="8" fill="none" stroke="currentColor" stroke-width="2" />
+                                    </svg>
+                                    {{ $t(`auth.req${key.charAt(0).toUpperCase() + key.slice(1)}`) }}
+                                </li>
+                            </ul>
+                        </div>
+
                         <p v-if="errors.password" class="text-red-500 text-sm">
                             {{ errors.password[0] }}
                         </p>
@@ -129,7 +166,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { useAuthStore } from '../../stores/auth';
@@ -151,6 +188,33 @@ const name = ref('');
 const email = ref('');
 const password = ref('');
 const passwordConfirmation = ref('');
+
+// Логика сложности пароля
+const strengthColors = ['bg-red-500', 'bg-orange-500', 'bg-yellow-500', 'bg-green-500'];
+const strengthTextColors = ['text-red-500', 'text-orange-500', 'text-yellow-500', 'text-green-500'];
+const strengthLabels = ['Weak', 'Medium', 'Strong', 'VeryStrong'];
+
+const requirements = computed(() => ({
+    length: { met: password.value.length >= 8 },
+    uppercase: { met: /[A-Z]/.test(password.value) },
+    lowercase: { met: /[a-z]/.test(password.value) },
+    number: { met: /[0-9]/.test(password.value) },
+    symbol: { met: /[^A-Za-z0-9]/.test(password.value) }
+}));
+
+const passwordStrength = computed(() => {
+    if (!password.value) return 0;
+    let score = 0;
+    const reqs = requirements.value;
+    
+    if (reqs.length.met) score++;
+    if (reqs.uppercase.met && reqs.lowercase.met) score++;
+    if (reqs.number.met) score++;
+    if (reqs.symbol.met) score++;
+    
+    return Math.min(score, 4);
+});
+
 const errors = ref<{
     name?: string;
     email?: string;

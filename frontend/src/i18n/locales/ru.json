@@ -31,7 +31,17 @@
         "resetPasswordTitle": "Сбросить пароль",
         "resetPasswordSubtitle": "Введите новый пароль для вашего аккаунта.",
         "resetPasswordSubmit": "Сбросить пароль",
-        "resetPasswordSuccess": "Пароль успешно сброшен."
+        "resetPasswordSuccess": "Пароль успешно сброшен.",
+        "passwordRequirements": "Требования к паролю:",
+        "reqLength": "Минимум 8 символов",
+        "reqUppercase": "Заглавные буквы",
+        "reqLowercase": "Строчные буквы",
+        "reqNumber": "Цифры",
+        "reqSymbol": "Спецсимволы (!@#$%^&*)",
+        "strengthWeak": "Слабый",
+        "strengthMedium": "Средний",
+        "strengthStrong": "Надежный",
+        "strengthVeryStrong": "Очень надежный"
     },
     "services": {
         "title": "Выберите свой <span class='gradient-text bg-gradient-2'>творческий</span> инструмент",
