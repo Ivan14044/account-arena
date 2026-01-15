@@ -114,7 +114,7 @@ class SpaController extends Controller
             $canonical = url("/seo/products/{$product->id}");
             
             return [
-                'title' => ($metaTitle ?: $title) . ' - ' . config('app.name'),
+                'title' => ($metaTitle ?: $title) . ' - Account Arena',
                 'description' => $metaDescription,
                 'og:title' => $metaTitle ?: $title,
                 'og:description' => $metaDescription,
@@ -163,7 +163,7 @@ class SpaController extends Controller
             $canonical = url("/seo/articles/{$id}");
             
             return [
-                'title' => ($metaTitle ?: $title) . ' - ' . config('app.name'),
+                'title' => ($metaTitle ?: $title) . ' - Account Arena',
                 'description' => $metaDescription,
                 'og:title' => $metaTitle ?: $title,
                 'og:description' => $metaDescription,
@@ -187,9 +187,9 @@ class SpaController extends Controller
     private function getHomeMetaTags(string $locale): array
     {
         return [
-            'title' => config('app.name') . ' - Маркетплейс цифровых аккаунтов',
+            'title' => 'Account Arena - Маркетплейс цифровых аккаунтов',
             'description' => 'Купите качественные аккаунты для игр, соцсетей и сервисов. Быстрая доставка, гарантия качества, лучшие цены на рынке.',
-            'og:title' => config('app.name'),
+            'og:title' => 'Account Arena',
             'og:description' => 'Купите качественные аккаунты для игр, соцсетей и сервисов',
             'og:type' => 'website',
             'og:image' => url('/img/logo_trans.webp'),
@@ -204,9 +204,9 @@ class SpaController extends Controller
     private function getArticlesListMetaTags(string $locale): array
     {
         return [
-            'title' => 'Статьи - ' . config('app.name'),
+            'title' => 'Статьи - Account Arena',
             'description' => 'Читайте полезные статьи и инструкции на Account Arena',
-            'og:title' => 'Статьи - ' . config('app.name'),
+            'og:title' => 'Статьи - Account Arena',
             'og:description' => 'Читайте полезные статьи и инструкции',
             'og:type' => 'website',
             'og:image' => url('/img/logo_trans.webp'),
