@@ -80,6 +80,7 @@ project-map.md
 !setup-server.sh
 !update-project.sh
 !deploy.sh
+!scripts/update-nginx-spa-meta.sh
 
 # Игнорируем остальные скрипты
 *.bat
@@ -89,6 +90,7 @@ project-map.md
 !setup-server.sh
 !update-project.sh
 !deploy.sh
+!scripts/update-nginx-spa-meta.sh
 
 # Служебные файлы
 APP_KEY_FOR_RAILWAY.txt
