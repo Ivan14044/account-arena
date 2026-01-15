@@ -93,6 +93,9 @@ class AccountController extends Controller
                       ->orWhere('sku', $id);
             })
             ->firstOrFail();
+        
+        // Увеличиваем количество просмотров
+        $account->increment('views');
 
         // Используем метод getAvailableStock() из модели, который уже учитывает ручную выдачу
         $availableCount = $account->getAvailableStock();
@@ -142,6 +145,7 @@ class AccountController extends Controller
             'quantity' => $availableCount,
             'total_quantity' => $totalQuantity,
             'sold' => $soldCount,
+            'views' => (int)($account->views ?? 0),
             'delivery_type' => $deliveryType,
             'created_at' => $account->created_at->toISOString(),
         ];

@@ -105,6 +105,7 @@ class ServiceAccount extends Model
         'moderation_comment', // Комментарий администратора
         'moderated_at', // Дата модерации
         'moderated_by', // ID администратора, который провел модерацию
+        'views', // Просмотры товара
     ];
 
     protected $casts = [
@@ -119,6 +120,7 @@ class ServiceAccount extends Model
         'price' => 'decimal:2',
         'discount_percent' => 'decimal:2',
         'moderated_at' => 'datetime',
+        'views' => 'integer',
     ];
 
     public function category()
