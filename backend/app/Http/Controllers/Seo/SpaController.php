@@ -115,6 +115,7 @@ class SpaController extends Controller
             
             return [
                 'title' => ($metaTitle ?: $title) . ' - Account Arena',
+                'h1' => $title,
                 'description' => $metaDescription,
                 'og:title' => $metaTitle ?: $title,
                 'og:description' => $metaDescription,
@@ -164,6 +165,7 @@ class SpaController extends Controller
             
             return [
                 'title' => ($metaTitle ?: $title) . ' - Account Arena',
+                'h1' => $title,
                 'description' => $metaDescription,
                 'og:title' => $metaTitle ?: $title,
                 'og:description' => $metaDescription,

@@ -380,8 +380,18 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { useSeo } from '@/composables/useSeo';
 import { useOptionStore } from '@/stores/options';
 import { useSiteContentStore } from '@/stores/siteContent';
+
+const { t } = useI18n();
+
+// SEO мета-теги
+useSeo({
+    title: () => 'Стать поставщиком',
+    description: () => 'Станьте поставщиком на маркетплейсе Account Arena и зарабатывайте на продаже цифровых аккаунтов',
+    ogImage: '/img/logo_trans.webp'
+});
 
 const { t, locale } = useI18n();
 const optionStore = useOptionStore();

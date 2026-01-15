@@ -241,7 +241,15 @@ import { useOptionStore } from '@/stores/options';
 import { useLoadingStore } from '@/stores/loading';
 import { useToast } from 'vue-toastification';
 import { useI18n } from 'vue-i18n';
+import { useSeo } from '@/composables/useSeo';
 import axios from '@/bootstrap'; // Используем настроенный axios из bootstrap
+
+// SEO мета-теги (noindex для служебной страницы)
+useSeo({
+    title: () => 'Пополнение баланса',
+    description: () => 'Пополните баланс вашего аккаунта в Account Arena',
+    noindex: true
+});
 
 const router = useRouter();
 const authStore = useAuthStore();

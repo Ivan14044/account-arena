@@ -12,9 +12,28 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue';
 import { usePageStore } from '@/stores/pages';
 import { useI18n } from 'vue-i18n';
+import { useSeo } from '@/composables/useSeo';
 
 const pageStore = usePageStore();
 const { locale } = useI18n();
+
+// SEO мета-теги
+const pageTitle = computed(() => {
+    return pageStore.page?.[locale.value]?.title || 'Страница';
+});
+
+const pageDescription = computed(() => {
+    if (!pageStore.page?.[locale.value]?.content) return '';
+    const text = pageStore.page[locale.value].content.replace(/<[^>]*>/g, '').trim();
+    return text ? text.substring(0, 160) : '';
+});
+
+useSeo({
+    title: () => pageTitle.value,
+    description: () => pageDescription.value || 'Account Arena',
+    ogImage: '/img/logo_trans.webp'
+});
 </script>

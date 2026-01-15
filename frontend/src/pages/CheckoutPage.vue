@@ -464,6 +464,7 @@ import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { useToast } from 'vue-toastification';
 import { useAlert } from '@/utils/alert';
+import { useSeo } from '@/composables/useSeo';
 import axios from '@/bootstrap'; // Используем настроенный axios из bootstrap
 import { useProductCartStore } from '@/stores/productCart';
 import { useProductTitle } from '@/composables/useProductTitle';
@@ -475,6 +476,13 @@ import PaymentList from '@/components/checkout/PaymentList.vue';
 import BackLink from '@/components/layout/BackLink.vue';
 import BoxLoader from '@/components/BoxLoader.vue';
 import { Check, X } from 'lucide-vue-next';
+
+// SEO мета-теги (noindex для служебной страницы)
+useSeo({
+    title: () => 'Оформление заказа',
+    description: () => 'Оформление заказа в Account Arena',
+    noindex: true
+});
 
 const router = useRouter();
 const toast = useToast();

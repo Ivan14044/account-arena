@@ -21,8 +21,16 @@
 
 <script setup lang="ts">
 import { useRouter } from 'vue-router';
+import { useSeo } from '@/composables/useSeo';
 
 const router = useRouter();
+
+// SEO мета-теги (noindex для страницы ошибки)
+useSeo({
+    title: () => 'Страница не найдена - 404',
+    description: () => 'Запрашиваемая страница не найдена',
+    noindex: true
+});
 
 function goBack() {
     router.push('/');

@@ -606,9 +606,19 @@ import { ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue';
 import { useRouter, onBeforeRouteLeave } from 'vue-router';
 import { useToast } from 'vue-toastification';
 import { useI18n } from 'vue-i18n';
+import { useSeo } from '@/composables/useSeo';
 import axios from '@/bootstrap'; // Используем настроенный axios из bootstrap
 import { useProductTitle } from '@/composables/useProductTitle';
 import { useLoadingStore } from '@/stores/loading';
+
+const { t } = useI18n();
+
+// SEO мета-теги (noindex для служебной страницы)
+useSeo({
+    title: () => 'Заказ успешно оформлен',
+    description: () => 'Ваш заказ успешно оформлен в Account Arena',
+    noindex: true
+});
 
 const router = useRouter();
 const toast = useToast();

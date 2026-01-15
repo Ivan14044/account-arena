@@ -126,6 +126,9 @@
 import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useSiteContentStore } from '@/stores/siteContent';
+import { useSeo } from '@/composables/useSeo';
+import { useStructuredData } from '@/composables/useStructuredData';
+import { useHreflang } from '@/composables/useHreflang';
 import AboutSection from '../components/home/AboutSection.vue';
 import ArticleSection from '../components/home/ArticleSection.vue';
 import HeroSection from '../components/home/HeroSection.vue';
@@ -137,6 +140,43 @@ import CatalogSection from '../components/home/CatalogSection.vue';
 
 const { t, locale } = useI18n();
 const siteContentStore = useSiteContentStore();
+
+// SEO мета-теги
+useSeo({
+    title: () => t('meta.home.title') || 'Account Arena - Маркетплейс цифровых аккаунтов',
+    description: () => t('meta.home.description') || 'Купите качественные аккаунты для игр, соцсетей и сервисов. Быстрая доставка, гарантия качества, лучшие цены на рынке.',
+    ogImage: '/img/logo_trans.webp',
+    canonical: '/'
+});
+
+// Structured Data: Organization и WebSite
+useStructuredData(() => [
+    {
+        '@context': 'https://schema.org',
+        '@type': 'Organization',
+        'name': 'Account Arena',
+        'url': 'https://account-arena.com',
+        'logo': 'https://account-arena.com/img/logo_trans.webp',
+        'sameAs': [] // Можно добавить ссылки на соцсети, если есть
+    },
+    {
+        '@context': 'https://schema.org',
+        '@type': 'WebSite',
+        'name': 'Account Arena',
+        'url': 'https://account-arena.com',
+        'potentialAction': {
+            '@type': 'SearchAction',
+            'target': {
+                '@type': 'EntryPoint',
+                'urlTemplate': 'https://account-arena.com/?search={search_term_string}'
+            },
+            'query-input': 'required name=search_term_string'
+        }
+    }
+]);
+
+// Hreflang для мультиязычности
+useHreflang();
 
 // Filters for products
 const filters = ref({
