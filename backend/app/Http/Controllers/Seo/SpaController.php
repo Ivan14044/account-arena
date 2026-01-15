@@ -90,13 +90,18 @@ class SpaController extends Controller
                     $query->where('id', $idOrSku)->orWhere('sku', $idOrSku);
                 })->first();
             
-            if (!$product) return [];
+            if (!$product) {
+                \Illuminate\Support\Facades\Log::info('SPA SEO Product NOT FOUND: ' . $idOrSku);
+                return [];
+            }
+            
+            \Illuminate\Support\Facades\Log::info('SPA SEO Product FOUND: ' . $idOrSku);
             
             $title = $this->getLocalizedField($product, 'title', $locale);
             $desc = $this->getLocalizedField($product, 'meta_description', $locale) ?: Str::limit(strip_tags($this->getLocalizedField($product, 'description', $locale)), 160);
             
             return [
-                'title' => $title . ' - Account Arena',
+                'title' => ($title ?: 'Product ' . $idOrSku) . ' - Account Arena',
                 'h1' => $title,
                 'description' => $desc,
                 'og:title' => $title,
@@ -105,20 +110,28 @@ class SpaController extends Controller
                 'og:image' => $product->image_url ? (str_starts_with($product->image_url, 'http') ? $product->image_url : url($product->image_url)) : url('/img/logo_trans.webp'),
                 'canonical' => url("/seo/products/{$product->id}"),
             ];
-        } catch (\Exception $e) { return []; }
+        } catch (\Exception $e) { 
+            \Illuminate\Support\Facades\Log::error('SPA SEO Product ERROR: ' . $e->getMessage());
+            return []; 
+        }
     }
     
     private function getArticleMetaTags(int $id, string $locale): array
     {
         try {
             $article = Article::where('status', 'published')->find($id);
-            if (!$article) return [];
+            if (!$article) {
+                \Illuminate\Support\Facades\Log::info('SPA SEO Article NOT FOUND: ' . $id);
+                return [];
+            }
+            
+            \Illuminate\Support\Facades\Log::info('SPA SEO Article FOUND: ' . $id . ', title: ' . $article->translate('title', $locale));
             
             $title = $article->translate('title', $locale);
             $desc = $article->translate('meta_description', $locale) ?: Str::limit(strip_tags($article->translate('content', $locale)), 160);
             
             return [
-                'title' => $title . ' - Account Arena',
+                'title' => ($title ?: 'Article ' . $id) . ' - Account Arena',
                 'h1' => $title,
                 'description' => $desc,
                 'og:title' => $title,
@@ -127,7 +140,10 @@ class SpaController extends Controller
                 'og:image' => $article->img ? url(Storage::url($article->img)) : url('/img/logo_trans.webp'),
                 'canonical' => url("/seo/articles/{$id}"),
             ];
-        } catch (\Exception $e) { return []; }
+        } catch (\Exception $e) { 
+            \Illuminate\Support\Facades\Log::error('SPA SEO Article ERROR: ' . $e->getMessage());
+            return []; 
+        }
     }
 
     private function getCategoryMetaTags(int $id, string $locale): array
