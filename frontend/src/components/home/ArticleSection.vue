@@ -1,4 +1,4 @@
-<template v-if="articles.length === 0">
+<template v-if="articles.length > 0">
     <div class="text-center mb-16">
         <h2
             class="text-[32px] md:text-[48px] lg:text-[64px] font-medium text-gray-900 dark:text-white mt-3"

@@ -757,6 +757,10 @@
         "suppliers": {
             "title": "Become a Supplier - Account Arena",
             "description": "Learn how to become a supplier and start selling your accounts on Account Arena."
+        },
+        "paymentRefund": {
+            "title": "Payments and Refunds - Account Arena",
+            "description": "Information about payment methods and refund conditions on Account Arena."
         }
     }
 }

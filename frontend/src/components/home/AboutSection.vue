@@ -3,7 +3,7 @@
         <div class="about-image-container relative">
             <img
                 src="/img/who.webp"
-                alt="About Us"
+                :alt="aboutTitle"
                 class="w-full max-w-md rounded-2xl mx-auto"
                 loading="lazy"
             />

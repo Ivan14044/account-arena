@@ -750,6 +750,10 @@
         "suppliers": {
             "title": "Стать поставщиком - Account Arena",
             "description": "Узнайте, как стать поставщиком и начать продавать свои аккаунты на Account Arena."
+        },
+        "paymentRefund": {
+            "title": "Платежи и возврат - Account Arena",
+            "description": "Информация о способах оплаты и условиях возврата средств на Account Arena."
         }
     }
 }

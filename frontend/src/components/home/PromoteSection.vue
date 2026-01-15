@@ -4,7 +4,7 @@
     >
         <div class="text-center flex flex-col items-center justify-start">
             <div class="access-icon mb-4">
-                <img src="/img/emoji-star.png" class="max-h-[40px] max-w-[40px]" alt="Access" />
+                <img src="/img/emoji-star.png" class="max-h-[40px] max-w-[40px]" :alt="accessTitle" />
             </div>
             <h3 class="text-[20px] mb-6 dark:text-white">{{ accessTitle }}</h3>
             <p class="text-gray-500 dark:text-gray-400 leading-5">
@@ -13,7 +13,7 @@
         </div>
         <div class="text-center flex flex-col items-center justify-start">
             <div class="pricing-icon mb-4">
-                <img src="/img/emoji-cash.png" class="max-h-[40px] max-w-[40px]" alt="Pricing" />
+                <img src="/img/emoji-cash.png" class="max-h-[40px] max-w-[40px]" :alt="pricingTitle" />
             </div>
             <h3 class="text-[20px] mb-6 dark:text-white">{{ pricingTitle }}</h3>
             <p class="text-gray-500 dark:text-gray-400 leading-5">
@@ -22,7 +22,7 @@
         </div>
         <div class="text-center flex flex-col items-center justify-start">
             <div class="refund-icon mb-4">
-                <img src="/img/emoji-hands.png" class="max-h-[40px] max-w-[40px]" alt="Refund" />
+                <img src="/img/emoji-hands.png" class="max-h-[40px] max-w-[40px]" :alt="refundTitle" />
             </div>
             <h3 class="text-[20px] mb-6 dark:text-white">{{ refundTitle }}</h3>
             <p class="text-gray-500 dark:text-gray-400 leading-5">
@@ -34,7 +34,7 @@
                 <img
                     src="/img/emoji-roket.png"
                     class="max-h-[40px] max-w-[40px]"
-                    alt="Activation"
+                    :alt="activationTitle"
                 />
             </div>
             <h3 class="text-[20px] mb-6 dark:text-white">
@@ -46,7 +46,7 @@
         </div>
         <div class="text-center flex flex-col items-center justify-start">
             <div class="support-icon mb-4">
-                <img src="/img/emoji-proger.png" class="max-h-[40px] max-w-[40px]" alt="Support" />
+                <img src="/img/emoji-proger.png" class="max-h-[40px] max-w-[40px]" :alt="supportTitle" />
             </div>
             <h3 class="text-[20px] mb-6 dark:text-white">
                 {{ supportTitle }}
@@ -57,7 +57,7 @@
         </div>
         <div class="text-center flex flex-col items-center justify-start">
             <div class="payment-icon mb-4">
-                <img src="/img/emoji-card.png" class="max-h-[40px] max-w-[40px]" alt="Payment" />
+                <img src="/img/emoji-card.png" class="max-h-[40px] max-w-[40px]" :alt="paymentTitle" />
             </div>
             <h3 class="text-[20px] mb-6 dark:text-white">
                 {{ paymentTitle }}

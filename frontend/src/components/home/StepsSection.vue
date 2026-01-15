@@ -18,7 +18,7 @@
                 </div>
                 <img
                     :src="eyesIcon"
-                    alt="eyes emoji"
+                    :alt="$t('steps.step1.title')"
                     class="shadow dark:shadow-black w-12 bg-white/80 p-2 position-absolute right-4 top-4 rounded-full"
                 />
                 <p class="text-lg font-semibold leading-none text-gray-900 dark:text-white">
@@ -57,7 +57,7 @@
                 </div>
                 <img
                     :src="pencilIcon"
-                    alt="eyes emoji"
+                    :alt="$t('steps.step2.title')"
                     class="shadow dark:shadow-black w-12 bg-white/80 p-2 position-absolute right-4 top-4 rounded-full"
                 />
                 <p class="text-lg font-semibold leading-none text-gray-900 dark:text-white">
@@ -93,7 +93,7 @@
                 </div>
                 <img
                     :src="fireIcon"
-                    alt="eyes emoji"
+                    :alt="$t('steps.step3.title')"
                     class="shadow dark:shadow-black w-12 bg-white/80 p-2 position-absolute right-4 top-4 rounded-full"
                 />
                 <p class="text-lg font-semibold leading-none text-gray-900 dark:text-white">

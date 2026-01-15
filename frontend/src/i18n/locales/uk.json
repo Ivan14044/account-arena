@@ -753,6 +753,10 @@
         "suppliers": {
             "title": "Стати постачальником - Account Arena",
             "description": "Дізнайтеся, як стати постачальником і почати продавати свої акаунти на Account Arena."
+        },
+        "paymentRefund": {
+            "title": "Платежі та повернення - Account Arena",
+            "description": "Інформація про способи оплати та умови повернення коштів на Account Arena."
         }
     }
 }

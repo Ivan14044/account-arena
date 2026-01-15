@@ -87,7 +87,7 @@ class SitemapController extends Controller
             }
             
             // Обычные сервисные страницы (SPA версии)
-            $servicePages = ['become-supplier', 'conditions', 'payment-refund', 'contacts'];
+            $servicePages = ['become-supplier', 'conditions', 'payment-refund', 'contacts', 'suppliers', 'replace-conditions'];
             foreach ($servicePages as $page) {
                 $xml .= $this->generateUrl($baseUrl . '/' . $page, 0.5, 'monthly', 'ru');
             }
