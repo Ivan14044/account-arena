@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Seo;
 use App\Http\Controllers\Controller;
 use App\Models\ServiceAccount;
 use App\Models\Article;
+use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
@@ -16,26 +17,22 @@ class SpaController extends Controller
      */
     public function index(Request $request)
     {
-        // Путь к собранному index.html (на сервере это /var/www/account-arena/frontend/dist/index.html)
         $indexPath = base_path('../frontend/dist/index.html');
         
         if (!file_exists($indexPath)) {
-            // Fallback на абсолютный путь
             $indexPath = '/var/www/account-arena/frontend/dist/index.html';
         }
         
         if (!file_exists($indexPath)) {
-            // Еще один fallback
             $indexPath = public_path('../frontend/dist/index.html');
         }
         
         if (!file_exists($indexPath)) {
-            abort(404, 'Frontend build not found. Path: ' . $indexPath);
+            abort(404, 'Frontend build not found');
         }
         
         $html = file_get_contents($indexPath);
         
-        // Получаем мета-теги для текущего роута
         $metaTags = $this->getMetaTagsForRoute($request);
         
         if (!empty($metaTags)) {
@@ -46,27 +43,27 @@ class SpaController extends Controller
             ->header('Content-Type', 'text/html; charset=utf-8');
     }
     
-    /**
-     * Получает мета-теги для текущего роута
-     */
     private function getMetaTagsForRoute(Request $request): array
     {
         $path = $request->path();
         $locale = app()->getLocale();
         
-        // Страница товара
+        // Товары
         if (preg_match('#^account/(.+)$#', $path, $matches)) {
-            $idOrSku = $matches[1];
-            return $this->getProductMetaTags($idOrSku, $locale);
+            return $this->getProductMetaTags($matches[1], $locale);
         }
         
-        // Страница статьи
+        // Статьи
         if (preg_match('#^articles/(\d+)$#', $path, $matches)) {
-            $id = (int)$matches[1];
-            return $this->getArticleMetaTags($id, $locale);
+            return $this->getArticleMetaTags((int)$matches[1], $locale);
+        }
+
+        // Категории
+        if (preg_match('#^categories/(\d+)$#', $path, $matches)) {
+            return $this->getCategoryMetaTags((int)$matches[1], $locale);
         }
         
-        // Главная страница
+        // Главная
         if ($path === '' || $path === '/') {
             return $this->getHomeMetaTags($locale);
         }
@@ -79,113 +76,74 @@ class SpaController extends Controller
         return [];
     }
     
-    /**
-     * Получает мета-теги для товара
-     */
     private function getProductMetaTags(string $idOrSku, string $locale): array
     {
         try {
-            $product = ServiceAccount::with(['category.translations'])
-                ->where('is_active', true)
+            $product = ServiceAccount::where('is_active', true)
                 ->where(function($query) use ($idOrSku) {
-                    $query->where('id', $idOrSku)
-                          ->orWhere('sku', $idOrSku);
-                })
-                ->first();
+                    $query->where('id', $idOrSku)->orWhere('sku', $idOrSku);
+                })->first();
             
-            if (!$product) {
-                return [];
-            }
+            if (!$product) return [];
             
             $title = $this->getLocalizedField($product, 'title', $locale);
-            $description = $this->getLocalizedField($product, 'description', $locale);
-            $metaTitle = $this->getLocalizedField($product, 'meta_title', $locale) ?? $title;
-            $metaDescription = $this->getLocalizedField($product, 'meta_description', $locale) ?? 
-                Str::limit(strip_tags($description), 160);
-            
-            $ogImage = null;
-            if ($product->image_url) {
-                $ogImage = $product->image_url;
-                if (!str_starts_with($ogImage, 'http')) {
-                    $ogImage = url($ogImage);
-                }
-            }
-            
-            $canonical = url("/seo/products/{$product->id}");
+            $desc = $this->getLocalizedField($product, 'meta_description', $locale) ?: Str::limit(strip_tags($this->getLocalizedField($product, 'description', $locale)), 160);
             
             return [
-                'title' => ($metaTitle ?: $title) . ' - Account Arena',
+                'title' => $title . ' - Account Arena',
                 'h1' => $title,
-                'description' => $metaDescription,
-                'og:title' => $metaTitle ?: $title,
-                'og:description' => $metaDescription,
+                'description' => $desc,
+                'og:title' => $title,
+                'og:description' => $desc,
                 'og:type' => 'product',
-                'og:image' => $ogImage ?: url('/img/logo_trans.webp'),
-                'og:url' => url()->current(),
-                'twitter:card' => 'summary_large_image',
-                'twitter:title' => $metaTitle ?: $title,
-                'twitter:description' => $metaDescription,
-                'twitter:image' => $ogImage ?: url('/img/logo_trans.webp'),
-                'canonical' => $canonical,
+                'og:image' => $product->image_url ? (str_starts_with($product->image_url, 'http') ? $product->image_url : url($product->image_url)) : url('/img/logo_trans.webp'),
+                'canonical' => url("/seo/products/{$product->id}"),
             ];
-        } catch (\Exception $e) {
-            return [];
-        }
+        } catch (\Exception $e) { return []; }
     }
     
-    /**
-     * Получает мета-теги для статьи
-     */
     private function getArticleMetaTags(int $id, string $locale): array
     {
         try {
-            $article = Article::with(['translations', 'categories.translations'])
-                ->where('status', 'published')
-                ->find($id);
-            
-            if (!$article) {
-                return [];
-            }
+            $article = Article::where('status', 'published')->find($id);
+            if (!$article) return [];
             
             $title = $article->translate('title', $locale);
-            $content = $article->translate('content', $locale);
-            $metaTitle = $article->translate('meta_title', $locale) ?? $title;
-            $metaDescription = $article->translate('meta_description', $locale) ?? 
-                Str::limit(strip_tags($content), 160);
-            
-            $ogImage = null;
-            if ($article->img) {
-                $ogImage = Storage::url($article->img);
-                if (!str_starts_with($ogImage, 'http')) {
-                    $ogImage = url($ogImage);
-                }
-            }
-            
-            $canonical = url("/seo/articles/{$id}");
+            $desc = $article->translate('meta_description', $locale) ?: Str::limit(strip_tags($article->translate('content', $locale)), 160);
             
             return [
-                'title' => ($metaTitle ?: $title) . ' - Account Arena',
+                'title' => $title . ' - Account Arena',
                 'h1' => $title,
-                'description' => $metaDescription,
-                'og:title' => $metaTitle ?: $title,
-                'og:description' => $metaDescription,
+                'description' => $desc,
+                'og:title' => $title,
+                'og:description' => $desc,
                 'og:type' => 'article',
-                'og:image' => $ogImage ?: url('/img/logo_trans.webp'),
-                'og:url' => url()->current(),
-                'twitter:card' => 'summary_large_image',
-                'twitter:title' => $metaTitle ?: $title,
-                'twitter:description' => $metaDescription,
-                'twitter:image' => $ogImage ?: url('/img/logo_trans.webp'),
-                'canonical' => $canonical,
+                'og:image' => $article->img ? url(Storage::url($article->img)) : url('/img/logo_trans.webp'),
+                'canonical' => url("/seo/articles/{$id}"),
             ];
-        } catch (\Exception $e) {
-            return [];
-        }
+        } catch (\Exception $e) { return []; }
+    }
+
+    private function getCategoryMetaTags(int $id, string $locale): array
+    {
+        try {
+            $category = Category::find($id);
+            if (!$category) return [];
+            
+            $name = $category->translate('name', $locale);
+            $desc = $category->translate('meta_description', $locale) ?: $name . ' - Account Arena';
+            
+            return [
+                'title' => $name . ' - Account Arena',
+                'h1' => $name,
+                'description' => $desc,
+                'og:title' => $name,
+                'og:description' => $desc,
+                'canonical' => url("/seo/categories/{$id}"),
+            ];
+        } catch (\Exception $e) { return []; }
     }
     
-    /**
-     * Получает мета-теги для главной страницы
-     */
     private function getHomeMetaTags(string $locale): array
     {
         return [
@@ -194,109 +152,85 @@ class SpaController extends Controller
             'description' => 'Купите качественные аккаунты для игр, соцсетей и сервисов. Быстрая доставка, гарантия качества, лучшие цены на рынке.',
             'og:title' => 'Account Arena',
             'og:description' => 'Купите качественные аккаунты для игр, соцсетей и сервисов',
-            'og:type' => 'website',
-            'og:image' => url('/img/logo_trans.webp'),
-            'og:url' => url('/'),
             'canonical' => url('/'),
         ];
     }
     
-    /**
-     * Получает мета-теги для списка статей
-     */
     private function getArticlesListMetaTags(string $locale): array
     {
         return [
             'title' => 'Статьи - Account Arena',
             'h1' => 'Статьи',
             'description' => 'Читайте полезные статьи и инструкции на Account Arena',
-            'og:title' => 'Статьи - Account Arena',
-            'og:description' => 'Читайте полезные статьи и инструкции',
-            'og:type' => 'website',
-            'og:image' => url('/img/logo_trans.webp'),
-            'og:url' => url('/articles'),
             'canonical' => url('/articles'),
         ];
     }
     
-    /**
-     * Инжектирует мета-теги в HTML
-     */
     private function injectMetaTags(string $html, array $metaTags): string
     {
-        $tags = [];
+        // 1. Очищаем старые теги, если они есть в шаблоне
+        $html = preg_replace('/<title>.*?<\/title>/i', '', $html);
+        $html = preg_replace('/<meta name="description".*?>/i', '', $html);
+        $html = preg_replace('/<link rel="canonical".*?>/i', '', $html);
+        
+        $headTags = [];
         
         // Title
         if (isset($metaTags['title'])) {
-            // Заменяем существующий title
-            $html = preg_replace('/<title>.*?<\/title>/i', "<title>{$metaTags['title']}</title>", $html);
-        }
-        
-        // H1 Injection (для ботов)
-        if (isset($metaTags['h1'])) {
-            $h1Html = "\n  " . '<h1 style="display:none">' . htmlspecialchars($metaTags['h1'], ENT_QUOTES, 'UTF-8') . '</h1>';
-            // Инжектируем после открывающего тега body
-            if (strpos($html, '<body') !== false) {
-                // Ищем конец тега <body ...>
-                $bodyPos = strpos($html, '>', strpos($html, '<body'));
-                if ($bodyPos !== false) {
-                    $html = substr_replace($html, $h1Html, $bodyPos + 1, 0);
-                }
-            }
+            $headTags[] = '<title>' . htmlspecialchars($metaTags['title'], ENT_QUOTES, 'UTF-8') . '</title>';
         }
         
         // Description
         if (isset($metaTags['description'])) {
-            $content = htmlspecialchars($metaTags['description'], ENT_QUOTES, 'UTF-8');
-            $tags[] = '<meta name="description" content="' . $content . '">';
-        }
-        
-        // Open Graph
-        foreach (['og:title', 'og:description', 'og:type', 'og:image', 'og:url'] as $property) {
-            if (isset($metaTags[$property])) {
-                $content = htmlspecialchars($metaTags[$property], ENT_QUOTES, 'UTF-8');
-                $tags[] = "<meta property=\"{$property}\" content=\"{$content}\">";
-            }
-        }
-        
-        // Twitter Cards
-        foreach (['twitter:card', 'twitter:title', 'twitter:description', 'twitter:image'] as $name) {
-            if (isset($metaTags[$name])) {
-                $content = htmlspecialchars($metaTags[$name], ENT_QUOTES, 'UTF-8');
-                $tags[] = "<meta name=\"{$name}\" content=\"{$content}\">";
-            }
+            $headTags[] = '<meta name="description" content="' . htmlspecialchars($metaTags['description'], ENT_QUOTES, 'UTF-8') . '">';
         }
         
         // Canonical
         if (isset($metaTags['canonical'])) {
-            $tags[] = '<link rel="canonical" href="' . htmlspecialchars($metaTags['canonical'], ENT_QUOTES, 'UTF-8') . '">';
+            $headTags[] = '<link rel="canonical" href="' . htmlspecialchars($metaTags['canonical'], ENT_QUOTES, 'UTF-8') . '">';
         }
         
-        $injectedTags = implode("\n  ", $tags);
+        // Open Graph & Twitter
+        foreach (['og:title', 'og:description', 'og:type', 'og:image'] as $prop) {
+            if (isset($metaTags[$prop])) {
+                $content = htmlspecialchars($metaTags[$prop], ENT_QUOTES, 'UTF-8');
+                $headTags[] = "<meta property=\"{$prop}\" content=\"{$content}\">";
+                // Twitter cards duplicate
+                $twitterName = str_replace('og:', 'twitter:', $prop);
+                $headTags[] = "<meta name=\"{$twitterName}\" content=\"{$content}\">";
+            }
+        }
         
-        // Инжектируем перед закрывающим </head>
-        if (strpos($html, '</head>') !== false) {
-            $html = str_replace('</head>', "  {$injectedTags}\n</head>", $html);
+        // Hreflang
+        $locales = ['ru', 'en', 'uk'];
+        $currentUrl = url()->current();
+        foreach ($locales as $loc) {
+            $langUrl = $currentUrl . (str_contains($currentUrl, '?') ? '&' : '?') . 'lang=' . $loc;
+            $headTags[] = '<link rel="alternate" hreflang="' . $loc . '" href="' . $langUrl . '">';
+        }
+        $headTags[] = '<link rel="alternate" hreflang="x-default" href="' . $currentUrl . '">';
+        
+        // Вставка в HEAD
+        $injectedHead = implode("\n  ", $headTags);
+        if (preg_match('/<\/head>/i', $html, $matches, PREG_OFFSET_CAPTURE)) {
+            $html = substr_replace($html, "  " . $injectedHead . "\n", $matches[0][1], 0);
+        }
+        
+        // Вставка H1 в BODY
+        if (isset($metaTags['h1'])) {
+            $h1Html = "\n  " . '<h1 style="display:none">' . htmlspecialchars($metaTags['h1'], ENT_QUOTES, 'UTF-8') . '</h1>' . "\n";
+            if (preg_match('/<body[^>]*>/i', $html, $matches, PREG_OFFSET_CAPTURE)) {
+                $insertPos = $matches[0][1] + strlen($matches[0][0]);
+                $html = substr_replace($html, $h1Html, $insertPos, 0);
+            }
         }
         
         return $html;
     }
     
-    /**
-     * Получает локализованное поле товара
-     */
-    private function getLocalizedField(ServiceAccount $product, string $field, string $locale): ?string
+    private function getLocalizedField($model, string $field, string $locale): ?string
     {
-        switch ($locale) {
-            case 'uk':
-                $localizedField = $field . '_uk';
-                return $product->$localizedField ?: $product->$field;
-            case 'en':
-                $localizedField = $field . '_en';
-                return $product->$localizedField ?: $product->$field;
-            case 'ru':
-            default:
-                return $product->$field;
-        }
+        $localizedField = ($locale === 'ru') ? $field : $field . '_' . $locale;
+        return $model->$localizedField ?: $model->$field;
     }
 }
