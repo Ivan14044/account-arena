@@ -16,16 +16,21 @@ class SpaController extends Controller
      */
     public function index(Request $request)
     {
-        // Путь к собранному index.html
+        // Путь к собранному index.html (на сервере это /var/www/account-arena/frontend/dist/index.html)
         $indexPath = base_path('../frontend/dist/index.html');
         
         if (!file_exists($indexPath)) {
-            // Fallback на стандартный путь
+            // Fallback на абсолютный путь
+            $indexPath = '/var/www/account-arena/frontend/dist/index.html';
+        }
+        
+        if (!file_exists($indexPath)) {
+            // Еще один fallback
             $indexPath = public_path('../frontend/dist/index.html');
         }
         
         if (!file_exists($indexPath)) {
-            abort(404, 'Frontend build not found');
+            abort(404, 'Frontend build not found. Path: ' . $indexPath);
         }
         
         $html = file_get_contents($indexPath);
