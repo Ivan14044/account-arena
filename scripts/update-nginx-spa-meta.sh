@@ -45,7 +45,7 @@ server {
     }
 
     # Laravel Backend
-    location ~ ^/(api|auth|admin|supplier)/ {
+    location ~ ^/(api|auth|admin|supplier) {
         fastcgi_pass unix:/var/run/php/php8.2-fpm.sock;
         fastcgi_index index.php;
         fastcgi_param SCRIPT_FILENAME /var/www/account-arena/backend/public/index.php;
