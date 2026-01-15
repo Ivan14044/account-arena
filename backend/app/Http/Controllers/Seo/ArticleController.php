@@ -108,6 +108,7 @@ class ArticleController extends Controller
         
         // Open Graph изображение
         $ogImage = null;
+        $ogType = 'article';
         if ($article->img) {
             $ogImage = Storage::url($article->img);
             if (!str_starts_with($ogImage, 'http')) {

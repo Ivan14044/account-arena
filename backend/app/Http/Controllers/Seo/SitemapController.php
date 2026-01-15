@@ -62,6 +62,12 @@ class SitemapController extends Controller
             $url = $baseUrl . '/seo/articles';
             $xml .= $this->generateUrl($url, 0.7, 'daily', 'ru');
             
+            // Сервисные страницы
+            $servicePages = ['become-supplier', 'conditions', 'payment-refund', 'contacts'];
+            foreach ($servicePages as $page) {
+                $xml .= $this->generateUrl($baseUrl . '/' . $page, 0.5, 'monthly', 'ru');
+            }
+            
             $xml .= '</urlset>';
             
             return $xml;

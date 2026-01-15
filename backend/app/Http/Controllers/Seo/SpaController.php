@@ -88,6 +88,20 @@ class SpaController extends Controller
         if ($path === 'articles') {
             return $this->getArticlesListMetaTags($locale);
         }
+
+        // Сервисные страницы
+        if ($path === 'become-supplier') {
+            return $this->getServicePageMetaTags('become-supplier', $locale);
+        }
+        if ($path === 'conditions') {
+            return $this->getServicePageMetaTags('conditions', $locale);
+        }
+        if ($path === 'payment-refund') {
+            return $this->getServicePageMetaTags('payment-refund', $locale);
+        }
+        if ($path === 'contacts') {
+            return $this->getServicePageMetaTags('contacts', $locale);
+        }
         
         return [];
     }
@@ -202,23 +216,84 @@ class SpaController extends Controller
     
     private function getHomeMetaTags(string $locale): array
     {
+        $titles = [
+            'ru' => 'Account Arena - Маркетплейс цифровых аккаунтов',
+            'en' => 'Account Arena - Digital Accounts Marketplace',
+            'uk' => 'Account Arena - Маркетплейс цифрових акаунтів'
+        ];
+        
+        $descriptions = [
+            'ru' => 'Купите качественные аккаунты для игр, соцсетей и сервисов. Быстрая доставка, гарантия качества, лучшие цены на рынке.',
+            'en' => 'Buy high-quality accounts for games, social networks and services. Fast delivery, quality guarantee, best prices on the market.',
+            'uk' => 'Купуйте якісні акаунти для ігор, соцмереж та сервісів. Швидка доставка, гарантія якості, найкращі ціни на ринку.'
+        ];
+
         return [
-            'title' => 'Account Arena - Маркетплейс цифровых аккаунтов',
-            'h1' => 'Account Arena - Маркетплейс цифровых аккаунтов',
-            'description' => 'Купите качественные аккаунты для игр, соцсетей и сервисов. Быстрая доставка, гарантия качества, лучшие цены на рынке.',
+            'title' => $titles[$locale] ?? $titles['ru'],
+            // Удаляем h1 отсюда, так как он есть в HeroSection.vue, чтобы избежать дублей
+            'description' => $descriptions[$locale] ?? $descriptions['ru'],
             'og:title' => 'Account Arena',
-            'og:description' => 'Купите качественные аккаунты для игр, соцсетей и сервисов',
+            'og:description' => $descriptions[$locale] ?? $descriptions['ru'],
             'canonical' => url('/'),
         ];
     }
     
+    private function getServicePageMetaTags(string $page, string $locale): array
+    {
+        $data = [
+            'become-supplier' => [
+                'ru' => ['title' => 'Стать поставщиком - Account Arena', 'desc' => 'Узнайте, как стать поставщиком и начать продавать свои аккаунты на Account Arena.'],
+                'en' => ['title' => 'Become a Supplier - Account Arena', 'desc' => 'Learn how to become a supplier and start selling your accounts on Account Arena.'],
+                'uk' => ['title' => 'Стати постачальником - Account Arena', 'desc' => 'Дізнайтеся, як стати постачальником і почати продавати свої акаунти на Account Arena.']
+            ],
+            'conditions' => [
+                'ru' => ['title' => 'Условия замены - Account Arena', 'desc' => 'Ознакомьтесь с условиями замены цифровых товаров в нашем магазине.'],
+                'en' => ['title' => 'Replacement Conditions - Account Arena', 'desc' => 'Read our digital goods replacement conditions.'],
+                'uk' => ['title' => 'Умови заміни - Account Arena', 'desc' => 'Ознайомтеся з умовами заміни цифрових товарів у нашому магазині.']
+            ],
+            'payment-refund' => [
+                'ru' => ['title' => 'Оплата и возврат - Account Arena', 'desc' => 'Информация о способах оплаты и политике возврата денежных средств.'],
+                'en' => ['title' => 'Payment and Refund - Account Arena', 'desc' => 'Information about payment methods and refund policy.'],
+                'uk' => ['title' => 'Оплата та повернення - Account Arena', 'desc' => 'Інформація про способи оплати та політику повернення коштів.']
+            ],
+            'contacts' => [
+                'ru' => ['title' => 'Контакты - Account Arena', 'desc' => 'Свяжитесь с нами для получения поддержки или по вопросам сотрудничества.'],
+                'en' => ['title' => 'Contacts - Account Arena', 'desc' => 'Contact us for support or cooperation inquiries.'],
+                'uk' => ['title' => 'Контакти - Account Arena', 'desc' => 'Зв\'яжіться з нами для отримання підтримки або з питань співпраці.']
+            ]
+        ];
+
+        $pageData = $data[$page][$locale] ?? $data[$page]['ru'];
+
+        return [
+            'title' => $pageData['title'],
+            'h1' => $pageData['title'],
+            'description' => $pageData['desc'],
+            'og:title' => $pageData['title'],
+            'og:description' => $pageData['desc'],
+            'canonical' => url("/" . $page),
+        ];
+    }
+
     private function getArticlesListMetaTags(string $locale): array
     {
+        $titles = [
+            'ru' => 'Статьи - Account Arena',
+            'en' => 'Articles - Account Arena',
+            'uk' => 'Статті - Account Arena'
+        ];
+        
+        $descriptions = [
+            'ru' => 'Читайте полезные статьи и инструкции на Account Arena',
+            'en' => 'Read useful articles and instructions on Account Arena',
+            'uk' => 'Читайте корисні статті та інструкції на Account Arena'
+        ];
+
         return [
-            'title' => 'Статьи - Account Arena',
-            'h1' => 'Статьи',
-            'description' => 'Читайте полезные статьи и инструкции на Account Arena',
-            'canonical' => url('/articles'),
+            'title' => $titles[$locale] ?? $titles['ru'],
+            'h1' => $titles[$locale] ?? $titles['ru'],
+            'description' => $descriptions[$locale] ?? $descriptions['ru'],
+            'canonical' => url('/seo/articles'), // Используем /seo/ путь для каноникала списка статей
         ];
     }
     

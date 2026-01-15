@@ -54,7 +54,27 @@ export function useProductTitle() {
         },
         newLine: boolean = false
     ): string => {
-        const description = getLocalizedField<string>(product, 'description');
+        let description = getLocalizedField<string>(product, 'description');
+
+        // Обработка ссылок: добавляем rel="nofollow noopener" для внешних ссылок
+        if (description && description.includes('<a')) {
+            const hostname = typeof window !== 'undefined' ? window.location.hostname : 'account-arena.com';
+            description = description.replace(/<a\s+(?:[^>]*?\s+)?href=(["'])(.*?)\1/gi, (match, quote, url) => {
+                // Если ссылка внешняя (начинается с http и не содержит наш хост)
+                if (url.startsWith('http') && !url.includes(hostname)) {
+                    let newMatch = match;
+                    if (!newMatch.toLowerCase().includes('rel=')) {
+                        newMatch = newMatch.replace(/<a/i, '<a rel="nofollow noopener"');
+                    }
+                    if (!newMatch.toLowerCase().includes('target=')) {
+                        newMatch = newMatch.replace(/<a/i, '<a target="_blank"');
+                    }
+                    return newMatch;
+                }
+                return match;
+            });
+        }
+
         return newLine
             ? description.replaceAll('\n', '<br />')
             : description.replace(/\s+|<br\s*\/?>/g, ' ');

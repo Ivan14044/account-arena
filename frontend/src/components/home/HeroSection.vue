@@ -133,13 +133,15 @@ const wideBanner = computed(() => (wideBanners.value.length > 0 ? wideBanners.va
 
 // Функция для получения заголовка баннера с учетом локали
 const getBannerTitle = (banner: any): string => {
-    if (locale.value === 'en' && banner.title_en) {
-        return banner.title_en;
+    let title = '';
+    if (locale.value === 'en') {
+        title = banner.title_en || banner.title || '';
+    } else if (locale.value === 'uk') {
+        title = banner.title_uk || banner.title || '';
+    } else {
+        title = banner.title || '';
     }
-    if (locale.value === 'uk' && banner.title_uk) {
-        return banner.title_uk;
-    }
-    return banner.title;
+    return title || 'Account Arena Banner';
 };
 
 // Функция для обработки клика по баннеру

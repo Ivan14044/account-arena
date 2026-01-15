@@ -3,7 +3,7 @@
 # Финальный скрипт настройки nginx для SEO (FIX REGEX)
 
 NGINX_CONFIG="/etc/nginx/sites-available/account-arena"
-BACKUP_FILE="/etc/nginx/sites-available/account-arena.backup.final.v2"
+    BACKUP_FILE="/etc/nginx/sites-available/account-arena.backup.final.v3"
 
 cp "$NGINX_CONFIG" "$BACKUP_FILE"
 
@@ -63,7 +63,7 @@ server {
     }
 
     # SPA Routes with Meta Injection (FIXED REGEX)
-    location ~ ^/(account|articles|categories) {
+    location ~ ^/(account|articles|categories|become-supplier|conditions|payment-refund|contacts) {
         if ($uri ~ \.(jpg|jpeg|png|gif|ico|css|js|svg|woff|woff2|ttf|eot|webp|json|xml|map)$) { return 404; }
         fastcgi_pass unix:/var/run/php/php8.2-fpm.sock;
         fastcgi_index index.php;
