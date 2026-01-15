@@ -393,7 +393,7 @@ useSeo({
     ogImage: '/img/logo_trans.webp'
 });
 
-const { t, locale } = useI18n();
+const { locale } = useI18n();
 const optionStore = useOptionStore();
 const siteContentStore = useSiteContentStore();
 const openFaqIndex = ref<number | null>(null);
