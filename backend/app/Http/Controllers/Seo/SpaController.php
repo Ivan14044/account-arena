@@ -228,9 +228,15 @@ class SpaController extends Controller
             'uk' => 'Купуйте якісні акаунти для ігор, соцмереж та сервісів. Швидка доставка, гарантія якості, найкращі ціни на ринку.'
         ];
 
+        $h1Titles = [
+            'ru' => 'Магазин цифровых товаров и премиум аккаунтов',
+            'en' => 'Digital goods and premium accounts store',
+            'uk' => 'Магазин цифрових товарів та преміум акаунтів'
+        ];
+
         return [
             'title' => $titles[$locale] ?? $titles['ru'],
-            // Удаляем h1 отсюда, так как он есть в HeroSection.vue, чтобы избежать дублей
+            'h1' => $h1Titles[$locale] ?? $h1Titles['ru'],
             'description' => $descriptions[$locale] ?? $descriptions['ru'],
             'og:title' => 'Account Arena',
             'og:description' => $descriptions[$locale] ?? $descriptions['ru'],
