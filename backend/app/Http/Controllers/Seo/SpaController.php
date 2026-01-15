@@ -48,9 +48,6 @@ class SpaController extends Controller
         $path = trim($request->path(), '/');
         $locale = $request->get('lang', app()->getLocale());
         
-        // LOG FOR DEBUG
-        \Illuminate\Support\Facades\Log::info('SPA SEO Path: ' . $path);
-        
         // Товары
         if (preg_match('#^account/(.+)$#i', $path, $matches)) {
             return $this->getProductMetaTags($matches[1], $locale);
@@ -76,12 +73,9 @@ class SpaController extends Controller
             return $this->getArticlesListMetaTags($locale);
         }
         
-        return [
-            'title' => 'Unknown Path: ' . $path,
-            'description' => 'Path debugging active'
-        ];
+        return [];
     }
-    
+
     private function getProductMetaTags(string $idOrSku, string $locale): array
     {
         try {
@@ -90,12 +84,7 @@ class SpaController extends Controller
                     $query->where('id', $idOrSku)->orWhere('sku', $idOrSku);
                 })->first();
             
-            if (!$product) {
-                \Illuminate\Support\Facades\Log::info('SPA SEO Product NOT FOUND: ' . $idOrSku);
-                return [];
-            }
-            
-            \Illuminate\Support\Facades\Log::info('SPA SEO Product FOUND: ' . $idOrSku);
+            if (!$product) return [];
             
             $title = $this->getLocalizedField($product, 'title', $locale);
             $desc = $this->getLocalizedField($product, 'meta_description', $locale) ?: Str::limit(strip_tags($this->getLocalizedField($product, 'description', $locale)), 160);
@@ -110,22 +99,14 @@ class SpaController extends Controller
                 'og:image' => $product->image_url ? (str_starts_with($product->image_url, 'http') ? $product->image_url : url($product->image_url)) : url('/img/logo_trans.webp'),
                 'canonical' => url("/seo/products/{$product->id}"),
             ];
-        } catch (\Exception $e) { 
-            \Illuminate\Support\Facades\Log::error('SPA SEO Product ERROR: ' . $e->getMessage());
-            return []; 
-        }
+        } catch (\Exception $e) { return []; }
     }
     
     private function getArticleMetaTags(int $id, string $locale): array
     {
         try {
             $article = Article::where('status', 'published')->find($id);
-            if (!$article) {
-                \Illuminate\Support\Facades\Log::info('SPA SEO Article NOT FOUND: ' . $id);
-                return [];
-            }
-            
-            \Illuminate\Support\Facades\Log::info('SPA SEO Article FOUND: ' . $id . ', title: ' . $article->translate('title', $locale));
+            if (!$article) return [];
             
             $title = $article->translate('title', $locale);
             $desc = $article->translate('meta_description', $locale) ?: Str::limit(strip_tags($article->translate('content', $locale)), 160);
@@ -140,10 +121,7 @@ class SpaController extends Controller
                 'og:image' => $article->img ? url(Storage::url($article->img)) : url('/img/logo_trans.webp'),
                 'canonical' => url("/seo/articles/{$id}"),
             ];
-        } catch (\Exception $e) { 
-            \Illuminate\Support\Facades\Log::error('SPA SEO Article ERROR: ' . $e->getMessage());
-            return []; 
-        }
+        } catch (\Exception $e) { return []; }
     }
 
     private function getCategoryMetaTags(int $id, string $locale): array
