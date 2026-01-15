@@ -209,6 +209,11 @@ Route::prefix('seo')->name('seo.')->group(function () {
     Route::get('/articles', [\App\Http\Controllers\Seo\ArticleController::class, 'index'])->name('articles');
     Route::get('/articles/{id}', [\App\Http\Controllers\Seo\ArticleController::class, 'show'])->name('article');
     Route::get('/products/{id}', [\App\Http\Controllers\Seo\ProductController::class, 'show'])->name('product');
+    
+    // Сервисные страницы
+    Route::get('/suppliers', [\App\Http\Controllers\Seo\ServicePageController::class, 'suppliers'])->name('suppliers');
+    Route::get('/replace-conditions', [\App\Http\Controllers\Seo\ServicePageController::class, 'replaceConditions'])->name('replace-conditions');
+    Route::get('/payment-refund', [\App\Http\Controllers\Seo\ServicePageController::class, 'paymentRefund'])->name('payment-refund');
 });
 
 // SPA-роуты с инжекцией мета-тегов (обрабатываются через nginx -> Laravel)

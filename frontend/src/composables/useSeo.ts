@@ -25,7 +25,19 @@ export function useSeo(options: SeoOptions) {
         const pageTitle = typeof options.title === 'function' 
             ? options.title() 
             : options.title;
-        return pageTitle ? `${pageTitle} - Account Arena` : 'Account Arena';
+        
+        if (!pageTitle) {
+            return 'Account Arena';
+        }
+        
+        // Проверяем, содержит ли title уже "Account Arena"
+        // Если содержит, не добавляем его повторно
+        const titleLower = pageTitle.toLowerCase();
+        if (titleLower.includes('account arena')) {
+            return pageTitle;
+        }
+        
+        return `${pageTitle} - Account Arena`;
     });
     
     const description = computed(() => {

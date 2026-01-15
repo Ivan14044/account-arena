@@ -62,7 +62,18 @@ class SitemapController extends Controller
             $url = $baseUrl . '/seo/articles';
             $xml .= $this->generateUrl($url, 0.7, 'daily', 'ru');
             
-            // Сервисные страницы
+            // SEO-версии сервисных страниц
+            $seoServicePages = [
+                'suppliers' => 0.6,
+                'replace-conditions' => 0.6,
+                'payment-refund' => 0.6,
+            ];
+            foreach ($seoServicePages as $page => $priority) {
+                $url = $baseUrl . '/seo/' . $page;
+                $xml .= $this->generateUrl($url, $priority, 'monthly', 'ru');
+            }
+            
+            // Обычные сервисные страницы (SPA версии)
             $servicePages = ['become-supplier', 'conditions', 'payment-refund', 'contacts'];
             foreach ($servicePages as $page) {
                 $xml .= $this->generateUrl($baseUrl . '/' . $page, 0.5, 'monthly', 'ru');
