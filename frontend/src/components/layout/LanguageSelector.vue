@@ -3,7 +3,7 @@
         <!-- Language Button -->
         <button
             ref="buttonRef"
-            class="cursor-pointer gap-[7px] text-sm leading-4 hover:bg-indigo-200 dark:hover:bg-gray-700 transition-all duration-300 pl-2 pr-1 lg:pl-3 lg:pr-2 py-2 rounded-lg flex items-center relative z-10"
+            class="language-button cursor-pointer gap-[7px] text-sm leading-4 transition-all duration-300 pl-2 pr-1 lg:pl-3 lg:pr-2 py-2 rounded-lg flex items-center relative z-10"
             @click="toggleDropdown"
             :aria-label="`${$t('language.selector') || 'Language selector'} ${currentLanguage.name}`"
             :aria-expanded="isOpen"
@@ -161,6 +161,29 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+.language-button {
+    background: rgba(255, 255, 255, 0.5);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(226, 232, 240, 0.8);
+    transition: all 0.3s ease;
+}
+
+.dark .language-button {
+    background: rgba(30, 41, 59, 0.5);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.language-button:hover {
+    background: rgba(255, 255, 255, 0.8);
+    border-color: rgba(108, 92, 231, 0.3);
+}
+
+.dark .language-button:hover {
+    background: rgba(30, 41, 59, 0.8);
+    border-color: rgba(108, 92, 231, 0.4);
+}
+
 /* Liquid Glass Effect для dropdown меню языка */
 .language-dropdown {
     position: absolute;

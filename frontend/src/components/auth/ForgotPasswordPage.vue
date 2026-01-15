@@ -1,9 +1,9 @@
 <template>
     <div
-        class="min-h-screen py-3 w-full bg-[#fafafa] dark:bg-gray-900 flex items-center justify-center"
+        class="login-page-background min-h-screen py-3 w-full flex items-center justify-center"
     >
         <div
-            class="max-w-sm w-full lg:w-1/2 flex items-center justify-center p-8 bg-white dark:!bg-gray-800 rounded-[12px] shadow-lg relative"
+            class="login-container max-w-sm w-full lg:w-1/2 flex items-center justify-center p-8 rounded-[12px] relative"
         >
             <div class="w-full">
                 <div class="flex items-center justify-end absolute top-3 right-3">
@@ -123,18 +123,121 @@ const handleSubmit = async () => {
 </script>
 
 <style scoped>
+/* Фон страницы восстановления пароля */
+.login-page-background {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 50%, #f8f9fa 100%);
+    background-size: 200% 200%;
+    animation: gradientShift 15s ease infinite;
+}
+
+.dark .login-page-background {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 50%, #1e293b 100%);
+    background-size: 200% 200%;
+}
+
+@keyframes gradientShift {
+    0%,
+    100% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+}
+
+/* Контейнер окна восстановления с glass effect */
+.login-container {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(226, 232, 240, 0.6);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.dark .login-container {
+    background: rgba(30, 41, 59, 0.85);
+    border-color: rgba(51, 65, 85, 0.6);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.login-container:hover {
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+    border-color: rgba(108, 92, 231, 0.3);
+}
+
+.dark .login-container:hover {
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+    border-color: rgba(108, 92, 231, 0.4);
+}
+
 .input-field {
     @apply w-full px-4 py-3 border border-solid border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all;
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(8px);
 }
+
+.dark .input-field {
+    background: rgba(30, 41, 59, 0.9);
+    border-color: rgba(51, 65, 85, 0.8);
+}
+
+.input-field:focus {
+    background: rgba(255, 255, 255, 1);
+    border-color: rgba(108, 92, 231, 0.5);
+}
+
+.dark .input-field:focus {
+    background: rgba(30, 41, 59, 1);
+    border-color: rgba(108, 92, 231, 0.6);
+}
+
 .auth-button {
     @apply w-full text-gray-900 hover:text-white bg-white hover:!bg-blue-600 border font-medium py-[10px] rounded-lg transition-all flex items-center justify-center gap-2;
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(8px);
+    border-color: rgba(226, 232, 240, 0.8);
 }
+
+.dark .auth-button {
+    background: rgba(30, 41, 59, 0.9);
+    border-color: rgba(51, 65, 85, 0.8);
+    color: #f3f4f6;
+}
+
+.auth-button:hover:not(:disabled) {
+    background: rgba(37, 99, 235, 0.95);
+    border-color: rgba(37, 99, 235, 0.8);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
 .auth-button:disabled {
     @apply opacity-50 cursor-not-allowed text-[#0065FF]/80 border-[#0065FF]/80;
 }
+
 .auth-button.primary {
     @apply bg-blue-500 dark:bg-blue-900 text-white hover:bg-blue-600 text-white;
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    border: none;
+    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3);
 }
+
+.dark .auth-button.primary {
+    background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%);
+    box-shadow: 0 4px 14px rgba(30, 64, 175, 0.4);
+}
+
+.auth-button.primary:hover:not(:disabled) {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
+}
+
+.dark .auth-button.primary:hover:not(:disabled) {
+    background: linear-gradient(135deg, #1e3a8a 0%, #1e3a8a 100%);
+    box-shadow: 0 6px 20px rgba(30, 64, 175, 0.5);
+}
+
 .auth-button.primary:disabled {
     @apply opacity-50 cursor-not-allowed bg-[#0065FF]/80;
 }
