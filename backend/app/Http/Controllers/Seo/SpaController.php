@@ -45,21 +45,21 @@ class SpaController extends Controller
     
     private function getMetaTagsForRoute(Request $request): array
     {
-        $path = $request->path();
+        $path = trim($request->path(), '/');
         $locale = app()->getLocale();
         
         // Товары
-        if (preg_match('#^account/(.+)$#', $path, $matches)) {
+        if (preg_match('#^account/(.+)$#i', $path, $matches)) {
             return $this->getProductMetaTags($matches[1], $locale);
         }
         
-        // Статьи
-        if (preg_match('#^articles/(\d+)$#', $path, $matches)) {
+        // Статьи (деталка)
+        if (preg_match('#^articles/(\d+)$#i', $path, $matches)) {
             return $this->getArticleMetaTags((int)$matches[1], $locale);
         }
 
         // Категории
-        if (preg_match('#^categories/(\d+)$#', $path, $matches)) {
+        if (preg_match('#^categories/(\d+)$#i', $path, $matches)) {
             return $this->getCategoryMetaTags((int)$matches[1], $locale);
         }
         
