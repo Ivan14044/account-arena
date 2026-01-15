@@ -58,12 +58,12 @@ class SecurityHeaders
 
         return implode('; ', [
             "default-src 'self'",
-            "script-src 'self' 'unsafe-inline' 'unsafe-eval' http://cdn.jsdelivr.net https://cdn.jsdelivr.net http://cdn.datatables.net https://cdn.datatables.net http://cdnjs.cloudflare.com https://cdnjs.cloudflare.com http://code.jquery.com https://code.jquery.com http://cdn.ckeditor.com https://cdn.ckeditor.com https://static.cloudflareinsights.com",
+            "script-src 'self' 'unsafe-inline' 'unsafe-eval' http://cdn.jsdelivr.net https://cdn.jsdelivr.net http://cdn.datatables.net https://cdn.datatables.net http://cdnjs.cloudflare.com https://cdnjs.cloudflare.com http://code.jquery.com https://code.jquery.com http://cdn.ckeditor.com https://cdn.ckeditor.com https://static.cloudflareinsights.com https://www.googletagmanager.com https://www.google-analytics.com",
             "style-src 'self' 'unsafe-inline' http://fonts.googleapis.com https://fonts.googleapis.com http://cdn.jsdelivr.net https://cdn.jsdelivr.net http://cdn.datatables.net https://cdn.datatables.net http://cdnjs.cloudflare.com https://cdnjs.cloudflare.com http://code.jquery.com https://code.jquery.com",
             "font-src 'self' http://fonts.gstatic.com https://fonts.gstatic.com data: http://cdn.jsdelivr.net https://cdn.jsdelivr.net https://r2cdn.perplexity.ai",
-            "img-src 'self' data: http: https: blob:",
-            "connect-src 'self' {$appUrl} {$frontendUrl} https://api.monobank.ua https://api.cryptomus.com http://cdn.ckeditor.com https://cdn.ckeditor.com http://cdn.datatables.net https://cdn.datatables.net http://cdn.jsdelivr.net https://cdn.jsdelivr.net https://static.cloudflareinsights.com",
-            "frame-src 'self'",
+            "img-src 'self' data: http: https: blob: https://www.googletagmanager.com https://www.google-analytics.com",
+            "connect-src 'self' {$appUrl} {$frontendUrl} https://api.monobank.ua https://api.cryptomus.com http://cdn.ckeditor.com https://cdn.ckeditor.com http://cdn.datatables.net https://cdn.datatables.net http://cdn.jsdelivr.net https://cdn.jsdelivr.net https://static.cloudflareinsights.com https://www.googletagmanager.com https://www.google-analytics.com https://region1.google-analytics.com",
+            "frame-src 'self' https://www.googletagmanager.com",
             "object-src 'none'",
             "base-uri 'self'",
             "form-action 'self'",
