@@ -13,6 +13,7 @@
                 :alt="`${currentLanguage.name} flag`"
                 width="24"
                 height="16"
+                class="flag-image"
                 style="aspect-ratio: 3 / 2;"
             />
             <Globe v-if="!currentLanguage.code" class="w-5 h-5 text-gray-600" />
@@ -64,7 +65,7 @@
                                     :alt="`${language.name} flag`"
                                     width="24"
                                     height="16"
-                                    class="w-6 h-4 object-cover transition-opacity duration-300 align-middle inline-block"
+                                    class="flag-image w-6 h-4 object-cover transition-opacity duration-300 align-middle inline-block"
                                     style="aspect-ratio: 3 / 2;"
                                 />
                             </span>
@@ -161,6 +162,14 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+/* Убираем обводку у флагов */
+.flag-image {
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+}
+
 .language-button {
     background: rgba(255, 255, 255, 0.5);
     backdrop-filter: blur(8px);
