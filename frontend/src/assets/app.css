@@ -229,6 +229,7 @@ main > * {
     display: inline-block;
     padding: 0.9rem 3rem;
     border: 1px solid #0047ff;
+    color: #0047ff;
     text-decoration: none;
     font-size: 18px;
     border-radius: 10px;
@@ -236,9 +237,13 @@ main > * {
     transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
 }
 
+.dark .cta-button {
+    color: #fff;
+}
+
 .cta-button:hover {
     background-color: #0047ff;
-    color: #fff;
+    color: #fff !important;
 }
 
 /* ============================================
