@@ -167,7 +167,10 @@ onUnmounted(() => {
     border: none !important;
     outline: none !important;
     box-shadow: none !important;
-    background: transparent !important;
+    background: none !important;
+    display: block;
+    mix-blend-mode: normal;
+    filter: none !important;
 }
 
 .language-button {
