@@ -3,7 +3,7 @@
         <!-- Language Button -->
         <button
             ref="buttonRef"
-            class="language-button cursor-pointer gap-[7px] text-sm leading-4 transition-all duration-300 pl-2 pr-1 lg:pl-3 lg:pr-2 py-2 rounded-lg flex items-center relative z-10"
+            class="language-button cursor-pointer gap-[7px] text-sm leading-4 transition-all duration-300 pl-2 pr-1 lg:pl-3 lg:pr-2 py-2 rounded-lg flex items-center relative z-10 hover:bg-indigo-200/50 dark:hover:bg-gray-700/50"
             @click="toggleDropdown"
             :aria-label="`${$t('language.selector') || 'Language selector'} ${currentLanguage.name}`"
             :aria-expanded="isOpen"
@@ -174,9 +174,7 @@ onUnmounted(() => {
 }
 
 .language-button {
-    background: rgba(255, 255, 255, 0.5);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+    background: transparent;
     border: none;
     outline: none !important;
     box-shadow: none !important;
@@ -184,16 +182,8 @@ onUnmounted(() => {
 }
 
 .dark .language-button {
-    background: rgba(30, 41, 59, 0.5);
+    background: transparent;
     border: none;
-}
-
-.language-button:hover {
-    background: rgba(255, 255, 255, 0.8);
-}
-
-.dark .language-button:hover {
-    background: rgba(30, 41, 59, 0.8);
 }
 
 .language-button:focus,
