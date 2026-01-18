@@ -14,7 +14,7 @@
             threshold: 0.08,
             rootMargin: '0px 0px -40% 0px'
         }"
-        class="mx-auto px-4 pt-5 md:pt-24 pb-7 md:pb-16 sm:px-6 lg:px-8"
+        class="mx-auto px-4 pt-24 md:pt-24 pb-7 md:pb-16 sm:px-6 lg:px-8"
     >
         <!-- Steps Section -->
         <section id="steps">
