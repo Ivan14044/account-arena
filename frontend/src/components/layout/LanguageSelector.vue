@@ -174,23 +174,30 @@ onUnmounted(() => {
     background: rgba(255, 255, 255, 0.5);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
-    border: 1px solid rgba(226, 232, 240, 0.8);
+    border: none;
+    outline: none !important;
+    box-shadow: none !important;
     transition: all 0.3s ease;
 }
 
 .dark .language-button {
     background: rgba(30, 41, 59, 0.5);
-    border-color: rgba(255, 255, 255, 0.1);
+    border: none;
 }
 
 .language-button:hover {
     background: rgba(255, 255, 255, 0.8);
-    border-color: rgba(108, 92, 231, 0.3);
 }
 
 .dark .language-button:hover {
     background: rgba(30, 41, 59, 0.8);
-    border-color: rgba(108, 92, 231, 0.4);
+}
+
+.language-button:focus,
+.language-button:focus-visible,
+.language-button:active {
+    outline: none !important;
+    box-shadow: none !important;
 }
 
 /* Liquid Glass Effect для dropdown меню языка */
