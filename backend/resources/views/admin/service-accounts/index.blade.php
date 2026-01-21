@@ -386,7 +386,7 @@
                                     <button class="btn btn-sm btn-info btn-notes" 
                                             data-id="{{ $serviceAccount->id }}"
                                             data-title="{{ $serviceAccount->title }}"
-                                            data-notes="{{ $serviceAccount->admin_notes }}"
+                                            data-notes="{{ htmlspecialchars($serviceAccount->admin_notes ?? '', ENT_QUOTES, 'UTF-8') }}"
                                             title="Заметки администратора"
                                             data-toggle="tooltip">
                                         <i class="fas fa-comment-alt {{ $serviceAccount->admin_notes ? '' : 'opacity-50' }}"></i>
