@@ -386,10 +386,13 @@
                                     <button class="btn btn-sm btn-info btn-notes" 
                                             data-id="{{ $serviceAccount->id }}"
                                             data-title="{{ $serviceAccount->title }}"
-                                            data-notes="{{ htmlspecialchars($serviceAccount->admin_notes ?? '', ENT_QUOTES, 'UTF-8') }}"
-                                            title="Заметки администратора"
+                                            data-notes="{{ e($serviceAccount->admin_notes ?? '') }}"
+                                            title="Заметки: {{ Str::limit($serviceAccount->admin_notes ?? 'Нет заметок', 50) }}"
                                             data-toggle="tooltip">
                                         <i class="fas fa-comment-alt {{ $serviceAccount->admin_notes ? '' : 'opacity-50' }}"></i>
+                                        @if($serviceAccount->admin_notes)
+                                            <span class="badge badge-warning badge-pill ml-1" style="font-size: 0.6rem;">!</span>
+                                        @endif
                                     </button>
 
                                     <button class="btn btn-sm btn-info btn-import" 
