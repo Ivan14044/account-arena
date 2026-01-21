@@ -203,8 +203,8 @@
                             <option value="1-desc">ID (по убыванию)</option>
                             <option value="5-asc">Цена (по возрастанию)</option>
                             <option value="5-desc">Цена (по убыванию)</option>
-                            <option value="9-desc">Дата создания (новые сначала)</option>
-                            <option value="9-asc">Дата создания (старые сначала)</option>
+                            <option value="10-desc">Дата создания (новые сначала)</option>
+                            <option value="10-asc">Дата создания (старые сначала)</option>
                         </select>
                     </div>
                 </div>
@@ -231,8 +231,8 @@
                             <th class="text-center">В наличии</th>
                             <th class="text-center">Продано</th>
                             <th>Статус</th>
-                            <th class="text-center">Дата создания</th>
                             <th style="width: 180px" class="text-center">Действия</th>
+                            <th class="text-center">Дата создания</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -361,12 +361,6 @@
                                 @endif
                             </td>
                             <td class="text-center align-middle">
-                                <small class="text-muted">
-                                    <i class="far fa-calendar-alt mr-1"></i>
-                                    {{ \Carbon\Carbon::parse($serviceAccount->created_at)->format('d.m.Y H:i') }}
-                                </small>
-                            </td>
-                            <td class="text-center align-middle">
                                 <div class="btn-group action-buttons" role="group">
                                     <a href="{{ route('admin.service-accounts.edit', $serviceAccount) }}"
                                        class="btn btn-sm btn-primary" 
@@ -405,6 +399,12 @@
                                         <i class="fas fa-trash-alt"></i>
                                     </button>
                                 </div>
+                            </td>
+                            <td class="text-center align-middle">
+                                <small class="text-muted">
+                                    <i class="far fa-calendar-alt mr-1"></i>
+                                    {{ \Carbon\Carbon::parse($serviceAccount->created_at)->format('d.m.Y H:i') }}
+                                </small>
                             </td>
                         </tr>
                         @endforeach
@@ -972,8 +972,8 @@
                 "paging": false,
                 "info": false,
                 "columnDefs": [
-                    { "orderable": false, "targets": [0, 2, 10] }, // Drag handle, Изображение, Действия
-                    { "orderable": true, "targets": [1, 4, 5, 6, 7, 8, 9] } // ID, Категория, Цена, В наличии, Продано, Статус, Дата
+                    { "orderable": false, "targets": [0, 2, 9] }, // Drag handle, Изображение, Действия
+                    { "orderable": true, "targets": [1, 4, 5, 6, 7, 8, 10] } // ID, Категория, Цена, В наличии, Продано, Статус, Дата
                 ]
             });
 
@@ -1007,7 +1007,7 @@
                         sortBy = 'id';
                     } else if (column === 5) {
                         sortBy = 'price';
-                    } else if (column === 9) {
+                    } else if (column === 10) {
                         sortBy = 'created_at';
                     }
                     
@@ -1143,21 +1143,21 @@
 
             // Фильтры по статусу (обновлены индексы колонок: теперь статус в колонке 9)
             $('#filterAll').on('click', function() {
-                table.column(9).search('').draw();
+                table.column(8).search('').draw();
                 $('.btn-filter').removeClass('active');
                 $(this).addClass('active');
                 updateTotalCount();
             });
 
             $('#filterActive').on('click', function() {
-                table.column(9).search('Активен').draw();
+                table.column(8).search('Активен').draw();
                 $('.btn-filter').removeClass('active');
                 $(this).addClass('active');
                 updateTotalCount();
             });
 
             $('#filterInactive').on('click', function() {
-                table.column(9).search('Неактивен').draw();
+                table.column(8).search('Неактивен').draw();
                 $('.btn-filter').removeClass('active');
                 $(this).addClass('active');
                 updateTotalCount();
@@ -1306,7 +1306,7 @@
                 $('#filterCategoryAll').addClass('active');
                 
                 // Сброс фильтра по статусу
-                table.column(9).search('').draw();
+                table.column(8).search('').draw();
                 $('.btn-filter').not('.btn-category-sub').removeClass('active');
                 $('#filterAll').addClass('active');
                 $('#filterCategoryAll').addClass('active');
