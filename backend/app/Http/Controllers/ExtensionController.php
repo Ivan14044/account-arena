@@ -26,11 +26,8 @@ class ExtensionController extends Controller
             return response()->json(['authorized' => false]);
         }
 
-        $user->load(['subscriptions' => function($query) {
-            $query->orderBy('id', 'desc');
-        }]);
-
-        $user->active_services = $user->activeServices();
+        // Subscriptions functionality removed
+        $user->active_services = [];
 
         return response()->json([
             'authorized' => true,
