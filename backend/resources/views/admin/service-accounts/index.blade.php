@@ -1946,6 +1946,7 @@
                     document.body.removeChild(iframe);
                     window.location.reload();
                 }, 2000);
+            }
         }
 
         // --- Заметки администратора ---
@@ -1994,12 +1995,12 @@
                         }
 
                         $('#adminNotesModal').modal('hide');
-                        showAlert('success', response.message);
+                        showNotification('success', response.message);
                     }
                 },
                 error: function(xhr) {
                     console.error('Ошибка сохранения заметок:', xhr);
-                    showAlert('danger', 'Ошибка при сохранении заметок');
+                    showNotification('error', 'Ошибка при сохранении заметок');
                 },
                 complete: function() {
                     btn.html('<i class="fas fa-save mr-1"></i>Сохранить').prop('disabled', false);
