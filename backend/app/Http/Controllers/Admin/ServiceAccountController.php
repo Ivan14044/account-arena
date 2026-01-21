@@ -312,6 +312,9 @@ class ServiceAccountController extends Controller
         $validated['discount_start_date'] = $request->input('discount_start_date') ? \Carbon\Carbon::parse($request->input('discount_start_date')) : null;
         $validated['discount_end_date'] = $request->input('discount_end_date') ? \Carbon\Carbon::parse($request->input('discount_end_date')) : null;
 
+        // Handle admin notes - ensure it's always included even if empty
+        $validated['admin_notes'] = $request->input('admin_notes');
+
         // Логируем для отладки
         \Log::info('Service Account updated', [
             'id' => $serviceAccount->id,
