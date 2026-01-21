@@ -331,12 +331,15 @@
                                 </small>
                             </div>
 
-                            <div class="d-flex justify-content-between mb-2">
-                                <button type="button" class="btn btn-warning" onclick="removeDuplicates()">
-                                    <i class="fas fa-trash-alt"></i> 
+                            <div class="d-flex justify-content-start mb-2">
+                                <button type="button" class="btn btn-info mr-2" onclick="$('#importModal').modal('show')" title="Импорт">
+                                    <i class="fas fa-upload"></i> Импорт
                                 </button>
-                                <button type="button" class="btn btn-light" onclick="shuffleLines()">
-                                    <i class="fas fa-random"></i> 
+                                <button type="button" class="btn btn-warning mr-2" onclick="removeDuplicates()" title="Удалить дубликаты">
+                                    <i class="fas fa-trash-alt"></i> Чистка
+                                </button>
+                                <button type="button" class="btn btn-light" onclick="shuffleLines()" title="Перемешать">
+                                    <i class="fas fa-random"></i> Микс
                                 </button>
                             </div>
 
@@ -487,6 +490,37 @@
                                 <i class="fas fa-times"></i>Отмена</a>
                         </form>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal для загрузки товара -->
+    <div class="modal fade" id="importModal" tabindex="-1" role="dialog" aria-labelledby="importModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="importModalLabel">Быстрая загрузка данных</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="import_data">Данные для загрузки</label>
+                        <textarea id="import_data" class="form-control font-monospace" rows="15" placeholder="Вставьте данные товаров. Каждая строка = один товар"></textarea>
+                        <small class="form-text text-muted">
+                            Каждая строка будет добавлена как один товар. Новые строки будут добавлены к существующим.
+                        </small>
+                    </div>
+                    <div class="form-group">
+                        <label for="import_count">Количество строк для загрузки:</label>
+                        <input type="number" id="import_count" class="form-control" value="0" readonly>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Отмена</button>
+                    <button type="button" class="btn btn-primary" onclick="importAccounts()">Добавить</button>
                 </div>
             </div>
         </div>
@@ -704,6 +738,46 @@
             textarea.value = lines.join('\n');
             alert('Строки перемешаны случайным образом');
         }
+
+        // Import accounts from modal
+        function importAccounts() {
+            const importTextarea = document.getElementById('import_data');
+            const mainTextarea = document.getElementById('bulk_accounts');
+            
+            if (!importTextarea || !mainTextarea) return;
+            
+            const importLines = importTextarea.value.split('\n').filter(line => line.trim() !== '');
+            
+            if (importLines.length === 0) {
+                alert('Нет данных для загрузки');
+                return;
+            }
+
+            const existingLines = mainTextarea.value.split('\n').filter(line => line.trim() !== '');
+            const combinedLines = [...existingLines, ...importLines];
+            
+            mainTextarea.value = combinedLines.join('\n');
+            
+            // Close modal and clear import data
+            $('#importModal').modal('hide');
+            importTextarea.value = '';
+            document.getElementById('import_count').value = 0;
+            
+            alert('Загружено ' + importLines.length + ' строк. Всего товаров: ' + combinedLines.length);
+        }
+
+        // Update count when typing in import modal
+        document.addEventListener('DOMContentLoaded', function() {
+            const importTextarea = document.getElementById('import_data');
+            const importCount = document.getElementById('import_count');
+            
+            if (importTextarea && importCount) {
+                importTextarea.addEventListener('input', function() {
+                    const lines = this.value.split('\n').filter(line => line.trim() !== '');
+                    importCount.value = lines.length;
+                });
+            }
+        });
 
         // Toggle account suffix input visibility
         function toggleAccountSuffixInput() {

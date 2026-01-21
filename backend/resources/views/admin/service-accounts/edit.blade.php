@@ -470,19 +470,18 @@
                                 </div>
                             </div>
 
-                            <div class="d-flex justify-content-between mb-2">
-
-                                <button type="button" class="btn btn-success" onclick="serverExportAccounts()">
-                                    <i class="fas fa-download"></i> 
+                            <div class="d-flex justify-content-start mb-2">
+                                <button type="button" class="btn btn-success mr-2" onclick="serverExportAccounts()" title="Экспорт">
+                                    <i class="fas fa-download"></i> Экспорт
                                 </button>
-                                <button type="button" class="btn btn-info" onclick="$('#importModal').modal('show')">
-                                    <i class="fas fa-upload"></i> 
+                                <button type="button" class="btn btn-info mr-2" onclick="$('#importModal').modal('show')" title="Импорт">
+                                    <i class="fas fa-upload"></i> Импорт
                                 </button>
-                                <button type="button" class="btn btn-warning" onclick="removeDuplicates()">
-                                    <i class="fas fa-trash-alt"></i> 
+                                <button type="button" class="btn btn-warning mr-2" onclick="removeDuplicates()" title="Удалить дубликаты">
+                                    <i class="fas fa-trash-alt"></i> Чистка
                                 </button>
-                                <button type="button" class="btn btn-light" onclick="shuffleLines()">
-                                    <i class="fas fa-random"></i> 
+                                <button type="button" class="btn btn-light" onclick="shuffleLines()" title="Перемешать">
+                                    <i class="fas fa-random"></i> Микс
                                 </button>
                             </div>
 
