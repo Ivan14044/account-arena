@@ -21,7 +21,7 @@
             @click="$router.push(`/account/${product.sku || product.id}`)"
         >
             <img
-                :src="product.image_url || '/img/no-logo.png'"
+                :src="product.image_url || '/img/logo_trans.webp'"
                 :alt="displayTitle"
                 class="product-image"
                 :loading="index !== undefined && index < 6 ? 'eager' : 'lazy'"
