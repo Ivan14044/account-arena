@@ -277,7 +277,7 @@
                                          class="rounded"
                                          style="width: 50px; height: 50px; object-fit: cover; border: 1px solid #e3e6f0;">
                                 @else
-                                    <div class="rounded d-flex align-items-center justify-content-center" 
+                                    <div class="rounded d-flex align-items-center justify-content-center mx-auto" 
                                          style="width: 50px; height: 50px; background: #f8f9fc; border: 1px solid #e3e6f0;">
                                         <i class="fas fa-image text-muted fa-lg"></i>
                                     </div>
