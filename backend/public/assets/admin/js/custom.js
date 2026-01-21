@@ -202,13 +202,13 @@
             // 1. Initial data fetch
             fetchSettings();
 
-            // Wait 1s for the DOM and other scripts to settle before first badge updates
+            // Start fetching data almost immediately after ready
             setTimeout(() => {
                 fetchManualCount();    // This one starts its own chain
                 fetchDisputesCount();
                 fetchSupportCount();
                 fetchAdminNotifications();
-            }, 1000);
+            }, 200);
 
             // 2. Setup regular intervals
             setInterval(fetchSettings, CONFIG.polling.settings);
