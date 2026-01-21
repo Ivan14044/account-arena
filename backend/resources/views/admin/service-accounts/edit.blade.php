@@ -358,16 +358,17 @@
                                         // Получаем только ДОСТУПНЫЕ (непроданные) аккаунты
                                         $availableAccounts = array_slice($serviceAccount->accounts_data, $soldCount);
                                     @endphp
-                                    <div class="alert alert-{{ $soldCount > 0 ? 'warning' : 'info' }} py-2 mb-2">
+                                    <div class="alert alert-info py-2 mb-2 bg-light border">
                                         <div class="small mb-0">
-                                            <i class="fas fa-info-circle"></i>
-                                            Всего аккаунтов: <strong>{{ $totalQuantity }}</strong> | 
+                                            <i class="fas fa-info-circle text-info mr-1"></i>
                                             Доступно для продажи: <strong class="text-success">{{ $availableCount }}</strong> | 
-                                            Уже продано: <strong class="text-danger">{{ $soldCount }}</strong>
+                                            Уже продано: <strong class="text-danger">{{ $soldCount }}</strong> | 
+                                            Всего было загружено: <strong>{{ $totalQuantity }}</strong>
                                         </div>
                                         @if($soldCount > 0)
                                             <div class="small mt-1 text-muted">
-                                                ⚠️ Проданные аккаунты скрыты в поле ниже. При добавлении новых аккаунтов они будут добавлены ПОСЛЕ проданных.
+                                                <i class="fas fa-eye-slash mr-1"></i>
+                                                Ниже отображаются только <strong>непроданные</strong> товары. Вы можете редактировать их или добавить новые (каждый с новой строки).
                                             </div>
                                         @endif
                                     </div>
