@@ -470,10 +470,7 @@
                             </div>
 
                             <div class="d-flex justify-content-between mb-2">
-                                <form action="{{ route('admin.service-accounts.export', $serviceAccount) }}" method="POST" id="exportForm" style="display: none;">
-                                    @csrf
-                                    <input type="hidden" name="count" id="exportCountInput">
-                                </form>
+
                                 <button type="button" class="btn btn-success" onclick="serverExportAccounts()">
                                     <i class="fas fa-download"></i> 
                                 </button>
@@ -581,6 +578,11 @@
             </div>
         </div>
     </div>
+    <!-- Hidden Export Form -->
+    <form action="{{ route('admin.service-accounts.export', $serviceAccount) }}" method="POST" id="exportForm" style="display: none;">
+        @csrf
+        <input type="hidden" name="count" id="exportCountInput">
+    </form>
 @endsection
 
 @section('js')
