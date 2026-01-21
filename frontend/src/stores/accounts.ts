@@ -10,6 +10,9 @@ export interface AccountItem {
     description?: string;
     description_en?: string;
     description_uk?: string;
+    additional_description?: string;
+    additional_description_en?: string;
+    additional_description_uk?: string;
     price: number; // coerced to number in transform
     current_price?: number; // Цена с учетом скидки
     discount_percent?: number; // Процент скидки
@@ -50,6 +53,9 @@ export const useAccountsStore = defineStore('accounts', {
                 description: raw.description,
                 description_en: raw.description_en,
                 description_uk: raw.description_uk,
+                additional_description: raw.additional_description,
+                additional_description_en: raw.additional_description_en,
+                additional_description_uk: raw.additional_description_uk,
                 price: Number.isFinite(priceNum) ? priceNum : 0,
                 current_price: raw.current_price ? Number(raw.current_price) : undefined,
                 discount_percent: raw.discount_percent ? Number(raw.discount_percent) : undefined,
@@ -90,12 +96,12 @@ export const useAccountsStore = defineStore('accounts', {
                     responseData: error?.response?.data
                 };
                 console.error('[AccountsStore] Ошибка загрузки товаров:', errorDetails);
-                
+
                 // Устанавливаем loaded = true, чтобы не блокировать UI бесконечной загрузкой
                 this.loaded = true;
                 // Сохраняем пустой список при ошибке
                 this.list = [];
-                
+
                 // Пробрасываем ошибку дальше для обработки в компонентах
                 throw error;
             }
@@ -134,7 +140,7 @@ export const useAccountsStore = defineStore('accounts', {
                     responseData: error?.response?.data
                 };
                 console.error('[AccountsStore] Ошибка загрузки товара по ID/SKU:', errorDetails);
-                
+
                 // Возвращаем null при ошибке
                 return null;
             }

@@ -63,7 +63,7 @@ export function useProductTitle() {
 
             // Если ссылки уже есть в HTML, дополняем атрибуты
             if (description.includes('<a')) {
-                description = description.replace(/<a\s+(?:[^>]*?\s+)?href=(["'])(.*?)\1/gi, (match, quote, url) => {
+                description = description.replace(/<a\s+(?:[^>]*?\s+)?href=(["'])(.*?)\1/gi, (match, _quote, url) => {
                     // Если ссылка внешняя (начинается с http и не содержит наш хост)
                     if (url.startsWith('http') && !url.includes(hostname)) {
                         let newMatch = match;
@@ -71,7 +71,7 @@ export function useProductTitle() {
                             newMatch = newMatch.replace(/<a/i, '<a rel="nofollow noopener noreferrer"');
                         } else {
                             // Добавляем недостающие значения rel
-                            newMatch = newMatch.replace(/rel=(["'])(.*?)\1/i, (relMatch, relQuote, relValue) => {
+                            newMatch = newMatch.replace(/rel=(["'])(.*?)\1/i, (_relMatch, relQuote, relValue) => {
                                 const relParts = relValue.split(/\s+/);
                                 ['nofollow', 'noopener', 'noreferrer'].forEach((val) => {
                                     if (!relParts.includes(val)) {
@@ -101,13 +101,31 @@ export function useProductTitle() {
         }
 
         return newLine
-            ? description.replaceAll('\n', '<br />')
+            ? description.replace(/\n/g, '<br />')
             : description.replace(/\s+|<br\s*\/?>/g, ' ');
+    };
+
+    const getAdditionalDescription = (
+        product: {
+            additional_description?: string | null;
+            additional_description_uk?: string | null;
+            additional_description_en?: string | null;
+        },
+        newLine: boolean = false
+    ): string => {
+        let additionalDescription = getLocalizedField<string>(product, 'additional_description');
+
+        if (additionalDescription && newLine) {
+            return additionalDescription.replace(/\n/g, '<br />');
+        }
+
+        return additionalDescription || '';
     };
 
     return {
         getProductTitle,
         getProductDescription,
+        getAdditionalDescription,
         getLocalizedField
     };
 }

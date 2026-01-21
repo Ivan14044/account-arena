@@ -536,6 +536,7 @@
             "out_of_stock_error": "Product is out of stock",
             "description_title": "Product Description",
             "no_description": "No description available",
+            "additional_description_title": "Additional Information",
             "category": "Category",
             "supplier": "Supplier",
             "rating": "Rating",
@@ -730,7 +731,11 @@
         "payoutMethods": {
             "title": "Payout Methods",
             "subtitle": "Choose a convenient method — it's simple. Start selling today — setup takes 15 minutes",
-            "methods": ["Bank Cards", "Cryptocurrency", "E-wallets"],
+            "methods": [
+                "Bank Cards",
+                "Cryptocurrency",
+                "E-wallets"
+            ],
             "ctaButton": "Start Selling"
         },
         "faq": {

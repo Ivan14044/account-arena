@@ -529,6 +529,7 @@
             "out_of_stock_error": "Товар отсутствует на складе",
             "description_title": "Описание товара",
             "no_description": "Описание отсутствует",
+            "additional_description_title": "Дополнительная информация",
             "category": "Категория",
             "supplier": "Поставщик",
             "rating": "Рейтинг",
