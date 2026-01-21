@@ -217,10 +217,6 @@
                                 <th>Всего покупок:</th>
                                 <td class="text-right">{{ $purchase->user->purchases()->count() }}</td>
                             </tr>
-                            <tr>
-                                <th>Активных подписок:</th>
-                                <td class="text-right">{{ $purchase->user->subscriptions()->where('status', 'active')->count() }}</td>
-                            </tr>
                         </table>
                     </div>
                 </div>
