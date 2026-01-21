@@ -341,6 +341,9 @@
             return; // No charts to initialize
         }
 
+        // Данные для тултипов (переданы из контроллера)
+        var salesTooltips = {!! json_encode($salesChartData['tooltips']) !!};
+
         // График продаж
         if (salesChartElement) {
             const salesCtx = salesChartElement.getContext('2d');
@@ -359,17 +362,39 @@
                 },
                 options: {
                     responsive: true,
-                    maintainAspectRatio: true,
+                    maintainAspectRatio: false,
                     plugins: {
                         legend: {
                             display: false
                         },
                         tooltip: {
+                            mode: 'index',
+                            intersect: false,
                             callbacks: {
                                 label: function(context) {
-                                    return '$' + context.parsed.y.toFixed(2);
+                                    return 'Продажи: ' + new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(context.parsed.y);
+                                },
+                                footer: function(tooltipItems) {
+                                    const index = tooltipItems[0].dataIndex;
+                                    const data = salesTooltips;
+                                    
+                                    return [
+                                        '', // Spacer
+                                        '📦 Товаров: ' + data.items[index] + ' шт',
+                                        '🧾 Заказов: ' + data.orders[index],
+                                        '💲 Ср. чек: $' + data.avg_check[index],
+                                        '👤 Новых: ' + data.new_buyers[index],
+                                        '🔄 Вернувшихся: ' + data.returning_buyers[index]
+                                    ];
                                 }
-                            }
+                            },
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            titleFont: { size: 14, weight: 'bold' },
+                            bodyFont: { size: 13 },
+                            footerFont: { size: 12, weight: 'normal' },
+                            padding: 10,
+                            cornerRadius: 4,
+                            displayColors: false
                         }
                     },
                     scales: {
@@ -377,10 +402,15 @@
                             beginAtZero: true,
                             ticks: {
                                 callback: function(value) {
-                                    return '$' + value.toFixed(2);
+                                    return '$' + value;
                                 }
                             }
                         }
+                    },
+                    interaction: {
+                        mode: 'nearest',
+                        axis: 'x',
+                        intersect: false
                     }
                 }
             });

@@ -128,32 +128,104 @@ class DashboardController extends Controller
     {
         $startDate = Carbon::now()->subDays($days - 1)->startOfDay();
         
-        // ОПТИМИЗИРОВАНО: Используем прямое сравнение дат. 
-        // Для MySQL индекс на created_at будет работать эффективнее, если не оборачивать его в DATE() в WHERE.
-        // Группировка по DATE(created_at) всё равно нужна для агрегации.
-        $results = Purchase::where('status', 'completed')
+        // 1. Быстрая SQL агрегация основных метрик (Orders, Revenue, Items)
+        // Это предотвращает загрузку лишних данных и ошибки памяти (500 error fix)
+        $dailyStats = Purchase::where('status', 'completed')
             ->where('created_at', '>=', $startDate)
-            ->selectRaw('DATE(created_at) as date, SUM(total_amount) as total')
+            ->selectRaw('DATE(created_at) as date, COUNT(*) as orders, SUM(total_amount) as revenue, SUM(quantity) as items')
             ->groupBy('date')
-            ->orderBy('date', 'asc') // Добавлена сортировка для надежности
             ->get()
-            ->pluck('total', 'date')
-            ->toArray();
+            ->keyBy('date'); // Коллекция по ключу даты 'YYYY-MM-DD'
 
-        $data = [];
+        // 2. Логика New/Returning Buyers (Оптимизированная)
+        // Запрашиваем только user_id и дату для минимизации памяти
+        $periodPurchasesUser = Purchase::where('status', 'completed')
+            ->where('created_at', '>=', $startDate)
+            ->whereNotNull('user_id')
+            ->select('user_id', 'created_at')
+            ->get()
+            ->groupBy(function($item) {
+                // Используем безопасную проверку на null, хотя created_at д/б, но для надежности
+                return $item->created_at ? $item->created_at->format('Y-m-d') : 'unknown';
+            });
+
+        // Получаем дату первой покупки для всех этих пользователей одной пачкой (1 легкий запрос)
+        $userIds = $periodPurchasesUser->flatten()->pluck('user_id')->unique()->values()->toArray();
+        $userFirstPurchaseDates = [];
+        
+        if (!empty($userIds)) {
+            $userFirstPurchaseDates = Purchase::where('status', 'completed')
+                ->whereIn('user_id', $userIds)
+                ->selectRaw('user_id, MIN(created_at) as first_at')
+                ->groupBy('user_id')
+                ->pluck('first_at', 'user_id')
+                ->map(function($date) {
+                    return Carbon::parse($date)->startOfDay();
+                })
+                ->toArray();
+        }
+
         $labels = [];
+        $dataRevenue = []; // Данные для линии графика
+        
+        // Дополнительные данные для тултипов
+        $dataOrders = [];
+        $dataItems = [];
+        $dataAvgCheck = [];
+        $dataNewBuyers = [];
+        $dataReturningBuyers = [];
         
         for ($i = $days - 1; $i >= 0; $i--) {
             $date = Carbon::now()->subDays($i);
             $dateKey = $date->format('Y-m-d');
-            
             $labels[] = $date->format('d.m');
-            $data[] = round($results[$dateKey] ?? 0, 2);
+            
+            // Данные из агрегации (О(1) выборка)
+            $stat = $dailyStats->get($dateKey);
+            
+            $revenue = $stat ? (float)$stat->revenue : 0;
+            $orders = $stat ? (int)$stat->orders : 0;
+            $items = $stat ? (int)$stat->items : 0;
+            $avgCheck = $orders > 0 ? $revenue / $orders : 0;
+            
+            // Расчет покупателей
+            $newBuyersCount = 0;
+            $returningBuyersCount = 0;
+            
+            $dayPurchases = $periodPurchasesUser->get($dateKey);
+            
+            if ($dayPurchases) {
+                $dayUserIds = $dayPurchases->pluck('user_id')->unique();
+                foreach ($dayUserIds as $userId) {
+                    if (isset($userFirstPurchaseDates[$userId])) {
+                        // Если первая покупка была в ЭТОТ день (сравниваем startOfDay)
+                        if ($userFirstPurchaseDates[$userId]->equalTo($date->copy()->startOfDay())) {
+                            $newBuyersCount++;
+                        } else {
+                            $returningBuyersCount++;
+                        }
+                    }
+                }
+            }
+
+            $dataRevenue[] = round($revenue, 2);
+            $dataOrders[] = $orders;
+            $dataItems[] = $items;
+            $dataAvgCheck[] = round($avgCheck, 2);
+            $dataNewBuyers[] = $newBuyersCount;
+            $dataReturningBuyers[] = $returningBuyersCount;
         }
         
         return [
             'labels' => $labels,
-            'data' => $data,
+            'data' => $dataRevenue,
+            'tooltips' => [
+                'orders' => $dataOrders,
+                'items' => $dataItems,
+                'avg_check' => $dataAvgCheck,
+                'new_buyers' => $dataNewBuyers,
+                'returning_buyers' => $dataReturningBuyers
+            ]
         ];
     }
 
