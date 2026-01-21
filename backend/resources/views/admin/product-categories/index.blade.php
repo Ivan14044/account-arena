@@ -41,6 +41,7 @@
                             <thead>
                                 <tr>
                                     <th style="width: 60px" class="text-center">ID</th>
+                                    <th style="width: 80px" class="text-center">Изображение</th>
                                     <th>Название</th>
                                     <th>Подкатегории</th>
                                     <th style="width: 150px" class="text-center">Действия</th>
@@ -51,6 +52,20 @@
                                     <tr>
                                         <td class="text-center align-middle">
                                             <span class="badge badge-light font-weight-bold">#{{ $category->id }}</span>
+                                        </td>
+                                        <td class="text-center align-middle">
+                                            @if($category->image_url)
+                                                <img src="{{ $category->image_url }}" 
+                                                     alt="{{ $category->admin_name }}" 
+                                                     class="img-thumbnail rounded-circle"
+                                                     style="width: 50px; height: 50px; object-fit: cover;"
+                                                     onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2250%22 height=%2250%22%3E%3Crect width=%2250%22 height=%2250%22 fill=%22%23e9ecef%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 font-family=%22Arial%22 font-size=%2220%22 fill=%22%236c757d%22%3E%3F%3C/text%3E%3C/svg%3E';">
+                                            @else
+                                                <div class="d-inline-flex align-items-center justify-content-center bg-light rounded-circle" 
+                                                     style="width: 50px; height: 50px;">
+                                                    <i class="fas fa-image text-muted"></i>
+                                                </div>
+                                            @endif
                                         </td>
                                         <td class="align-middle">
                                             <strong class="text-dark">{{ $category->admin_name }}</strong>
@@ -154,7 +169,7 @@
                     "url": "//cdn.datatables.net/plug-ins/1.11.5/i18n/ru.json"
                 },
                 "columnDefs": [
-                    { "orderable": false, "targets": 3 }
+                    { "orderable": false, "targets": [1, 4] } // Image and Actions columns
                 ]
             });
 
