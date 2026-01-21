@@ -20,7 +20,7 @@ class ServiceAccountController extends Controller
         $serviceAccounts = ServiceAccount::with('category.translations')
             ->select([
                 'id', 'sku', 'title', 'price', 'used', 'is_active', 'delivery_type', 
-                'category_id', 'supplier_id', 'sort_order', 'created_at'
+                'category_id', 'supplier_id', 'sort_order', 'created_at', 'image_url'
             ])
             ->selectRaw('JSON_LENGTH(accounts_data) as total_qty_from_json')
             ->orderBy('sort_order', 'asc')
