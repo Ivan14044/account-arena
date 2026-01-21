@@ -241,7 +241,7 @@
                     <h6 class="mb-0"><i class="fas fa-chart-line mr-2"></i>Продажи за последние 30 дней</h6>
                 </div>
                 <div class="card-body">
-                    <canvas id="salesChart" height="80"></canvas>
+                    <canvas id="salesChart" height="300"></canvas>
                 </div>
             </div>
         </div>
@@ -356,6 +356,9 @@
                         data: {!! json_encode($salesChartData['data']) !!},
                         borderColor: 'rgb(0, 123, 255)',
                         backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                        pointRadius: 3,
+                        pointHoverRadius: 5,
+                        pointBackgroundColor: 'rgb(0, 123, 255)',
                         tension: 0.4,
                         fill: true
                     }]
@@ -363,54 +366,61 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            display: false
-                        },
-                        tooltip: {
-                            mode: 'index',
-                            intersect: false,
-                            callbacks: {
-                                label: function(context) {
-                                    return 'Продажи: ' + new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(context.parsed.y);
-                                },
-                                footer: function(tooltipItems) {
-                                    const index = tooltipItems[0].dataIndex;
-                                    const data = salesTooltips;
-                                    
-                                    return [
-                                        '', // Spacer
-                                        '📦 Товаров: ' + data.items[index] + ' шт',
-                                        '🧾 Заказов: ' + data.orders[index],
-                                        '💲 Ср. чек: $' + data.avg_check[index],
-                                        '👤 Новых: ' + data.new_buyers[index],
-                                        '🔄 Вернувшихся: ' + data.returning_buyers[index]
-                                    ];
-                                }
-                            },
-                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                            titleFont: { size: 14, weight: 'bold' },
-                            bodyFont: { size: 13 },
-                            footerFont: { size: 12, weight: 'normal' },
-                            padding: 10,
-                            cornerRadius: 4,
-                            displayColors: false
-                        }
+                    legend: {
+                        display: false
                     },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                callback: function(value) {
-                                    return '$' + value;
-                                }
+                    tooltips: {
+                        mode: 'index',
+                        intersect: false,
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        titleFontSize: 14,
+                        bodyFontSize: 13,
+                        footerFontSize: 12,
+                        cornerRadius: 4,
+                        xPadding: 10,
+                        yPadding: 10,
+                        callbacks: {
+                            label: function(tooltipItem, data) {
+                                return 'Продажи: $' + parseFloat(tooltipItem.yLabel).toFixed(2);
+                            },
+                            footer: function(tooltipItems, data) {
+                                // tooltipItems is an array of items for the hovered index
+                                var index = tooltipItems[0].index;
+                                var extra = salesTooltips;
+                                
+                                return [
+                                    '', // Spacer
+                                    '📦 Товаров: ' + extra.items[index] + ' шт',
+                                    '🧾 Заказов: ' + extra.orders[index],
+                                    '💲 Ср. чек: $' + extra.avg_check[index],
+                                    '👤 Новых: ' + extra.new_buyers[index],
+                                    '🔄 Вернувшихся: ' + extra.returning_buyers[index]
+                                ];
                             }
                         }
                     },
-                    interaction: {
-                        mode: 'nearest',
-                        axis: 'x',
-                        intersect: false
+                    scales: {
+                        yAxes: [{
+                            ticks: {
+                                beginAtZero: true,
+                                callback: function(value) {
+                                    return '$' + value;
+                                }
+                            },
+                            gridLines: {
+                                display: true,
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        }],
+                        xAxes: [{
+                            gridLines: {
+                                display: false
+                            },
+                            ticks: {
+                                maxRotation: 45,
+                                minRotation: 45
+                            }
+                        }]
                     }
                 }
             });
@@ -430,16 +440,19 @@
                 },
                 options: {
                     responsive: true,
-                    maintainAspectRatio: true,
-                    plugins: {
-                        legend: {
-                            position: 'bottom'
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    return context.label + ': ' + context.parsed + ' шт.';
-                                }
+                    maintainAspectRatio: false,
+                    legend: {
+                        position: 'bottom',
+                        display: true
+                    },
+                    tooltips: {
+                        callbacks: {
+                            label: function(tooltipItem, data) {
+                                var dataset = data.datasets[tooltipItem.datasetIndex];
+                                var index = tooltipItem.index;
+                                var value = dataset.data[index];
+                                var label = data.labels[index];
+                                return label + ': ' + value + ' шт.';
                             }
                         }
                     }
