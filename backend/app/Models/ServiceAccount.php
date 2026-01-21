@@ -103,6 +103,7 @@ class ServiceAccount extends Model
         'sku', // Артикул товара
         'moderation_status', // Статус модерации
         'moderation_comment', // Комментарий администратора
+        'admin_notes', // Заметки администратора (внутренние)
         'moderated_at', // Дата модерации
         'moderated_by', // ID администратора, который провел модерацию
         'views', // Просмотры товара

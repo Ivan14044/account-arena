@@ -673,6 +673,7 @@ class ServiceAccountController extends Controller
             'discount_end_date' => ['nullable', 'date', 'after_or_equal:discount_start_date'],
             'delivery_type' => ['nullable', 'in:automatic,manual'],
             'manual_delivery_instructions' => ['nullable', 'string', 'max:5000'],
+            'admin_notes' => ['nullable', 'string', 'max:5000'],
         ];
     }
 
@@ -766,6 +767,25 @@ class ServiceAccountController extends Controller
         return response()->json([
             'success' => true, 
             'message' => 'Сортировка применена и сохранена'
+        ]);
+    }
+
+    /**
+     * Обновить заметки администратора для товара
+     */
+    public function updateNotes(Request $request, ServiceAccount $serviceAccount)
+    {
+        $request->validate([
+            'admin_notes' => 'nullable|string'
+        ]);
+
+        $serviceAccount->update([
+            'admin_notes' => $request->admin_notes
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Заметки успешно сохранены'
         ]);
     }
 

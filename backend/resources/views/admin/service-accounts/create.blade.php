@@ -451,6 +451,18 @@
                                         @enderror
                                     </div>
                                 </div>
+                                <div class="col-md-4">
+                                    <div class="form-group mb-2">
+                                        <label for="admin_notes">Заметки администратора (внутренние)</label>
+                                        <textarea name="admin_notes" id="admin_notes" rows="1" style="height: 38px;"
+                                                  class="form-control @error('admin_notes') is-invalid @enderror"
+                                                  placeholder="...">{{ old('admin_notes') }}</textarea>
+                                        <small class="form-text text-muted">Видны только админу.</small>
+                                        @error('admin_notes')
+                                        <div class="invalid-feedback d-block">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                </div>
                             </div>
 
                             <div class="row">

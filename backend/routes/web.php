@@ -89,6 +89,7 @@ Route::prefix('/admin')
             Route::post('service-accounts/upload-image', [ServiceAccountController::class, 'uploadImage'])->name('service-accounts.upload-image');
             Route::post('service-accounts/update-sort-order', [ServiceAccountController::class, 'updateSortOrder'])->name('service-accounts.update-sort-order');
             Route::post('service-accounts/apply-sort-order', [ServiceAccountController::class, 'applySortOrder'])->name('service-accounts.apply-sort-order');
+            Route::post('service-accounts/{serviceAccount}/update-notes', [ServiceAccountController::class, 'updateNotes'])->name('service-accounts.update-notes');
             Route::resource('vouchers', VoucherController::class);
 
             // Purchases (покупки товаров)

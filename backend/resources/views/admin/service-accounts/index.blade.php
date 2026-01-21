@@ -383,6 +383,15 @@
                                     </button>
                                     @endif
 
+                                    <button class="btn btn-sm btn-info btn-notes" 
+                                            data-id="{{ $serviceAccount->id }}"
+                                            data-title="{{ $serviceAccount->title }}"
+                                            data-notes="{{ $serviceAccount->admin_notes }}"
+                                            title="Заметки администратора"
+                                            data-toggle="tooltip">
+                                        <i class="fas fa-comment-alt {{ $serviceAccount->admin_notes ? '' : 'opacity-50' }}"></i>
+                                    </button>
+
                                     <button class="btn btn-sm btn-info btn-import" 
                                             data-id="{{ $serviceAccount->id }}"
                                             data-title="{{ $serviceAccount->title }}"
@@ -694,6 +703,43 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Отмена</button>
                     <button type="button" class="btn btn-danger" id="confirm-delete">Удалить</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно для заметок администратора -->
+    <div class="modal fade" id="adminNotesModal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content text-left">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-comment-alt mr-2 text-info"></i>Заметки администратора
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group mb-3">
+                        <label class="text-muted small mb-1">Товар:</label>
+                        <div id="product-notes-title" class="font-weight-bold text-dark"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="admin-notes-textarea" class="font-weight-600">Внутренняя заметка:</label>
+                        <textarea id="admin-notes-textarea" class="form-control" rows="6" placeholder="Напишите здесь важную информацию о товаре, которая будет видна только администраторам..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer justify-content-between">
+                    <button type="button" class="btn btn-outline-secondary" id="copy-notes-btn">
+                        <i class="fas fa-copy mr-1"></i>Копировать
+                    </button>
+                    <div>
+                        <button type="button" class="btn btn-light" data-dismiss="modal">Отмена</button>
+                        <button type="button" class="btn btn-primary" id="save-notes-btn">
+                            <i class="fas fa-save mr-1"></i>Сохранить
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1900,7 +1946,78 @@
                     document.body.removeChild(iframe);
                     window.location.reload();
                 }, 2000);
-            }
         }
+
+        // --- Заметки администратора ---
+        let currentNoteProductId = null;
+        let originalNoteBtn = null;
+
+        // Открытие модального окна заметок
+        $(document).on('click', '.btn-notes', function() {
+            const btn = $(this);
+            currentNoteProductId = btn.data('id');
+            const title = btn.data('title');
+            const notes = btn.attr('data-notes') || ''; // Используем attr чтобы получать актуальное значение
+            originalNoteBtn = btn;
+
+            $('#product-notes-title').text(title);
+            $('#admin-notes-textarea').val(notes);
+            $('#adminNotesModal').modal('show');
+        });
+
+        // Кнопка сохранения заметок
+        $('#save-notes-btn').on('click', function() {
+            const notes = $('#admin-notes-textarea').val();
+            const btn = $(this);
+            const originalHtml = btn.innerHTML;
+
+            btn.html('<i class="fas fa-spinner fa-spin"></i>').prop('disabled', true);
+
+            $.ajax({
+                url: `/admin/service-accounts/${currentNoteProductId}/update-notes`,
+                method: 'POST',
+                data: {
+                    _token: '{{ csrf_token() }}',
+                    admin_notes: notes
+                },
+                success: function(response) {
+                    if (response.success) {
+                        // Обновляем данные в кнопке на странице без перезагрузки
+                        originalNoteBtn.attr('data-notes', notes);
+                        
+                        // Обновляем иконку (делаем ее яркой если есть текст)
+                        const icon = originalNoteBtn.find('i');
+                        if (notes.trim()) {
+                            icon.removeClass('opacity-50');
+                        } else {
+                            icon.addClass('opacity-50');
+                        }
+
+                        $('#adminNotesModal').modal('hide');
+                        showAlert('success', response.message);
+                    }
+                },
+                error: function(xhr) {
+                    console.error('Ошибка сохранения заметок:', xhr);
+                    showAlert('danger', 'Ошибка при сохранении заметок');
+                },
+                complete: function() {
+                    btn.html('<i class="fas fa-save mr-1"></i>Сохранить').prop('disabled', false);
+                }
+            });
+        });
+
+        // Кнопка копирования
+        $('#copy-notes-btn').on('click', function() {
+            const textarea = document.getElementById('admin-notes-textarea');
+            textarea.select();
+            document.execCommand('copy');
+            
+            const originalText = $(this).html();
+            $(this).html('<i class="fas fa-check mr-1"></i>Скопировано!');
+            setTimeout(() => {
+                $(this).html(originalText);
+            }, 2000);
+        });
     </script>
 @endsection
