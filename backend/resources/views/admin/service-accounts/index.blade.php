@@ -225,17 +225,17 @@
                             <th style="width: 40px" class="text-center">
                                 <i class="fas fa-grip-vertical text-muted" title="Перетащите для изменения порядка"></i>
                             </th>
-                            <th style="width: 50px" class="text-center">ID</th>
-                            <th style="width: 120px" class="text-center">Артикул</th>
-                            <th style="width: 80px" class="text-center">Изображение</th>
-                            <th style="min-width: 250px">Товар</th>
-                            <th class="text-center">Категория</th>
-                            <th class="text-center">Цена</th>
-                            <th class="text-center">В наличии</th>
-                            <th class="text-center">Продано</th>
-                            <th>Статус</th>
+                            <th style="width: 65px" class="text-center">ID</th>
+                            <th style="width: 135px" class="text-center">Артикул</th>
+                            <th style="width: 75px" class="text-center">Фото</th>
+                            <th style="min-width: 180px">Товар</th>
+                            <th style="min-width: 120px" class="text-center">Категория</th>
+                            <th style="min-width: 100px" class="text-center">Цена</th>
+                            <th style="min-width: 115px" class="text-center">В наличии</th>
+                            <th style="min-width: 100px" class="text-center">Продано</th>
+                            <th style="min-width: 120px">Статус</th>
                             <th style="width: 180px" class="text-center">Действия</th>
-                            <th class="text-center">Дата создания</th>
+                            <th style="width: 140px" class="text-center">Дата создания</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -284,12 +284,12 @@
                                 @endif
                             </td>
                             <td class="align-middle">
-                                <div>
-                                    <div class="font-weight-bold text-dark">
+                                <div style="word-break: break-word; white-space: normal;">
+                                    <div class="font-weight-bold text-dark" style="line-height: 1.2;">
                                         {{ $serviceAccount->title ?: 'Без названия' }}
                                     </div>
                                     @if($serviceAccount->description)
-                                        <small class="text-muted d-block mt-1">
+                                        <small class="text-muted d-block mt-1" style="line-height: 1.2;">
                                             {{ Str::limit(strip_tags($serviceAccount->description), 60) }}
                                         </small>
                                     @endif
