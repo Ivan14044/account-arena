@@ -350,8 +350,6 @@ return [
             'icon' => 'fas fa-fw mr-1 fa-hand-paper',
             'active' => ['admin/manual-delivery*'],
             'can' => 'main-admin',
-            'label' => '',
-            'label_color' => 'warning',
             'id' => 'manual-delivery-count',
         ],
         [
@@ -360,8 +358,6 @@ return [
             'can' => 'admin-only',
             'url' => 'admin/disputes',
             'icon' => 'fas fa-fw mr-1 fa-exclamation-triangle',
-            'label' => '',
-            'label_color' => 'secondary',
             'id' => 'disputes-unread-count',
         ],
         [
@@ -369,8 +365,6 @@ return [
             'active' => ['admin/support-chats*'],
             'can' => 'admin-only',
             'url' => 'admin/support-chats',
-            'label' => '',
-            'label_color' => 'secondary',
             'icon' => 'fas fa-fw mr-1 fa-comments',
             'id' => 'support-chats-unread-count',
         ],
