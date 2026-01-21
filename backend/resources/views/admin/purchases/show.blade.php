@@ -125,6 +125,17 @@
                     <h3 class="card-title">
                         <i class="fas fa-user-lock"></i> Выданные данные аккаунтов ({{ count($purchase->account_data ?? []) }} шт.)
                     </h3>
+                    @if(is_array($purchase->account_data) && count($purchase->account_data) > 0)
+                        <div class="card-tools">
+                            <button class="btn btn-sm btn-light" 
+                                    onclick="downloadAllPurchaseAccounts(this)" 
+                                    data-accounts="{{ json_encode($purchase->account_data) }}"
+                                    data-order="{{ $purchase->order_number }}"
+                                    title="Скачать все">
+                                <i class="fas fa-file-download text-success"></i> Скачать всё (.txt)
+                            </button>
+                        </div>
+                    @endif
                 </div>
                 <div class="card-body">
                     @if(is_array($purchase->account_data) && count($purchase->account_data) > 0)
@@ -135,13 +146,23 @@
                                         <h6 class="mb-2">Аккаунт #{{ $index + 1 }}</h6>
                                         <pre class="mb-0" style="font-size: 0.9rem;">{{ is_string($accountItem) ? $accountItem : json_encode($accountItem, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) }}</pre>
                                     </div>
-                                    <button 
-                                        class="btn btn-sm btn-primary ml-2" 
-                                        onclick="copyToClipboard(this)" 
-                                        data-text="{{ is_string($accountItem) ? $accountItem : json_encode($accountItem) }}"
-                                        title="Копировать">
-                                        <i class="fas fa-copy"></i>
-                                    </button>
+                                    <div class="btn-group-vertical ml-2">
+                                        <button 
+                                            class="btn btn-sm btn-primary" 
+                                            onclick="copyToClipboard(this)" 
+                                            data-text="{{ is_string($accountItem) ? $accountItem : json_encode($accountItem, JSON_UNESCAPED_UNICODE) }}"
+                                            title="Копировать">
+                                            <i class="fas fa-copy"></i>
+                                        </button>
+                                        <button 
+                                            class="btn btn-sm btn-info" 
+                                            onclick="downloadSingleAccount(this)" 
+                                            data-text="{{ is_string($accountItem) ? $accountItem : json_encode($accountItem, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) }}"
+                                            data-filename="order_{{ $purchase->order_number }}_acc_{{ $index + 1 }}.txt"
+                                            title="Скачать">
+                                            <i class="fas fa-download"></i>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         @endforeach
@@ -240,6 +261,37 @@ function copyToClipboard(button) {
         
         alert('Скопировано!');
     }
+}
+
+function downloadSingleAccount(button) {
+    const text = button.getAttribute('data-text');
+    const filename = button.getAttribute('data-filename');
+    downloadFile(text, filename);
+}
+
+function downloadAllPurchaseAccounts(button) {
+    const accounts = JSON.parse(button.getAttribute('data-accounts'));
+    const orderNumber = button.getAttribute('data-order');
+    
+    let content = "";
+    accounts.forEach((acc, index) => {
+        content += `--- Account #${index + 1} ---\n`;
+        content += (typeof acc === 'string' ? acc : JSON.stringify(acc, null, 2)) + "\n\n";
+    });
+    
+    downloadFile(content, `order_${orderNumber}_all_accounts.txt`);
+}
+
+function downloadFile(content, filename) {
+    const blob = new Blob([content], { type: 'text/plain' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
 }
 </script>
 @endsection
