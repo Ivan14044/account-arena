@@ -212,8 +212,11 @@
         </div>
 
         <div class="card-body-modern">
-            <div class="table-responsive">
-                <table id="service-accounts-table" class="table table-hover modern-table">
+            <div class="top-scrollbar-wrapper" style="overflow-x: auto; overflow-y: hidden; height: 16px; display: none;">
+                <div class="top-scrollbar-content" style="height: 16px;"></div>
+            </div>
+            <div class="table-responsive table-container-modern">
+                <table id="service-accounts-table" class="table table-hover modern-table table-sm">
                     <thead>
                         <tr>
                             <th style="width: 40px" class="text-center">
@@ -272,11 +275,11 @@
                                     <img src="{{ $serviceAccount->image_url }}" 
                                          alt="{{ $serviceAccount->title }}" 
                                          class="rounded"
-                                         style="width: 60px; height: 60px; object-fit: cover; border: 1px solid #e3e6f0;">
+                                         style="width: 50px; height: 50px; object-fit: cover; border: 1px solid #e3e6f0;">
                                 @else
                                     <div class="rounded d-flex align-items-center justify-content-center" 
-                                         style="width: 60px; height: 60px; background: #f8f9fc; border: 1px solid #e3e6f0;">
-                                        <i class="fas fa-image text-muted fa-2x"></i>
+                                         style="width: 50px; height: 50px; background: #f8f9fc; border: 1px solid #e3e6f0;">
+                                        <i class="fas fa-image text-muted fa-lg"></i>
                                     </div>
                                 @endif
                             </td>
@@ -801,7 +804,75 @@
             display: flex;
             align-items: center;
         }
+
+        /* Более компактная таблица */
+        .modern-table {
+            font-size: 0.875rem;
+        }
         
+        .modern-table th, 
+        .modern-table td {
+            padding: 0.5rem 0.4rem !important;
+            vertical-align: middle !important;
+        }
+
+        .modern-table thead th {
+            font-size: 0.8125rem;
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+            font-weight: 700;
+        }
+
+        .badge-modern {
+            padding: 0.35em 0.6em;
+            font-size: 80%;
+        }
+
+        .action-buttons .btn-sm {
+            padding: 0.2rem 0.4rem;
+            font-size: 0.8125rem;
+        }
+
+        /* Верхний скроллбар */
+        .top-scrollbar-wrapper {
+            margin-bottom: 2px;
+            border-bottom: 1px solid #f1f3f9;
+        }
+        
+        .top-scrollbar-wrapper::-webkit-scrollbar {
+            height: 10px;
+        }
+        
+        .top-scrollbar-wrapper::-webkit-scrollbar-track {
+            background: #f8f9fc;
+        }
+        
+        .top-scrollbar-wrapper::-webkit-scrollbar-thumb {
+            background: #d1d3e2;
+            border-radius: 5px;
+        }
+        
+        .top-scrollbar-wrapper::-webkit-scrollbar-thumb:hover {
+            background: #b7b9cc;
+        }
+
+        .table-container-modern::-webkit-scrollbar {
+            height: 10px;
+        }
+        
+        .table-container-modern::-webkit-scrollbar-track {
+            background: #f8f9fc;
+        }
+        
+        .table-container-modern::-webkit-scrollbar-thumb {
+            background: #d1d3e2;
+            border-radius: 5px;
+        }
+        
+        .table-container-modern::-webkit-scrollbar-thumb:hover {
+            background: #b7b9cc;
+        }
+
         .sort-container label {
             margin-bottom: 0;
             white-space: nowrap;
@@ -1424,6 +1495,43 @@
             $('#import-data-textarea').on('input', function() {
                 const lines = this.value.split('\n').filter(line => line.trim() !== '');
                 $('#import-lines-count').val(lines.length);
+            });
+
+            // СИНХРОНИЗАЦИЯ СКРОЛЛБАРОВ
+            const tableContainer = $('.table-container-modern');
+            const topScrollbarWrapper = $('.top-scrollbar-wrapper');
+            const topScrollbarContent = $('.top-scrollbar-content');
+
+            function syncScrollbars() {
+                const scrollWidth = tableContainer[0].scrollWidth;
+                const clientWidth = tableContainer[0].clientWidth;
+
+                if (scrollWidth > clientWidth) {
+                    topScrollbarWrapper.show();
+                    topScrollbarContent.width(scrollWidth);
+                } else {
+                    topScrollbarWrapper.hide();
+                }
+            }
+
+            // Инициализация при загрузке
+            syncScrollbars();
+
+            // Обновление при изменении размера окна
+            $(window).on('resize', syncScrollbars);
+
+            // Синхронизация прокрутки
+            topScrollbarWrapper.on('scroll', function() {
+                tableContainer.scrollLeft($(this).scrollLeft());
+            });
+
+            tableContainer.on('scroll', function() {
+                topScrollbarWrapper.scrollLeft($(this).scrollLeft());
+            });
+
+            // Также обновляем при отрисовке таблицы (если данных стало больше/меньше)
+            table.on('draw', function() {
+                setTimeout(syncScrollbars, 100);
             });
         });
 
