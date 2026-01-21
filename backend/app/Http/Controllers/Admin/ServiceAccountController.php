@@ -603,6 +603,9 @@ class ServiceAccountController extends Controller
 
             DB::commit();
 
+            // Очистить кеш товаров для клиентов
+            $this->clearServiceAccountCache();
+
             // Логируем действие
             \Log::info('Bulk action performed', [
                 'admin_id' => auth()->id(),
@@ -718,8 +721,8 @@ class ServiceAccountController extends Controller
                 ->update(['sort_order' => $item['sort_order']]);
         }
 
-        // Очистить кеш товаров для клиентов
-        Cache::forget('active_accounts_list');
+        // Очистить кеш товаров для клиентов (все версии)
+        $this->clearServiceAccountCache();
 
         return response()->json(['success' => true, 'message' => 'Порядок сортировки обновлен']);
     }
@@ -757,12 +760,22 @@ class ServiceAccountController extends Controller
             }
         });
 
-        // Очистить кеш товаров для клиентов
-        Cache::forget('active_accounts_list');
+        // Очистить кеш товаров для клиентов (все версии)
+        $this->clearServiceAccountCache();
 
         return response()->json([
             'success' => true, 
             'message' => 'Сортировка применена и сохранена'
         ]);
+    }
+
+    /**
+     * Очистить все версии кеша списка товаров
+     */
+    private function clearServiceAccountCache(): void
+    {
+        Cache::forget('active_accounts_list');
+        Cache::forget('active_accounts_list_v2');
+        Cache::forget('active_accounts_list_v3');
     }
 }
