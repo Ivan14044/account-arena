@@ -45,15 +45,8 @@ export default {
             typeof options.threshold === 'number'
                 ? options.threshold
                 : isSmallScreen
-                  ? 0.05
-                  : 0.2;
-
-        const baseRootMargin =
-            typeof options.rootMargin === 'string'
-                ? options.rootMargin
-                : isSmallScreen
-                  ? '0px 0px -30% 0px'
-                  : '0px 0px -10% 0px';
+                    ? 0.05
+                    : 0.2;
 
         const callback = () => {
             if (hasAppeared && once) return;
@@ -63,12 +56,12 @@ export default {
 
             if (isVisible) {
                 const ratio = Math.min(1, Math.max(0, (window.innerHeight - rect.top) / (rect.height + window.innerHeight)));
-                
+
                 if (ratio >= baseThreshold) {
                     hasAppeared = true;
                     el.classList.add(targetClass);
                     el.classList.remove('opacity-0', 'translate-y-8');
-                    
+
                     if (once) {
                         const observer = getGlobalObserver();
                         observer.unobserve(el);
@@ -92,7 +85,7 @@ export default {
             }, 500);
         }
     },
-    
+
     unmounted(el: HTMLElement) {
         const observer = getGlobalObserver();
         if (observer) {
