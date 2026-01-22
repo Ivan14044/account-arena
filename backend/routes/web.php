@@ -217,7 +217,7 @@ Route::prefix('seo')->group(function () {
         return redirect('/articles/' . $id, 301);
     });
     Route::get('/products/{id}', function ($id) {
-        return redirect('/account/' . $id, 301);
+        return redirect('/products/' . $id, 301);
     });
     Route::get('/suppliers', function () {
         return redirect('/become-supplier', 301);
@@ -234,14 +234,18 @@ Route::prefix('seo')->group(function () {
 Route::get('/sitemap.xml', [\App\Http\Controllers\Seo\SitemapController::class, 'index'])->name('sitemap');
 
 // SPA-роуты с инжекцией мета-тегов (обрабатываются через nginx -> Laravel)
-Route::get('/account/{id}', [\App\Http\Controllers\Seo\SpaController::class, 'index'])->where('id', '.*')->name('spa.account');
-// Редирект старых /products/{id} на /account/{id} для избежания дублей
-Route::get('/products/{id}', function ($id) {
-    return redirect('/account/' . $id, 301);
-})->where('id', '.*')->name('spa.products.redirect');
+// НОВАЯ СТРУКТУРА: /products/{slug} - основной URL для товаров
+Route::get('/products/{id}', [\App\Http\Controllers\Seo\SpaController::class, 'index'])->where('id', '.*')->name('spa.products');
+
+// КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ SEO: 301 редиректы со старых URL на новые канонические
+// /account/{id} -> /products/{id} (унификация URL структуры)
+Route::get('/account/{id}', function ($id) {
+    return redirect('/products/' . $id, 301);
+})->where('id', '.*')->name('spa.account.redirect');
+
 Route::get('/articles/{id}', [\App\Http\Controllers\Seo\SpaController::class, 'index'])->where('id', '\d+')->name('spa.article');
 Route::get('/articles', [\App\Http\Controllers\Seo\SpaController::class, 'index'])->name('spa.articles');
-Route::get('/categories/{id}', [\App\Http\Controllers\Seo\SpaController::class, 'index'])->where('id', '\d+')->name('spa.category');
+Route::get('/categories/{id}', [\App\Http\Controllers\Seo\SpaController::class, 'index'])->where('id', '.*')->name('spa.category');
 Route::get('/categories', [\App\Http\Controllers\Seo\SpaController::class, 'index'])->name('spa.categories');
 Route::get('/become-supplier', [\App\Http\Controllers\Seo\SpaController::class, 'index'])->name('spa.become-supplier');
 Route::get('/suppliers', [\App\Http\Controllers\Seo\SpaController::class, 'index'])->name('spa.suppliers'); // Alias

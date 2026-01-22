@@ -137,7 +137,13 @@ class SpaController extends Controller
         }
 
         // If nothing matched, return 404
-        return ['status' => 404];
+        // КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ SEO: noindex для 404 страниц
+        return [
+            'status' => 404,
+            'robots' => 'noindex, follow',
+            'title' => '404 - Page Not Found',
+            'description' => 'Sorry, the page you are looking for does not exist.'
+        ];
     }
 
     private function getProductMetaTags(string $idOrSku, string $locale, string $requestPrefix = 'account'): array
