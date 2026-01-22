@@ -187,7 +187,9 @@ class AccountController extends Controller
             } else {
                 // ВАЖНО: В getSimilarProducts теперь выбирается accounts_data, 
                 // так что можем корректно посчитать количество.
-                $totalQuantity = is_array($item->accounts_data) ? count($item->accounts_data) : 0;
+                $totalQuantity = isset($item->total_qty_from_json) 
+                    ? (int)$item->total_qty_from_json 
+                    : (is_array($item->accounts_data) ? count($item->accounts_data) : 0);
                 $soldCount = (int)($item->used ?? 0);
             }
 

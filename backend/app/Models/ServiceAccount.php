@@ -431,6 +431,7 @@ class ServiceAccount extends Model
                 if ($this->category_id) {
                     $categoryProducts = (clone $query)
                         ->where('category_id', $this->category_id)
+                        ->inRandomOrder()
                         ->limit($limit)
                         ->get();
                 }
