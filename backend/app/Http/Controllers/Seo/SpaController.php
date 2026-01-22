@@ -95,7 +95,20 @@ class SpaController extends Controller
             return $this->getArticlesListMetaTags($locale);
         }
 
-        // Сервисные страницы (с алиасами)
+        // Info pages
+        $infoPages = [
+            'faq' => 'faq',
+            'guarantees' => 'guarantees',
+            'cookies' => 'cookies',
+            'terms' => 'terms',
+            'privacy' => 'privacy'
+        ];
+
+        if (isset($infoPages[$path])) {
+            return $this->getInfoPageMetaTags($infoPages[$path], $locale);
+        }
+
+        // Service aliases (existing)
         $serviceAliases = [
             'suppliers' => 'become-supplier',
             'become-supplier' => 'become-supplier',
@@ -109,8 +122,14 @@ class SpaController extends Controller
             return $this->getServicePageMetaTags($serviceAliases[$path], $locale, $path);
         }
 
-        // Динамические страницы из базы данных (slug)
-        return $this->getDynamicPageMetaTags($path, $locale);
+        // Dynamic pages
+        $dynamicTags = $this->getDynamicPageMetaTags($path, $locale);
+        if (!empty($dynamicTags)) {
+            return $dynamicTags;
+        }
+
+        // If nothing matched, return 404
+        return ['status' => 404];
     }
 
     private function getProductMetaTags(string $idOrSku, string $locale, string $requestPrefix = 'account'): array
@@ -130,7 +149,7 @@ class SpaController extends Controller
             // Очищаем описание для мета-тегов (URL + эмодзи)
             $cleanDesc = $this->sanitizeMetaDescription($rawDesc);
             $desc = $this->getLocalizedField($product, 'meta_description', $locale)
-                ?: Str::limit(strip_tags($cleanDesc), 160);
+                ?: $this->smartTruncate(strip_tags($cleanDesc), 160);
             
             // Микроразметка Product
             $schema = [
@@ -190,7 +209,7 @@ class SpaController extends Controller
             }
             
             $title = $article->translate('title', $locale);
-            $desc = $article->translate('meta_description', $locale) ?: Str::limit(strip_tags($article->translate('content', $locale)), 160);
+            $desc = $article->translate('meta_description', $locale) ?: $this->smartTruncate(strip_tags($article->translate('content', $locale)), 160);
             
             // Микроразметка Article
             $schema = [
@@ -378,6 +397,23 @@ class SpaController extends Controller
         $title = $titles[$locale] ?? $titles['ru'];
         $description = $descriptions[$locale] ?? $descriptions['ru'];
         
+        // Organization Schema for Home Page
+        $schema = [
+            '@context' => 'https://schema.org',
+            '@type' => 'Organization',
+            'name' => 'Account Arena',
+            'url' => url('/'),
+            'logo' => url('/img/logo_trans.webp'),
+            'sameAs' => [
+                'https://t.me/account_arena_bot' // Telegram Bot
+            ],
+            'contactPoint' => [
+                '@type' => 'ContactPoint',
+                'contactType' => 'customer support',
+                'url' => 'https://t.me/account_arena_support'
+            ]
+        ];
+
         return [
             'title' => $title,
             // Удаляем h1 отсюда, так как он есть в HeroSection.vue, чтобы избежать дублей
@@ -385,6 +421,7 @@ class SpaController extends Controller
             'og:title' => $title, // Согласован с title
             'og:description' => $description,
             'canonical' => rtrim(url('/'), '/'), // Единый стандарт: без слэша
+            'schema' => $schema
         ];
     }
     
@@ -434,7 +471,7 @@ class SpaController extends Controller
             }
 
             $title = $page->translate('meta_title', $locale) ?: $page->translate('title', $locale);
-            $desc = $page->translate('meta_description', $locale) ?: Str::limit(strip_tags($page->translate('content', $locale)), 160);
+            $desc = $page->translate('meta_description', $locale) ?: $this->smartTruncate(strip_tags($page->translate('content', $locale)), 160);
 
             return [
                 'title' => ($title ?: 'Page') . ' - Account Arena',
@@ -447,6 +484,83 @@ class SpaController extends Controller
         } catch (\Exception $e) {
             return [];
         }
+    }
+
+    private function getInfoPageMetaTags(string $page, string $locale): array
+    {
+        $data = [
+            'faq' => [
+                'ru' => ['title' => 'FAQ - Часто задаваемые вопросы - Account Arena', 'desc' => 'Ответы на популярные вопросы о покупке аккаунтов, безопасности и гарантиях на Account Arena.'],
+                'en' => ['title' => 'FAQ - Frequently Asked Questions - Account Arena', 'desc' => 'Answers to popular questions about buying accounts, security and guarantees on Account Arena.'],
+                'uk' => ['title' => 'FAQ - Часті запитання - Account Arena', 'desc' => 'Відповіді на популярні запитання про купівлю акаунтів, безпеку та гарантії на Account Arena.']
+            ],
+            'guarantees' => [
+                'ru' => ['title' => 'Гарантии и безопасность - Account Arena', 'desc' => 'Узнайте о наших гарантиях качества, безопасной сделке и политике защиты покупателей.'],
+                'en' => ['title' => 'Guarantees and Security - Account Arena', 'desc' => 'Learn about our quality guarantees, secure deal and buyer protection policy.'],
+                'uk' => ['title' => 'Гарантії та безпека - Account Arena', 'desc' => 'Дізнайтеся про наші гарантії якості, безпечну угоду та політику захисту покупців.']
+            ],
+            'cookies' => [
+                'ru' => ['title' => 'Политика использования файлов cookie - Account Arena', 'desc' => 'Информация об использовании файлов cookie на сайте Account Arena.'],
+                'en' => ['title' => 'Cookie Policy - Account Arena', 'desc' => 'Information about cookie usage on Account Arena website.'],
+                'uk' => ['title' => 'Політика використання файлів cookie - Account Arena', 'desc' => 'Інформація про використання файлів cookie на сайті Account Arena.']
+            ],
+            'terms' => [
+                'ru' => ['title' => 'Пользовательское соглашение - Account Arena', 'desc' => 'Правила использования сервиса Account Arena, права и обязанности сторон.'],
+                'en' => ['title' => 'Terms of Service - Account Arena', 'desc' => 'Rules of using Account Arena service, rights and obligations of parties.'],
+                'uk' => ['title' => 'Угода користувача - Account Arena', 'desc' => 'Правила використання сервісу Account Arena, права та обов\'язки сторін.']
+            ],
+            'privacy' => [
+                'ru' => ['title' => 'Политика конфиденциальности - Account Arena', 'desc' => 'Как мы собираем, используем и защищаем ваши персональные данные.'],
+                'en' => ['title' => 'Privacy Policy - Account Arena', 'desc' => 'How we collect, use and protect your personal data.'],
+                'uk' => ['title' => 'Політика конфіденційності - Account Arena', 'desc' => 'Як ми збираємо, використовуємо та захищаємо ваші персональні дані.']
+            ]
+        ];
+
+        $pageData = $data[$page][$locale] ?? $data[$page]['ru'];
+        $meta = [
+            'title' => $pageData['title'],
+            'h1' => $pageData['title'],
+            'description' => $pageData['desc'],
+            'og:title' => $pageData['title'],
+            'og:description' => $pageData['desc'],
+            'canonical' => rtrim(url("/" . $page), '/'),
+        ];
+
+        // Add FAQ Schema for FAQ page
+        if ($page === 'faq') {
+            $meta['schema'] = [
+                '@context' => 'https://schema.org',
+                '@type' => 'FAQPage',
+                'mainEntity' => [
+                    [
+                        '@type' => 'Question',
+                        'name' => ($locale === 'ru' ? 'Как купить аккаунт?' : ($locale === 'uk' ? 'Як купити акаунт?' : 'How to buy an account?')),
+                        'acceptedAnswer' => [
+                            '@type' => 'Answer',
+                            'text' => ($locale === 'ru' 
+                                ? 'Выберите нужный товар, нажмите кнопку "Купить", выберите удобный способ оплаты и следуйте инструкциям. Данные от аккаунта придут моментально после оплаты.' 
+                                : ($locale === 'uk' 
+                                    ? 'Оберіть потрібний товар, натисніть кнопку "Купити", оберіть зручний спосіб оплати та дотримуйтесь інструкцій. Дані від акаунту прийдуть миттєво після оплати.' 
+                                    : 'Choose the desired product, click "Buy", select a convenient payment method and follow the instructions. Account data will arrive instantly after payment.'))
+                        ]
+                    ],
+                    [
+                        '@type' => 'Question',
+                        'name' => ($locale === 'ru' ? 'Есть ли гарантия на аккаунты?' : ($locale === 'uk' ? 'Чи є гарантія на акаунти?' : 'Is there a warranty on accounts?')),
+                        'acceptedAnswer' => [
+                            '@type' => 'Answer',
+                            'text' => ($locale === 'ru'
+                                ? 'Да, мы предоставляем гарантию на валидность аккаунтов на момент покупки. Подробные условия гарантии указаны на странице "Условия замены".'
+                                : ($locale === 'uk'
+                                    ? 'Так, ми надаємо гарантію на валідність акаунтів на момент покупки. Детальні умови гарантії вказані на сторінці "Умови заміни".'
+                                    : 'Yes, we provide a warranty for account validity at the time of purchase. Detailed warranty conditions are listed on the "Replacement Conditions" page.'))
+                        ]
+                    ]
+                ]
+            ];
+        }
+
+        return $meta;
     }
 
     private function getArticlesListMetaTags(string $locale): array
@@ -520,15 +634,26 @@ class SpaController extends Controller
         
         // Hreflang
         $locales = ['ru', 'en', 'uk'];
-        $currentUrl = url()->current();
+        
+        // Используем полный URL с параметрами, чтобы сохранить пагинацию
+        $currentUrl = request()->fullUrl();
         
         // Очищаем URL от lang параметров для генерации чистых ссылок hreflang
         $cleanUrl = preg_replace('/[?&]lang=[^&]*/', '', $currentUrl);
         $cleanUrl = rtrim($cleanUrl, '?&');
+        
+        // Если после очистки остался ? (или &), значит есть другие параметры (например page)
         $hasQuery = str_contains($cleanUrl, '?');
 
         foreach ($locales as $loc) {
-            $langUrl = $cleanUrl . ($hasQuery ? '&' : '?') . 'lang=' . $loc;
+            $separator = $hasQuery ? '&' : '?';
+            // Если параметров нет, добавляем ?lang=, иначе &lang=
+            // Но нужно проверить, не заканчивается ли URL уже на ?
+            if (str_ends_with($cleanUrl, '?')) {
+                $separator = '';
+            }
+            
+            $langUrl = $cleanUrl . $separator . 'lang=' . $loc;
             $headTags[] = '<link rel="alternate" hreflang="' . $loc . '" href="' . htmlspecialchars($langUrl, ENT_QUOTES, 'UTF-8') . '">';
         }
         $headTags[] = '<link rel="alternate" hreflang="x-default" href="' . htmlspecialchars($cleanUrl, ENT_QUOTES, 'UTF-8') . '">';
@@ -563,5 +688,26 @@ class SpaController extends Controller
     {
         $localizedField = ($locale === 'ru') ? $field : $field . '_' . $locale;
         return $model->$localizedField ?: $model->$field;
+    }
+
+    /**
+     * Smart truncation that respects word boundaries
+     */
+    private function smartTruncate(string $text, int $limit = 160): string
+    {
+        $text = trim($text);
+        if (mb_strlen($text) <= $limit) {
+            return $text;
+        }
+
+        $text = mb_substr($text, 0, $limit);
+        // Find last space to avoid cutting words
+        $lastSpace = mb_strrpos($text, ' ');
+        
+        if ($lastSpace !== false) {
+            $text = mb_substr($text, 0, $lastSpace);
+        }
+        
+        return $text . '...';
     }
 }

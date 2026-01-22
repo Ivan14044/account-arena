@@ -1,41 +1,21 @@
 User-agent: *
-Allow: /seo/
 Allow: /
 Disallow: /admin/
 Disallow: /api/
 Disallow: /supplier/
 Disallow: /vendor/
-
-# Разрешаем AI-ботов для индексации в AI-среде
-User-agent: GPTBot
-Allow: /
-
-User-agent: Google-Extended
-Allow: /
-
-User-agent: ClaudeBot
-Allow: /
-
-User-agent: anthropic-ai
-Allow: /
-
-# Блокируем параметры фильтров и сортировок
+Disallow: /storage/
 Disallow: /*?*sort=*
 Disallow: /*?*filter=*
 Disallow: /*?*search=*
-
-# Разрешаем пагинацию только для статей
-Allow: /articles/page/
-Allow: /categories/*/page/
-
-# Блокируем другие служебные параметры
 Disallow: /*?*utm_*
 Disallow: /*?*ref=*
 Disallow: /*?*token=*
 Disallow: /*?*auth=*
+# Block old shadow SEO routes if they still exist physically or via rewrite, though we handle them via controller now.
+# But generally we want bots to crawl the main site.
+# Redirects will handle the transition, so we don't strictly need to Disallow them if we want link juice to flow, 
+# but we want to encourage crawling the new URLs. 
+# Since we are doing 301 redirects, we can Allow them so bots see the redirect.
 
-# Блокируем старые URL /products/{id} (редирект на /account/{id})
-Disallow: /products/
-
-# Sitemap
 Sitemap: https://account-arena.com/sitemap.xml

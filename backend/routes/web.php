@@ -205,16 +205,29 @@ Route::prefix('supplier')
     });
 
 // SEO-важные страницы (SSR для поисковых систем)
-Route::prefix('seo')->name('seo.')->group(function () {
-    Route::get('/categories/{id}', [\App\Http\Controllers\Seo\CategoryController::class, 'show'])->name('category');
-    Route::get('/articles', [\App\Http\Controllers\Seo\ArticleController::class, 'index'])->name('articles');
-    Route::get('/articles/{id}', [\App\Http\Controllers\Seo\ArticleController::class, 'show'])->name('article');
-    Route::get('/products/{id}', [\App\Http\Controllers\Seo\ProductController::class, 'show'])->name('product');
-    
-    // Сервисные страницы
-    Route::get('/suppliers', [\App\Http\Controllers\Seo\ServicePageController::class, 'suppliers'])->name('suppliers');
-    Route::get('/replace-conditions', [\App\Http\Controllers\Seo\ServicePageController::class, 'replaceConditions'])->name('replace-conditions');
-    Route::get('/payment-refund', [\App\Http\Controllers\Seo\ServicePageController::class, 'paymentRefund'])->name('payment-refund');
+// Redirects for old SEO routes to SPA routes (301 Permanent)
+Route::prefix('seo')->group(function () {
+    Route::get('/categories/{id}', function ($id) {
+        return redirect('/categories/' . $id, 301);
+    });
+    Route::get('/articles', function () {
+        return redirect('/articles', 301);
+    });
+    Route::get('/articles/{id}', function ($id) {
+        return redirect('/articles/' . $id, 301);
+    });
+    Route::get('/products/{id}', function ($id) {
+        return redirect('/account/' . $id, 301);
+    });
+    Route::get('/suppliers', function () {
+        return redirect('/become-supplier', 301);
+    });
+    Route::get('/replace-conditions', function () {
+        return redirect('/conditions', 301);
+    });
+    Route::get('/payment-refund', function () {
+        return redirect('/payment-refund', 301);
+    });
 });
 
 // Sitemap (нужно ДО catch-all, чтобы не попадал в SPA)
