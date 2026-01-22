@@ -178,17 +178,21 @@ class SpaController extends Controller
                 ]
             ];
 
-            return [
-                'title' => ($title ?: 'Product ' . $idOrSku) . ' - Account Arena',
-                'h1' => $title,
-                'description' => $desc,
-                'og:title' => $title,
-                'og:description' => $desc,
-                'og:type' => 'product',
-                'og:image' => $product->image_url ? (str_starts_with($product->image_url, 'http') ? $product->image_url : url($product->image_url)) : url('/img/logo_trans.webp'),
-                'canonical' => rtrim(url("/products/{$product->slug}" ?: "/account/{$product->id}"), '/'),
-                'schema' => $schema
-            ];
+             // Генерируем HTML контент для бота
+             $htmlContent = $this->generateProductContent($product, $title, $rawDesc, $locale);
+ 
+             return [
+                 'title' => ($title ?: 'Product ' . $idOrSku) . ' - Account Arena',
+                 'h1' => $title,
+                 'description' => $desc,
+                 'og:title' => $title,
+                 'og:description' => $desc,
+                 'og:type' => 'product',
+                 'og:image' => $product->image_url ? (str_starts_with($product->image_url, 'http') ? $product->image_url : url($product->image_url)) : url('/img/logo_trans.webp'),
+                 'canonical' => rtrim(url($product->slug ? "/products/{$product->slug}" : "/account/{$product->id}"), '/'),
+                 'schema' => $schema,
+                 'html_content' => $htmlContent // <-- Важно! Контент для инъекции
+             ];
         } catch (\Exception $e) { return []; }
     }
 
@@ -238,6 +242,11 @@ class SpaController extends Controller
                 'dateModified' => $article->updated_at->toIso8601String()
             ];
 
+            // Generate Content for Injection
+            $content = $article->translate('content', $locale);
+            $image = $article->img ? $this->normalizeArticleImageUrl($article->img) : url('/img/logo_trans.webp');
+            $htmlContent = $this->generateArticleContent($title, $content, $article->created_at->toIso8601String(), $image);
+
             return [
                 'title' => ($title ?: 'Article ' . $id) . ' - Account Arena',
                 'h1' => $title,
@@ -245,9 +254,10 @@ class SpaController extends Controller
                 'og:title' => $title,
                 'og:description' => $desc,
                 'og:type' => 'article',
-                'og:image' => $article->img ? $this->normalizeArticleImageUrl($article->img) : url('/img/logo_trans.webp'),
+                'og:image' => $image,
                 'canonical' => rtrim(url("/seo/articles/{$id}"), '/'),
-                'schema' => $schema
+                'schema' => $schema,
+                'html_content' => $htmlContent
             ];
         } catch (\Exception $e) { return []; }
     }
@@ -312,6 +322,9 @@ class SpaController extends Controller
                 $desc = $this->getCategoryDescription($name, $locale);
             }
             
+            // Генерируем HTML описание категории
+            $htmlContent = $this->generateCategoryContent($name, $desc, $locale);
+
             return [
                 'title' => $name . ' - Account Arena',
                 'h1' => $name,
@@ -319,6 +332,7 @@ class SpaController extends Controller
                 'og:title' => $name,
                 'og:description' => $desc,
                 'canonical' => rtrim(url("/categories/{$category->slug}" ?: "/categories/{$category->id}"), '/'),
+                'html_content' => $htmlContent
             ];
         } catch (\Exception $e) { 
             return ['status' => 404];
@@ -686,6 +700,17 @@ class SpaController extends Controller
             $insertPos = $matches[0][1] + strlen($matches[0][0]);
             $html = substr_replace($html, "\n    " . $injectedHead . "\n", $insertPos, 0);
         }
+
+        // --- Вставка HTML-контента (SEO Content Injection) ---
+        // Если передан готовый HTML контент (карточка товара, статья),
+        // вставляем его внутрь div id="app", чтобы бот видел текст.
+        // Vue при инициализации заменит этот контент, но бот успеет его считать.
+        if (isset($metaTags['html_content'])) {
+            $content = $metaTags['html_content'];
+            // Ищем <div id="app">...</div> и вставляем контент внутрь
+            // Используем preg_replace, чтобы найти тег со всеми атрибутами
+            $html = preg_replace('/(<div id="app"[^>]*>)(<\/div>)/i', '$1' . $content . '$2', $html);
+        }
         
         // Вставка H1 в BODY (скрытый для SEO) - только если это не главная страница
         // На главной H1 уже есть в HeroSection.vue, чтобы избежать дублей
@@ -726,5 +751,89 @@ class SpaController extends Controller
         }
         
         return $text . '...';
+    }
+
+    /**
+     * Helper to generate SEO content for Products (Server-Side Injection)
+     */
+    private function generateProductContent($product, $title, $description, $locale)
+    {
+        $price = $product->price . ' USD'; // Simplified currency
+        $sku = $product->sku ?: $product->id;
+        $img = $product->image_url ? (str_starts_with($product->image_url, 'http') ? $product->image_url : url($product->image_url)) : url('/img/logo_trans.webp');
+        
+        // Semantic HTML for crawlers inside #app
+        // We use inline styles to ensure it doesn't break layout before Vue hydration removes/replaces it.
+        // Or we rely on Vue replacing '#app' content entirely.
+        
+        $html = '<div class="product-seo-content" style="padding: 20px;">';
+        $html .= '<article itemscope itemtype="https://schema.org/Product">';
+        
+        // H1 Title
+        $html .= '<h1 itemprop="name" style="font-size: 2em; margin-bottom: 10px;">' . htmlspecialchars($title) . '</h1>';
+        
+        // Main Image
+        $html .= '<div class="product-image" style="margin-bottom: 20px;">';
+        $html .= '<img itemprop="image" src="' . htmlspecialchars($img) . '" alt="' . htmlspecialchars($title) . '" style="max-width: 100%; height: auto;">';
+        $html .= '</div>';
+        
+        // Price & Offer
+        $html .= '<div itemprop="offers" itemscope itemtype="https://schema.org/Offer" style="margin-bottom: 20px; font-size: 1.5em; font-weight: bold;">';
+        $html .= 'Price: <span itemprop="price">' . $product->price . '</span> ';
+        $html .= '<span itemprop="priceCurrency">USD</span>';
+        $html .= '<link itemprop="availability" href="https://schema.org/InStock" />';
+        $html .= '</div>';
+        
+        // SKU
+        $html .= '<div class="sku" style="margin-bottom: 15px; color: #666;">SKU: <span itemprop="sku">' . htmlspecialchars($sku) . '</span></div>';
+        
+        // Description
+        if ($description) {
+            $html .= '<div itemprop="description" style="line-height: 1.6;">' . $description . '</div>';
+        }
+        
+        $html .= '</article>';
+        $html .= '</div>';
+        
+        return $html;
+    }
+
+    /**
+     * Helper to generate SEO content for Categories
+     */
+    private function generateCategoryContent($title, $description, $locale)
+    {
+        $html = '<div class="category-seo-content" style="padding: 20px;">';
+        $html .= '<h1>' . htmlspecialchars($title) . '</h1>';
+        if ($description) {
+            $html .= '<div class="description" style="margin-top: 15px; line-height: 1.6;">' . $description . '</div>';
+        }
+        $html .= '</div>';
+        return $html;
+    }
+
+    /**
+     * Helper to generate SEO content for Articles
+     */
+    private function generateArticleContent($title, $content, $date, $image)
+    {
+        $html = '<div class="article-seo-content" style="padding: 20px;">';
+        $html .= '<article itemscope itemtype="https://schema.org/Article">';
+        $html .= '<h1 itemprop="headline" style="font-size: 2em; margin-bottom: 20px;">' . htmlspecialchars($title) . '</h1>';
+        
+        if ($image) {
+            $html .= '<div class="article-image" style="margin-bottom: 20px;">';
+            $html .= '<img itemprop="image" src="' . htmlspecialchars($image) . '" alt="' . htmlspecialchars($title) . '" style="max-width: 100%; height: auto;">';
+            $html .= '</div>';
+        }
+        
+        $html .= '<div class="meta" style="color: #666; margin-bottom: 20px;">';
+        $html .= 'Published: <time itemprop="datePublished" datetime="' . $date . '">' . date('Y-m-d', strtotime($date)) . '</time>';
+        $html .= '</div>';
+        
+        $html .= '<div itemprop="articleBody" style="line-height: 1.8;">' . $content . '</div>';
+        $html .= '</article>';
+        $html .= '</div>';
+        return $html;
     }
 }
