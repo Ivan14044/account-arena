@@ -381,7 +381,7 @@
                         yPadding: 10,
                         callbacks: {
                             label: function(tooltipItem, data) {
-                                return 'Продажи: $' + parseFloat(tooltipItem.yLabel).toFixed(2);
+                                return 'Сумма продаж: $' + parseFloat(tooltipItem.yLabel).toFixed(2);
                             },
                             footer: function(tooltipItems, data) {
                                 // tooltipItems is an array of items for the hovered index
