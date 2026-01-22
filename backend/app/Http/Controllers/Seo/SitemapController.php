@@ -35,28 +35,29 @@ class SitemapController extends Controller
                 ->get();
             
             foreach ($articles as $article) {
-                $url = $baseUrl . '/seo/articles/' . $article->id;
+                // Point to main SPA Article route
+                $url = $baseUrl . '/articles/' . $article->id;
                 $lastmod = $article->updated_at->format('Y-m-d');
                 $xml .= $this->generateUrl($url, 0.8, 'weekly', 'ru', $lastmod);
             }
             
-            // SEO страницы категорий (только те, у которых есть хотя бы одно название)
+            // SEO страницы категорий
             $categories = Category::with('translations')->get();
             
             foreach ($categories as $category) {
-                // Проверяем, что у категории есть хотя бы одно название (на любом языке)
+                // Проверяем, что у категории есть хотя бы одно название
                 $hasName = $category->translations()
                     ->where('code', 'name')
                     ->whereNotNull('value')
                     ->where('value', '!=', '')
                     ->exists();
                 
-                // Если нет названия, пропускаем категорию
                 if (!$hasName) {
                     continue;
                 }
                 
-                $url = $baseUrl . '/seo/categories/' . $category->id;
+                // Point to main SPA Category route
+                $url = $baseUrl . '/categories/' . $category->id;
                 $xml .= $this->generateUrl($url, 0.7, 'weekly', 'ru');
             }
             
@@ -66,30 +67,27 @@ class SitemapController extends Controller
                 ->get();
             
             foreach ($products as $product) {
-                $url = $baseUrl . '/seo/products/' . $product->id;
+                // Point to main SPA Product route
+                // Use SKU or ID based on preference, prioritizing ID for compatibility with current routes
+                $url = $baseUrl . '/account/' . $product->id;
                 $lastmod = $product->updated_at->format('Y-m-d');
-                $xml .= $this->generateUrl($url, 0.6, 'monthly', 'ru', $lastmod);
+                $xml .= $this->generateUrl($url, 0.8, 'daily', 'ru', $lastmod);
             }
             
             // Список статей
-            $url = $baseUrl . '/seo/articles';
+            $url = $baseUrl . '/articles';
             $xml .= $this->generateUrl($url, 0.7, 'daily', 'ru');
             
-            // SEO-версии сервисных страниц
-            $seoServicePages = [
-                'suppliers' => 0.6,
-                'replace-conditions' => 0.6,
-                'payment-refund' => 0.6,
+            // Сервисные страницы (SPA версии) - это основные страницы
+            $servicePages = [
+                'become-supplier' => 0.6, 
+                'conditions' => 0.5, 
+                'payment-refund' => 0.6, 
+                'contacts' => 0.5, 
+                // 'suppliers' is usually an alias to become-supplier or list, ensure uniqueness
             ];
-            foreach ($seoServicePages as $page => $priority) {
-                $url = $baseUrl . '/seo/' . $page;
-                $xml .= $this->generateUrl($url, $priority, 'monthly', 'ru');
-            }
-            
-            // Обычные сервисные страницы (SPA версии)
-            $servicePages = ['become-supplier', 'conditions', 'payment-refund', 'contacts', 'suppliers', 'replace-conditions'];
-            foreach ($servicePages as $page) {
-                $xml .= $this->generateUrl($baseUrl . '/' . $page, 0.5, 'monthly', 'ru');
+            foreach ($servicePages as $page => $priority) {
+                $xml .= $this->generateUrl($baseUrl . '/' . $page, $priority, 'monthly', 'ru');
             }
             
             $xml .= '</urlset>';
