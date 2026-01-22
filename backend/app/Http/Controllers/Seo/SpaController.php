@@ -359,13 +359,17 @@ class SpaController extends Controller
         $title = $titles[$locale] ?? $titles['ru'];
         $description = $descriptions[$locale] ?? $descriptions['ru'];
 
+        // Generate Content
+        $htmlContent = $this->generatePageContent($title, $description);
+
         return [
             'title' => $title,
             'h1' => $title,
             'description' => $description,
             'og:title' => $title,
             'og:description' => $description,
-            'canonical' => rtrim(url('/categories'), '/')
+            'canonical' => rtrim(url('/categories'), '/'),
+            'html_content' => $htmlContent
         ];
     }
 
@@ -445,14 +449,17 @@ class SpaController extends Controller
             ]
         ];
 
+        // Generate Home Content (H1 + Intro Text)
+        $htmlContent = $this->generatePageContent($title, $description);
+
         return [
             'title' => $title,
-            // Удаляем h1 отсюда, так как он есть в HeroSection.vue, чтобы избежать дублей
             'description' => $description,
-            'og:title' => $title, // Согласован с title
+            'og:title' => $title, 
             'og:description' => $description,
-            'canonical' => rtrim(url('/'), '/'), // Единый стандарт: без слэша
-            'schema' => $schema
+            'canonical' => rtrim(url('/'), '/'),
+            'schema' => $schema,
+            'html_content' => $htmlContent
         ];
     }
     
@@ -483,6 +490,9 @@ class SpaController extends Controller
 
         $pageData = $data[$page][$locale] ?? $data[$page]['ru'];
 
+        // Generate Content
+        $htmlContent = $this->generatePageContent($pageData['title'], $pageData['desc']);
+
         return [
             'title' => $pageData['title'],
             'h1' => $pageData['title'],
@@ -490,6 +500,7 @@ class SpaController extends Controller
             'og:title' => $pageData['title'],
             'og:description' => $pageData['desc'],
             'canonical' => rtrim(url("/" . ($requestPath ?: $page)), '/'),
+            'html_content' => $htmlContent
         ];
     }
 
@@ -504,6 +515,9 @@ class SpaController extends Controller
             $title = $page->translate('meta_title', $locale) ?: $page->translate('title', $locale);
             $desc = $page->translate('meta_description', $locale) ?: $this->smartTruncate(strip_tags($page->translate('content', $locale)), 160);
 
+            // Generate Page Content
+            $htmlContent = $this->generatePageContent($title, $page->translate('content', $locale));
+
             return [
                 'title' => ($title ?: 'Page') . ' - Account Arena',
                 'h1' => $page->translate('title', $locale),
@@ -511,6 +525,7 @@ class SpaController extends Controller
                 'og:title' => $title,
                 'og:description' => $desc,
                 'canonical' => rtrim(url("/" . $slug), '/'),
+                'html_content' => $htmlContent
             ];
         } catch (\Exception $e) {
             return [];
@@ -548,6 +563,10 @@ class SpaController extends Controller
         ];
 
         $pageData = $data[$page][$locale] ?? $data[$page]['ru'];
+        
+        // Generate Content (Stub for now, as these are usually static Vue files or simple content)
+        $htmlContent = $this->generatePageContent($pageData['title'], $pageData['desc']);
+
         $meta = [
             'title' => $pageData['title'],
             'h1' => $pageData['title'],
@@ -555,6 +574,7 @@ class SpaController extends Controller
             'og:title' => $pageData['title'],
             'og:description' => $pageData['desc'],
             'canonical' => rtrim(url("/" . $page), '/'),
+            'html_content' => $htmlContent
         ];
 
         // Add FAQ Schema for FAQ page
@@ -608,11 +628,18 @@ class SpaController extends Controller
             'uk' => 'Читайте корисні статті та інструкції на Account Arena'
         ];
 
+        $title = $titles[$locale] ?? $titles['ru'];
+        $description = $descriptions[$locale] ?? $descriptions['ru'];
+
+        // Generate Content
+        $htmlContent = $this->generatePageContent($title, $description);
+
         return [
-            'title' => $titles[$locale] ?? $titles['ru'],
-            'h1' => $titles[$locale] ?? $titles['ru'],
-            'description' => $descriptions[$locale] ?? $descriptions['ru'],
-            'canonical' => rtrim(url('/seo/articles'), '/'), // Используем /seo/ путь для каноникала списка статей
+            'title' => $title,
+            'h1' => $title,
+            'description' => $description,
+            'canonical' => rtrim(url('/seo/articles'), '/'),
+            'html_content' => $htmlContent
         ];
     }
     
@@ -833,6 +860,20 @@ class SpaController extends Controller
         
         $html .= '<div itemprop="articleBody" style="line-height: 1.8;">' . $content . '</div>';
         $html .= '</article>';
+        $html .= '</div>';
+        return $html;
+    }
+
+    /**
+     * Helper to generate SEO content for simple pages (Home, Lists, Info)
+     */
+    private function generatePageContent($title, $description)
+    {
+        $html = '<div class="seo-content" style="padding: 20px;">';
+        $html .= '<h1>' . htmlspecialchars($title) . '</h1>';
+        if ($description) {
+            $html .= '<div class="description" style="margin-top: 15px; line-height: 1.6;">' . $description . '</div>';
+        }
         $html .= '</div>';
         return $html;
     }
