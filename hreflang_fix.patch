@@ -1,0 +1,35 @@
+diff --git a/backend/app/Http/Controllers/Seo/SpaController.php b/backend/app/Http/Controllers/Seo/SpaController.php
+index ea55912..b79f68e 100644
+--- a/backend/app/Http/Controllers/Seo/SpaController.php
++++ b/backend/app/Http/Controllers/Seo/SpaController.php
+@@ -693,13 +693,10 @@ class SpaController extends Controller
+         // Hreflang
+         $locales = ['ru', 'en', 'uk'];
+         
+-        // Используем полный URL с параметрами, чтобы сохранить пагинацию
+-        $currentUrl = request()->fullUrl();
+-        
+-        // Очищаем URL от lang параметров для генерации чистых ссылок hreflang
+-        $cleanUrl = preg_replace('/[?\&]lang=[^\&]*/', '', $currentUrl);
+-        $cleanUrl = rtrim($cleanUrl, '?\&');
+-        
++        // КРИТИЧЕСКИ ВАЖНО: используем canonical URL вместо текущего запроса
++        // Это устраняет несогласованность между canonical и hreflang (из SEO-аудита)
++        $cleanUrl = isset($metaTags['canonical']) 
++            ? $metaTags['canonical']
++            : rtrim(preg_replace('/[?\&]lang=[^\&]*/', '', request()->fullUrl()), '?\&');
+         // Если после очистки остался ? (или \&), значит есть другие параметры (например page)
+         $hasQuery = str_contains($cleanUrl, '?');
+ 
+@@ -707,11 +704,7 @@ class SpaController extends Controller
+             $separator = $hasQuery ? '\&' : '?';
+-            // Если параметров нет, добавляем ?lang=, иначе \&lang=
+-            // Но нужно проверить, не заканчивается ли URL уже на ?
+-            if (str_ends_with($cleanUrl, '?')) {
+-                $separator = '';
+-            }
+-            
++            $separator = $hasQuery ? '&' : '?';
+             $langUrl = $cleanUrl . $separator . 'lang=' . $loc;
+             $headTags[] = '<link rel="alternate" hreflang="' . $loc . '" href="' . htmlspecialchars($langUrl, ENT_QUOTES, 'UTF-8') . '">';
+         }

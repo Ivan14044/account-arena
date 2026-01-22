@@ -167,8 +167,34 @@ class SpaController extends Controller
             $desc = $this->getLocalizedField($product, 'meta_description', $locale)
                 ?: $this->smartTruncate(strip_tags($cleanDesc), 160);
             
+            // Микроразметка Breadcrumbs
+            $breadcrumbs = [
+                '@context' => 'https://schema.org',
+                '@type' => 'BreadcrumbList',
+                'itemListElement' => [
+                    [
+                        '@type' => 'ListItem',
+                        'position' => 1,
+                        'name' => 'Home',
+                        'item' => url('/')
+                    ],
+                    [
+                        '@type' => 'ListItem',
+                        'position' => 2,
+                        'name' => 'Products',
+                        'item' => url('/categories')
+                    ],
+                    [
+                        '@type' => 'ListItem',
+                        'position' => 3,
+                        'name' => $title,
+                        'item' => rtrim(url("/products/" . ($product->slug ?: $product->id)), '/')
+                    ]
+                ]
+            ];
+
             // Микроразметка Product
-            $schema = [
+            $productSchema = [
                 '@context' => 'https://schema.org/',
                 '@type' => 'Product',
                 'name' => $title,
@@ -184,6 +210,15 @@ class SpaController extends Controller
                 ]
             ];
 
+            // Объединяем схемы через @graph для лучшей валидации
+            $schema = [
+                '@context' => 'https://schema.org',
+                '@graph' => [
+                    $productSchema,
+                    $breadcrumbs
+                ]
+            ];
+
              // Генерируем HTML контент для бота
              $htmlContent = $this->generateProductContent($product, $title, $rawDesc, $locale);
  
@@ -195,9 +230,9 @@ class SpaController extends Controller
                  'og:description' => $desc,
                  'og:type' => 'product',
                  'og:image' => $product->image_url ? (str_starts_with($product->image_url, 'http') ? $product->image_url : url($product->image_url)) : url('/img/logo_trans.webp'),
-                 'canonical' => rtrim(url($product->slug ? "/products/{$product->slug}" : "/account/{$product->id}"), '/'),
+                 'canonical' => rtrim(url("/products/" . ($product->slug ?: $product->id)), '/'),
                  'schema' => $schema,
-                 'html_content' => $htmlContent // <-- Важно! Контент для инъекции
+                 'html_content' => $htmlContent
              ];
         } catch (\Exception $e) { return []; }
     }
@@ -248,6 +283,41 @@ class SpaController extends Controller
                 'dateModified' => $article->updated_at->toIso8601String()
             ];
 
+            // Микроразметка Breadcrumbs
+            $breadcrumbs = [
+                '@context' => 'https://schema.org',
+                '@type' => 'BreadcrumbList',
+                'itemListElement' => [
+                    [
+                        '@type' => 'ListItem',
+                        'position' => 1,
+                        'name' => 'Home',
+                        'item' => url('/')
+                    ],
+                    [
+                        '@type' => 'ListItem',
+                        'position' => 2,
+                        'name' => 'Articles',
+                        'item' => url('/articles')
+                    ],
+                    [
+                        '@type' => 'ListItem',
+                        'position' => 3,
+                        'name' => $title,
+                        'item' => rtrim(url("/articles/{$id}"), '/')
+                    ]
+                ]
+            ];
+
+            // Объединяем схемы через @graph
+            $fullSchema = [
+                '@context' => 'https://schema.org',
+                '@graph' => [
+                    $schema,
+                    $breadcrumbs
+                ]
+            ];
+
             // Generate Content for Injection
             $content = $article->translate('content', $locale);
             $image = $article->img ? $this->normalizeArticleImageUrl($article->img) : url('/img/logo_trans.webp');
@@ -261,8 +331,8 @@ class SpaController extends Controller
                 'og:description' => $desc,
                 'og:type' => 'article',
                 'og:image' => $image,
-                'canonical' => rtrim(url("/seo/articles/{$id}"), '/'),
-                'schema' => $schema,
+                'canonical' => rtrim(url("/articles/{$id}"), '/'),
+                'schema' => $fullSchema,
                 'html_content' => $htmlContent
             ];
         } catch (\Exception $e) { return []; }
@@ -331,14 +401,41 @@ class SpaController extends Controller
             // Генерируем HTML описание категории
             $htmlContent = $this->generateCategoryContent($name, $desc, $locale);
 
+            // Микроразметка Breadcrumbs
+            $schema = [
+                '@context' => 'https://schema.org',
+                '@type' => 'BreadcrumbList',
+                'itemListElement' => [
+                    [
+                        '@type' => 'ListItem',
+                        'position' => 1,
+                        'name' => 'Home',
+                        'item' => url('/')
+                    ],
+                    [
+                        '@type' => 'ListItem',
+                        'position' => 2,
+                        'name' => 'Categories',
+                        'item' => url('/categories')
+                    ],
+                    [
+                        '@type' => 'ListItem',
+                        'position' => 3,
+                        'name' => $name,
+                        'item' => rtrim(url("/categories/" . ($category->slug ?: $category->id)), '/')
+                    ]
+                ]
+            ];
+
             return [
                 'title' => $name . ' - Account Arena',
                 'h1' => $name,
                 'description' => $desc,
                 'og:title' => $name,
                 'og:description' => $desc,
-                'canonical' => rtrim(url("/categories/{$category->slug}" ?: "/categories/{$category->id}"), '/'),
-                'html_content' => $htmlContent
+                'canonical' => rtrim(url("/categories/" . ($category->slug ?: $category->id)), '/'),
+                'html_content' => $htmlContent,
+                'schema' => $schema
             ];
         } catch (\Exception $e) { 
             return ['status' => 404];
@@ -696,27 +793,17 @@ class SpaController extends Controller
             }
         }
         
-        // Hreflang
+        // Hreflang - КРИТИЧЕСКИ ВАЖНО: используем canonical URL вместо текущего запроса
         $locales = ['ru', 'en', 'uk'];
         
-        // Используем полный URL с параметрами, чтобы сохранить пагинацию
-        $currentUrl = request()->fullUrl();
+        $cleanUrl = isset($metaTags['canonical']) 
+            ? $metaTags['canonical']
+            : rtrim(preg_replace('/[?&]lang=[^&]*/', '', request()->fullUrl()), '?&');
         
-        // Очищаем URL от lang параметров для генерации чистых ссылок hreflang
-        $cleanUrl = preg_replace('/[?&]lang=[^&]*/', '', $currentUrl);
-        $cleanUrl = rtrim($cleanUrl, '?&');
-        
-        // Если после очистки остался ? (или &), значит есть другие параметры (например page)
         $hasQuery = str_contains($cleanUrl, '?');
 
         foreach ($locales as $loc) {
             $separator = $hasQuery ? '&' : '?';
-            // Если параметров нет, добавляем ?lang=, иначе &lang=
-            // Но нужно проверить, не заканчивается ли URL уже на ?
-            if (str_ends_with($cleanUrl, '?')) {
-                $separator = '';
-            }
-            
             $langUrl = $cleanUrl . $separator . 'lang=' . $loc;
             $headTags[] = '<link rel="alternate" hreflang="' . $loc . '" href="' . htmlspecialchars($langUrl, ENT_QUOTES, 'UTF-8') . '">';
         }

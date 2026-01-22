@@ -70,10 +70,8 @@ class SitemapController extends Controller
             foreach ($products as $product) {
                 // Point to main SPA Product route with slug preference
                 $slug = $product->slug ?: $product->id;
-                // If we have a slug, we use /products/ prefix. If only ID, we keep /account/ for now (or move everything to /products/ if SPA supports it)
-                // Assuming SPA supports /products/:slug OR /account/:id
-                $prefix = $product->slug ? '/products/' : '/account/';
-                $url = $baseUrl . $prefix . $slug;
+                // КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ SEO: Все товары должны использовать /products/ для унификации
+                $url = $baseUrl . '/products/' . $slug;
                 $lastmod = $product->updated_at->format('Y-m-d');
                 $xml .= $this->generateUrl($url, 0.8, 'daily', 'ru', $lastmod);
             }
