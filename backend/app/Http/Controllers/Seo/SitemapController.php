@@ -57,7 +57,8 @@ class SitemapController extends Controller
                 }
                 
                 // Point to main SPA Category route
-                $url = $baseUrl . '/categories/' . $category->id;
+                $slug = $category->slug ?: $category->id;
+                $url = $baseUrl . '/categories/' . $slug;
                 $xml .= $this->generateUrl($url, 0.7, 'weekly', 'ru');
             }
             
@@ -67,9 +68,12 @@ class SitemapController extends Controller
                 ->get();
             
             foreach ($products as $product) {
-                // Point to main SPA Product route
-                // Use SKU or ID based on preference, prioritizing ID for compatibility with current routes
-                $url = $baseUrl . '/account/' . $product->id;
+                // Point to main SPA Product route with slug preference
+                $slug = $product->slug ?: $product->id;
+                // If we have a slug, we use /products/ prefix. If only ID, we keep /account/ for now (or move everything to /products/ if SPA supports it)
+                // Assuming SPA supports /products/:slug OR /account/:id
+                $prefix = $product->slug ? '/products/' : '/account/';
+                $url = $baseUrl . $prefix . $slug;
                 $lastmod = $product->updated_at->format('Y-m-d');
                 $xml .= $this->generateUrl($url, 0.8, 'daily', 'ru', $lastmod);
             }

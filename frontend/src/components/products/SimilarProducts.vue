@@ -26,7 +26,7 @@ import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { useAccountsStore, type AccountItem } from '@/stores/accounts';
 import { useProductTitle } from '@/composables/useProductTitle';
-import { useOptionStore } from '@/stores/options';
+
 import { useProductCartStore } from '@/stores/productCart';
 import { useToast } from 'vue-toastification';
 import ProductCard from '@/components/products/ProductCard.vue';
@@ -38,8 +38,7 @@ const props = defineProps<{
 const router = useRouter();
 const accountsStore = useAccountsStore();
 const productCartStore = useProductCartStore();
-const optionStore = useOptionStore();
-const { getProductTitle, getProductDescription } = useProductTitle();
+const { getProductTitle } = useProductTitle();
 const { t } = useI18n();
 const toast = useToast();
 const products = ref<AccountItem[]>([]);
@@ -157,47 +156,7 @@ const buyNow = (account: any) => {
     router.push('/checkout');
 };
 
-const formatPrice = (price: number) => {
-    const currency = optionStore.getOption('currency', 'USD');
-    return new Intl.NumberFormat('ru-RU', {
-        style: 'currency',
-        currency: currency,
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-    }).format(price);
-};
 
-const goToProduct = (product: AccountItem) => {
-    router.push(`/account/${product.sku || product.id}`);
-};
-
-// Функции для отображения наличия товара
-const isInStock = (product: AccountItem): boolean => {
-    return product.quantity > 0;
-};
-
-const formatStockQuantity = (product: AccountItem): string => {
-    if (product.quantity >= 999) {
-        return 'В наличии';
-    }
-    return product.quantity > 0 ? product.quantity.toString() : '0';
-};
-
-const getDeliveryTypeLabel = (product: AccountItem): string => {
-    const deliveryType = product.delivery_type || 'automatic';
-    if (deliveryType === 'manual') {
-        return t('account.delivery.manual');
-    }
-    return t('account.delivery.automatic');
-};
-
-const getDeliveryTypeText = (product: AccountItem): string => {
-    const deliveryType = product.delivery_type || 'automatic';
-    if (deliveryType === 'manual') {
-        return t('account.delivery.manual_description');
-    }
-    return t('account.delivery.automatic_description');
-};
 
 onMounted(async () => {
     try {

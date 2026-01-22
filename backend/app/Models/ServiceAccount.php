@@ -52,6 +52,18 @@ class ServiceAccount extends Model
                 $maxSortOrder = self::max('sort_order') ?? 0;
                 $account->sort_order = $maxSortOrder + 1;
             }
+            
+            // Generate slug
+            if (empty($account->slug)) {
+                $title = $account->title ?? 'product-' . Str::random(6);
+                $slug = Str::slug($title);
+                $originalSlug = $slug;
+                $count = 1;
+                while (static::where('slug', $slug)->exists()) {
+                    $slug = $originalSlug . '-' . $count++;
+                }
+                $account->slug = $slug;
+            }
         });
     }
 
@@ -107,6 +119,7 @@ class ServiceAccount extends Model
         'moderated_at', // Дата модерации
         'moderated_by', // ID администратора, который провел модерацию
         'views', // Просмотры товара
+        'slug', // SEO URL
     ];
 
     protected $casts = [

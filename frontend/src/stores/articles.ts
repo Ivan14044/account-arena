@@ -29,10 +29,10 @@ export const useArticlesStore = defineStore('articles', {
     getters: {
         getArticles:
             state =>
-            (limit?: number): Article[] => {
-                const key = typeof limit === 'number' ? `l${limit}` : 'all';
-                return state.articlesByKey[key] ?? [];
-            },
+                (limit?: number): Article[] => {
+                    const key = typeof limit === 'number' ? `l${limit}` : 'all';
+                    return state.articlesByKey[key] ?? [];
+                },
 
         getLocalizedArticles: state => (locale: string, limit?: number) => {
             const key = typeof limit === 'number' ? `l${limit}` : 'all';
@@ -48,8 +48,8 @@ export const useArticlesStore = defineStore('articles', {
                         short: tr?.short
                             ? String(tr.short)
                             : tr?.content
-                              ? String(tr.content).slice(0, 140)
-                              : '',
+                                ? String(tr.content).slice(0, 140)
+                                : '',
                         dateString:
                             article.date instanceof Date
                                 ? article.date.toISOString()
@@ -70,8 +70,8 @@ export const useArticlesStore = defineStore('articles', {
                         short: tr?.short
                             ? String(tr.short)
                             : tr?.content
-                              ? String(tr.content).slice(0, 140)
-                              : '',
+                                ? String(tr.content).slice(0, 140)
+                                : '',
                         dateString:
                             article.date instanceof Date
                                 ? article.date.toISOString()
@@ -129,7 +129,8 @@ export const useArticlesStore = defineStore('articles', {
             return rawCategories.map((rawCategory: any) => ({
                 id: rawCategory.id,
                 name: rawCategory.name,
-                translations: rawCategory.translations ?? undefined
+                translations: rawCategory.translations ?? undefined,
+                slug: rawCategory.slug
             }));
         },
 
@@ -177,8 +178,8 @@ export const useArticlesStore = defineStore('articles', {
                 const items = Array.isArray(responseData?.items)
                     ? responseData.items
                     : Array.isArray(responseData)
-                      ? responseData
-                      : [];
+                        ? responseData
+                        : [];
                 const list = items
                     .map((rawArticle: any) => this.transformListItem(rawArticle))
                     .filter((a: Article) => Number.isFinite(a.id));

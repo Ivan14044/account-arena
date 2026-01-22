@@ -9,7 +9,7 @@ class Category extends Model
 {
     use HasFactory;
 
-    public $fillable = ['type', 'image_url', 'parent_id'];
+    public $fillable = ['type', 'image_url', 'parent_id', 'slug'];
 
     public $hidden = ['updated_at', 'pivot'];
 
@@ -57,6 +57,19 @@ class Category extends Model
     public static function boot()
     {
         parent::boot();
+        static::creating(function ($category) {
+            if (empty($category->slug)) {
+                $name = $category->name ?? $category->admin_name ?? 'category-' . \Illuminate\Support\Str::random(6);
+                $slug = \Illuminate\Support\Str::slug($name);
+                $originalSlug = $slug;
+                $count = 1;
+                while (static::where('slug', $slug)->exists()) {
+                    $slug = $originalSlug . '-' . $count++;
+                }
+                $category->slug = $slug;
+            }
+        });
+
         static::deleting(function ($category) {
             $category->articles()->detach();
             // Подкатегории удалятся автоматически через каскадное удаление в БД

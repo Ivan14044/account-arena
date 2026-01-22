@@ -12,6 +12,7 @@ export interface Category {
     bgColor?: string;
     backgroundColor?: string;
     textColor?: string;
+    slug?: string;
 }
 
 export interface Translation {

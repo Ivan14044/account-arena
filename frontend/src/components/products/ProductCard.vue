@@ -18,7 +18,7 @@
         <div
             class="product-image-wrapper clickable"
             :title="$t('account.detail.go_to_product', { title: displayTitle })"
-            @click="$router.push(`/account/${product.sku || product.id}`)"
+            @click="navigateToProduct"
         >
             <img
                 :src="product.image_url || '/img/logo_trans.webp'"
@@ -108,7 +108,7 @@
             <h3
                 class="product-title clickable-title"
                 :title="'Перейти к ' + displayTitle"
-                @click="$router.push(`/account/${product.sku || product.id}`)"
+                @click="navigateToProduct"
             >
                 {{ displayTitle }}
             </h3>
@@ -190,7 +190,7 @@
                 <button
                     class="btn-secondary btn-icon"
                     title="Подробнее"
-                    @click="$router.push(`/account/${product.sku || product.id}`)"
+                    @click="navigateToProduct"
                 >
                     <svg
                         class="w-5 h-5"
@@ -280,6 +280,8 @@ import { useI18n } from 'vue-i18n';
 import { useOptionStore } from '@/stores/options';
 import { useProductTitle } from '@/composables/useProductTitle';
 
+import { useRouter } from 'vue-router';
+
 // Кэшируем форматтеры для производительности ГЛОБАЛЬНО (вне компонента)
 const priceFormatters = new Map<string, Intl.NumberFormat>();
 
@@ -298,7 +300,7 @@ const getPriceFormatter = (currency: string) => {
     return priceFormatters.get(currency)!;
 };
 
-const formatPriceValue = (price: number, currency: string) => {
+const formatPriceValue = (price: number, currency: string = 'USD') => {
     return getPriceFormatter(currency).format(price);
 };
 
@@ -355,6 +357,18 @@ const getDeliveryTypeText = (product: any): string => {
     return deliveryType === 'manual' 
         ? t('account.delivery.manual_description') 
         : t('account.delivery.automatic_description');
+};
+
+const router = useRouter();
+
+const navigateToProduct = () => {
+    // Prefer slug and /products/ prefix if available
+    if (props.product.slug) {
+        router.push(`/products/${props.product.slug}`);
+    } else {
+        // Fallback to old URL structure
+        router.push(`/account/${props.product.sku || props.product.id}`);
+    }
 };
 </script>
 

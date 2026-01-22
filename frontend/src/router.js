@@ -48,6 +48,10 @@ const routes = [
         component: () => import('./pages/account/AccountDetail.vue')
     },
     {
+        path: '/products/:id',
+        component: () => import('./pages/account/AccountDetail.vue')
+    },
+    {
         path: '/balance/topup',
         component: () => import('./pages/BalanceTopUpPage.vue'),
         meta: { requiresAuth: true }
@@ -237,11 +241,11 @@ router.afterEach(async () => {
         requestAnimationFrame(() => {
             // Проверяем, есть ли сообщение о подготовке товара
             const preparingMessage = loadingStore.message && (
-                loadingStore.message.includes('Подготовка') || 
+                loadingStore.message.includes('Подготовка') ||
                 loadingStore.message.includes('Preparing') ||
                 loadingStore.message.includes('Підготовка')
             );
-            
+
             // НЕ скрываем прелоадер автоматически, если есть сообщение о подготовке товара
             // Это сообщение должно оставаться видимым до выдачи товара
             // Компонент OrderSuccessPage сам скроет прелоадер через reset() после загрузки данных

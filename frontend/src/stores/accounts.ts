@@ -3,6 +3,7 @@ import axios from '../bootstrap'; // Используем настроенный
 
 export interface AccountItem {
     id: number;
+    slug?: string; // SEO URL part
     sku?: string; // Артикул товара
     title: string;
     title_en?: string;
@@ -26,6 +27,7 @@ export interface AccountItem {
     delivery_type?: 'automatic' | 'manual'; // Способ выдачи товара
     category?: {
         id?: number;
+        slug?: string;
         name?: string;
     };
 }
@@ -46,6 +48,7 @@ export const useAccountsStore = defineStore('accounts', {
                     : Number.parseFloat(String(raw.price ?? '0'));
             return {
                 id: Number(raw.id),
+                slug: raw.slug,
                 sku: raw.sku, // Артикул товара
                 title: raw.title ?? '',
                 title_en: raw.title_en,

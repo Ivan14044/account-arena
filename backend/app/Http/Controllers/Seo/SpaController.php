@@ -76,8 +76,16 @@ class SpaController extends Controller
         }
 
         // Категории
-        if (preg_match('#^categories/(\d+)$#i', $path, $matches)) {
-            return $this->getCategoryMetaTags((int)$matches[1], $locale);
+        if (preg_match('#^categories/(.+)$#i', $path, $matches)) {
+            // Исключаем пагинацию из slug (если URL вида categories/slug/page/2)
+            // Но Laravel роуты обычно такие вещи разруливают, тут path - это полный путь
+            // Если путь categories/123/page/2 - то matches[1] будет 123/page/2
+            // Нам нужно отсечь page
+            $slugOrId = $matches[1];
+            if (preg_match('/^(.*?)\/page\/\d+$/', $slugOrId, $pageMatches)) {
+                $slugOrId = $pageMatches[1];
+            }
+            return $this->getCategoryMetaTags($slugOrId, $locale);
         }
 
         // Список категорий
@@ -137,7 +145,9 @@ class SpaController extends Controller
         try {
             $product = ServiceAccount::where('is_active', true)
                 ->where(function($query) use ($idOrSku) {
-                    $query->where('id', $idOrSku)->orWhere('sku', $idOrSku);
+                    $query->where('id', $idOrSku)
+                          ->orWhere('sku', $idOrSku)
+                          ->orWhere('slug', $idOrSku);
                 })->first();
             
             if (!$product) {
@@ -176,7 +186,7 @@ class SpaController extends Controller
                 'og:description' => $desc,
                 'og:type' => 'product',
                 'og:image' => $product->image_url ? (str_starts_with($product->image_url, 'http') ? $product->image_url : url($product->image_url)) : url('/img/logo_trans.webp'),
-                'canonical' => rtrim(url("/seo/products/{$product->id}"), '/'),
+                'canonical' => rtrim(url("/products/{$product->slug}" ?: "/account/{$product->id}"), '/'),
                 'schema' => $schema
             ];
         } catch (\Exception $e) { return []; }
@@ -270,13 +280,20 @@ class SpaController extends Controller
         return url($storageUrl);
     }
 
-    private function getCategoryMetaTags(int $id, string $locale): array
+    private function getCategoryMetaTags($idOrSlug, string $locale): array
     {
         try {
-            $category = Category::find($id);
+            if (is_numeric($idOrSlug)) {
+                $category = Category::find($idOrSlug);
+            } else {
+                $category = Category::where('slug', $idOrSlug)->first();
+            }
+            
             if (!$category) {
                 return ['status' => 404];
             }
+            
+            $id = $category->id; // Для fallback описания
             
             $name = $category->translate('name', $locale);
             if (empty($name)) {
@@ -301,7 +318,7 @@ class SpaController extends Controller
                 'description' => $desc,
                 'og:title' => $name,
                 'og:description' => $desc,
-                'canonical' => rtrim(url("/seo/categories/{$id}"), '/'),
+                'canonical' => rtrim(url("/categories/{$category->slug}" ?: "/categories/{$category->id}"), '/'),
             ];
         } catch (\Exception $e) { 
             return ['status' => 404];

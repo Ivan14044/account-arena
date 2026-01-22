@@ -34,6 +34,7 @@ class CategoryResource extends JsonResource
 
         $result = [
             'id' => $this->id,
+            'slug' => $this->slug,
             'type' => $this->type,
             'image_url' => $this->image_url, // Аксессор уже возвращает полный URL
             'name' => $name,
@@ -54,6 +55,7 @@ class CategoryResource extends JsonResource
                 }
                 return [
                     'id' => $child->id,
+                    'slug' => $child->slug,
                     'name' => $childName,
                     'translations' => $childTranslations,
                 ];

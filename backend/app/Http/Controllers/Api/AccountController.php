@@ -14,14 +14,14 @@ class AccountController extends Controller
      */
     public function index()
     {
-        $data = Cache::remember('active_accounts_list_v3', 300, function () {
+        $data = Cache::remember('active_accounts_list_v4', 300, function () {
             $accounts = ServiceAccount::with(['category', 'supplier'])
                 ->select([
                     'id', 'sku', 'title', 'title_en', 'title_uk', 
                     'description', 'description_en', 'description_uk',
                     'price', 'discount_percent', 'discount_start_date', 'discount_end_date',
                     'image_url', 'category_id', 'supplier_id',
-                    'used', 'delivery_type', 'created_at', 'is_active', 'moderation_status', 'sort_order'
+                    'used', 'delivery_type', 'created_at', 'is_active', 'moderation_status', 'sort_order', 'slug'
                 ])
                 ->selectRaw('JSON_LENGTH(accounts_data) as total_qty_from_json')
                 ->where('is_active', true)
@@ -50,6 +50,7 @@ class AccountController extends Controller
                 
                 return [
                     'id' => $account->id,
+                    'slug' => $account->slug,
                     'sku' => $account->sku,
                     'title' => $account->title,
                     'title_en' => $account->title_en,
@@ -65,6 +66,7 @@ class AccountController extends Controller
                     'category' => $account->category ? [
                         'id' => $account->category->id,
                         'name' => $account->category->admin_name ?? null,
+                        'slug' => $account->category->slug
                     ] : null,
                     'quantity' => $availableCount,
                     'total_quantity' => $totalQuantity,
@@ -90,7 +92,8 @@ class AccountController extends Controller
             })
             ->where(function($query) use ($id) {
                 $query->where('id', $id)
-                      ->orWhere('sku', $id);
+                      ->orWhere('sku', $id)
+                      ->orWhere('slug', $id);
             })
             ->firstOrFail();
         

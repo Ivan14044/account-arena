@@ -571,6 +571,13 @@ const additionalDescription = computed(() => {
 
 // SEO мета-теги
 const id = computed(() => route.params.id as string);
+const productUrl = computed(() => {
+    const slug = account.value?.slug || account.value?.id || id.value;
+    // Prefer /products/ prefix if we have slug or consistent structure
+    const prefix = account.value?.slug ? '/products/' : '/account/';
+    return `https://account-arena.com${prefix}${slug}`;
+});
+
 useSeo({
     title: () => account.value ? getProductTitle(account.value) : 'Товар',
     description: () => {
@@ -579,7 +586,7 @@ useSeo({
         return desc ? desc.substring(0, 160) : '';
     },
     ogImage: () => account.value?.image_url || '/img/logo_trans.webp',
-    canonical: () => `https://account-arena.com/seo/products/${id.value}`,
+    canonical: () => productUrl.value,
     ogType: 'product'
 });
 
@@ -613,7 +620,7 @@ useStructuredData(() => {
             'availability': (account.value.quantity ?? 0) > 0
                 ? 'https://schema.org/InStock'
                 : 'https://schema.org/OutOfStock',
-            'url': `https://account-arena.com/account/${id.value}`
+            'url': productUrl.value
         }
     };
     
@@ -635,11 +642,12 @@ useStructuredData(() => {
     ];
     
     if (account.value.category) {
+        const catSlug = account.value.category.slug || account.value.category.id;
         breadcrumbs.push({
             '@type': 'ListItem',
             'position': 2,
             'name': account.value.category.name,
-            'item': `https://account-arena.com/categories/${account.value.category.id}`
+            'item': `https://account-arena.com/categories/${catSlug}`
         });
     }
     
@@ -647,7 +655,7 @@ useStructuredData(() => {
         '@type': 'ListItem',
         'position': account.value.category ? 3 : 2,
         'name': productTitle,
-        'item': `https://account-arena.com/account/${id.value}`
+        'item': productUrl.value
     });
     
     const breadcrumbSchema = {
@@ -660,7 +668,11 @@ useStructuredData(() => {
 });
 
 // Hreflang для мультиязычности
-useHreflang(() => `/account/${id.value}`);
+useHreflang(() => {
+    const slug = account.value?.slug || account.value?.id || id.value;
+    const prefix = account.value?.slug ? '/products/' : '/account/';
+    return `${prefix}${slug}`;
+});
 
 // Загрузка избранных из localStorage
 const loadFavorites = () => {
@@ -813,6 +825,15 @@ const loadProduct = async (idOrSku: string) => {
         if (!account.value) {
             router.replace('/404');
             return;
+        }
+        
+        // Если у товара есть slug и мы находимся не на URL с slug, делаем редирект для SEO
+        if (account.value.slug) {
+            const expectedPath = `/products/${account.value.slug}`;
+            // Проверяем, не находимся ли мы уже там (избегаем циклов)
+            if (route.path !== expectedPath && !route.path.endsWith('/' + account.value.slug)) {
+                 router.replace({ path: expectedPath, query: route.query });
+            }
         }
     } finally {
         // Останавливаем прелоадер после загрузки

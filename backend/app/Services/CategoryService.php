@@ -108,12 +108,19 @@ class CategoryService
     /**
      * Get category with all related data for SEO/Public view
      */
-    public function getCategoryForPublic(int $id, string $locale = null)
+    public function getCategoryForPublic($idOrSlug, string $locale = null)
     {
         $locale = $locale ?? app()->getLocale();
         
-        return Category::with(['translations', 'children.translations', 'parent.translations'])
-            ->findOrFail($id);
+        $query = Category::with(['translations', 'children.translations', 'parent.translations']);
+        
+        if (is_numeric($idOrSlug)) {
+            $query->where('id', $idOrSlug);
+        } else {
+            $query->where('slug', $idOrSlug);
+        }
+            
+        return $query->firstOrFail();
     }
 
     /**

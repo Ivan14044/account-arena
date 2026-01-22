@@ -107,13 +107,38 @@ const offset = computed(() => {
     return (routePage.value - 1) * l;
 });
 const categoryId = computed(() => {
-    const paramVal = route.params.id !== undefined ? Number(route.params.id) : undefined;
-    if (typeof paramVal === 'number' && Number.isFinite(paramVal)) return paramVal;
+    const paramVal = route.params.id;
+    // Check if numeric
+    if (typeof paramVal === 'string' && !isNaN(Number(paramVal))) {
+        return Number(paramVal);
+    }
+    if (typeof paramVal === 'number') {
+        return paramVal;
+    }
+    
+    // If slug (string), try to find in store
+    if (typeof paramVal === 'string' && articlesStore.categories.length) {
+        const cat = articlesStore.categories.find(c => c.slug === paramVal);
+        if (cat) return cat.id;
+    }
+
     const queryVal =
         route.query.category_id !== undefined ? Number(route.query.category_id) : undefined;
     if (typeof queryVal === 'number' && Number.isFinite(queryVal)) return queryVal;
     return undefined;
 });
+
+const categorySlug = computed(() => {
+    if (typeof categoryId.value === 'number' && articlesStore.categories.length) {
+        const cat = articlesStore.getCategoryById(categoryId.value);
+        if (cat?.slug) return cat.slug;
+    }
+    if (typeof route.params.id === 'string' && isNaN(Number(route.params.id))) {
+        return route.params.id;
+    }
+    return undefined;
+});
+
 // Use store's confirmed paginated params (update after data load) to avoid UI flicker
 // const pageIndex = computed(() => {
 //     const confirmed = Number(articlesStore.paginatedParams?.offset ?? 0);
@@ -157,6 +182,8 @@ onMounted(async () => {
     });
     if (!willUseCache) loadingStore.start();
     try {
+        if (!articlesStore.loaded.categories) await articlesStore.fetchCategories();
+        
         // Redirect only if legacy query params exist
         if (typeof route.query.offset !== 'undefined' || typeof route.query.limit !== 'undefined') {
             const newQuery = { ...route.query } as Record<string, any>;
@@ -165,17 +192,19 @@ onMounted(async () => {
             delete (newQuery as any).category_id;
             const p = routePage.value;
             const isCategory = typeof route.params.id !== 'undefined';
+            const catIdentifier = categorySlug.value || route.params.id;
+            
             const targetPath =
                 p <= 1
                     ? isCategory
-                        ? `/categories/${route.params.id}`
+                        ? `/categories/${catIdentifier}`
                         : `/articles`
                     : isCategory
-                      ? `/categories/${route.params.id}/page/${p}`
+                      ? `/categories/${catIdentifier}/page/${p}`
                       : `/articles/page/${p}`;
             await router.replace({ path: targetPath, query: newQuery });
         }
-        if (!articlesStore.loaded.categories) await articlesStore.fetchCategories();
+        
         await fetchPage();
         // After data is loaded, scroll to top smoothly (deferred from router)
         requestAnimationFrame(() => {
@@ -203,11 +232,13 @@ watch([limit, offset, categoryId], () => {
 const canonicalPath = computed(() => {
     const isCategory = typeof categoryId.value === 'number';
     const page = routePage.value;
+    const catIdentifier = categorySlug.value || categoryId.value;
+    
     if (page <= 1) {
-        return isCategory ? `/categories/${categoryId.value}` : '/articles';
+        return isCategory ? `/categories/${catIdentifier}` : '/articles';
     }
     return isCategory 
-        ? `/categories/${categoryId.value}/page/${page}` 
+        ? `/categories/${catIdentifier}/page/${page}` 
         : `/articles/page/${page}`;
 });
 
