@@ -19,10 +19,30 @@ class ProductCategoryController extends Controller
 
     public function index()
     {
-        // Используем сервис для получения категорий
-        $categories = $this->categoryService->getCategories(Category::TYPE_PRODUCT);
+        // Получаем родительские категории товаров с переводами и количеством подкатегорий и товаров
+        $categories = Category::productCategories()
+            ->parentCategories()
+            ->with(['translations', 'children.translations'])
+            ->withCount(['children', 'products'])
+            ->get();
 
-        return view('admin.product-categories.index', compact('categories'));
+        // Подсчитываем общее количество товаров в каждой категории (включая товары в подкатегориях)
+        $categories->each(function($category) {
+            $childProductsCount = Category::where('parent_id', $category->id)
+                ->withCount('products')
+                ->get()
+                ->sum('products_count');
+            $category->total_products_count = $category->products_count + $childProductsCount;
+        });
+
+        // Общая статистика для карточек
+        $stats = [
+            'total_categories' => $categories->count(),
+            'total_subcategories' => Category::productCategories()->subcategories()->count(),
+            'total_products' => ServiceAccount::count(),
+        ];
+
+        return view('admin.product-categories.index', compact('categories', 'stats'));
     }
 
     public function create()
