@@ -86,7 +86,7 @@
             <div class="stat-card stat-card-success w-100">
                 <div class="stat-card-body">
                     <div class="stat-main-info">
-                        <div class="stat-label">Доступно для продажи</div>
+                        <div class="stat-label">Товаров доступно для продажи</div>
                         <div class="stat-value">{{ number_format($availableProducts, 0) }}</div>
                     </div>
                     <a href="{{ route('admin.service-accounts.index') }}" class="stat-link text-success">
