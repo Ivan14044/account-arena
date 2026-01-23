@@ -120,6 +120,7 @@ onMounted(async () => {
     window.addEventListener('app:hide-loader', hideLoader);
 
     try {
+        console.time('[APP] Critical Path');
         await authStore.init();
 
         const pageStore = usePageStore();
@@ -128,63 +129,53 @@ onMounted(async () => {
         const accountsStore = useAccountsStore();
         const categoriesStore = useProductCategoriesStore();
 
-        // ОПТИМИЗАЦИЯ: Загружаем все критичные данные параллельно при старте приложения
-        const promises = [
+        // 1. КРИТИЧЕСКИЕ ДАННЫЕ (блокируют показ страницы)
+        const criticalPromises = [
             pageStore.fetchData().catch(e => console.error('[APP] Ошибка загрузки pages:', e)),
-            optionStore.fetchData().catch(e => console.error('[APP] Ошибка загрузки options:', e)),
-            categoriesStore
-                .fetchAll()
-                .catch(e => console.error('[APP] Ошибка загрузки categories:', e)), // Предзагрузка категорий
-            accountsStore
-                .fetchAll()
-                .catch(e => {
-                    // Улучшенное логирование ошибок с деталями
-                    const errorDetails = {
-                        status: e?.response?.status,
-                        statusText: e?.response?.statusText,
-                        message: e?.message,
-                        url: e?.config?.url || '/api/accounts',
-                        responseData: e?.response?.data
-                    };
-                    console.error('[APP] Ошибка загрузки accounts:', errorDetails);
-                    console.error('[APP] Полная ошибка accounts:', e);
-                    // Ошибка не блокирует загрузку других данных благодаря Promise.allSettled
-                }), // Предзагрузка товаров
-            bannersStore
-                .fetchAll()
-                .catch(e => console.error('[APP] Ошибка загрузки banners:', e)) // Предзагрузка всех баннеров одним запросом
+            optionStore.fetchData().catch(e => console.error('[APP] Ошибка загрузки options:', e))
         ];
 
         // Уведомления загружаем только для авторизованных пользователей
         if (authStore.isAuthenticated) {
-            promises.push(
+            criticalPromises.push(
                 notificationStore
                     .fetchData()
                     .catch(e => console.error('[APP] Ошибка загрузки notifications:', e))
             );
         }
 
-        // Добавляем таймаут на случай зависания
-        const timeoutPromise = new Promise((_, reject) =>
-            setTimeout(
-                () => reject(new Error('Timeout: загрузка данных заняла слишком много времени')),
-                10000
-            )
-        );
+        // Ждем критических данных (быстро)
+        await Promise.allSettled(criticalPromises);
+        console.timeEnd('[APP] Critical Path');
 
-        // Ждем загрузки всех данных с таймаутом
-        await Promise.race([Promise.allSettled(promises), timeoutPromise]);
+        // 2. ФОНОВЫЕ ДАННЫЕ (не блокируют показ, загружаются после скрытия прелоадера)
+        const backgroundLoad = async () => {
+            console.time('[APP] Background Load');
+            try {
+                await Promise.allSettled([
+                    categoriesStore.fetchAll().catch(e => console.error('[APP] BG: Categories error:', e)),
+                    accountsStore.fetchAll().catch(e => console.error('[APP] BG: Accounts error:', e)),
+                    bannersStore.fetchAll().catch(e => console.error('[APP] BG: Banners error:', e))
+                ]);
+                console.timeEnd('[APP] Background Load');
+            } catch (e) {
+                console.error('[APP] Background load failed:', e);
+            }
+        };
+
+        // Запускаем фоновую загрузку без await
+        backgroundLoad();
 
         // Предзагружаем критичные изображения
         preloadImages([logo, `/img/lang/${locale.value}.svg`]);
 
-        // Даём небольшую задержку, чтобы Vue успел отрендерить первый кадр
-        await new Promise(resolve => setTimeout(resolve, 100));
+        // Даём небольшую задержку для отрисовки
+        await new Promise(resolve => setTimeout(resolve, 50));
 
         loadingStore.stop();
         isLoading.value = false;
 
-        // Скрываем прелоадер только после полной загрузки
+        // Скрываем прелоадер - теперь это происходит намного быстрее!
         hideAppPreloader();
     } catch (error) {
         console.error('Error loading application data:', error);

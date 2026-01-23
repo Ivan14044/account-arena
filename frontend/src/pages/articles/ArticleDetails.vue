@@ -3,6 +3,7 @@
         class="max-w-7xl mx-auto px-4 py-16 sm:px-6 lg:px-8 text-gray-900 dark:text-white relative"
     >
         <div class="max-w-3xl mx-auto">
+            <Breadcrumbs :crumbs="breadcrumbCrumbs" />
             <div class="flex items-start justify-between mt-6 mb-10">
                 <h1
                     v-if="article"
@@ -62,6 +63,7 @@ import { useStructuredData } from '@/composables/useStructuredData';
 import { useHreflang } from '@/composables/useHreflang';
 import BackLink from '../../components/layout/BackLink.vue';
 import ImageWithFallback from '../../components/ImageWithFallback.vue';
+import Breadcrumbs from '../../components/Breadcrumbs.vue';
 import type { Category } from '../../types/article';
 
 const route = useRoute();
@@ -69,7 +71,7 @@ const router = useRouter();
 const id = Number(route.params.id);
 const articlesStore = useArticlesStore();
 const loadingStore = useLoadingStore();
-const { locale } = useI18n();
+const { t, locale } = useI18n();
 
 onMounted(async () => {
     // УЛУЧШЕНИЕ: Показываем прелоадер при загрузке статьи
@@ -105,6 +107,29 @@ const article = computed(() => {
 });
 
 const articleImage = computed(() => article.value?.img ?? '/img/no-logo.png');
+
+const breadcrumbCrumbs = computed(() => {
+    const crumbs = [
+        { name: t('articles.title'), path: '/articles' }
+    ];
+
+    if (article.value?.categories && article.value.categories.length > 0) {
+        const category = article.value.categories[0];
+        crumbs.push({
+            name: resolveCategoryName(category),
+            path: `/categories/${category.id}`
+        });
+    }
+
+    if (article.value) {
+        crumbs.push({
+            name: article.value.title,
+            path: `/articles/${id}`
+        });
+    }
+
+    return crumbs;
+});
 
 function resolveCategoryName(category: Category): string {
     const current = locale.value;
@@ -154,8 +179,8 @@ useStructuredData(() => {
         '@type': 'Article',
         'headline': articleTitle,
         'description': textContent ? textContent.substring(0, 160) : articleTitle,
-        'datePublished': article.value.created_at || new Date().toISOString(),
-        'dateModified': article.value.updated_at || article.value.created_at || new Date().toISOString(),
+        'datePublished': (article.value as any).created_at || new Date().toISOString(),
+        'dateModified': (article.value as any).updated_at || (article.value as any).created_at || new Date().toISOString(),
         'author': {
             '@type': 'Organization',
             'name': 'Account Arena'

@@ -1,4 +1,7 @@
 {
+    "common": {
+        "home": "Home"
+    },
     "auth": {
         "loginTitle": "Welcome back",
         "loginSubtitle": "Log in to your account to continue",
@@ -774,6 +777,60 @@
         "paymentRefund": {
             "title": "Payments and Refunds - Account Arena",
             "description": "Information about payment methods and refund conditions on Account Arena."
+        }
+    },
+    "faq": {
+        "title": "Frequently Asked Questions (FAQ)",
+        "subtitle": "Everything you need to know about buying and using digital goods on Account Arena",
+        "still_have_questions": "Still have questions?",
+        "contact_support_text": "If you couldn't find an answer to your question, our support team is always ready to help.",
+        "contact_support": "Contact Support"
+    },
+    "guarantees": {
+        "title": "Guarantees and Security",
+        "subtitle": "We value your trust and provide maximum protection for every purchase",
+        "safety_title": "Transaction Security",
+        "safety_text": "We use modern encryption protocols and work only with trusted payment gateways. Your data and funds are always protected.",
+        "items": {
+            "delivery": {
+                "title": "Instant Delivery",
+                "description": "Most products are delivered automatically immediately after payment confirmation. No waiting!"
+            },
+            "quality": {
+                "title": "Verified Accounts",
+                "description": "All accounts undergo thorough verification before sale to guarantee their functionality."
+            },
+            "payment": {
+                "title": "Secure Payment",
+                "description": "We accept payments through secure channels: bank cards, cryptocurrency, and verified wallets."
+            },
+            "support": {
+                "title": "24/7 Support",
+                "description": "Our support team is always available to help you with any questions or issues."
+            },
+            "replacement": {
+                "title": "Replacement Warranty",
+                "description": "In case of account invalidity, we will promptly provide a replacement according to our rules."
+            }
+        }
+    },
+    "contacts": {
+        "title": "Contacts",
+        "subtitle": "Contact us in any convenient way — we are always happy to help!",
+        "our_contacts": "Our Contacts",
+        "telegram_support": "Telegram Support",
+        "support_hours": "Daily from 09:00 to 21:00",
+        "legal_info": "Legal Information",
+        "legal_name_label": "Legal Entity",
+        "legal_name": "FOP Knysh Alla Oleksandrivna",
+        "address_label": "Address",
+        "address": "08297, Kyiv region, Bucha district, Bucha, Highway Nove, house 42",
+        "send_message": "Send Message",
+        "form": {
+            "name": "Your name",
+            "message": "Message",
+            "submit": "Submit",
+            "success": "Your message has been successfully sent! We will contact you shortly."
         }
     }
 }

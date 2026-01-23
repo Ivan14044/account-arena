@@ -462,8 +462,9 @@ class SpaController extends Controller
         $title = $titles[$locale] ?? $titles['ru'];
         $description = $descriptions[$locale] ?? $descriptions['ru'];
 
-        // Generate Content
-        $htmlContent = $this->generatePageContent($title, $description);
+        // Generate Content (List of all active categories)
+        $categories = Category::where('is_active', true)->orderBy('sort_order')->get();
+        $htmlContent = $this->generateCategoriesListContent($title, $description, $categories, $locale);
 
         return [
             'title' => $title,
@@ -552,8 +553,8 @@ class SpaController extends Controller
             ]
         ];
 
-        // Generate Home Content (H1 + Intro Text)
-        $htmlContent = $this->generatePageContent($title, $description);
+        // Generate Home Content (Categories, Top Products, Recent Articles for Bots)
+        $htmlContent = $this->generateHomeContent($title, $description, $locale);
 
         return [
             'title' => $title,
@@ -564,6 +565,90 @@ class SpaController extends Controller
             'schema' => $schema,
             'html_content' => $htmlContent
         ];
+    }
+
+    /**
+     * Генерирует расширенный контент для главной страницы (для поисковых роботов)
+     */
+    private function generateHomeContent($title, $description, $locale)
+    {
+        $html = '<div class="home-seo-content" style="padding: 20px;">';
+        $html .= '<h1>' . htmlspecialchars($title) . '</h1>';
+        
+        if ($description) {
+            $html .= '<p class="description" style="margin-top: 15px; line-height: 1.6;">' . htmlspecialchars($description) . '</p>';
+        }
+
+        // 1. Секция категорий
+        $categories = Category::where('is_active', true)->orderBy('sort_order')->limit(20)->get();
+        if ($categories->count() > 0) {
+            $catLabel = [
+                'ru' => 'Популярные категории аккаунтов:',
+                'en' => 'Popular Account Categories:',
+                'uk' => 'Популярні категорії акаунтів:'
+            ];
+            $html .= '<section style="margin-top: 30px;">';
+            $html .= '<h2>' . ($catLabel[$locale] ?? $catLabel['ru']) . '</h2>';
+            $html .= '<ul style="columns: 2; -webkit-columns: 2; -moz-columns: 2;">';
+            foreach ($categories as $cat) {
+                $catName = $cat->translate('name', $locale) ?: $cat->name;
+                $catUrl = url('/categories/' . ($cat->slug ?: $cat->id));
+                $html .= '<li><a href="' . $catUrl . '">' . htmlspecialchars($catName) . '</a></li>';
+            }
+            $html .= '</ul>';
+            $html .= '</section>';
+        }
+
+        // 2. Секция популярных товаров
+        $products = ServiceAccount::where('is_active', true)
+            ->where('stock_count', '>', 0)
+            ->orderBy('sales_count', 'desc')
+            ->limit(10)
+            ->get();
+            
+        if ($products->count() > 0) {
+            $prodLabel = [
+                'ru' => 'Топ товаров сегодня:',
+                'en' => 'Top products today:',
+                'uk' => 'Топ товарів сьогодні:'
+            ];
+            $html .= '<section style="margin-top: 30px;">';
+            $html .= '<h2>' . ($prodLabel[$locale] ?? $prodLabel['ru']) . '</h2>';
+            $html .= '<div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;">';
+            foreach ($products as $product) {
+                $prodName = $this->getLocalizedField($product, 'title', $locale);
+                $prodUrl = url('/products/' . ($product->slug ?: $product->id));
+                $html .= '<div style="border: 1px solid #eee; padding: 10px;">';
+                $html .= '<strong><a href="' . $prodUrl . '">' . htmlspecialchars($prodName) . '</a></strong><br>';
+                $html .= '<span>Price: ' . $product->price . ' USD</span>';
+                $html .= '</div>';
+            }
+            $html .= '</div>';
+            $html .= '</section>';
+        }
+
+        // 3. Последние статьи блога
+        $articles = Article::where('status', 'published')->orderBy('created_at', 'desc')->limit(5)->get();
+        if ($articles->count() > 0) {
+            $artLabel = [
+                'ru' => 'Полезные инструкции и новости:',
+                'en' => 'Useful instructions and news:',
+                'uk' => 'Корисні інструкції та новини:'
+            ];
+            $html .= '<section style="margin-top: 30px;">';
+            $html .= '<h2>' . ($artLabel[$locale] ?? $artLabel['ru']) . '</h2>';
+            foreach ($articles as $article) {
+                $artTitle = $article->translate('title', $locale) ?: $article->title;
+                $artUrl = url('/articles/' . $article->id);
+                $html .= '<div style="margin-bottom: 10px;">';
+                $html .= '<h3><a href="' . $artUrl . '">' . htmlspecialchars($artTitle) . '</a></h3>';
+                $html .= '</div>';
+            }
+            $html .= '</section>';
+        }
+
+        $html .= '</div>';
+        return $html;
     }
     
     private function getServicePageMetaTags(string $page, string $locale, string $requestPath = null): array
@@ -682,35 +767,75 @@ class SpaController extends Controller
 
         // Add FAQ Schema for FAQ page
         if ($page === 'faq') {
+            $faqItems = [];
+            
+            if ($locale === 'ru') {
+                $faqItems = [
+                    [
+                        'question' => 'Как купить аккаунт?',
+                        'answer' => 'Выберите нужный товар, нажмите кнопку "Купить", выберите удобный способ оплаты и следуйте инструкциям. Данные от аккаунта придут моментально после оплаты.'
+                    ],
+                    [
+                        'question' => 'Есть ли гарантия на аккаунты?',
+                        'answer' => 'Да, мы предоставляем гарантию на валидность аккаунтов на момент покупки. Подробные условия гарантии указаны на странице "Условия замены".'
+                    ],
+                    [
+                        'question' => 'Какие способы оплаты доступны?',
+                        'answer' => 'Мы принимаем оплату через криптовалюту, банковские карты и электронные кошельки. Все платежи защищены и проходят через безопасные платежные шлюзы.'
+                    ],
+                    [
+                        'question' => 'Как быстро я получу аккаунт после оплаты?',
+                        'answer' => 'Для товаров с автоматической выдачей - моментально после подтверждения оплаты. Для товаров с ручной выдачей - в течение 1-24 часов в зависимости от времени суток.'
+                    ],
+                    [
+                        'question' => 'Что делать, если аккаунт не работает?',
+                        'answer' => 'Свяжитесь с нашей службой поддержки через Telegram или форму обратной связи. Мы проверим проблему и предоставим замену согласно условиям гарантии.'
+                    ],
+                    [
+                        'question' => 'Можно ли вернуть деньги?',
+                        'answer' => 'Возврат средств возможен только в случае, если товар не соответствует описанию или не был предоставлен. Подробности в разделе "Оплата и возврат".'
+                    ]
+                ];
+            } elseif ($locale === 'uk') {
+                $faqItems = [
+                    [
+                        'question' => 'Як купити акаунт?',
+                        'answer' => 'Оберіть потрібний товар, натисніть кнопку "Купити", оберіть зручний спосіб оплати та дотримуйтесь інструкцій. Дані від акаунту прийдуть миттєво після оплати.'
+                    ],
+                    [
+                        'question' => 'Чи є гарантія на акаунти?',
+                        'answer' => 'Так, ми надаємо гарантію на валідність акаунтів на момент покупки. Детальні умови гарантії вказані на сторінці "Умови заміни".'
+                    ]
+                ];
+            } else { // en
+                $faqItems = [
+                    [
+                        'question' => 'How to buy an account?',
+                        'answer' => 'Choose the desired product, click "Buy", select a convenient payment method and follow the instructions. Account data will arrive instantly after payment.'
+                    ],
+                    [
+                        'question' => 'Is there a warranty on accounts?',
+                        'answer' => 'Yes, we provide a warranty for account validity at the time of purchase. Detailed warranty conditions are listed on the "Replacement Conditions" page.'
+                    ]
+                ];
+            }
+            
+            $schemaItems = [];
+            foreach ($faqItems as $item) {
+                $schemaItems[] = [
+                    '@type' => 'Question',
+                    'name' => $item['question'],
+                    'acceptedAnswer' => [
+                        '@type' => 'Answer',
+                        'text' => $item['answer']
+                    ]
+                ];
+            }
+            
             $meta['schema'] = [
                 '@context' => 'https://schema.org',
                 '@type' => 'FAQPage',
-                'mainEntity' => [
-                    [
-                        '@type' => 'Question',
-                        'name' => ($locale === 'ru' ? 'Как купить аккаунт?' : ($locale === 'uk' ? 'Як купити акаунт?' : 'How to buy an account?')),
-                        'acceptedAnswer' => [
-                            '@type' => 'Answer',
-                            'text' => ($locale === 'ru' 
-                                ? 'Выберите нужный товар, нажмите кнопку "Купить", выберите удобный способ оплаты и следуйте инструкциям. Данные от аккаунта придут моментально после оплаты.' 
-                                : ($locale === 'uk' 
-                                    ? 'Оберіть потрібний товар, натисніть кнопку "Купити", оберіть зручний спосіб оплати та дотримуйтесь інструкцій. Дані від акаунту прийдуть миттєво після оплати.' 
-                                    : 'Choose the desired product, click "Buy", select a convenient payment method and follow the instructions. Account data will arrive instantly after payment.'))
-                        ]
-                    ],
-                    [
-                        '@type' => 'Question',
-                        'name' => ($locale === 'ru' ? 'Есть ли гарантия на аккаунты?' : ($locale === 'uk' ? 'Чи є гарантія на акаунти?' : 'Is there a warranty on accounts?')),
-                        'acceptedAnswer' => [
-                            '@type' => 'Answer',
-                            'text' => ($locale === 'ru'
-                                ? 'Да, мы предоставляем гарантию на валидность аккаунтов на момент покупки. Подробные условия гарантии указаны на странице "Условия замены".'
-                                : ($locale === 'uk'
-                                    ? 'Так, ми надаємо гарантію на валідність акаунтів на момент покупки. Детальні умови гарантії вказані на сторінці "Умови заміни".'
-                                    : 'Yes, we provide a warranty for account validity at the time of purchase. Detailed warranty conditions are listed on the "Replacement Conditions" page.'))
-                        ]
-                    ]
-                ]
+                'mainEntity' => $schemaItems
             ];
         }
 
@@ -734,14 +859,15 @@ class SpaController extends Controller
         $title = $titles[$locale] ?? $titles['ru'];
         $description = $descriptions[$locale] ?? $descriptions['ru'];
 
-        // Generate Content
-        $htmlContent = $this->generatePageContent($title, $description);
+        // Generate Content (Recent articles list)
+        $articles = Article::where('status', 'published')->orderBy('created_at', 'desc')->limit(20)->get();
+        $htmlContent = $this->generateArticlesListContent($title, $description, $articles, $locale);
 
         return [
             'title' => $title,
             'h1' => $title,
             'description' => $description,
-            'canonical' => rtrim(url('/seo/articles'), '/'),
+            'canonical' => rtrim(url('/articles'), '/'),
             'html_content' => $htmlContent
         ];
     }
@@ -923,11 +1049,43 @@ class SpaController extends Controller
      */
     private function generateCategoryContent($title, $description, $locale)
     {
+        // Ищем товары этой категории для перелинковки в боте
+        // Сначала найдем саму категорию по названию (т.к. метод получает уже готовое название)
+        $category = Category::where('is_active', true)
+            ->get()
+            ->filter(function($c) use ($title, $locale) {
+                return ($c->translate('name', $locale) ?: $c->name) === $title;
+            })->first();
+
         $html = '<div class="category-seo-content" style="padding: 20px;">';
         $html .= '<h1>' . htmlspecialchars($title) . '</h1>';
+        
         if ($description) {
-            $html .= '<div class="description" style="margin-top: 15px; line-height: 1.6;">' . $description . '</div>';
+            $html .= '<div class="description" style="margin-top: 15px; line-height: 1.6;">' . htmlspecialchars($description) . '</div>';
         }
+
+        if ($category) {
+            $products = ServiceAccount::where('category_id', $category->id)
+                ->where('is_active', true)
+                ->where('stock_count', '>', 0)
+                ->limit(20)
+                ->get();
+
+            if ($products->count() > 0) {
+                $html .= '<h2 style="margin-top: 30px;">Доступные товары в категории ' . htmlspecialchars($title) . ':</h2>';
+                $html .= '<div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-top: 15px;">';
+                foreach ($products as $product) {
+                    $prodName = $this->getLocalizedField($product, 'title', $locale);
+                    $prodUrl = url('/products/' . ($product->slug ?: $product->id));
+                    $html .= '<div style="border: 1px solid #eee; padding: 10px;">';
+                    $html .= '<strong><a href="' . $prodUrl . '">' . htmlspecialchars($prodName) . '</a></strong><br>';
+                    $html .= '<span>' . $product->price . ' USD</span>';
+                    $html .= '</div>';
+                }
+                $html .= '</div>';
+            }
+        }
+
         $html .= '</div>';
         return $html;
     }
@@ -953,6 +1111,66 @@ class SpaController extends Controller
         
         $html .= '<div itemprop="articleBody" style="line-height: 1.8;">' . $content . '</div>';
         $html .= '</article>';
+
+        // Добавляем блок "Читайте также" для ботов
+        $recentArticles = Article::where('status', 'published')->orderBy('created_at', 'desc')->limit(3)->get();
+        if ($recentArticles->count() > 0) {
+            $html .= '<div style="margin-top: 50px; border-top: 1px solid #eee; padding-top: 20px;">';
+            $html .= '<h3>Читайте также:</h3>';
+            foreach ($recentArticles as $art) {
+                // Пытаемся получить заголовок (т.к. метод не знает локаль напрямую, берем базовый)
+                $artUrl = url('/articles/' . $art->id);
+                $html .= '<p><a href="' . $artUrl . '">' . htmlspecialchars($art->title) . '</a></p>';
+            }
+            $html .= '</div>';
+        }
+
+        $html .= '</div>';
+        return $html;
+    }
+
+    /**
+     * Генерирует HTML для страницы списка категорий
+     */
+    private function generateCategoriesListContent($title, $description, $categories, $locale)
+    {
+        $html = '<div class="categories-list-seo" style="padding: 20px;">';
+        $html .= '<h1>' . htmlspecialchars($title) . '</h1>';
+        $html .= '<p>' . htmlspecialchars($description) . '</p>';
+        
+        if ($categories->count() > 0) {
+            $html .= '<ul style="margin-top: 30px; columns: 2;">';
+            foreach ($categories as $cat) {
+                $name = $cat->translate('name', $locale) ?: $cat->name;
+                $url = url('/categories/' . ($cat->slug ?: $cat->id));
+                $html .= '<li><a href="' . $url . '">' . htmlspecialchars($name) . '</a></li>';
+            }
+            $html .= '</ul>';
+        }
+        $html .= '</div>';
+        return $html;
+    }
+
+    /**
+     * Генерирует HTML для страницы списка статей
+     */
+    private function generateArticlesListContent($title, $description, $articles, $locale)
+    {
+        $html = '<div class="articles-list-seo" style="padding: 20px;">';
+        $html .= '<h1>' . htmlspecialchars($title) . '</h1>';
+        $html .= '<p>' . htmlspecialchars($description) . '</p>';
+        
+        if ($articles->count() > 0) {
+            $html .= '<div style="margin-top: 30px;">';
+            foreach ($articles as $art) {
+                $name = $art->translate('title', $locale) ?: $art->title;
+                $url = url('/articles/' . $art->id);
+                $html .= '<div style="margin-bottom: 20px;">';
+                $html .= '<h3><a href="' . $url . '">' . htmlspecialchars($name) . '</a></h3>';
+                $html .= '</div>';
+            }
+            $html .= '</div>';
+        }
         $html .= '</div>';
         return $html;
     }

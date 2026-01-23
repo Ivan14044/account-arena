@@ -100,6 +100,22 @@ const routes = [
         path: '/become-supplier',
         component: () => import('./pages/BecomeSupplierPage.vue')
     },
+    {
+        path: '/faq',
+        component: () => import('./views/FAQPage.vue')
+    },
+    {
+        path: '/guarantees',
+        component: () => import('./views/GuaranteesPage.vue')
+    },
+    {
+        path: '/guarantee',
+        redirect: '/guarantees'
+    },
+    {
+        path: '/contacts',
+        component: () => import('./views/ContactsPage.vue')
+    },
 
     // Dynamic content - lazy load
     {
