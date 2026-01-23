@@ -326,8 +326,8 @@
     <style>
         /* Специфичные стили для страницы пользователей */
         .user-avatar {
-            width: 32px;
-            height: 32px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
             background: #f8f9fc;
             display: flex;
@@ -335,8 +335,15 @@
             justify-content: center;
             color: #4e73df;
             font-weight: 600;
-            font-size: 0.75rem;
+            font-size: 0.85rem;
             border: 1px solid #e3e6f0;
+            overflow: hidden;
+        }
+
+        .user-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
 
         .user-info-cell {
