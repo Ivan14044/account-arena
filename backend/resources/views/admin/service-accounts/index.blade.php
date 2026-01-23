@@ -4,15 +4,15 @@
 
 @section('content_header')
     <div class="content-header-modern">
-        <div class="d-flex justify-content-between align-items-center">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
             <div>
                 <h1 class="m-0 font-weight-light">
                     Управление товарами
                 </h1>
-                <p class="text-muted mb-0 mt-1">Каталог цифровых товаров и сервисов для продажи</p>
+                <p class="text-muted mb-0 mt-1 d-none d-md-block">Каталог цифровых товаров и сервисов для продажи</p>
             </div>
-            <div>
-                <a href="{{ route('admin.service-accounts.create') }}" class="btn btn-primary btn-modern">
+            <div class="w-100 w-md-auto">
+                <a href="{{ route('admin.service-accounts.create') }}" class="btn btn-primary btn-modern w-100 w-md-auto">
                     <i class="fas fa-plus mr-2"></i>Добавить товар
                 </a>
             </div>
@@ -44,7 +44,7 @@
 
     <!-- Статистика -->
     <div class="row mb-4">
-        <div class="col-lg-3 col-6">
+        <div class="col-lg-3 col-md-6 col-6 mb-3 mb-lg-0">
             <div class="stat-card stat-card-primary stat-card-compact">
                 <div class="stat-card-body">
                     <div class="stat-icon">
@@ -58,7 +58,7 @@
             </div>
         </div>
 
-        <div class="col-lg-3 col-6">
+        <div class="col-lg-3 col-md-6 col-6 mb-3 mb-lg-0">
             <div class="stat-card stat-card-success stat-card-compact">
                 <div class="stat-card-body">
                     <div class="stat-icon">
@@ -72,7 +72,7 @@
             </div>
         </div>
 
-        <div class="col-lg-3 col-6">
+        <div class="col-lg-3 col-md-6 col-6">
             <div class="stat-card stat-card-warning stat-card-compact">
                 <div class="stat-card-body">
                     <div class="stat-icon">
@@ -86,7 +86,7 @@
             </div>
         </div>
 
-        <div class="col-lg-3 col-6">
+        <div class="col-lg-3 col-md-6 col-6">
             <div class="stat-card stat-card-info stat-card-compact">
                 <div class="stat-card-body">
                     <div class="stat-icon">
@@ -104,21 +104,21 @@
     <!-- Фильтры по категориям -->
     <div class="card card-modern mb-4">
         <div class="card-header-modern">
-            <div class="d-flex justify-content-between align-items-center">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
                 <div>
                     <h5 class="mb-0 font-weight-normal">
                         <i class="fas fa-filter mr-2 text-primary"></i>Фильтр по категориям
                     </h5>
                 </div>
-                <div class="d-flex align-items-center">
-                    <select id="supplierFilter" class="form-control form-control-sm mr-2" style="width: 200px;">
+                <div class="d-flex flex-column flex-md-row align-items-stretch align-items-md-center gap-2 w-100 w-md-auto">
+                    <select id="supplierFilter" class="form-control form-control-sm" style="min-width: 200px;">
                         <option value="all">Все поставщики</option>
                         <option value="none">Администратор</option>
                         @foreach($suppliers as $supplier)
                             <option value="{{ $supplier->id }}">{{ $supplier->name }} ({{ $supplier->email }})</option>
                         @endforeach
                     </select>
-                    <button type="button" class="btn btn-sm btn-outline-secondary" id="resetAllFilters" title="Сбросить все фильтры">
+                    <button type="button" class="btn btn-sm btn-outline-secondary w-100 w-md-auto" id="resetAllFilters" title="Сбросить все фильтры">
                         <i class="fas fa-redo mr-1"></i>Сбросить фильтры
                     </button>
                 </div>
