@@ -182,7 +182,9 @@
                                 <td class="align-middle">
                                     @if($dispute->serviceAccount)
                                         <div class="font-weight-500">{{ \Illuminate\Support\Str::limit($dispute->serviceAccount->title, 30) }}</div>
-                                        <small class="text-muted">{{ $dispute->serviceAccount->login }}</small>
+                                        @if($dispute->serviceAccount->sku)
+                                            <small class="text-muted">SKU: {{ $dispute->serviceAccount->sku }}</small>
+                                        @endif
                                     @else
                                         <span class="text-muted small">Товар удален</span>
                                     @endif

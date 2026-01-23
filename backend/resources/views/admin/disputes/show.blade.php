@@ -40,7 +40,9 @@
                         <dd class="col-sm-9">
                             @if($dispute->serviceAccount)
                                 <strong>{{ $dispute->serviceAccount->title }}</strong><br>
-                                <small class="text-muted">Логин: {{ $dispute->serviceAccount->login }}</small>
+                                @if($dispute->serviceAccount->sku)
+                                    <small class="text-muted">SKU: {{ $dispute->serviceAccount->sku }}</small>
+                                @endif
                             @else
                                 <span class="text-muted">Товар удален</span>
                             @endif
@@ -168,8 +170,8 @@
 
                 {{-- Форма возврата средств --}}
                 <div class="card card-success">
-                    <div class="card-header">
-                        <h3 class="card-title"></h3>
+                    <div class="card-header bg-success text-white">
+                        <h3 class="card-title"><i class="fas fa-undo mr-2"></i>Сделать возврат</h3>
                     </div>
                     <div class="card-body">
                         <form action="{{ route('admin.disputes.resolve-refund', $dispute) }}" method="POST">
@@ -215,8 +217,8 @@
 
                 {{-- Форма замены товара --}}
                 <div class="card card-info">
-                    <div class="card-header">
-                        <h3 class="card-title"></h3>
+                    <div class="card-header bg-info text-white">
+                        <h3 class="card-title"><i class="fas fa-exchange-alt mr-2"></i>Выдать замену</h3>
                     </div>
                     <div class="card-body">
                         <form action="{{ route('admin.disputes.resolve-replacement', $dispute) }}" method="POST" id="replacementForm">
@@ -305,7 +307,8 @@ $(document).ready(function() {
             if (response.products && response.products.length > 0) {
                 select.append('<option value="">Выберите товар...</option>');
                 response.products.forEach(function(product) {
-                    select.append(`<option value="${product.id}">${product.title} (${product.login})</option>`);
+                    let skuText = product.sku ? ` [${product.sku}]` : '';
+                    select.append(`<option value="${product.id}">${product.title}${skuText}</option>`);
                 });
             } else {
                 select.append('<option value="">Нет доступных товаров</option>');

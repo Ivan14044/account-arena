@@ -245,7 +245,7 @@ class ProductDisputeController extends Controller
         $products = ServiceAccount::where('service_id', $serviceId)
             ->where('used', 0)
             ->where('supplier_id', $dispute->supplier_id)
-            ->select('id', 'title', 'service_id') // Удалили 'login' из выборки
+            ->select('id', 'title', 'sku', 'service_id') // Добавили 'sku'
             ->limit(50)
             ->get();
 
