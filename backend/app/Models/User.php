@@ -138,30 +138,6 @@ class User extends Authenticatable
         return $this->hasMany(ProductDispute::class, 'supplier_id');
     }
 
-    /**
-     * Get all unique active service IDs for the user.
-     * ПРИМЕЧАНИЕ: Подписки удалены из проекта, возвращаем пустой массив.
-     *
-     * @return array<int>
-     */
-    public function activeServices(): array
-    {
-        // Подписки удалены из проекта
-        return [];
-    }
-
-    /**
-     * Check if the user has an active subscription for a given service.
-     * ПРИМЕЧАНИЕ: Подписки удалены из проекта, всегда возвращает false.
-     *
-     * @param int $serviceId
-     * @return bool
-     */
-    public function hasActiveService(int $serviceId): bool
-    {
-        // Подписки удалены из проекта
-        return false;
-    }
 
     /**
      * Send the password reset notification.

@@ -351,7 +351,14 @@
                             </div>
 
                             <div class="col-md-6">
-                                <h5 class="section-title mb-4">Персональная скидка</h5>
+                                <h5 class="section-title mb-4">
+                                    Персональная скидка
+                                    @if($user->hasActivePersonalDiscount())
+                                        <span class="badge badge-success float-right" style="font-size: 0.7rem; margin-top: 4px;">Активна</span>
+                                    @else
+                                        <span class="badge badge-secondary float-right" style="font-size: 0.7rem; margin-top: 4px;">Неактивна</span>
+                                    @endif
+                                </h5>
 
                                 <div class="form-group-modern">
                                     <label for="personal_discount" class="form-label-modern">Размер скидки (%)</label>

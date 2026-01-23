@@ -18,13 +18,9 @@ class UserController extends Controller
 
     public function index(Request $request)
     {
-        $query = User::orderBy('id', 'desc');
-
-        if ($request->has('admins')) {
-            $users = $query->where('is_admin', true)->paginate(20);
-        } else {
-            $users = $query->where('is_admin', false)->paginate(20);
-        }
+        $users = User::orderBy('id', 'desc')
+            ->where('is_admin', false)
+            ->paginate(20);
 
         return view('admin.users.index', compact('users'));
     }
@@ -69,6 +65,7 @@ class UserController extends Controller
             'personal_discount' => 'nullable|integer|min:0|max:100',
             'personal_discount_expires_at' => 'nullable|date',
             'is_supplier' => 'nullable|boolean',
+            'supplier_balance' => 'nullable|numeric|min:0',
             'supplier_commission' => 'nullable|numeric|min:0|max:100',
             'supplier_hold_hours' => 'nullable|integer|min:1|max:8760',
         ]);
