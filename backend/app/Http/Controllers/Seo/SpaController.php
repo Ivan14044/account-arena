@@ -579,8 +579,8 @@ class SpaController extends Controller
             $html .= '<p class="description" style="margin-top: 15px; line-height: 1.6;">' . htmlspecialchars($description) . '</p>';
         }
 
-        // 1. Секция категорий
-        $categories = Category::where('is_active', true)->orderBy('sort_order')->limit(20)->get();
+        // 1. Секция категорий (Только родительские товарные категории)
+        $categories = Category::productCategories()->parentCategories()->limit(20)->get();
         if ($categories->count() > 0) {
             $catLabel = [
                 'ru' => 'Популярные категории аккаунтов:',
@@ -599,10 +599,9 @@ class SpaController extends Controller
             $html .= '</section>';
         }
 
-        // 2. Секция популярных товаров
+        // 2. Секция популярных товаров (По просмотрам)
         $products = ServiceAccount::where('is_active', true)
-            ->where('stock_count', '>', 0)
-            ->orderBy('sales_count', 'desc')
+            ->orderBy('views', 'desc')
             ->limit(10)
             ->get();
             
@@ -614,7 +613,7 @@ class SpaController extends Controller
             ];
             $html .= '<section style="margin-top: 30px;">';
             $html .= '<h2>' . ($prodLabel[$locale] ?? $prodLabel['ru']) . '</h2>';
-            $html .= '<div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;">';
+            $html .= '<div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-top: 15px;">';
             foreach ($products as $product) {
                 $prodName = $this->getLocalizedField($product, 'title', $locale);
                 $prodUrl = url('/products/' . ($product->slug ?: $product->id));
@@ -1118,9 +1117,9 @@ class SpaController extends Controller
             $html .= '<div style="margin-top: 50px; border-top: 1px solid #eee; padding-top: 20px;">';
             $html .= '<h3>Читайте также:</h3>';
             foreach ($recentArticles as $art) {
-                // Пытаемся получить заголовок (т.к. метод не знает локаль напрямую, берем базовый)
+                $artTitle = $art->admin_name ?: $art->id;
                 $artUrl = url('/articles/' . $art->id);
-                $html .= '<p><a href="' . $artUrl . '">' . htmlspecialchars($art->title) . '</a></p>';
+                $html .= '<p><a href="' . $artUrl . '">' . htmlspecialchars($artTitle) . '</a></p>';
             }
             $html .= '</div>';
         }
