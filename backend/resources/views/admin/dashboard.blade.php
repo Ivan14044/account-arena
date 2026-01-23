@@ -4,12 +4,12 @@
 
 @section('content_header')
     <div class="content-header-modern">
-        <div class="d-flex justify-content-between align-items-center">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
             <div>
                 <h1 class="m-0 font-weight-light">Панель управления</h1>
             </div>
-            <div>
-                <form method="GET" class="mb-0" style="max-width: 300px;">
+            <div class="w-100 w-md-auto">
+                <form method="GET" class="mb-0" style="max-width: 100%;">
                     <div class="input-group">
                         <select name="period" class="form-control form-control-sm" onchange="this.form.submit()">
                             <option value="today" {{ $period === 'today' ? 'selected' : '' }}>Сегодня</option>
@@ -34,18 +34,18 @@
                 <div class="card">
                     <div class="card-body">
                         <form method="GET" class="mb-0">
-                            <div class="form-row align-items-end">
-                                <div class="col-md-3">
+                            <div class="row g-3">
+                                <div class="col-12 col-md-4">
                                     <label class="mb-1"><small>Дата начала</small></label>
                                     <input type="date" name="start_date" class="form-control" value="{{ request('start_date') }}">
                                 </div>
-                                <div class="col-md-3">
+                                <div class="col-12 col-md-4">
                                     <label class="mb-1"><small>Дата окончания</small></label>
                                     <input type="date" name="end_date" class="form-control" value="{{ request('end_date') }}">
                                 </div>
-                                <div class="col-md-3">
+                                <div class="col-12 col-md-4 d-flex align-items-end">
                                     <input type="hidden" name="period" value="custom">
-                                    <button type="submit" class="btn btn-primary">Применить</button>
+                                    <button type="submit" class="btn btn-primary w-100 w-md-auto">Применить</button>
                                 </div>
                             </div>
                         </form>
