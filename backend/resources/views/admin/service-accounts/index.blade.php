@@ -230,6 +230,7 @@
                             <th style="width: 75px" class="text-center">Фото</th>
                             <th style="min-width: 180px">Товар</th>
                             <th style="min-width: 120px" class="text-center">Категория</th>
+                            <th style="min-width: 120px" class="text-center">Поставщик</th>
                             <th style="min-width: 100px" class="text-center">Цена</th>
                             <th style="min-width: 115px" class="text-center">В наличии</th>
                             <th style="min-width: 100px" class="text-center">Продано</th>
@@ -305,10 +306,30 @@
                                 @endif
                             </td>
                             <td class="text-center align-middle">
-                                @if($serviceAccount->price)
-                                    <strong class="text-success" style="font-size: 1.1rem;">
-                                        ${{ number_format($serviceAccount->price, 2) }}
-                                    </strong>
+                                @if($serviceAccount->supplier_id)
+                                    <a href="{{ route('admin.users.edit', $serviceAccount->supplier_id) }}" class="badge badge-warning badge-modern">
+                                        {{ $serviceAccount->supplier->name ?? 'ID: ' . $serviceAccount->supplier_id }}
+                                    </a>
+                                @else
+                                    <span class="badge badge-light badge-modern">Админ</span>
+                                @endif
+                            </td>
+                            <td class="text-center align-middle">
+                                @if($serviceAccount)
+                                    <div>
+                                        @if($serviceAccount->hasActiveDiscount())
+                                            <del class="text-muted small">${{ number_format($serviceAccount->price, 2) }}</del>
+                                            <br>
+                                            <strong class="text-success" style="font-size: 1.1rem;">
+                                                ${{ number_format($serviceAccount->getCurrentPrice(), 2) }}
+                                            </strong>
+                                            <span class="badge badge-danger p-1" style="font-size: 0.6rem;">-{{ (int)$serviceAccount->discount_percent }}%</span>
+                                        @else
+                                            <strong class="text-success" style="font-size: 1.1rem;">
+                                                ${{ number_format($serviceAccount->price, 2) }}
+                                            </strong>
+                                        @endif
+                                    </div>
                                 @else
                                     <span class="text-muted">—</span>
                                 @endif

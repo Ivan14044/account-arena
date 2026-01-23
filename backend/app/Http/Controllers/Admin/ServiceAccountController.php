@@ -17,10 +17,11 @@ class ServiceAccountController extends Controller
     {
         // Сортировка по sort_order (для ручной сортировки), затем по id
         // ВАЖНО: Внедрена пагинация и ограничение полей для оптимизации памяти (исключаем тяжелый accounts_data)
-        $serviceAccounts = ServiceAccount::with('category.translations')
+        $serviceAccounts = ServiceAccount::with(['category.translations', 'supplier'])
             ->select([
                 'id', 'sku', 'title', 'price', 'used', 'is_active', 'delivery_type', 
-                'category_id', 'supplier_id', 'sort_order', 'created_at', 'image_url', 'admin_notes'
+                'category_id', 'supplier_id', 'sort_order', 'created_at', 'image_url', 'admin_notes',
+                'discount_percent', 'discount_start_date', 'discount_end_date'
             ])
             ->selectRaw('JSON_LENGTH(accounts_data) as total_qty_from_json')
             ->orderBy('sort_order', 'asc')
