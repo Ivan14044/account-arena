@@ -4,16 +4,16 @@
 
 @section('content_header')
     <div class="content-header-modern">
-        <div class="d-flex justify-content-between align-items-center">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
             <div>
                 <h1 class="m-0 font-weight-light">Категории товаров</h1>
-                <p class="text-muted mb-0 mt-1">Управление основными категориями каталога</p>
+                <p class="text-muted mb-0 mt-1 d-none d-md-block">Управление основными категориями каталога</p>
             </div>
-            <div>
-                <a href="{{ route('admin.product-subcategories.index') }}" class="btn btn-info btn-modern mr-2">
+            <div class="d-flex flex-column flex-md-row gap-2 w-100 w-md-auto">
+                <a href="{{ route('admin.product-subcategories.index') }}" class="btn btn-info btn-modern w-100 w-md-auto">
                     <i class="fas fa-list mr-2"></i>Подкатегории
                 </a>
-                <a href="{{ route('admin.product-categories.create') }}" class="btn btn-primary btn-modern">
+                <a href="{{ route('admin.product-categories.create') }}" class="btn btn-primary btn-modern w-100 w-md-auto">
                     <i class="fas fa-plus mr-2"></i>Добавить
                 </a>
             </div>
