@@ -287,6 +287,12 @@
                         </tbody>
                     </table>
                 </div>
+                <!-- Пагинация -->
+                <div class="card-footer clearfix">
+                    <div class="float-right">
+                        {{ $pendingOrders->links() }}
+                    </div>
+                </div>
             @endif
         </div>
     </div>
@@ -300,8 +306,6 @@
 <script>
 (function() {
     let lastCount = {{ $statistics['pending'] }};
-    let soundPlayed = false;
-    let lastUpdateTime = Date.now();
     
     // Звук уведомления
     const notificationSound = new Audio('{{ asset("assets/admin/sounds/notification.mp3") }}');
@@ -365,7 +369,7 @@
                         pendingElement.textContent = newCount;
                     }
                     if (titleElement) {
-                        titleElement.innerHTML = '<i class="fas fa-list mr-2"></i>Заказы на обработку (' + newCount + ')';
+                        titleElement.innerHTML = '<i class="fas fa-list mr-2"></i>Заказы с ручной выдачей (' + newCount + ')';
                     }
                     
                     // Если появились новые заказы - звуковое уведомление
@@ -418,8 +422,8 @@
         }
     }
     
-    // Обновляем каждые 30 секунд
-    setInterval(updateStatistics, 30000);
+    // Обновляем каждые 60 секунд
+    setInterval(updateStatistics, 60000);
     
     // Обновляем badge в меню при загрузке страницы
     updateMenuBadge(lastCount);

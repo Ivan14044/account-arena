@@ -48,13 +48,8 @@ class ManualDeliveryController extends Controller
         }
         
         // Фильтруем по типу выдачи - только заказы с ручной выдачей
-        $query->whereHas('serviceAccount', function($q) use ($deliveryType) {
-            if ($deliveryType !== 'all') {
-                $q->where('delivery_type', $deliveryType);
-            } else {
-                // Если all, показываем все типы, но только те, что были с ручной выдачей
-                $q->whereIn('delivery_type', ['manual']);
-            }
+        $query->whereHas('serviceAccount', function($q) {
+            $q->where('delivery_type', 'manual');
         });
         
         // Фильтр по дате создания "с"
@@ -89,7 +84,7 @@ class ManualDeliveryController extends Controller
         // Сортировка
         $allowedSortFields = ['created_at', 'total_amount', 'quantity'];
         $sortBy = in_array($sortBy, $allowedSortFields) ? $sortBy : 'created_at';
-        $sortOrder = in_array(strtolower($sortOrder), ['asc', 'desc']) ? strtolower($sortOrder) : 'asc';
+        $sortOrder = in_array(strtolower($sortOrder), ['asc', 'desc']) ? strtolower($sortOrder) : 'desc';
         
         // Сортировка по времени в обработке
         if ($sortBy === 'processing_time') {
