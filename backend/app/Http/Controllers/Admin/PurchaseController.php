@@ -93,7 +93,7 @@ class PurchaseController extends Controller
                 'total' => Purchase::count(),
                 'today' => Purchase::whereDate('created_at', today())->count(),
                 'this_month' => Purchase::whereMonth('created_at', now()->month)->count(),
-                'total_revenue' => Purchase::where('status', 'completed')->sum('total_amount'),
+                'total_revenue' => Purchase::where('status', Purchase::STATUS_COMPLETED)->sum('total_amount'),
             ];
         });
 
@@ -115,7 +115,7 @@ class PurchaseController extends Controller
      */
     public function destroy(Purchase $purchase)
     {
-        if ($purchase->status === 'completed') {
+        if ($purchase->status === Purchase::STATUS_COMPLETED) {
             return back()->with('error', 'Нельзя удалить завершенную покупку. Сначала измените статус.');
         }
 

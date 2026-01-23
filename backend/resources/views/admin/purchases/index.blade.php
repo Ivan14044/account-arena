@@ -118,6 +118,9 @@
                         <input type="number" name="user_id" class="form-control form-control-modern" 
                                placeholder="Введите ID" 
                                value="{{ request('user_id') }}">
+                        @if(isset($users) && count($users) > 0)
+                            <small class="text-success"><i class="fas fa-check-circle mr-1"></i>{{ $users->first()->email }}</small>
+                        @endif
                     </div>
 
                     <div class="col-md-3 mb-3">
@@ -125,6 +128,9 @@
                         <input type="number" name="product_id" class="form-control form-control-modern" 
                                placeholder="Введите ID" 
                                value="{{ request('product_id') }}">
+                        @if(isset($products) && count($products) > 0)
+                            <small class="text-info"><i class="fas fa-info-circle mr-1"></i>{{ \Illuminate\Support\Str::limit($products->first()->title, 30) }}</small>
+                        @endif
                     </div>
 
                     <div class="col-md-3 mb-3">

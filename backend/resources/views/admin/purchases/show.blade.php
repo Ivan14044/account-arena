@@ -173,6 +173,62 @@
                     @endif
                 </div>
             </div>
+
+            <!-- Заметки и обработка -->
+            @if($purchase->admin_notes || $purchase->processing_notes || $purchase->processed_by)
+                <div class="card card-warning card-outline">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-clipboard-list"></i> Заметки и обработка
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            @if($purchase->processing_notes)
+                                <div class="col-md-6">
+                                    <label class="text-muted small uppercase">Заметки для менеджера (Manual Delivery)</label>
+                                    <div class="p-3 bg-light rounded border mb-3">
+                                        {{ $purchase->processing_notes }}
+                                    </div>
+                                </div>
+                            @endif
+
+                            @if($purchase->admin_notes)
+                                <div class="col-md-6">
+                                    <label class="text-muted small uppercase">Внутренние заметки админа</label>
+                                    <div class="p-3 bg-light rounded border mb-3 border-warning">
+                                        {{ $purchase->admin_notes }}
+                                    </div>
+                                </div>
+                            @endif
+                        </div>
+
+                        @if($purchase->processed_by)
+                            <div class="mt-2 border-top pt-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="mr-3">
+                                        <i class="fas fa-user-cog fa-2x text-muted"></i>
+                                    </div>
+                                    <div>
+                                        <div class="text-muted small">Обработал заказ:</div>
+                                        <div class="font-weight-bold">
+                                            @if($purchase->processor)
+                                                {{ $purchase->processor->name }} ({{ $purchase->processor->email }})
+                                            @else
+                                                Администратор #{{ $purchase->processed_by }}
+                                            @endif
+                                        </div>
+                                        <div class="text-muted small">
+                                            <i class="far fa-clock mr-1"></i>
+                                            {{ $purchase->processed_at ? $purchase->processed_at->format('d.m.Y H:i') : 'N/A' }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+            @endif
         </div>
 
         <!-- Боковая панель -->
