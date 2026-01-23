@@ -110,9 +110,18 @@
                         <i class="fas fa-filter mr-2 text-primary"></i>Фильтр по категориям
                     </h5>
                 </div>
-                <button type="button" class="btn btn-sm btn-outline-secondary" id="resetAllFilters" title="Сбросить все фильтры">
-                    <i class="fas fa-redo mr-1"></i>Сбросить фильтры
-                </button>
+                <div class="d-flex align-items-center">
+                    <select id="supplierFilter" class="form-control form-control-sm mr-2" style="width: 200px;">
+                        <option value="all">Все поставщики</option>
+                        <option value="none">Администратор</option>
+                        @foreach($suppliers as $supplier)
+                            <option value="{{ $supplier->id }}">{{ $supplier->name }} ({{ $supplier->email }})</option>
+                        @endforeach
+                    </select>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" id="resetAllFilters" title="Сбросить все фильтры">
+                        <i class="fas fa-redo mr-1"></i>Сбросить фильтры
+                    </button>
+                </div>
             </div>
         </div>
         <div class="card-body-modern" style="padding: 1.25rem 1.5rem;">
@@ -256,6 +265,7 @@
                         <tr data-id="{{ $serviceAccount->id }}" 
                             data-category-id="{{ $categoryId ?? '' }}" 
                             data-category-parent-id="{{ $categoryParentId ?? '' }}"
+                            data-supplier-id="{{ $serviceAccount->supplier_id ?? 'none' }}"
                             class="sortable-row">
                             <td class="text-center align-middle">
                                 <input type="checkbox" class="product-checkbox" value="{{ $serviceAccount->id }}" data-product-id="{{ $serviceAccount->id }}">
@@ -326,8 +336,16 @@
                                             <span class="badge badge-danger p-1" style="font-size: 0.6rem;">-{{ (int)$serviceAccount->discount_percent }}%</span>
                                         @else
                                             <strong class="text-success" style="font-size: 1.1rem;">
-                                                ${{ number_format($serviceAccount->price, 2) }}
+                                                ${{ number_format($serviceAccount->getCurrentPrice(), 2) }}
                                             </strong>
+                                        @endif
+                                        
+                                        @if($serviceAccount->supplier_id && $serviceAccount->price != $serviceAccount->getCurrentPrice())
+                                            <div class="mt-1">
+                                                <small class="text-muted" title="Базовая цена поставщика">
+                                                    Base: ${{ number_format($serviceAccount->price, 2) }}
+                                                </small>
+                                            </div>
                                         @endif
                                     </div>
                                 @else
@@ -1308,6 +1326,7 @@
             var currentCategoryFilter = 'all';
             var categorySubcategories = {}; // Храним подкатегории для каждой родительской категории
             var categoryFilterFunction = null; // Текущая функция фильтрации
+            var supplierFilterFunction = null; // Текущая функция фильтрации по поставщику
             
             // Собираем информацию о подкатегориях
             $('.category-group').each(function() {
@@ -1429,6 +1448,33 @@
                 updateTotalCount();
             }
 
+            // Обработчик фильтра по поставщику
+            $('#supplierFilter').on('change', function() {
+                var supplierId = $(this).val();
+                
+                // Удаляем предыдущую функцию фильтрации
+                if (supplierFilterFunction) {
+                    var index = $.fn.dataTable.ext.search.indexOf(supplierFilterFunction);
+                    if (index !== -1) {
+                        $.fn.dataTable.ext.search.splice(index, 1);
+                    }
+                }
+                
+                if (supplierId !== 'all') {
+                    supplierFilterFunction = function(settings, data, dataIndex) {
+                        var row = table.row(dataIndex).node();
+                        var rowSupplierId = $(row).data('supplier-id');
+                        return String(rowSupplierId) === String(supplierId);
+                    };
+                    $.fn.dataTable.ext.search.push(supplierFilterFunction);
+                } else {
+                    supplierFilterFunction = null;
+                }
+                
+                table.draw();
+                updateTotalCount();
+            });
+
             // Функция обновления счетчика товаров
             function updateTotalCount() {
                 var visibleRows = table.rows({search: 'applied'}).count();
@@ -1457,6 +1503,16 @@
                 localStorage.setItem('serviceAccountsSort', 'sort_order-asc');
                 table.order([]).draw(false);
                 
+                // Сброс фильтра по поставщикам
+                $('#supplierFilter').val('all');
+                if (supplierFilterFunction) {
+                    var index = $.fn.dataTable.ext.search.indexOf(supplierFilterFunction);
+                    if (index !== -1) {
+                        $.fn.dataTable.ext.search.splice(index, 1);
+                    }
+                    supplierFilterFunction = null;
+                }
+
                 // Скрываем все подкатегории
                 $('.subcategories-container').slideUp(200);
                 $('.btn-category-parent').removeClass('active');

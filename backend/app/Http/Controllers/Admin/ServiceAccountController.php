@@ -70,7 +70,14 @@ class ServiceAccountController extends Controller
         // Подсчитываем товары без категории
         $noCategoryCount = ServiceAccount::whereNull('category_id')->count();
 
-        return view('admin.service-accounts.index', compact('serviceAccounts', 'parentCategories', 'subcategories', 'noCategoryCount'));
+        // Получаем список всех поставщиков, у которых есть товары, для фильтра
+        $suppliers = \App\Models\User::whereHas('serviceAccounts')
+            ->select('id', 'name', 'email')
+            ->get();
+        
+        return view('admin.service-accounts.index', compact(
+            'serviceAccounts', 'parentCategories', 'subcategories', 'noCategoryCount', 'suppliers'
+        ));
     }
 
     public function create()
