@@ -115,6 +115,14 @@ class User extends Authenticatable
     }
 
     /**
+     * Alias for supplierProducts to support legacy or alternative naming.
+     */
+    public function serviceAccounts(): HasMany
+    {
+        return $this->hasMany(ServiceAccount::class, 'supplier_id');
+    }
+
+    /**
      * Get the supplier's withdrawal requests.
      */
     public function withdrawalRequests(): HasMany
