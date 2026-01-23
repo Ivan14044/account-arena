@@ -4,12 +4,12 @@
 
 @section('content_header')
     <div class="content-header-modern">
-        <div class="d-flex justify-content-between align-items-center">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
             <div>
                 <h1 class="m-0 font-weight-light">
                     Запросы на вывод средств
                 </h1>
-                <p class="text-muted mb-0 mt-1">Управление выплатами поставщикам платформы</p>
+                <p class="text-muted mb-0 mt-1 d-none d-md-block">Управление выплатами поставщикам платформы</p>
             </div>
         </div>
     </div>
@@ -32,7 +32,7 @@
 
     <!-- Статистика -->
     <div class="row mb-4">
-        <div class="col-lg-3 col-6 d-flex">
+        <div class="col-lg-3 col-md-6 col-6 mb-3 mb-lg-0">
             <div class="stat-card stat-card-primary stat-card-compact w-100">
                 <div class="stat-card-body">
                     <div class="stat-icon">
@@ -46,7 +46,7 @@
             </div>
         </div>
 
-        <div class="col-lg-3 col-6 d-flex">
+        <div class="col-lg-3 col-md-6 col-6 mb-3 mb-lg-0">
             <div class="stat-card stat-card-warning stat-card-compact w-100">
                 <div class="stat-card-body">
                     <div class="stat-icon">
@@ -60,7 +60,7 @@
             </div>
         </div>
 
-        <div class="col-lg-3 col-6 d-flex">
+        <div class="col-lg-3 col-md-6 col-6">
             <div class="stat-card stat-card-success stat-card-compact w-100">
                 <div class="stat-card-body">
                     <div class="stat-icon">
@@ -74,7 +74,7 @@
             </div>
         </div>
 
-        <div class="col-lg-3 col-6 d-flex">
+        <div class="col-lg-3 col-md-6 col-6">
             <div class="stat-card stat-card-info stat-card-compact w-100">
                 <div class="stat-card-body">
                     <div class="stat-icon">
