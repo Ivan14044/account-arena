@@ -57,7 +57,7 @@ class DashboardController extends Controller
                 ->selectRaw("
                     COUNT(*) as total_products,
                     SUM(CASE 
-                        WHEN delivery_type = 'manual' THEN 999 
+                        WHEN delivery_type = 'manual' THEN 1 
                         ELSE GREATEST(0, JSON_LENGTH(accounts_data) - COALESCE(used, 0)) 
                     END) as available_products,
                     SUM(CASE 
