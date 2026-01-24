@@ -2432,6 +2432,170 @@ body {
         margin: 0.125rem;
     }
 }
+/* ========================================
+   DASHBOARD - MOBILE STYLES
+   ======================================== */
+@media (max-width: 575px) {
+    /* 2x2 Grid for Dashboard Stats */
+    .dashboard-stats-row {
+        display: flex;
+        flex-wrap: wrap;
+        margin-right: -0.5rem;
+        margin-left: -0.5rem;
+    }
+    
+    .dashboard-stats-row > div {
+        flex: 0 0 50%;
+        max-width: 50%;
+        padding-right: 0.5rem;
+        padding-left: 0.5rem;
+    }
+    
+    .dashboard-stats-row .stat-card {
+        padding: 0.75rem !important;
+        height: 100%;
+        min-height: 110px;
+    }
+    
+    .dashboard-stats-row .stat-card-body {
+        position: relative;
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 0.25rem !important;
+        height: 100%;
+        justify-content: space-between;
+    }
+    
+    .dashboard-stats-row .stat-icon-bg {
+        font-size: 1.5rem;
+        top: -0.25rem;
+        right: -0.25rem;
+        opacity: 0.1;
+        position: absolute;
+    }
+    
+    .dashboard-stats-row .stat-value {
+        font-size: 1.1rem !important;
+        margin-bottom: 0.25rem;
+        line-height: 1.2;
+    }
+    
+    .dashboard-stats-row .stat-unit {
+        font-size: 0.75rem;
+    }
+    
+    .dashboard-stats-row .stat-label {
+        font-size: 0.65rem !important;
+        white-space: normal;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        line-height: 1.1;
+        margin-bottom: auto;
+        padding-right: 1.5rem; /* Space for icon */
+    }
+    
+    .dashboard-stats-row .stat-link {
+        font-size: 0.7rem;
+        margin-top: 0.5rem;
+    }
+
+    /* Top Products Table - Card Layout */
+    .top-products-table {
+        display: block;
+        width: 100%;
+    }
+    
+    .top-products-table thead {
+        display: none;
+    }
+    
+    .top-products-table tbody {
+        display: block;
+        width: 100%;
+    }
+    
+    .top-products-table tr {
+        display: block;
+        width: 100%;
+        border: 1px solid #e3e6f0;
+        border-radius: 0.75rem;
+        margin-bottom: 1rem;
+        padding: 1rem;
+        background: white;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        position: relative;
+    }
+    
+    .top-products-table td {
+        display: block;
+        width: 100%;
+        border: none;
+        padding: 0.25rem 0 !important;
+        text-align: left !important;
+    }
+    
+    /* Title */
+    .top-products-table td:nth-child(1) {
+        font-weight: 600;
+        font-size: 1rem;
+        border-bottom: 1px solid #f8f9fa;
+        padding-top: 0 !important;
+        padding-bottom: 0.5rem !important;
+        margin-bottom: 0.5rem;
+    }
+    
+    .top-products-table td:nth-child(1) a {
+        display: block;
+    }
+    
+    /* Sold */
+    .top-products-table td:nth-child(2) {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 0.25rem;
+    }
+    
+    .top-products-table td:nth-child(2):before {
+        content: "Продано:";
+        color: #858796;
+        font-size: 0.875rem;
+    }
+    
+    /* Revenue */
+    .top-products-table td:nth-child(3) {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 0.5rem;
+    }
+    
+    .top-products-table td:nth-child(3):before {
+        content: "Выручка:";
+        color: #858796;
+        font-size: 0.875rem;
+    }
+    
+    /* Actions */
+    .top-products-table td:nth-child(4) {
+        margin-top: 0.5rem;
+        padding-top: 0.5rem !important;
+        border-top: 1px solid #f8f9fa;
+    }
+    
+    .top-products-table td:nth-child(4) .btn {
+        width: 100%;
+        min-height: 44px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    
+    .top-products-table td:nth-child(4) .btn:after {
+        content: " Редактировать";
+        margin-left: 0.5rem;
+    }
+}
 </style>
 
 

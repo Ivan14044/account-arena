@@ -64,7 +64,7 @@
         </div>
     </div>
 
-    <div class="row">
+    <div class="row dashboard-stats-row">
         <div class="col-lg-3 col-md-6 mb-3 d-flex">
             <div class="stat-card stat-card-primary w-100">
                 <div class="stat-card-body">
@@ -156,7 +156,7 @@
         </div>
     </div>
 
-    <div class="row">
+    <div class="row dashboard-stats-row">
         <div class="col-lg-3 col-md-6 mb-3 d-flex">
             <div class="stat-card stat-card-success w-100">
                 <div class="stat-card-body">
@@ -269,7 +269,7 @@
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">
-                            <table class="table table-hover mb-0">
+                            <table class="table table-hover mb-0 top-products-table">
                                 <thead>
                                     <tr>
                                         <th>Название</th>
