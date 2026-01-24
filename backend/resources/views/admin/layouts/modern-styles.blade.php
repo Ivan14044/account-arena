@@ -2476,16 +2476,23 @@ body {
     
     .dashboard-stats-row .stat-value {
         font-size: 1.1rem !important;
+        font-weight: 700;
         margin-bottom: 0.25rem;
         line-height: 1.2;
     }
     
     .dashboard-stats-row .stat-unit {
-        font-size: 0.75rem;
+        font-size: 0.7em;
+        text-transform: uppercase;
+        font-weight: 600;
+        margin-left: 2px;
+        opacity: 0.8;
     }
     
     .dashboard-stats-row .stat-label {
-        font-size: 0.65rem !important;
+        font-size: 0.7rem !important;
+        font-weight: 600;
+        color: #5a6c7d;
         white-space: normal;
         overflow: hidden;
         text-overflow: ellipsis;
