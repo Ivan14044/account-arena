@@ -1726,6 +1726,57 @@ body {
 }
 
 @media (max-width: 575px) {
+    /* Manual Delivery Stats - 2x2 Grid */
+    .manual-delivery-stats {
+        display: flex;
+        flex-wrap: wrap;
+        margin-right: -0.5rem;
+        margin-left: -0.5rem;
+    }
+    
+    .manual-delivery-stats > div {
+        flex: 0 0 50%;
+        max-width: 50%;
+        padding-right: 0.5rem;
+        padding-left: 0.5rem;
+    }
+    
+    .manual-delivery-stats .stat-card {
+        padding: 0.75rem !important;
+        height: 100%;
+        min-height: 90px;
+        margin-bottom: 0 !important;
+    }
+    
+    .manual-delivery-stats .stat-card-body {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        text-align: left;
+        padding-left: 0 !important;
+        height: 100%;
+        justify-content: space-between;
+    }
+    
+    .manual-delivery-stats .stat-icon {
+        font-size: 1.25rem;
+        margin-bottom: 0.5rem;
+        margin-right: 0 !important;
+        opacity: 0.8;
+    }
+    
+    .manual-delivery-stats .stat-value {
+        font-size: 1.1rem !important;
+        font-weight: 700;
+        line-height: 1.2;
+    }
+    
+    .manual-delivery-stats .stat-label {
+        font-size: 0.7rem !important;
+        line-height: 1.1;
+        white-space: normal;
+        margin-bottom: 0.25rem;
+    }
+
     /* Orders Table - Card Layout */
     .card-body .table-responsive {
         border: none;
@@ -1758,161 +1809,142 @@ body {
         position: relative;
     }
     
-    .manual-delivery-table tr:hover {
-        box-shadow: 0 4px 12px rgba(0,0,0,0.12);
-    }
-    
     .manual-delivery-table td {
         display: block;
         width: 100%;
         border: none;
-        padding: 0.5rem 0;
+        padding: 0.25rem 0 !important;
         text-align: left !important;
     }
     
-    /* Order Number - Top Left */
+    /* Order Number & Status Row */
     .manual-delivery-table td:nth-child(1) {
         font-size: 1.125rem;
         font-weight: 700;
         color: #4e73df;
-        margin-bottom: 0.75rem;
-        padding-bottom: 0.75rem;
-        border-bottom: 2px solid #e3e6f0;
+        border-bottom: 1px solid #f8f9fa;
+        padding-bottom: 0.5rem !important;
+        margin-bottom: 0.5rem;
+        display: inline-block;
+        width: auto;
     }
     
     .manual-delivery-table td:nth-child(1):before {
-        content: "📋 ";
-        font-size: 1.25rem;
+        content: "#";
+        margin-right: 1px;
     }
     
-    /* Status - Top Right Badge */
+    /* Status Badge moved next to Order Number */
     .manual-delivery-table td:nth-child(2) {
-        position: absolute;
-        top: 1rem;
-        right: 1rem;
+        display: inline-block;
         width: auto;
-        padding: 0;
-    }
-    
-    .manual-delivery-table td:nth-child(2) .badge {
-        font-size: 0.75rem;
-        padding: 0.375rem 0.75rem;
+        float: right;
+        padding: 0 !important;
+        margin-top: 0.25rem;
     }
     
     /* Customer */
     .manual-delivery-table td:nth-child(3) {
-        margin-bottom: 0.75rem;
-        padding: 0.75rem;
+        clear: both;
         background: #f8f9fa;
+        padding: 0.5rem !important;
         border-radius: 0.5rem;
+        margin-bottom: 0.5rem;
     }
     
     .manual-delivery-table td:nth-child(3):before {
-        content: "👤 Покупатель";
-        display: block;
-        font-size: 0.75rem;
-        font-weight: 600;
-        color: #5a6c7d;
-        text-transform: uppercase;
-        margin-bottom: 0.375rem;
+        content: "👤 ";
+        margin-right: 0.25rem;
     }
     
     .manual-delivery-table td:nth-child(3) div {
+        display: inline-block;
         font-weight: 600;
-        color: #2c3e50;
+        font-size: 0.9rem;
     }
     
     .manual-delivery-table td:nth-child(3) small {
-        font-size: 0.8125rem;
+        display: block;
+        font-size: 0.75rem;
+        margin-top: 0.125rem;
+        color: #858796;
     }
     
     /* Product */
     .manual-delivery-table td:nth-child(4) {
-        font-size: 1rem;
         font-weight: 600;
+        margin-bottom: 0.5rem;
+        font-size: 0.9375rem;
         color: #2c3e50;
-        margin-bottom: 0.75rem;
     }
     
     .manual-delivery-table td:nth-child(4):before {
         content: "📦 ";
     }
     
-    /* Quantity */
+    /* Quantity & Amount - Side by Side */
     .manual-delivery-table td:nth-child(5) {
         display: inline-block;
-        width: auto;
-        margin-right: 0.5rem;
-        margin-bottom: 0.5rem;
+        width: 48%;
+        padding-right: 0.25rem !important;
+        vertical-align: middle;
     }
     
     .manual-delivery-table td:nth-child(5) .badge {
-        font-size: 0.875rem;
-        padding: 0.5rem 0.75rem;
+        font-size: 0.8rem;
+        padding: 0.375rem 0.5rem;
+        width: 100%;
+        text-align: center;
+        background-color: #e7f3ff;
+        color: #4e73df;
     }
     
-    /* Amount */
     .manual-delivery-table td:nth-child(6) {
         display: inline-block;
-        width: auto;
-        margin-bottom: 0.75rem;
+        width: 48%;
+        padding-left: 0.25rem !important;
+        text-align: right !important;
+        vertical-align: middle;
     }
     
     .manual-delivery-table td:nth-child(6) strong {
-        font-size: 1.25rem;
+        font-size: 1.125rem;
         color: #1cc88a;
     }
     
-    /* Created Date */
+    /* Created */
     .manual-delivery-table td:nth-child(7) {
-        font-size: 0.875rem;
+        font-size: 0.75rem;
         color: #858796;
-        margin-bottom: 0.5rem;
+        margin-top: 0.5rem;
     }
     
     .manual-delivery-table td:nth-child(7):before {
-        content: "🕒 Создан: ";
-        font-weight: 600;
+        content: "📅 Создан: ";
     }
     
-    /* Processing Time */
+    /* Processing time */
     .manual-delivery-table td:nth-child(8) {
-        margin-bottom: 1rem;
-    }
-    
-    .manual-delivery-table td:nth-child(8):before {
-        content: "⏱️ В обработке: ";
-        font-weight: 600;
-        color: #5a6c7d;
-        margin-right: 0.5rem;
-    }
-    
-    .manual-delivery-table td:nth-child(8) .badge {
-        font-size: 0.875rem;
-        padding: 0.5rem 0.75rem;
+        display: none;
     }
     
     /* Actions */
     .manual-delivery-table td:nth-child(9) {
-        padding-top: 1rem;
+        margin-top: 0.75rem;
+        padding-top: 0.75rem !important;
         border-top: 1px solid #e3e6f0;
     }
     
     .manual-delivery-table td:nth-child(9) .btn {
         width: 100%;
-        min-height: 48px;
-        font-size: 1rem;
+        min-height: 44px;
         display: flex;
         align-items: center;
         justify-content: center;
         gap: 0.5rem;
     }
     
-    .manual-delivery-table td:nth-child(9) .btn i {
-        font-size: 1.125rem;
-    }
-    
-    /* Card Footer - Pagination */
+    /* Pagination */
     .card-footer {
         padding: 1rem;
     }
@@ -1923,8 +1955,8 @@ body {
     }
     
     .card-footer .page-link {
-        min-width: 44px;
-        min-height: 44px;
+        min-width: 40px;
+        min-height: 40px;
         display: flex;
         align-items: center;
         justify-content: center;
