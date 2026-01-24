@@ -1726,89 +1726,98 @@ body {
 }
 
 @media (max-width: 575px) {
-    /* Manual Delivery Stats - 2x2 Grid Centered */
-    .manual-delivery-stats {
+    /* Manual Delivery Stats - 2x2 Grid Centered (Fixed Specificity) */
+    .row.manual-delivery-stats {
         display: flex;
         flex-wrap: wrap;
         margin-right: -0.25rem;
         margin-left: -0.25rem;
     }
     
-    .manual-delivery-stats > div {
+    /* Increased specificity to override global .row.mb-4 rules */
+    .row.manual-delivery-stats > [class*="col-"] {
         flex: 0 0 50% !important;
         max-width: 50% !important;
+        width: 50% !important;
         padding-right: 0.25rem;
         padding-left: 0.25rem;
         margin-bottom: 0.5rem !important;
-        display: flex; /* Ensure heights match */
+        display: flex;
     }
     
     .manual-delivery-stats .stat-card {
-        padding: 1rem 0.5rem !important; /* More vertical padding */
+        padding: 1rem 0.5rem !important;
         width: 100%;
-        height: 100%; /* Fill the col height */
-        min-height: auto; /* Let content dictate min height */
-        margin-bottom: 0 !important;
-        position: relative;
         display: flex;
+        flex-direction: column;
         align-items: center;
         justify-content: center;
+        margin-bottom: 0 !important;
     }
     
     .manual-delivery-stats .stat-card-body {
-        flex-direction: column !important;
-        align-items: center !important; /* Centered horizontally */
-        justify-content: center !important; /* Centered vertically */
-        text-align: center !important;
         padding: 0 !important;
         width: 100%;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        text-align: center !important;
     }
     
+    /* Reset icon positioning */
     .manual-delivery-stats .stat-icon {
         position: static !important;
         display: flex !important;
         align-items: center;
         justify-content: center;
-        width: 40px !important;
-        height: 40px !important;
+        width: 44px !important;
+        height: 44px !important;
         border-radius: 50%;
-        background: rgba(0,0,0,0.05) !important; /* Subtle background circle */
-        margin: 0 0 0.5rem 0 !important;
+        background: rgba(0,0,0,0.05) !important;
+        margin: 0 auto 0.5rem auto !important;
         opacity: 1 !important;
     }
     
     .manual-delivery-stats .stat-icon i {
         font-size: 1.25rem !important;
-        color: inherit !important; /* Will take identifier color below */
     }
     
-    /* Specific colors for icons to pop */
+    /* Force specific colors */
     .manual-delivery-stats .stat-card-warning .stat-icon i { color: #f6c23e !important; }
     .manual-delivery-stats .stat-card-success .stat-icon i { color: #1cc88a !important; }
     .manual-delivery-stats .stat-card-info .stat-icon i { color: #36b9cc !important; }
     .manual-delivery-stats .stat-card-primary .stat-icon i { color: #4e73df !important; }
     
+    /* Ensure content container is centered and full width */
     .manual-delivery-stats .stat-content {
-        width: 100%;
+        width: 100% !important;
+        text-align: center !important;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
     }
     
     .manual-delivery-stats .stat-value {
-        font-size: 1.5rem !important; /* Larger numbers */
-        font-weight: 700;
-        line-height: 1;
+        font-size: 1.5rem !important;
+        font-weight: 800 !important;
         margin-bottom: 0.25rem;
         color: #2c3e50;
-        word-break: break-all; /* Prevent overflow */
+        text-align: center !important;
+        width: 100%;
+        display: block;
     }
     
     .manual-delivery-stats .stat-label {
         font-size: 0.7rem !important;
         line-height: 1.2;
-        white-space: normal;
-        margin-bottom: 0;
         color: #858796;
+        text-transform: uppercase;
+        font-weight: 700;
+        text-align: center !important;
+        width: 100%;
+        display: block;
         padding: 0 !important;
-        font-weight: 600;
     }
 
     /* Orders Table - Card Layout */
