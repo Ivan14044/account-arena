@@ -1730,51 +1730,77 @@ body {
     .manual-delivery-stats {
         display: flex;
         flex-wrap: wrap;
-        margin-right: -0.5rem;
-        margin-left: -0.5rem;
+        margin-right: -0.25rem;
+        margin-left: -0.25rem;
     }
     
     .manual-delivery-stats > div {
-        flex: 0 0 50%;
-        max-width: 50%;
-        padding-right: 0.5rem;
-        padding-left: 0.5rem;
+        flex: 0 0 50% !important;
+        max-width: 50% !important;
+        padding-right: 0.25rem;
+        padding-left: 0.25rem;
+        margin-bottom: 0.5rem !important;
     }
     
     .manual-delivery-stats .stat-card {
         padding: 0.75rem !important;
         height: 100%;
-        min-height: 90px;
+        min-height: 80px;
         margin-bottom: 0 !important;
+        position: relative;
+        overflow: hidden;
     }
     
     .manual-delivery-stats .stat-card-body {
         flex-direction: column !important;
         align-items: flex-start !important;
-        text-align: left;
-        padding-left: 0 !important;
+        text-align: left !important;
+        padding: 0 !important;
         height: 100%;
         justify-content: space-between;
+        position: relative;
+        z-index: 2;
     }
     
     .manual-delivery-stats .stat-icon {
-        font-size: 1.25rem;
-        margin-bottom: 0.5rem;
-        margin-right: 0 !important;
-        opacity: 0.8;
+        position: absolute;
+        top: -0.25rem;
+        right: -0.25rem;
+        font-size: 2rem;
+        opacity: 0.15;
+        margin: 0 !important;
+        background: none !important;
+        width: auto !important;
+        height: auto !important;
+        display: block !important;
+        z-index: 1;
+    }
+    
+    .manual-delivery-stats .stat-icon i {
+        color: #333 !important; /* Neutral dark for visibility with opacity */
+    }
+    
+    .manual-delivery-stats .stat-content {
+        width: 100%;
     }
     
     .manual-delivery-stats .stat-value {
-        font-size: 1.1rem !important;
+        font-size: 1.25rem !important;
         font-weight: 700;
         line-height: 1.2;
+        margin-top: 0.25rem;
+        color: #2c3e50;
     }
     
     .manual-delivery-stats .stat-label {
-        font-size: 0.7rem !important;
+        font-size: 0.65rem !important;
         line-height: 1.1;
         white-space: normal;
-        margin-bottom: 0.25rem;
+        margin-bottom: 0;
+        color: #858796;
+        text-transform: uppercase;
+        font-weight: 600;
+        padding-right: 1.5rem; /* Avoid overlap with icon */
     }
 
     /* Orders Table - Card Layout */
