@@ -1675,7 +1675,255 @@ body {
 .stat-content {
     min-width: 0; /* Позволяет тексту сжиматься */
 }
+
+/* ========================================
+   MANUAL DELIVERY PAGE - MOBILE STYLES
+   ======================================== */
+@media (max-width: 768px) {
+    /* Filter Form - Full Width Inputs */
+    .card-body.border-bottom form.row {
+        margin: 0 !important;
+    }
+    
+    .card-body.border-bottom form.row > div[class*="col-"] {
+        width: 100% !important;
+        flex: 0 0 100% !important;
+        max-width: 100% !important;
+        padding-left: 0;
+        padding-right: 0;
+    }
+    
+    .card-body.border-bottom .form-control,
+    .card-body.border-bottom .input-group {
+        width: 100%;
+        min-height: 44px;
+    }
+    
+    .card-body.border-bottom .btn {
+        width: 100%;
+        min-height: 44px;
+        margin-bottom: 0.5rem;
+    }
+    
+    .card-body.border-bottom .d-flex.align-items-end {
+        flex-direction: column !important;
+        align-items: stretch !important;
+    }
+    
+    .card-body.border-bottom .btn.mr-2 {
+        margin-right: 0 !important;
+        margin-bottom: 0.5rem;
+    }
+}
+
+@media (max-width: 575px) {
+    /* Orders Table - Card Layout */
+    .table-responsive {
+        border: none;
+        overflow: visible !important;
+    }
+    
+    .table-hover {
+        display: block;
+        width: 100%;
+    }
+    
+    .table-hover thead {
+        display: none;
+    }
+    
+    .table-hover tbody {
+        display: block;
+        width: 100%;
+    }
+    
+    .table-hover tr {
+        display: block;
+        width: 100%;
+        border: 1px solid #e3e6f0;
+        border-radius: 0.75rem;
+        margin-bottom: 1rem;
+        padding: 1rem;
+        background: white;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        position: relative;
+    }
+    
+    .table-hover tr:hover {
+        box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    }
+    
+    .table-hover td {
+        display: block;
+        width: 100%;
+        border: none;
+        padding: 0.5rem 0;
+        text-align: left !important;
+    }
+    
+    /* Order Number - Top Left */
+    .table-hover td:nth-child(1) {
+        font-size: 1.125rem;
+        font-weight: 700;
+        color: #4e73df;
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 2px solid #e3e6f0;
+    }
+    
+    .table-hover td:nth-child(1):before {
+        content: "📋 ";
+        font-size: 1.25rem;
+    }
+    
+    /* Status - Top Right Badge */
+    .table-hover td:nth-child(2) {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        width: auto;
+        padding: 0;
+    }
+    
+    .table-hover td:nth-child(2) .badge {
+        font-size: 0.75rem;
+        padding: 0.375rem 0.75rem;
+    }
+    
+    /* Customer */
+    .table-hover td:nth-child(3) {
+        margin-bottom: 0.75rem;
+        padding: 0.75rem;
+        background: #f8f9fa;
+        border-radius: 0.5rem;
+    }
+    
+    .table-hover td:nth-child(3):before {
+        content: "👤 Покупатель";
+        display: block;
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: #5a6c7d;
+        text-transform: uppercase;
+        margin-bottom: 0.375rem;
+    }
+    
+    .table-hover td:nth-child(3) div {
+        font-weight: 600;
+        color: #2c3e50;
+    }
+    
+    .table-hover td:nth-child(3) small {
+        font-size: 0.8125rem;
+    }
+    
+    /* Product */
+    .table-hover td:nth-child(4) {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 0.75rem;
+    }
+    
+    .table-hover td:nth-child(4):before {
+        content: "📦 ";
+    }
+    
+    /* Quantity */
+    .table-hover td:nth-child(5) {
+        display: inline-block;
+        width: auto;
+        margin-right: 0.5rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .table-hover td:nth-child(5) .badge {
+        font-size: 0.875rem;
+        padding: 0.5rem 0.75rem;
+    }
+    
+    /* Amount */
+    .table-hover td:nth-child(6) {
+        display: inline-block;
+        width: auto;
+        margin-bottom: 0.75rem;
+    }
+    
+    .table-hover td:nth-child(6) strong {
+        font-size: 1.25rem;
+        color: #1cc88a;
+    }
+    
+    /* Created Date */
+    .table-hover td:nth-child(7) {
+        font-size: 0.875rem;
+        color: #858796;
+        margin-bottom: 0.5rem;
+    }
+    
+    .table-hover td:nth-child(7):before {
+        content: "🕒 Создан: ";
+        font-weight: 600;
+    }
+    
+    /* Processing Time */
+    .table-hover td:nth-child(8) {
+        margin-bottom: 1rem;
+    }
+    
+    .table-hover td:nth-child(8):before {
+        content: "⏱️ В обработке: ";
+        font-weight: 600;
+        color: #5a6c7d;
+        margin-right: 0.5rem;
+    }
+    
+    .table-hover td:nth-child(8) .badge {
+        font-size: 0.875rem;
+        padding: 0.5rem 0.75rem;
+    }
+    
+    /* Actions */
+    .table-hover td:nth-child(9) {
+        padding-top: 1rem;
+        border-top: 1px solid #e3e6f0;
+    }
+    
+    .table-hover td:nth-child(9) .btn {
+        width: 100%;
+        min-height: 48px;
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+    
+    .table-hover td:nth-child(9) .btn i {
+        font-size: 1.125rem;
+    }
+    
+    /* Card Footer - Pagination */
+    .card-footer {
+        padding: 1rem;
+    }
+    
+    .card-footer .pagination {
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    
+    .card-footer .page-link {
+        min-width: 44px;
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0.125rem;
+    }
+}
 </style>
+
 
 
 
