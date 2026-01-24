@@ -1726,7 +1726,7 @@ body {
 }
 
 @media (max-width: 575px) {
-    /* Manual Delivery Stats - 2x2 Grid */
+    /* Manual Delivery Stats - 2x2 Grid Centered */
     .manual-delivery-stats {
         display: flex;
         flex-wrap: wrap;
@@ -1740,67 +1740,75 @@ body {
         padding-right: 0.25rem;
         padding-left: 0.25rem;
         margin-bottom: 0.5rem !important;
+        display: flex; /* Ensure heights match */
     }
     
     .manual-delivery-stats .stat-card {
-        padding: 0.75rem !important;
-        height: 100%;
-        min-height: 80px;
+        padding: 1rem 0.5rem !important; /* More vertical padding */
+        width: 100%;
+        height: 100%; /* Fill the col height */
+        min-height: auto; /* Let content dictate min height */
         margin-bottom: 0 !important;
         position: relative;
-        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
     
     .manual-delivery-stats .stat-card-body {
         flex-direction: column !important;
-        align-items: flex-start !important;
-        text-align: left !important;
+        align-items: center !important; /* Centered horizontally */
+        justify-content: center !important; /* Centered vertically */
+        text-align: center !important;
         padding: 0 !important;
-        height: 100%;
-        justify-content: space-between;
-        position: relative;
-        z-index: 2;
+        width: 100%;
     }
     
     .manual-delivery-stats .stat-icon {
-        position: absolute;
-        top: -0.25rem;
-        right: -0.25rem;
-        font-size: 2rem;
-        opacity: 0.15;
-        margin: 0 !important;
-        background: none !important;
-        width: auto !important;
-        height: auto !important;
-        display: block !important;
-        z-index: 1;
+        position: static !important;
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        width: 40px !important;
+        height: 40px !important;
+        border-radius: 50%;
+        background: rgba(0,0,0,0.05) !important; /* Subtle background circle */
+        margin: 0 0 0.5rem 0 !important;
+        opacity: 1 !important;
     }
     
     .manual-delivery-stats .stat-icon i {
-        color: #333 !important; /* Neutral dark for visibility with opacity */
+        font-size: 1.25rem !important;
+        color: inherit !important; /* Will take identifier color below */
     }
+    
+    /* Specific colors for icons to pop */
+    .manual-delivery-stats .stat-card-warning .stat-icon i { color: #f6c23e !important; }
+    .manual-delivery-stats .stat-card-success .stat-icon i { color: #1cc88a !important; }
+    .manual-delivery-stats .stat-card-info .stat-icon i { color: #36b9cc !important; }
+    .manual-delivery-stats .stat-card-primary .stat-icon i { color: #4e73df !important; }
     
     .manual-delivery-stats .stat-content {
         width: 100%;
     }
     
     .manual-delivery-stats .stat-value {
-        font-size: 1.25rem !important;
+        font-size: 1.5rem !important; /* Larger numbers */
         font-weight: 700;
-        line-height: 1.2;
-        margin-top: 0.25rem;
+        line-height: 1;
+        margin-bottom: 0.25rem;
         color: #2c3e50;
+        word-break: break-all; /* Prevent overflow */
     }
     
     .manual-delivery-stats .stat-label {
-        font-size: 0.65rem !important;
-        line-height: 1.1;
+        font-size: 0.7rem !important;
+        line-height: 1.2;
         white-space: normal;
         margin-bottom: 0;
         color: #858796;
-        text-transform: uppercase;
+        padding: 0 !important;
         font-weight: 600;
-        padding-right: 1.5rem; /* Avoid overlap with icon */
     }
 
     /* Orders Table - Card Layout */
