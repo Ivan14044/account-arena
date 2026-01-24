@@ -768,6 +768,15 @@ body {
         min-height: 44px; /* Touch-friendly */
     }
     
+    .content-header-modern .form-control {
+        height: auto !important;
+        min-height: 44px;
+        padding: 0.5rem 1rem;
+        font-size: 1rem;
+        color: #495057;
+        background-color: #fff;
+    }
+    
     /* ========================================
        STATISTICS CARDS - FULL WIDTH
        ======================================== */
