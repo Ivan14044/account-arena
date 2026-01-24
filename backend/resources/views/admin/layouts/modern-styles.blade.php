@@ -1922,6 +1922,261 @@ body {
         margin: 0.125rem;
     }
 }
+
+/* ========================================
+   PURCHASES PAGE - MOBILE STYLES
+   ======================================== */
+@media (max-width: 768px) {
+    /* Stats - 2x2 Grid on Tablets */
+    .row.mb-4 > .col-lg-3.col-md-6 {
+        flex: 0 0 50% !important;
+        max-width: 50% !important;
+    }
+    
+    /* Filter Form - Full Width */
+    .card-modern .card-body form .row > div[class*="col-"] {
+        width: 100% !important;
+        flex: 0 0 100% !important;
+        max-width: 100% !important;
+    }
+    
+    .card-modern .card-body .form-control-modern,
+    .card-modern .card-body .input-group {
+        min-height: 44px;
+    }
+    
+    .card-modern .card-body .btn-modern {
+        width: 100%;
+        min-height: 44px;
+        margin-bottom: 0.5rem;
+    }
+}
+
+@media (max-width: 575px) {
+    /* Stats - Full Width on Mobile */
+    .row.mb-4 > .col-lg-3.col-md-6 {
+        flex: 0 0 100% !important;
+        max-width: 100% !important;
+    }
+    
+    /* Purchases Table - Card Layout */
+    .modern-table {
+        display: block;
+        width: 100%;
+    }
+    
+    .modern-table thead {
+        display: none;
+    }
+    
+    .modern-table tbody {
+        display: block;
+        width: 100%;
+    }
+    
+    .modern-table tr {
+        display: block;
+        width: 100%;
+        border: 1px solid #e3e6f0;
+        border-radius: 0.75rem;
+        margin-bottom: 1rem;
+        padding: 1rem;
+        background: white;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        position: relative;
+    }
+    
+    .modern-table tr:hover {
+        box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    }
+    
+    .modern-table td {
+        display: block;
+        width: 100%;
+        border: none;
+        padding: 0.5rem 0 !important;
+        text-align: left !important;
+    }
+    
+    /* Purchase ID - Top Right Badge */
+    .modern-table td:nth-child(1) {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        width: auto;
+        padding: 0 !important;
+    }
+    
+    .modern-table td:nth-child(1) .badge {
+        font-size: 0.75rem;
+        padding: 0.375rem 0.75rem;
+    }
+    
+    /* Order Number - Top Left */
+    .modern-table td:nth-child(2) {
+        font-size: 1.125rem;
+        font-weight: 700;
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.75rem !important;
+        border-bottom: 2px solid #e3e6f0;
+    }
+    
+    .modern-table td:nth-child(2):before {
+        content: "📋 ";
+        font-size: 1.25rem;
+    }
+    
+    .modern-table td:nth-child(2) code {
+        font-size: 1rem;
+    }
+    
+    /* Buyer */
+    .modern-table td:nth-child(3) {
+        margin-bottom: 0.75rem;
+        padding: 0.75rem !important;
+        background: #f8f9fa;
+        border-radius: 0.5rem;
+    }
+    
+    .modern-table td:nth-child(3):before {
+        content: "👤 Покупатель";
+        display: block;
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: #5a6c7d;
+        text-transform: uppercase;
+        margin-bottom: 0.375rem;
+    }
+    
+    .modern-table td:nth-child(3) .d-flex {
+        display: block !important;
+    }
+    
+    .modern-table td:nth-child(3) .mr-2 {
+        display: none;
+    }
+    
+    .modern-table td:nth-child(3) a,
+    .modern-table td:nth-child(3) span {
+        font-size: 0.9375rem;
+    }
+    
+    .modern-table td:nth-child(3) small {
+        font-size: 0.8125rem;
+    }
+    
+    /* Product */
+    .modern-table td:nth-child(4) {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 0.75rem;
+    }
+    
+    .modern-table td:nth-child(4):before {
+        content: "📦 ";
+    }
+    
+    .modern-table td:nth-child(4) a {
+        color: #2c3e50 !important;
+        text-decoration: none;
+    }
+    
+    /* Quantity */
+    .modern-table td:nth-child(5) {
+        display: inline-block;
+        width: auto;
+        margin-right: 0.5rem;
+        margin-bottom: 0.75rem;
+    }
+    
+    .modern-table td:nth-child(5) .badge {
+        font-size: 0.875rem;
+        padding: 0.5rem 0.75rem;
+    }
+    
+    /* Amount */
+    .modern-table td:nth-child(6) {
+        display: inline-block;
+        width: auto;
+        margin-bottom: 0.75rem;
+    }
+    
+    .modern-table td:nth-child(6) .font-weight-bold {
+        font-size: 1.25rem;
+        color: #1cc88a;
+    }
+    
+    .modern-table td:nth-child(6) small {
+        display: block;
+        margin-top: 0.25rem;
+        font-size: 0.75rem;
+    }
+    
+    /* Status */
+    .modern-table td:nth-child(7) {
+        margin-bottom: 0.75rem;
+    }
+    
+    .modern-table td:nth-child(7):before {
+        content: "📊 Статус: ";
+        font-weight: 600;
+        color: #5a6c7d;
+        margin-right: 0.5rem;
+    }
+    
+    .modern-table td:nth-child(7) .badge {
+        font-size: 0.875rem;
+        padding: 0.5rem 0.75rem;
+    }
+    
+    /* Date */
+    .modern-table td:nth-child(8) {
+        font-size: 0.875rem;
+        color: #858796;
+        margin-bottom: 1rem;
+    }
+    
+    .modern-table td:nth-child(8):before {
+        content: "🕒 ";
+    }
+    
+    .modern-table td:nth-child(8) small {
+        display: inline;
+    }
+    
+    .modern-table td:nth-child(8) br {
+        display: none;
+    }
+    
+    .modern-table td:nth-child(8) i {
+        margin: 0 0.25rem;
+    }
+    
+    /* Actions */
+    .modern-table td:nth-child(9) {
+        padding-top: 1rem !important;
+        border-top: 1px solid #e3e6f0;
+    }
+    
+    .modern-table td:nth-child(9) .btn {
+        width: 100%;
+        min-height: 48px;
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+    
+    .modern-table td:nth-child(9) .btn:before {
+        content: "Просмотр ";
+    }
+    
+    .modern-table td:nth-child(9) .btn i {
+        font-size: 1.125rem;
+    }
+}
 </style>
 
 
