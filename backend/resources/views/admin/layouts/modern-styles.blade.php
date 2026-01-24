@@ -2177,6 +2177,261 @@ body {
         font-size: 1.125rem;
     }
 }
+
+/* ========================================
+   SUPPORT CHATS PAGE - MOBILE STYLES
+   ======================================== */
+@media (max-width: 768px) {
+    /* Header Filters - Vertical Stack */
+    .content-header-modern .d-flex {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 1rem !important;
+    }
+    
+    .content-header-modern .gap-2 {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem !important;
+        width: 100%;
+    }
+    
+    .content-header-modern .btn-modern {
+        width: 100%;
+        min-height: 44px;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 575px) {
+    /* Support Chats Table - Card Layout */
+    .modern-table {
+        display: block;
+        width: 100%;
+    }
+    
+    .modern-table thead {
+        display: none;
+    }
+    
+    .modern-table tbody {
+        display: block;
+        width: 100%;
+    }
+    
+    .modern-table tr {
+        display: block;
+        width: 100%;
+        border: 1px solid #e3e6f0;
+        border-radius: 0.75rem;
+        margin-bottom: 1rem;
+        padding: 1rem;
+        background: white;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        position: relative;
+    }
+    
+    .modern-table tr.row-unread {
+        background: rgba(78, 115, 223, 0.05);
+        border-left: 4px solid #4e73df;
+    }
+    
+    .modern-table tr:hover {
+        box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    }
+    
+    .modern-table td {
+        display: block;
+        width: 100%;
+        border: none;
+        padding: 0.5rem 0 !important;
+        text-align: left !important;
+    }
+    
+    /* Chat ID - Top Right Badge */
+    .modern-table td:nth-child(1) {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        width: auto;
+        padding: 0 !important;
+    }
+    
+    .modern-table td:nth-child(1) .badge {
+        font-size: 0.75rem;
+        padding: 0.375rem 0.75rem;
+    }
+    
+    /* User - Top with Avatar */
+    .modern-table td:nth-child(2) {
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.75rem !important;
+        border-bottom: 2px solid #e3e6f0;
+    }
+    
+    .modern-table td:nth-child(2) .d-flex {
+        display: flex !important;
+        align-items: center;
+    }
+    
+    .modern-table td:nth-child(2) .avatar-circle-sm {
+        width: 48px;
+        height: 48px;
+        font-size: 1.25rem;
+        margin-right: 0.75rem;
+    }
+    
+    .modern-table td:nth-child(2) .font-weight-bold {
+        font-size: 1.125rem;
+        margin-bottom: 0.25rem;
+    }
+    
+    .modern-table td:nth-child(2) .unread-badge-modern {
+        display: inline-block;
+        margin-left: 0.5rem;
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+    }
+    
+    /* Email/Contact */
+    .modern-table td:nth-child(3) {
+        font-size: 0.875rem;
+        color: #858796;
+        margin-bottom: 0.75rem;
+    }
+    
+    .modern-table td:nth-child(3):before {
+        content: "📧 ";
+    }
+    
+    .modern-table td:nth-child(3) .text-info {
+        color: #36b9cc !important;
+    }
+    
+    /* Source */
+    .modern-table td:nth-child(4) {
+        display: inline-block;
+        width: auto;
+        margin-right: 0.5rem;
+        margin-bottom: 0.75rem;
+    }
+    
+    .modern-table td:nth-child(4) .badge {
+        font-size: 0.875rem;
+        padding: 0.5rem 0.75rem;
+    }
+    
+    /* Status */
+    .modern-table td:nth-child(5) {
+        display: inline-block;
+        width: auto;
+        margin-bottom: 0.75rem;
+    }
+    
+    .modern-table td:nth-child(5) .badge {
+        font-size: 0.875rem;
+        padding: 0.5rem 0.75rem;
+    }
+    
+    /* Assigned Admin */
+    .modern-table td:nth-child(6) {
+        margin-bottom: 0.75rem;
+        padding: 0.75rem !important;
+        background: #f8f9fa;
+        border-radius: 0.5rem;
+    }
+    
+    .modern-table td:nth-child(6):before {
+        content: "👤 Назначен: ";
+        font-weight: 600;
+        color: #5a6c7d;
+    }
+    
+    .modern-table td:nth-child(6) .text-dark {
+        font-weight: 600;
+    }
+    
+    .modern-table td:nth-child(6) .italic {
+        font-style: italic;
+    }
+    
+    /* Last Activity */
+    .modern-table td:nth-child(7) {
+        font-size: 0.875rem;
+        color: #858796;
+        margin-bottom: 0.75rem;
+    }
+    
+    .modern-table td:nth-child(7):before {
+        content: "🕒 ";
+    }
+    
+    /* Rating */
+    .modern-table td:nth-child(8) {
+        margin-bottom: 1rem;
+    }
+    
+    .modern-table td:nth-child(8):before {
+        content: "⭐ Оценка: ";
+        font-weight: 600;
+        color: #5a6c7d;
+        margin-right: 0.5rem;
+    }
+    
+    .modern-table td:nth-child(8) .d-flex {
+        display: inline-flex !important;
+        flex-direction: row;
+        align-items: center;
+    }
+    
+    .modern-table td:nth-child(8) .text-warning {
+        font-size: 1rem;
+    }
+    
+    .modern-table td:nth-child(8) .fa-comment-dots {
+        margin-left: 0.5rem;
+    }
+    
+    /* Actions */
+    .modern-table td:nth-child(9) {
+        padding-top: 1rem !important;
+        border-top: 1px solid #e3e6f0;
+    }
+    
+    .modern-table td:nth-child(9) .action-buttons {
+        display: flex;
+        justify-content: stretch;
+    }
+    
+    .modern-table td:nth-child(9) .btn {
+        width: 100%;
+        min-height: 48px;
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+    
+    .modern-table td:nth-child(9) .btn i {
+        font-size: 1.125rem;
+    }
+    
+    /* Pagination */
+    .card-footer-modern .pagination {
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    
+    .card-footer-modern .page-link {
+        min-width: 44px;
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0.125rem;
+    }
+}
 </style>
 
 
