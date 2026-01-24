@@ -184,7 +184,7 @@
         </div>
         <div class="card-body-modern">
             <div class="table-responsive">
-                <table class="table table-hover modern-table">
+                <table class="table table-hover modern-table purchases-table">
                     <thead>
                         <tr>
                             <th style="width: 60px" class="text-center">ID</th>

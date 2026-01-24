@@ -940,21 +940,21 @@ body {
             overflow: visible !important;
         }
         
-        .modern-table {
+        .products-table {
             display: block;
             width: 100%;
         }
         
-        .modern-table thead {
+        .products-table thead {
             display: none;
         }
         
-        .modern-table tbody {
+        .products-table tbody {
             display: block;
             width: 100%;
         }
         
-        .modern-table tr {
+        .products-table tr {
             display: block;
             width: 100%;
             border: 1px solid #e3e6f0;
@@ -966,17 +966,17 @@ body {
             position: relative;
         }
         
-        .modern-table tr:hover {
+        .products-table tr:hover {
             box-shadow: 0 4px 12px rgba(0,0,0,0.12);
         }
         
         /* Hide checkbox and drag handle on mobile */
-        .modern-table td:nth-child(1),
-        .modern-table td:nth-child(2) {
+        .products-table td:nth-child(1),
+        .products-table td:nth-child(2) {
             display: none !important;
         }
         
-        .modern-table td {
+        .products-table td {
             display: block;
             width: 100%;
             border: none;
@@ -985,7 +985,7 @@ body {
         }
         
         /* Product ID - Top Right Badge */
-        .modern-table td:nth-child(3) {
+        .products-table td:nth-child(3) {
             position: absolute;
             top: 1rem;
             right: 1rem;
@@ -999,14 +999,14 @@ body {
         }
         
         /* SKU */
-        .modern-table td:nth-child(4) {
+        .products-table td:nth-child(4) {
             font-size: 0.75rem;
             color: #858796;
             margin-bottom: 0.5rem;
         }
         
         /* Product Image */
-        .modern-table td:nth-child(5) {
+        .products-table td:nth-child(5) {
             width: 80px;
             height: 80px;
             float: left;
@@ -1014,7 +1014,7 @@ body {
             margin-bottom: 0.5rem;
         }
         
-        .modern-table td:nth-child(5) img {
+        .products-table td:nth-child(5) img {
             width: 80px;
             height: 80px;
             object-fit: cover;
@@ -1022,7 +1022,7 @@ body {
         }
         
         /* Product Title */
-        .modern-table td:nth-child(6) {
+        .products-table td:nth-child(6) {
             font-size: 1rem;
             font-weight: 600;
             color: #2c3e50;
@@ -1031,30 +1031,30 @@ body {
         }
         
         /* Category */
-        .modern-table td:nth-child(7) {
+        .products-table td:nth-child(7) {
             clear: both;
             font-size: 0.875rem;
             color: #5a6c7d;
             margin-bottom: 0.5rem;
         }
         
-        .modern-table td:nth-child(7):before {
+        .products-table td:nth-child(7):before {
             content: "📁 ";
         }
         
         /* Supplier */
-        .modern-table td:nth-child(8) {
+        .products-table td:nth-child(8) {
             font-size: 0.875rem;
             color: #5a6c7d;
             margin-bottom: 0.5rem;
         }
         
-        .modern-table td:nth-child(8):before {
+        .products-table td:nth-child(8):before {
             content: "👤 ";
         }
         
         /* Price */
-        .modern-table td:nth-child(9) {
+        .products-table td:nth-child(9) {
             font-size: 1.25rem;
             font-weight: 700;
             color: #1cc88a;
@@ -1062,7 +1062,7 @@ body {
         }
         
         /* Stock */
-        .modern-table td:nth-child(10) {
+        .products-table td:nth-child(10) {
             display: inline-block;
             width: auto;
             padding: 0.375rem 0.75rem;
@@ -1075,12 +1075,12 @@ body {
             margin-bottom: 0.5rem;
         }
         
-        .modern-table td:nth-child(10):before {
+        .products-table td:nth-child(10):before {
             content: "📦 ";
         }
         
         /* Sold */
-        .modern-table td:nth-child(11) {
+        .products-table td:nth-child(11) {
             display: inline-block;
             width: auto;
             padding: 0.375rem 0.75rem;
@@ -1092,30 +1092,30 @@ body {
             margin-bottom: 0.5rem;
         }
         
-        .modern-table td:nth-child(11):before {
+        .products-table td:nth-child(11):before {
             content: "🛒 ";
         }
         
         /* Status */
-        .modern-table td:nth-child(12) {
+        .products-table td:nth-child(12) {
             margin-top: 0.75rem;
             margin-bottom: 0.75rem;
         }
         
         /* Actions */
-        .modern-table td:nth-child(13) {
+        .products-table td:nth-child(13) {
             padding-top: 1rem;
             border-top: 1px solid #e3e6f0;
             margin-top: 1rem;
         }
         
-        .modern-table td:nth-child(13) .action-buttons {
+        .products-table td:nth-child(13) .action-buttons {
             display: flex;
             flex-wrap: wrap;
             gap: 0.5rem;
         }
         
-        .modern-table td:nth-child(13) .btn {
+        .products-table td:nth-child(13) .btn {
             flex: 1;
             min-width: calc(50% - 0.25rem);
             min-height: 44px;
@@ -1127,7 +1127,7 @@ body {
         }
         
         /* Created Date */
-        .modern-table td:nth-child(14) {
+        .products-table td:nth-child(14) {
             font-size: 0.75rem;
             color: #858796;
             text-align: center;
@@ -1135,7 +1135,7 @@ body {
             border-top: 1px solid #f8f9fa;
         }
         
-        .modern-table td:nth-child(14):before {
+        .products-table td:nth-child(14):before {
             content: "🕒 ";
         }
     }
@@ -1718,26 +1718,26 @@ body {
 
 @media (max-width: 575px) {
     /* Orders Table - Card Layout */
-    .table-responsive {
+    .card-body .table-responsive {
         border: none;
         overflow: visible !important;
     }
     
-    .table-hover {
+    .manual-delivery-table {
         display: block;
         width: 100%;
     }
     
-    .table-hover thead {
+    .manual-delivery-table thead {
         display: none;
     }
     
-    .table-hover tbody {
+    .manual-delivery-table tbody {
         display: block;
         width: 100%;
     }
     
-    .table-hover tr {
+    .manual-delivery-table tr {
         display: block;
         width: 100%;
         border: 1px solid #e3e6f0;
@@ -1749,11 +1749,11 @@ body {
         position: relative;
     }
     
-    .table-hover tr:hover {
+    .manual-delivery-table tr:hover {
         box-shadow: 0 4px 12px rgba(0,0,0,0.12);
     }
     
-    .table-hover td {
+    .manual-delivery-table td {
         display: block;
         width: 100%;
         border: none;
@@ -1762,7 +1762,7 @@ body {
     }
     
     /* Order Number - Top Left */
-    .table-hover td:nth-child(1) {
+    .manual-delivery-table td:nth-child(1) {
         font-size: 1.125rem;
         font-weight: 700;
         color: #4e73df;
@@ -1771,13 +1771,13 @@ body {
         border-bottom: 2px solid #e3e6f0;
     }
     
-    .table-hover td:nth-child(1):before {
+    .manual-delivery-table td:nth-child(1):before {
         content: "📋 ";
         font-size: 1.25rem;
     }
     
     /* Status - Top Right Badge */
-    .table-hover td:nth-child(2) {
+    .manual-delivery-table td:nth-child(2) {
         position: absolute;
         top: 1rem;
         right: 1rem;
@@ -1785,20 +1785,20 @@ body {
         padding: 0;
     }
     
-    .table-hover td:nth-child(2) .badge {
+    .manual-delivery-table td:nth-child(2) .badge {
         font-size: 0.75rem;
         padding: 0.375rem 0.75rem;
     }
     
     /* Customer */
-    .table-hover td:nth-child(3) {
+    .manual-delivery-table td:nth-child(3) {
         margin-bottom: 0.75rem;
         padding: 0.75rem;
         background: #f8f9fa;
         border-radius: 0.5rem;
     }
     
-    .table-hover td:nth-child(3):before {
+    .manual-delivery-table td:nth-child(3):before {
         content: "👤 Покупатель";
         display: block;
         font-size: 0.75rem;
@@ -1808,88 +1808,88 @@ body {
         margin-bottom: 0.375rem;
     }
     
-    .table-hover td:nth-child(3) div {
+    .manual-delivery-table td:nth-child(3) div {
         font-weight: 600;
         color: #2c3e50;
     }
     
-    .table-hover td:nth-child(3) small {
+    .manual-delivery-table td:nth-child(3) small {
         font-size: 0.8125rem;
     }
     
     /* Product */
-    .table-hover td:nth-child(4) {
+    .manual-delivery-table td:nth-child(4) {
         font-size: 1rem;
         font-weight: 600;
         color: #2c3e50;
         margin-bottom: 0.75rem;
     }
     
-    .table-hover td:nth-child(4):before {
+    .manual-delivery-table td:nth-child(4):before {
         content: "📦 ";
     }
     
     /* Quantity */
-    .table-hover td:nth-child(5) {
+    .manual-delivery-table td:nth-child(5) {
         display: inline-block;
         width: auto;
         margin-right: 0.5rem;
         margin-bottom: 0.5rem;
     }
     
-    .table-hover td:nth-child(5) .badge {
+    .manual-delivery-table td:nth-child(5) .badge {
         font-size: 0.875rem;
         padding: 0.5rem 0.75rem;
     }
     
     /* Amount */
-    .table-hover td:nth-child(6) {
+    .manual-delivery-table td:nth-child(6) {
         display: inline-block;
         width: auto;
         margin-bottom: 0.75rem;
     }
     
-    .table-hover td:nth-child(6) strong {
+    .manual-delivery-table td:nth-child(6) strong {
         font-size: 1.25rem;
         color: #1cc88a;
     }
     
     /* Created Date */
-    .table-hover td:nth-child(7) {
+    .manual-delivery-table td:nth-child(7) {
         font-size: 0.875rem;
         color: #858796;
         margin-bottom: 0.5rem;
     }
     
-    .table-hover td:nth-child(7):before {
+    .manual-delivery-table td:nth-child(7):before {
         content: "🕒 Создан: ";
         font-weight: 600;
     }
     
     /* Processing Time */
-    .table-hover td:nth-child(8) {
+    .manual-delivery-table td:nth-child(8) {
         margin-bottom: 1rem;
     }
     
-    .table-hover td:nth-child(8):before {
+    .manual-delivery-table td:nth-child(8):before {
         content: "⏱️ В обработке: ";
         font-weight: 600;
         color: #5a6c7d;
         margin-right: 0.5rem;
     }
     
-    .table-hover td:nth-child(8) .badge {
+    .manual-delivery-table td:nth-child(8) .badge {
         font-size: 0.875rem;
         padding: 0.5rem 0.75rem;
     }
     
     /* Actions */
-    .table-hover td:nth-child(9) {
+    .manual-delivery-table td:nth-child(9) {
         padding-top: 1rem;
         border-top: 1px solid #e3e6f0;
     }
     
-    .table-hover td:nth-child(9) .btn {
+    .manual-delivery-table td:nth-child(9) .btn {
         width: 100%;
         min-height: 48px;
         font-size: 1rem;
@@ -1899,7 +1899,7 @@ body {
         gap: 0.5rem;
     }
     
-    .table-hover td:nth-child(9) .btn i {
+    .manual-delivery-table td:nth-child(9) .btn i {
         font-size: 1.125rem;
     }
     
@@ -1960,21 +1960,21 @@ body {
     }
     
     /* Purchases Table - Card Layout */
-    .modern-table {
+    .purchases-table {
         display: block;
         width: 100%;
     }
     
-    .modern-table thead {
+    .purchases-table thead {
         display: none;
     }
     
-    .modern-table tbody {
+    .purchases-table tbody {
         display: block;
         width: 100%;
     }
     
-    .modern-table tr {
+    .purchases-table tr {
         display: block;
         width: 100%;
         border: 1px solid #e3e6f0;
@@ -1986,11 +1986,11 @@ body {
         position: relative;
     }
     
-    .modern-table tr:hover {
+    .purchases-table tr:hover {
         box-shadow: 0 4px 12px rgba(0,0,0,0.12);
     }
     
-    .modern-table td {
+    .purchases-table td {
         display: block;
         width: 100%;
         border: none;
@@ -1999,7 +1999,7 @@ body {
     }
     
     /* Purchase ID - Top Right Badge */
-    .modern-table td:nth-child(1) {
+    .purchases-table td:nth-child(1) {
         position: absolute;
         top: 1rem;
         right: 1rem;
@@ -2007,13 +2007,13 @@ body {
         padding: 0 !important;
     }
     
-    .modern-table td:nth-child(1) .badge {
+    .purchases-table td:nth-child(1) .badge {
         font-size: 0.75rem;
         padding: 0.375rem 0.75rem;
     }
     
     /* Order Number - Top Left */
-    .modern-table td:nth-child(2) {
+    .purchases-table td:nth-child(2) {
         font-size: 1.125rem;
         font-weight: 700;
         margin-bottom: 0.75rem;
@@ -2021,24 +2021,24 @@ body {
         border-bottom: 2px solid #e3e6f0;
     }
     
-    .modern-table td:nth-child(2):before {
+    .purchases-table td:nth-child(2):before {
         content: "📋 ";
         font-size: 1.25rem;
     }
     
-    .modern-table td:nth-child(2) code {
+    .purchases-table td:nth-child(2) code {
         font-size: 1rem;
     }
     
     /* Buyer */
-    .modern-table td:nth-child(3) {
+    .purchases-table td:nth-child(3) {
         margin-bottom: 0.75rem;
         padding: 0.75rem !important;
         background: #f8f9fa;
         border-radius: 0.5rem;
     }
     
-    .modern-table td:nth-child(3):before {
+    .purchases-table td:nth-child(3):before {
         content: "👤 Покупатель";
         display: block;
         font-size: 0.75rem;
@@ -2048,118 +2048,118 @@ body {
         margin-bottom: 0.375rem;
     }
     
-    .modern-table td:nth-child(3) .d-flex {
+    .purchases-table td:nth-child(3) .d-flex {
         display: block !important;
     }
     
-    .modern-table td:nth-child(3) .mr-2 {
+    .purchases-table td:nth-child(3) .mr-2 {
         display: none;
     }
     
-    .modern-table td:nth-child(3) a,
-    .modern-table td:nth-child(3) span {
+    .purchases-table td:nth-child(3) a,
+    .purchases-table td:nth-child(3) span {
         font-size: 0.9375rem;
     }
     
-    .modern-table td:nth-child(3) small {
+    .purchases-table td:nth-child(3) small {
         font-size: 0.8125rem;
     }
     
     /* Product */
-    .modern-table td:nth-child(4) {
+    .purchases-table td:nth-child(4) {
         font-size: 1rem;
         font-weight: 600;
         color: #2c3e50;
         margin-bottom: 0.75rem;
     }
     
-    .modern-table td:nth-child(4):before {
+    .purchases-table td:nth-child(4):before {
         content: "📦 ";
     }
     
-    .modern-table td:nth-child(4) a {
+    .purchases-table td:nth-child(4) a {
         color: #2c3e50 !important;
         text-decoration: none;
     }
     
     /* Quantity */
-    .modern-table td:nth-child(5) {
+    .purchases-table td:nth-child(5) {
         display: inline-block;
         width: auto;
         margin-right: 0.5rem;
         margin-bottom: 0.75rem;
     }
     
-    .modern-table td:nth-child(5) .badge {
+    .purchases-table td:nth-child(5) .badge {
         font-size: 0.875rem;
         padding: 0.5rem 0.75rem;
     }
     
     /* Amount */
-    .modern-table td:nth-child(6) {
+    .purchases-table td:nth-child(6) {
         display: inline-block;
         width: auto;
         margin-bottom: 0.75rem;
     }
     
-    .modern-table td:nth-child(6) .font-weight-bold {
+    .purchases-table td:nth-child(6) .font-weight-bold {
         font-size: 1.25rem;
         color: #1cc88a;
     }
     
-    .modern-table td:nth-child(6) small {
+    .purchases-table td:nth-child(6) small {
         display: block;
         margin-top: 0.25rem;
         font-size: 0.75rem;
     }
     
     /* Status */
-    .modern-table td:nth-child(7) {
+    .purchases-table td:nth-child(7) {
         margin-bottom: 0.75rem;
     }
     
-    .modern-table td:nth-child(7):before {
+    .purchases-table td:nth-child(7):before {
         content: "📊 Статус: ";
         font-weight: 600;
         color: #5a6c7d;
         margin-right: 0.5rem;
     }
     
-    .modern-table td:nth-child(7) .badge {
+    .purchases-table td:nth-child(7) .badge {
         font-size: 0.875rem;
         padding: 0.5rem 0.75rem;
     }
     
     /* Date */
-    .modern-table td:nth-child(8) {
+    .purchases-table td:nth-child(8) {
         font-size: 0.875rem;
         color: #858796;
         margin-bottom: 1rem;
     }
     
-    .modern-table td:nth-child(8):before {
+    .purchases-table td:nth-child(8):before {
         content: "🕒 ";
     }
     
-    .modern-table td:nth-child(8) small {
+    .purchases-table td:nth-child(8) small {
         display: inline;
     }
     
-    .modern-table td:nth-child(8) br {
+    .purchases-table td:nth-child(8) br {
         display: none;
     }
     
-    .modern-table td:nth-child(8) i {
+    .purchases-table td:nth-child(8) i {
         margin: 0 0.25rem;
     }
     
     /* Actions */
-    .modern-table td:nth-child(9) {
+    .purchases-table td:nth-child(9) {
         padding-top: 1rem !important;
         border-top: 1px solid #e3e6f0;
     }
     
-    .modern-table td:nth-child(9) .btn {
+    .purchases-table td:nth-child(9) .btn {
         width: 100%;
         min-height: 48px;
         font-size: 1rem;
@@ -2169,11 +2169,11 @@ body {
         gap: 0.5rem;
     }
     
-    .modern-table td:nth-child(9) .btn:before {
+    .purchases-table td:nth-child(9) .btn:before {
         content: "Просмотр ";
     }
     
-    .modern-table td:nth-child(9) .btn i {
+    .purchases-table td:nth-child(9) .btn i {
         font-size: 1.125rem;
     }
 }
@@ -2205,21 +2205,21 @@ body {
 
 @media (max-width: 575px) {
     /* Support Chats Table - Card Layout */
-    .modern-table {
+    .support-chats-table {
         display: block;
         width: 100%;
     }
     
-    .modern-table thead {
+    .support-chats-table thead {
         display: none;
     }
     
-    .modern-table tbody {
+    .support-chats-table tbody {
         display: block;
         width: 100%;
     }
     
-    .modern-table tr {
+    .support-chats-table tr {
         display: block;
         width: 100%;
         border: 1px solid #e3e6f0;
@@ -2231,16 +2231,16 @@ body {
         position: relative;
     }
     
-    .modern-table tr.row-unread {
+    .support-chats-table tr.row-unread {
         background: rgba(78, 115, 223, 0.05);
         border-left: 4px solid #4e73df;
     }
     
-    .modern-table tr:hover {
+    .support-chats-table tr:hover {
         box-shadow: 0 4px 12px rgba(0,0,0,0.12);
     }
     
-    .modern-table td {
+    .support-chats-table td {
         display: block;
         width: 100%;
         border: none;
@@ -2249,7 +2249,7 @@ body {
     }
     
     /* Chat ID - Top Right Badge */
-    .modern-table td:nth-child(1) {
+    .support-chats-table td:nth-child(1) {
         position: absolute;
         top: 1rem;
         right: 1rem;
@@ -2257,36 +2257,36 @@ body {
         padding: 0 !important;
     }
     
-    .modern-table td:nth-child(1) .badge {
+    .support-chats-table td:nth-child(1) .badge {
         font-size: 0.75rem;
         padding: 0.375rem 0.75rem;
     }
     
     /* User - Top with Avatar */
-    .modern-table td:nth-child(2) {
+    .support-chats-table td:nth-child(2) {
         margin-bottom: 0.75rem;
         padding-bottom: 0.75rem !important;
         border-bottom: 2px solid #e3e6f0;
     }
     
-    .modern-table td:nth-child(2) .d-flex {
+    .support-chats-table td:nth-child(2) .d-flex {
         display: flex !important;
         align-items: center;
     }
     
-    .modern-table td:nth-child(2) .avatar-circle-sm {
+    .support-chats-table td:nth-child(2) .avatar-circle-sm {
         width: 48px;
         height: 48px;
         font-size: 1.25rem;
         margin-right: 0.75rem;
     }
     
-    .modern-table td:nth-child(2) .font-weight-bold {
+    .support-chats-table td:nth-child(2) .font-weight-bold {
         font-size: 1.125rem;
         margin-bottom: 0.25rem;
     }
     
-    .modern-table td:nth-child(2) .unread-badge-modern {
+    .support-chats-table td:nth-child(2) .unread-badge-modern {
         display: inline-block;
         margin-left: 0.5rem;
         font-size: 0.75rem;
@@ -2294,116 +2294,116 @@ body {
     }
     
     /* Email/Contact */
-    .modern-table td:nth-child(3) {
+    .support-chats-table td:nth-child(3) {
         font-size: 0.875rem;
         color: #858796;
         margin-bottom: 0.75rem;
     }
     
-    .modern-table td:nth-child(3):before {
+    .support-chats-table td:nth-child(3):before {
         content: "📧 ";
     }
     
-    .modern-table td:nth-child(3) .text-info {
+    .support-chats-table td:nth-child(3) .text-info {
         color: #36b9cc !important;
     }
     
     /* Source */
-    .modern-table td:nth-child(4) {
+    .support-chats-table td:nth-child(4) {
         display: inline-block;
         width: auto;
         margin-right: 0.5rem;
         margin-bottom: 0.75rem;
     }
     
-    .modern-table td:nth-child(4) .badge {
+    .support-chats-table td:nth-child(4) .badge {
         font-size: 0.875rem;
         padding: 0.5rem 0.75rem;
     }
     
     /* Status */
-    .modern-table td:nth-child(5) {
+    .support-chats-table td:nth-child(5) {
         display: inline-block;
         width: auto;
         margin-bottom: 0.75rem;
     }
     
-    .modern-table td:nth-child(5) .badge {
+    .support-chats-table td:nth-child(5) .badge {
         font-size: 0.875rem;
         padding: 0.5rem 0.75rem;
     }
     
     /* Assigned Admin */
-    .modern-table td:nth-child(6) {
+    .support-chats-table td:nth-child(6) {
         margin-bottom: 0.75rem;
         padding: 0.75rem !important;
         background: #f8f9fa;
         border-radius: 0.5rem;
     }
     
-    .modern-table td:nth-child(6):before {
+    .support-chats-table td:nth-child(6):before {
         content: "👤 Назначен: ";
         font-weight: 600;
         color: #5a6c7d;
     }
     
-    .modern-table td:nth-child(6) .text-dark {
+    .support-chats-table td:nth-child(6) .text-dark {
         font-weight: 600;
     }
     
-    .modern-table td:nth-child(6) .italic {
+    .support-chats-table td:nth-child(6) .italic {
         font-style: italic;
     }
     
     /* Last Activity */
-    .modern-table td:nth-child(7) {
+    .support-chats-table td:nth-child(7) {
         font-size: 0.875rem;
         color: #858796;
         margin-bottom: 0.75rem;
     }
     
-    .modern-table td:nth-child(7):before {
+    .support-chats-table td:nth-child(7):before {
         content: "🕒 ";
     }
     
     /* Rating */
-    .modern-table td:nth-child(8) {
+    .support-chats-table td:nth-child(8) {
         margin-bottom: 1rem;
     }
     
-    .modern-table td:nth-child(8):before {
+    .support-chats-table td:nth-child(8):before {
         content: "⭐ Оценка: ";
         font-weight: 600;
         color: #5a6c7d;
         margin-right: 0.5rem;
     }
     
-    .modern-table td:nth-child(8) .d-flex {
+    .support-chats-table td:nth-child(8) .d-flex {
         display: inline-flex !important;
         flex-direction: row;
         align-items: center;
     }
     
-    .modern-table td:nth-child(8) .text-warning {
+    .support-chats-table td:nth-child(8) .text-warning {
         font-size: 1rem;
     }
     
-    .modern-table td:nth-child(8) .fa-comment-dots {
+    .support-chats-table td:nth-child(8) .fa-comment-dots {
         margin-left: 0.5rem;
     }
     
     /* Actions */
-    .modern-table td:nth-child(9) {
+    .support-chats-table td:nth-child(9) {
         padding-top: 1rem !important;
         border-top: 1px solid #e3e6f0;
     }
     
-    .modern-table td:nth-child(9) .action-buttons {
+    .support-chats-table td:nth-child(9) .action-buttons {
         display: flex;
         justify-content: stretch;
     }
     
-    .modern-table td:nth-child(9) .btn {
+    .support-chats-table td:nth-child(9) .btn {
         width: 100%;
         min-height: 48px;
         font-size: 1rem;
@@ -2413,7 +2413,7 @@ body {
         gap: 0.5rem;
     }
     
-    .modern-table td:nth-child(9) .btn i {
+    .support-chats-table td:nth-child(9) .btn i {
         font-size: 1.125rem;
     }
     

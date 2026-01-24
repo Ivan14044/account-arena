@@ -196,7 +196,7 @@
                 </div>
             @else
                 <div class="table-responsive">
-                    <table class="table table-hover">
+                    <table class="table table-hover manual-delivery-table">
                         <thead>
                             <tr>
                                 <th>Номер заказа</th>

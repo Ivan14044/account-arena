@@ -225,7 +225,7 @@
                 <div class="top-scrollbar-content" style="height: 16px;"></div>
             </div>
             <div class="table-responsive table-container-modern">
-                <table id="service-accounts-table" class="table table-hover modern-table table-sm">
+                <table id="service-accounts-table" class="table table-hover modern-table products-table table-sm">
                     <thead>
                         <tr>
                             <th style="width: 40px" class="text-center">
