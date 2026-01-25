@@ -3411,6 +3411,233 @@ body {
         padding: 0.5rem;
     }
 }
+/* ========================================
+   ARTICLES PAGE - MOBILE STYLES
+   ======================================== */
+@media (max-width: 575px) {
+    
+    /* Stats - Force 2x2 Grid */
+    .row.articles-stats {
+        display: flex;
+        flex-wrap: wrap;
+        margin-right: -0.25rem;
+        margin-left: -0.25rem;
+    }
+    
+    .row.articles-stats > [class*="col-"] {
+        flex: 0 0 50% !important;
+        max-width: 50% !important;
+        width: 50% !important;
+        padding-right: 0.25rem;
+        padding-left: 0.25rem;
+        margin-bottom: 0.5rem !important;
+        display: flex;
+    }
+
+    .articles-stats .stat-card {
+        padding: 1rem 0.5rem !important;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 0 !important;
+    }
+    
+    .articles-stats .stat-card-body {
+        padding: 0 !important;
+        width: 100%;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        text-align: center !important;
+    }
+    
+    .articles-stats .stat-icon {
+        position: static !important;
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        width: 44px !important;
+        height: 44px !important;
+        border-radius: 50%;
+        background: rgba(0,0,0,0.05) !important;
+        margin: 0 auto 0.5rem auto !important;
+        opacity: 1 !important;
+    }
+
+    .articles-stats .stat-icon i {
+        font-size: 1.25rem !important;
+        color: inherit !important;
+    }
+    
+    /* Specific colors */
+    .articles-stats .stat-card-primary .stat-icon i { color: #4e73df !important; }
+    .articles-stats .stat-card-success .stat-icon i { color: #1cc88a !important; }
+    .articles-stats .stat-card-warning .stat-icon i { color: #f6c23e !important; }
+    .articles-stats .stat-card-info .stat-icon i { color: #36b9cc !important; }
+
+    .articles-stats .stat-content {
+        width: 100% !important;
+        text-align: center !important;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .articles-stats .stat-value {
+        font-size: 1.5rem !important;
+        font-weight: 800 !important;
+        margin-bottom: 0.25rem;
+        color: #2c3e50;
+        text-align: center !important;
+        width: 100%;
+        display: block;
+    }
+    
+    .articles-stats .stat-label {
+        font-size: 0.7rem !important;
+        line-height: 1.2;
+        color: #858796;
+        text-transform: uppercase;
+        font-weight: 700;
+        text-align: center !important;
+        width: 100%;
+        display: block;
+        padding: 0 !important;
+    }
+
+    /* Table - Card View */
+    .articles-table {
+        display: block;
+        width: 100%;
+    }
+    
+    .articles-table thead {
+        display: none;
+    }
+    
+    .articles-table tbody {
+        display: block;
+        width: 100%;
+    }
+    
+    .articles-table tr {
+        display: block;
+        background: #fff;
+        border: 1px solid #e3e6f0;
+        border-radius: 0.75rem;
+        margin-bottom: 1rem;
+        padding: 1rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        position: relative;
+    }
+    
+    .articles-table td {
+        display: block;
+        width: 100%;
+        border: none;
+        padding: 0 !important;
+        margin-bottom: 0.5rem;
+        text-align: left !important;
+    }
+    
+    /* ID - Absolute Top Right */
+    .articles-table td:nth-child(1) {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        width: auto !important;
+        margin: 0;
+        z-index: 2;
+    }
+    
+    /* Preview Image - Top Left */
+    .articles-table td:nth-child(2) {
+        position: absolute;
+        top: 1rem;
+        left: 1rem;
+        width: 60px !important;
+        height: 60px !important;
+        margin: 0;
+    }
+    
+    .articles-table td:nth-child(2) img,
+    .articles-table td:nth-child(2) .rounded {
+        width: 60px !important;
+        height: 60px !important;
+        border-radius: 0.5rem !important;
+    }
+    
+    /* Name - Next to Image */
+    .articles-table td:nth-child(3) {
+        margin-left: 70px;
+        margin-bottom: 1rem;
+        padding-top: 0 !important;
+        min-height: 60px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding-right: 3rem !important; /* Space for ID */
+    }
+    
+    .articles-table td:nth-child(3) {
+        font-size: 1.1rem;
+        font-weight: 700;
+        line-height: 1.3;
+        color: #2c3e50;
+    }
+
+    /* Categories */
+    .articles-table td:nth-child(4) {
+        clear: both;
+        margin-bottom: 0.5rem;
+    }
+    
+    .articles-table td:nth-child(4) .badge {
+        font-size: 0.75rem;
+        padding: 0.4em 0.8em;
+        margin-right: 0.25rem;
+    }
+
+    /* Status */
+    .articles-table td:nth-child(5) {
+        display: inline-block;
+        width: auto !important;
+        margin-bottom: 0.5rem;
+    }
+
+    /* Date */
+    .articles-table td:nth-child(6) {
+        font-size: 0.8rem;
+        color: #858796;
+        margin-bottom: 1rem;
+        display: block;
+        border-bottom: 1px solid #f8f9fa;
+        padding-bottom: 0.5rem !important;
+    }
+    
+    /* Actions */
+    .articles-table td:nth-child(7) {
+        padding-top: 0.5rem !important;
+        margin-bottom: 0;
+    }
+    
+    .articles-table td:nth-child(7) .action-buttons {
+        display: flex;
+        width: 100%;
+        gap: 0.5rem;
+    }
+    
+    .articles-table td:nth-child(7) .btn {
+        flex: 1;
+        padding: 0.6rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+}
 </style>
 
 
