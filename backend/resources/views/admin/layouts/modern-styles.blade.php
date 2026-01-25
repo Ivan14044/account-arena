@@ -3917,6 +3917,447 @@ body {
         justify-content: center;
     }
 }
+/* ========================================
+   PROMOCODES PAGE - MOBILE STYLES
+   ======================================== */
+@media (max-width: 575px) {
+    /* Stats - Force 2x2 Grid */
+    .row.promocodes-stats {
+        display: flex;
+        flex-wrap: wrap;
+        margin-right: -0.25rem;
+        margin-left: -0.25rem;
+    }
+    
+    .row.promocodes-stats > [class*="col-"] {
+        flex: 0 0 50% !important;
+        max-width: 50% !important;
+        width: 50% !important;
+        padding-right: 0.25rem;
+        padding-left: 0.25rem;
+        margin-bottom: 0.5rem !important;
+        display: flex;
+    }
+
+    .promocodes-stats .stat-card {
+        padding: 1rem 0.5rem !important;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 0 !important;
+    }
+    
+    /* Reuse generic stat styles from previous pages if possible or redefine */
+    .promocodes-stats .stat-card-body {
+        padding: 0 !important;
+        width: 100%;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        text-align: center !important;
+    }
+    
+    .promocodes-stats .stat-icon {
+        position: static !important;
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        width: 44px !important;
+        height: 44px !important;
+        border-radius: 50%;
+        background: rgba(0,0,0,0.05) !important;
+        margin: 0 auto 0.5rem auto !important;
+        opacity: 1 !important;
+    }
+
+    .promocodes-stats .stat-icon i {
+        font-size: 1.25rem !important;
+        color: inherit !important;
+    }
+    
+    /* Specific Colors */
+    .promocodes-stats .stat-card-primary .stat-icon i { color: #4e73df !important; }
+    .promocodes-stats .stat-card-success .stat-icon i { color: #1cc88a !important; }
+    .promocodes-stats .stat-card-info .stat-icon i { color: #36b9cc !important; }
+    .promocodes-stats .stat-card-warning .stat-icon i { color: #f6c23e !important; }
+
+    .promocodes-stats .stat-content {
+        width: 100% !important;
+        text-align: center !important;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .promocodes-stats .stat-value {
+        font-size: 1.5rem !important;
+        font-weight: 800 !important;
+        margin-bottom: 0.25rem;
+        color: #2c3e50;
+        text-align: center !important;
+        width: 100%;
+        display: block;
+    }
+    
+    .promocodes-stats .stat-label {
+        font-size: 0.7rem !important;
+        line-height: 1.2;
+        color: #858796;
+        text-transform: uppercase;
+        font-weight: 700;
+        text-align: center !important;
+        width: 100%;
+        display: block;
+        padding: 0 !important;
+    }
+    
+    /* Table - Card View */
+    .promocodes-table {
+        display: block;
+        width: 100%;
+    }
+    
+    .promocodes-table thead {
+        display: none;
+    }
+    
+    .promocodes-table tbody {
+        display: block;
+        width: 100%;
+    }
+    
+    .promocodes-table tr {
+        display: block;
+        background: #fff;
+        border: 1px solid #e3e6f0;
+        border-radius: 0.75rem;
+        margin-bottom: 1rem;
+        padding: 1rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        position: relative;
+    }
+    
+    .promocodes-table td {
+        display: block;
+        width: 100%;
+        border: none;
+        padding: 0 !important;
+        margin-bottom: 0.5rem;
+        text-align: left !important;
+    }
+    
+    /* Checkbox - Top Left Absolute */
+    .promocodes-table td:nth-child(1) {
+        position: absolute;
+        top: 1rem;
+        left: 1rem;
+        width: auto !important;
+        margin: 0;
+        z-index: 2;
+    }
+    .promocodes-table td:nth-child(1) input {
+        transform: scale(1.5); /* Easier to tap */
+    }
+    
+    /* ID - Top Right Absolute */
+    .promocodes-table td:nth-child(2) {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        width: auto !important;
+        margin: 0;
+        z-index: 2;
+    }
+    
+    /* Title/Code - Large Next to Checkbox */
+    .promocodes-table td:nth-child(3) {
+        margin-left: 30px; /* Space for checkbox */
+        margin-bottom: 1rem;
+        padding-right: 3rem !important; /* Space for ID */
+    }
+    
+    .promocodes-table td:nth-child(3) code {
+        font-size: 1.25rem !important;
+        display: inline-block;
+        margin-bottom: 0.25rem;
+    }
+    
+    /* Batch - Hidden or Small */
+    .promocodes-table td:nth-child(4) {
+        font-size: 0.75rem;
+        color: #858796;
+        margin-bottom: 0.5rem;
+        display: block;
+        margin-left: 30px;
+    }
+    .promocodes-table td:nth-child(4):before {
+        content: "Партия: ";
+    }
+    
+    /* Type & Discount - Inline Block */
+    .promocodes-table td:nth-child(5),
+    .promocodes-table td:nth-child(6) {
+        display: inline-block;
+        width: auto !important;
+        margin-right: 0.5rem;
+        margin-bottom: 0.5rem;
+        vertical-align: middle;
+    }
+    
+    /* Usages - Full block with label */
+    .promocodes-table td:nth-child(7) {
+        border-top: 1px dotted #e3e6f0;
+        border-bottom: 1px dotted #e3e6f0;
+        padding: 0.5rem 0 !important;
+        margin: 0.5rem 0;
+        background: #f8f9fa;
+        text-align: center !important;
+    }
+    .promocodes-table td:nth-child(7):before {
+        content: "Использовано: ";
+        font-weight: 600;
+        color: #5a6c7d;
+    }
+
+    /* Status */
+    .promocodes-table td:nth-child(8) {
+        text-align: center !important;
+        margin-bottom: 1rem;
+    }
+
+    /* Actions */
+    .promocodes-table td:nth-child(9) {
+        margin-bottom: 0;
+    }
+    
+    .promocodes-table td:nth-child(9) .btn-group {
+        display: flex;
+        width: 100%;
+        gap: 0.5rem;
+    }
+    
+    .promocodes-table td:nth-child(9) .btn {
+        flex: 1;
+        padding: 0.6rem;
+    }
+}
+/* ========================================
+   BANNERS PAGE - MOBILE STYLES
+   ======================================== */
+@media (max-width: 575px) {
+    /* Stats - Force 2x2 Grid */
+    .row.banners-stats {
+        display: flex;
+        flex-wrap: wrap;
+        margin-right: -0.25rem;
+        margin-left: -0.25rem;
+    }
+    
+    .row.banners-stats > [class*="col-"] {
+        flex: 0 0 50% !important;
+        max-width: 50% !important;
+        width: 50% !important;
+        padding-right: 0.25rem;
+        padding-left: 0.25rem;
+        margin-bottom: 0.5rem !important;
+        display: flex;
+    }
+
+    .banners-stats .stat-card {
+        padding: 1rem 0.5rem !important;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 0 !important;
+    }
+    
+    .banners-stats .stat-card-body {
+        padding: 0 !important;
+        width: 100%;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        text-align: center !important;
+    }
+    
+    .banners-stats .stat-icon {
+        position: static !important;
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        width: 44px !important;
+        height: 44px !important;
+        border-radius: 50%;
+        background: rgba(0,0,0,0.05) !important;
+        margin: 0 auto 0.5rem auto !important;
+        opacity: 1 !important;
+    }
+
+    .banners-stats .stat-icon i {
+        font-size: 1.25rem !important;
+        color: inherit !important;
+    }
+    
+    /* Specific Colors */
+    .banners-stats .stat-card-primary .stat-icon i { color: #4e73df !important; }
+    .banners-stats .stat-card-success .stat-icon i { color: #1cc88a !important; }
+    .banners-stats .stat-card-danger .stat-icon i { color: #e74a3b !important; }
+
+    .banners-stats .stat-content {
+        width: 100% !important;
+        text-align: center !important;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .banners-stats .stat-value {
+        font-size: 1.5rem !important;
+        font-weight: 800 !important;
+        margin-bottom: 0.25rem;
+        color: #2c3e50;
+        text-align: center !important;
+        width: 100%;
+        display: block;
+    }
+    
+    .banners-stats .stat-label {
+        font-size: 0.7rem !important;
+        line-height: 1.2;
+        color: #858796;
+        text-transform: uppercase;
+        font-weight: 700;
+        text-align: center !important;
+        width: 100%;
+        display: block;
+        padding: 0 !important;
+    }
+
+    /* Table - Card View */
+    .banners-table {
+        display: block;
+        width: 100%;
+    }
+    
+    .banners-table thead {
+        display: none;
+    }
+    
+    .banners-table tbody {
+        display: block;
+        width: 100%;
+    }
+    
+    .banners-table tr {
+        display: block;
+        background: #fff;
+        border: 1px solid #e3e6f0;
+        border-radius: 0.75rem;
+        margin-bottom: 1rem;
+        padding: 1rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        position: relative;
+    }
+    
+    .banners-table td {
+        display: block;
+        width: 100%;
+        border: none;
+        padding: 0 !important;
+        margin-bottom: 0.5rem;
+        text-align: left !important;
+    }
+
+    /* ID - Absolute Top Right */
+    .banners-table td:nth-child(1) {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        width: auto !important;
+        margin: 0;
+        z-index: 2;
+    }
+
+    /* Image - Top Left Block */
+    .banners-table td:nth-child(2) {
+        margin-bottom: 1rem;
+        text-align: center !important;
+    }
+    .banners-table td:nth-child(2) img,
+    .banners-table td:nth-child(2) .rounded {
+        max-width: 100% !important;
+        width: auto !important;
+        height: auto !important;
+        max-height: 120px !important;
+        border-radius: 0.5rem !important;
+    }
+
+    /* Name */
+    .banners-table td:nth-child(3) {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #2c3e50;
+        margin-bottom: 0.5rem;
+        text-align: center !important;
+        padding: 0 1rem !important;
+    }
+    .banners-table td:nth-child(3) a {
+        display: block;
+        margin-top: 0.25rem;
+    }
+
+    /* Type, Position, Status - In a row */
+    .banners-table td:nth-child(4), /* Type */
+    .banners-table td:nth-child(5), /* Order */
+    .banners-table td:nth-child(6)  /* Status */
+    {
+        display: inline-block;
+        width: auto !important;
+        margin-right: 0.25rem;
+        margin-bottom: 0.5rem;
+        vertical-align: middle;
+        text-align: center !important;
+    }
+    
+    /* Centering the badges container logic */
+    .banners-table tr {
+        text-align: center; /* Helper for inline blocks */
+    }
+
+    /* Period */
+    .banners-table td:nth-child(7) {
+        font-size: 0.8rem;
+        color: #858796;
+        margin-bottom: 1rem;
+        border-top: 1px dotted #e3e6f0;
+        border-bottom: 1px dotted #e3e6f0;
+        padding: 0.5rem !important;
+        background: #f8f9fa;
+    }
+
+    /* Actions */
+    .banners-table td:nth-child(8) {
+        margin-bottom: 0;
+    }
+    
+    .banners-table td:nth-child(8) .action-buttons {
+        display: flex;
+        width: 100%;
+        gap: 0.5rem;
+        justify-content: center;
+    }
+    
+    .banners-table td:nth-child(8) .btn {
+        flex: 1;
+        padding: 0.6rem;
+    }
+}
 </style>
 
 

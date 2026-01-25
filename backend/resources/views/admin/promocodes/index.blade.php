@@ -32,7 +32,7 @@
     @endif
 
     <!-- Статистика -->
-    <div class="row mb-4">
+    <div class="row mb-4 promocodes-stats">
         <div class="col-lg-3 col-md-6 col-6 mb-3 mb-lg-0">
             <div class="stat-card stat-card-primary stat-card-compact">
                 <div class="stat-card-body">
@@ -153,7 +153,7 @@
             </div>
 
             <div class="table-responsive">
-                <table id="promocodes-table" class="table table-hover modern-table">
+                <table id="promocodes-table" class="table table-hover modern-table promocodes-table">
                     <thead>
                         <tr>
                             <th style="width: 40px" class="text-center">
