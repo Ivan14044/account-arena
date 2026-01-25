@@ -29,7 +29,7 @@
     @endif
 
     <!-- Статистика -->
-    <div class="row mb-4">
+    <div class="row mb-4 pages-stats">
         <div class="col-lg-4 col-6">
             <div class="stat-card stat-card-primary stat-card-compact">
                 <div class="stat-card-body">
@@ -83,7 +83,7 @@
         </div>
         <div class="card-body-modern">
             <div class="table-responsive">
-                <table id="pages-table" class="table table-hover modern-table">
+                <table id="pages-table" class="table table-hover modern-table pages-table">
                     <thead>
                     <tr>
                         <th style="width: 60px" class="text-center">ID</th>
