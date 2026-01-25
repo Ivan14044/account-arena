@@ -31,7 +31,7 @@
     <div class="card card-modern">
         <div class="card-body-modern">
             <div class="table-responsive">
-                <table id="categories-table" class="table table-hover modern-table">
+                <table id="categories-table" class="table table-hover modern-table article-categories-table">
                     <thead>
                         <tr>
                             <th style="width: 60px" class="text-center">ID</th>

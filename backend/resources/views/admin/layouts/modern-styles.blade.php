@@ -3638,6 +3638,85 @@ body {
         justify-content: center;
     }
 }
+/* ========================================
+   ARTICLE CATEGORIES PAGE - MOBILE STYLES
+   ======================================== */
+@media (max-width: 575px) {
+    .article-categories-table {
+        display: block;
+        width: 100%;
+    }
+    
+    .article-categories-table thead {
+        display: none;
+    }
+    
+    .article-categories-table tbody {
+        display: block;
+        width: 100%;
+    }
+    
+    .article-categories-table tr {
+        display: block;
+        background: #fff;
+        border: 1px solid #e3e6f0;
+        border-radius: 0.75rem;
+        margin-bottom: 1rem;
+        padding: 1rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        position: relative;
+    }
+    
+    .article-categories-table td {
+        display: block;
+        width: 100%;
+        border: none;
+        padding: 0 !important;
+        margin-bottom: 0.5rem;
+        text-align: left !important;
+    }
+    
+    /* ID - Absolute Top Right */
+    .article-categories-table td:nth-child(1) {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        width: auto !important;
+        margin: 0;
+        z-index: 2;
+    }
+    
+    /* Name */
+    .article-categories-table td:nth-child(2) {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #2c3e50;
+        margin-bottom: 1rem;
+        padding-right: 3rem !important; /* Avoid overlap with ID */
+    }
+    
+    /* Actions */
+    .article-categories-table td:nth-child(3) {
+        border-top: 1px solid #e3e6f0;
+        padding-top: 0.75rem !important;
+        margin-top: 0.5rem;
+        margin-bottom: 0;
+    }
+    
+    .article-categories-table td:nth-child(3) .action-buttons {
+        display: flex;
+        width: 100%;
+        gap: 0.5rem;
+    }
+    
+    .article-categories-table td:nth-child(3) .btn {
+        flex: 1;
+        padding: 0.6rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+}
 </style>
 
 
