@@ -23,7 +23,7 @@
 
 @section('content')
     <!-- Stats Cards -->
-    <div class="row mb-4">
+    <div class="row mb-4 product-categories-stats">
         <div class="col-md-4">
             <div class="small-box bg-white shadow-sm border-0 h-100 mb-0">
                 <div class="inner p-3">
@@ -89,7 +89,7 @@
                 </div>
                 <div class="card-body-modern">
                     <div class="table-responsive">
-                        <table id="categories-table" class="table table-hover modern-table">
+                        <table id="categories-table" class="table table-hover modern-table product-categories-table">
                             <thead>
                                 <tr>
                                     <th style="width: 60px" class="text-center">ID</th>

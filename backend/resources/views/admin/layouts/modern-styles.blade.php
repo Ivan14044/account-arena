@@ -3201,6 +3201,216 @@ body {
         margin-right: 0;
     }
 }
+/* ========================================
+   PRODUCT CATEGORIES PAGE - MOBILE STYLES
+   ======================================== */
+@media (max-width: 575px) {
+    
+    /* Stats - Force 2x2 Grid (even for 3 items) */
+    .row.product-categories-stats {
+        display: flex;
+        flex-wrap: wrap;
+        margin-right: -0.25rem;
+        margin-left: -0.25rem;
+    }
+    
+    .row.product-categories-stats > [class*="col-"] {
+        flex: 0 0 50% !important;
+        max-width: 50% !important;
+        width: 50% !important;
+        padding-right: 0.25rem;
+        padding-left: 0.25rem;
+        margin-bottom: 0.5rem !important;
+    }
+
+    /* Adjust Small Box for grid */
+    .product-categories-stats .small-box {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        text-align: center;
+        padding: 1rem 0.5rem !important;
+    }
+    
+    .product-categories-stats .small-box .inner {
+        padding: 0 !important;
+        display: flex;
+        flex-direction: column-reverse; /* Icon on top visually via order if needed, but here we just re-layout */
+    }
+    
+    .product-categories-stats .small-box h3 {
+        font-size: 1.5rem;
+        font-weight: 800;
+        margin-bottom: 0.25rem;
+        color: #2c3e50;
+    }
+    
+    .product-categories-stats .small-box p {
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        font-weight: 700;
+        line-height: 1.2;
+        margin: 0;
+    }
+     
+    .product-categories-stats .small-box .icon {
+        position: static !important;
+        display: block !important;
+        margin: 0 auto 0.5rem auto;
+        font-size: 1.5rem;
+        opacity: 1 !important;
+        color: inherit !important;
+        height: auto !important;
+        width: auto !important;
+    }
+    
+    .product-categories-stats .small-box .icon i {
+         font-size: 2rem;
+         opacity: 0.8 !important; /* Make icons visible */
+    }
+    /* Fix icon colors specifically */
+    .product-categories-stats .col-md-4:nth-child(1) .icon i { color: #4e73df !important; }
+    .product-categories-stats .col-md-4:nth-child(2) .icon i { color: #36b9cc !important; }
+    .product-categories-stats .col-md-4:nth-child(3) .icon i { color: #1cc88a !important; }
+
+    /* Table - Card View */
+    .product-categories-table {
+        display: block;
+        width: 100%;
+    }
+    
+    .product-categories-table thead {
+        display: none;
+    }
+    
+    .product-categories-table tbody {
+        display: block;
+        width: 100%;
+    }
+    
+    .product-categories-table tr {
+        display: block;
+        background: #fff;
+        border: 1px solid #e3e6f0;
+        border-radius: 0.75rem;
+        margin-bottom: 1rem;
+        padding: 1rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        position: relative;
+    }
+    
+    .product-categories-table td {
+        display: block;
+        width: 100%;
+        border: none;
+        padding: 0 !important;
+        margin-bottom: 0.5rem;
+        text-align: left !important;
+    }
+    
+    /* ID - Top Right */
+    .product-categories-table td:nth-child(1) {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        width: auto !important;
+        margin: 0;
+        z-index: 2;
+    }
+    
+    /* Photo - Top Left (Avatar-like) */
+    .product-categories-table td:nth-child(2) {
+        position: absolute;
+        top: 1rem;
+        left: 1rem;
+        width: 50px !important;
+        height: 50px !important;
+        margin: 0;
+    }
+    
+    .product-categories-table td:nth-child(2) img,
+    .product-categories-table td:nth-child(2) .d-inline-flex {
+        width: 50px !important;
+        height: 50px !important;
+        border-radius: 0.5rem !important;
+    }
+    
+    /* Name - Next to Photo */
+    .product-categories-table td:nth-child(3) {
+        margin-left: 60px; /* Space for photo */
+        margin-bottom: 1.5rem;
+        padding-top: 0.25rem !important;
+        min-height: 50px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding-right: 2rem !important; /* Avoid overlap with ID */
+    }
+    
+    .product-categories-table td:nth-child(3) a.text-dark {
+        font-size: 1.1rem;
+        line-height: 1.2;
+    }
+    
+    .product-categories-table td:nth-child(3) small {
+        font-size: 0.8rem;
+    }
+    
+    /* Subcategories */
+    .product-categories-table td:nth-child(4) {
+        clear: both;
+        background: #f8f9fa;
+        padding: 0.75rem !important;
+        border-radius: 0.5rem;
+        margin-bottom: 0.75rem;
+    }
+    .product-categories-table td:nth-child(4):before {
+        content: "Подкатегории:";
+        display: block;
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: #858796;
+        margin-bottom: 0.5rem;
+        text-transform: uppercase;
+    }
+    
+    /* Products Count */
+    .product-categories-table td:nth-child(5) {
+        margin-bottom: 1rem;
+    }
+    
+    .product-categories-table td:nth-child(5) .d-flex {
+        align-items: flex-start !important;
+        text-align: left !important;
+    }
+    
+    .product-categories-table td:nth-child(5):before {
+        content: "Товары:";
+        font-weight: 600;
+        color: #5a6c7d;
+        margin-right: 0.5rem;
+    }
+    
+    /* Actions */
+    .product-categories-table td:nth-child(6) {
+        border-top: 1px solid #e3e6f0;
+        padding-top: 0.75rem !important;
+        margin-top: 0.5rem;
+        margin-bottom: 0;
+    }
+    
+    .product-categories-table td:nth-child(6) .btn-group {
+        display: flex;
+        width: 100%;
+        gap: 0.5rem;
+    }
+    
+    .product-categories-table td:nth-child(6) .btn {
+        flex: 1;
+        padding: 0.5rem;
+    }
+}
 </style>
 
 
