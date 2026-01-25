@@ -2687,6 +2687,233 @@ body {
         margin-left: 0.5rem;
     }
 }
+/* ========================================
+   DISPUTES PAGE - MOBILE STYLES
+   ======================================== */
+@media (max-width: 575px) {
+    
+    /* Disputes Stats - 2x2 Grid (Copied from Manual Delivery v3 logic) */
+    .row.disputes-stats {
+        display: flex;
+        flex-wrap: wrap;
+        margin-right: -0.25rem;
+        margin-left: -0.25rem;
+    }
+    
+    /* Increased specificity to override global .row.mb-4 rules */
+    .row.disputes-stats > [class*="col-"] {
+        flex: 0 0 50% !important;
+        max-width: 50% !important;
+        width: 50% !important;
+        padding-right: 0.25rem;
+        padding-left: 0.25rem;
+        margin-bottom: 0.5rem !important;
+        display: flex;
+    }
+    
+    .disputes-stats .stat-card {
+        padding: 1rem 0.5rem !important;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 0 !important;
+    }
+    
+    .disputes-stats .stat-card-body {
+        padding: 0 !important;
+        width: 100%;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        text-align: center !important;
+    }
+    
+    .disputes-stats .stat-icon {
+        position: static !important;
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        width: 44px !important;
+        height: 44px !important;
+        border-radius: 50%;
+        background: rgba(0,0,0,0.05) !important;
+        margin: 0 auto 0.5rem auto !important;
+        opacity: 1 !important;
+    }
+    
+    .disputes-stats .stat-icon i {
+        font-size: 1.25rem !important;
+        color: inherit !important;
+    }
+    
+    /* Force specific colors */
+    .disputes-stats .stat-card-warning .stat-icon i { color: #f6c23e !important; }
+    .disputes-stats .stat-card-success .stat-icon i { color: #1cc88a !important; }
+    .disputes-stats .stat-card-info .stat-icon i { color: #36b9cc !important; }
+    .disputes-stats .stat-card-danger .stat-icon i { color: #e74a3b !important; }
+    
+    .disputes-stats .stat-content {
+        width: 100% !important;
+        text-align: center !important;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .disputes-stats .stat-value {
+        font-size: 1.5rem !important;
+        font-weight: 800 !important;
+        margin-bottom: 0.25rem;
+        color: #2c3e50;
+        text-align: center !important;
+        width: 100%;
+        display: block;
+    }
+    
+    .disputes-stats .stat-label {
+        font-size: 0.7rem !important;
+        line-height: 1.2;
+        color: #858796;
+        text-transform: uppercase;
+        font-weight: 700;
+        text-align: center !important;
+        width: 100%;
+        display: block;
+        padding: 0 !important;
+    }
+
+    /* Disputes Table - Card Layout */
+    .disputes-table {
+        display: block;
+        width: 100%;
+    }
+    
+    .disputes-table thead {
+        display: none;
+    }
+    
+    .disputes-table tbody {
+        display: block;
+        width: 100%;
+    }
+    
+    .disputes-table tr {
+        display: block;
+        width: 100%;
+        border: 1px solid #e3e6f0;
+        border-radius: 0.75rem;
+        margin-bottom: 1rem;
+        padding: 1rem;
+        background: white;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        position: relative;
+    }
+    
+    .disputes-table td {
+        display: block;
+        width: 100%;
+        border: none;
+        padding: 0.25rem 0 !important;
+        text-align: left !important;
+    }
+    
+    /* ID & Date Header */
+    .disputes-table td:nth-child(1) { /* ID */
+        font-size: 1rem;
+        font-weight: 700;
+        display: inline-block;
+        width: auto;
+        padding-bottom: 0.5rem !important;
+        margin-bottom: 0.5rem;
+        border-bottom: 1px solid #f8f9fa;
+    }
+    
+    .disputes-table td:nth-child(9) { /* Date - moved to header row visually via absolute/float */
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        width: auto;
+        font-size: 0.8rem;
+        text-align: right !important;
+        color: #858796;
+        padding: 0 !important;
+    }
+    
+    /* Status Badge */
+    .disputes-table td:nth-child(8) { /* Status */
+        margin-bottom: 0.75rem;
+    }
+    
+    .disputes-table td:nth-child(8) .badge {
+        font-size: 0.75rem;
+        padding: 0.4em 0.8em;
+        width: auto;
+    }
+    
+    /* User */
+    .disputes-table td:nth-child(2) {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        background: #f8f9fa;
+        padding: 0.5rem !important;
+        border-radius: 0.5rem;
+    }
+    
+    .disputes-table td:nth-child(2):before {
+        content: "👤 ";
+        margin-right: 0.25rem;
+    }
+    
+    /* Order / Product / Supplier - Grouped visually */
+    .disputes-table td:nth-child(3), /* Order */
+    .disputes-table td:nth-child(4), /* Product */
+    .disputes-table td:nth-child(5) { /* Supplier */
+        margin-bottom: 0.25rem;
+        font-size: 0.9rem;
+    }
+    
+    .disputes-table td:nth-child(3):before { content: "Заказ: "; color: #858796; font-size: 0.8rem; }
+    .disputes-table td:nth-child(4):before { content: "Товар: "; color: #858796; font-size: 0.8rem; }
+    .disputes-table td:nth-child(5):before { content: "Поставщик: "; color: #858796; font-size: 0.8rem; }
+    
+    /* Reason & Amount */
+    .disputes-table td:nth-child(6) { /* Reason */
+        margin-top: 0.5rem;
+        margin-bottom: 0.25rem;
+        font-weight: 500;
+    }
+    .disputes-table td:nth-child(6):before { content: "Причина: "; color: #858796; }
+    
+    .disputes-table td:nth-child(7) { /* Amount */
+        font-weight: 700;
+        color: #1cc88a;
+        margin-bottom: 0.5rem;
+    }
+    .disputes-table td:nth-child(7):before { content: "Сумма: "; color: #858796; font-weight: normal; }
+
+    /* Actions */
+    .disputes-table td:nth-child(10) {
+        margin-top: 0.75rem;
+        padding-top: 0.75rem !important;
+        border-top: 1px solid #f8f9fa;
+    }
+    
+    .disputes-table td:nth-child(10) .btn {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 44px;
+    }
+    
+    .disputes-table td:nth-child(10) .btn:after {
+        content: " Просмотр";
+        margin-left: 0.5rem;
+    }
+}
 </style>
 
 

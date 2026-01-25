@@ -15,7 +15,7 @@
 
 @section('content')
     {{-- Статистика --}}
-    <div class="row mb-4">
+    <div class="row mb-4 disputes-stats">
         <div class="col-lg-3 col-6 mb-3 d-flex">
             <div class="stat-card stat-card-warning stat-card-compact w-100">
                 <div class="stat-card-body">
@@ -143,7 +143,7 @@
         </div>
         <div class="card-body-modern">
             <div class="table-responsive">
-                <table class="table table-hover modern-table">
+                <table class="table table-hover disputes-table">
                     <thead>
                         <tr>
                             <th style="width: 60px" class="text-center">ID</th>
