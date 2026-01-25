@@ -2914,6 +2914,293 @@ body {
         margin-left: 0.5rem;
     }
 }
+/* ========================================
+   USERS PAGE - MOBILE STYLES
+   ======================================== */
+@media (max-width: 575px) {
+    /* Users Stats - 2x2 Grid */
+    .row.users-stats {
+        display: flex;
+        flex-wrap: wrap;
+        margin-right: -0.25rem;
+        margin-left: -0.25rem;
+    }
+    
+    .row.users-stats > [class*="col-"] {
+        flex: 0 0 50% !important;
+        max-width: 50% !important;
+        width: 50% !important;
+        padding-right: 0.25rem;
+        padding-left: 0.25rem;
+        margin-bottom: 0.5rem !important;
+        display: flex;
+    }
+    
+    .users-stats .stat-card {
+        padding: 1rem 0.5rem !important;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 0 !important;
+    }
+    
+    .users-stats .stat-card-body {
+        padding: 0 !important;
+        width: 100%;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        text-align: center !important;
+    }
+    
+    .users-stats .stat-icon {
+        position: static !important;
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        width: 44px !important;
+        height: 44px !important;
+        border-radius: 50%;
+        background: rgba(0,0,0,0.05) !important;
+        margin: 0 auto 0.5rem auto !important;
+        opacity: 1 !important;
+    }
+    
+    .users-stats .stat-icon i {
+        font-size: 1.25rem !important;
+        color: inherit !important;
+    }
+    
+    /* Specific Colors */
+    .users-stats .stat-card-primary .stat-icon i { color: #4e73df !important; }
+    .users-stats .stat-card-success .stat-icon i { color: #1cc88a !important; }
+    .users-stats .stat-card-info .stat-icon i { color: #36b9cc !important; }
+    .users-stats .stat-card-danger .stat-icon i { color: #e74a3b !important; }
+    
+    .users-stats .stat-content {
+        width: 100% !important;
+        text-align: center !important;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .users-stats .stat-value {
+        font-size: 1.5rem !important;
+        font-weight: 800 !important;
+        margin-bottom: 0.25rem;
+        color: #2c3e50;
+        text-align: center !important;
+        width: 100%;
+        display: block;
+    }
+    
+    .users-stats .stat-label {
+        font-size: 0.7rem !important;
+        line-height: 1.2;
+        color: #858796;
+        text-transform: uppercase;
+        font-weight: 700;
+        text-align: center !important;
+        width: 100%;
+        display: block;
+        padding: 0 !important;
+    }
+    
+    /* Filter Buttons - Horizontal Scroll */
+    .filters-container {
+        overflow-x: auto;
+        white-space: nowrap;
+        padding-bottom: 0.5rem;
+        margin-bottom: 0.5rem;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .filters-container .btn-group {
+        display: inline-flex;
+    }
+    
+    /* DataTables Controls */
+    div.dataTables_wrapper div.dataTables_filter {
+        text-align: left !important;
+        margin-bottom: 1rem;
+    }
+    
+    div.dataTables_wrapper div.dataTables_filter input {
+        width: 100% !important;
+        margin-left: 0 !important;
+        display: block;
+        height: 44px; /* Touch friendly */
+    }
+    
+    div.dataTables_wrapper div.dataTables_length {
+        display: none !important; /* Hide "Show X entries" on mobile to save space */
+    }
+    
+    /* Users Table - Card Layout */
+    .users-table {
+        display: block;
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0 1rem;
+    }
+    
+    .users-table thead {
+        display: none;
+    }
+    
+    .users-table tbody {
+        display: block;
+        width: 100%;
+    }
+    
+    .users-table tr {
+        display: block;
+        width: 100%;
+        border: 1px solid #e3e6f0;
+        border-radius: 0.75rem;
+        margin-bottom: 1rem;
+        padding: 1rem;
+        background: white;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        position: relative;
+    }
+    
+    .users-table td {
+        display: block;
+        width: 100%;
+        border: none;
+        padding: 0.25rem 0 !important;
+        text-align: left !important;
+    }
+    
+    /* ID - Absolute Top Right */
+    .users-table td:nth-child(1) {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        width: auto !important;
+        padding: 0 !important;
+        z-index: 5;
+    }
+    
+    /* User: Avatar + Name + Email */
+    .users-table td:nth-child(2) {
+        margin-bottom: 1rem;
+        padding-right: 3rem !important; /* Space for ID badge */
+    }
+    
+    .users-table td:nth-child(2) .d-flex {
+        align-items: center;
+    }
+    
+    .users-table td:nth-child(2) .user-avatar {
+        width: 50px;
+        height: 50px;
+        margin-right: 1rem !important;
+    }
+    
+    .users-table td:nth-child(2) .font-weight-bold {
+        font-size: 1.1rem;
+        color: #2c3e50;
+    }
+    
+    /* Balance */
+    .users-table td:nth-child(3) {
+        display: inline-block;
+        width: 48%;
+        margin-bottom: 0.5rem;
+        vertical-align: top;
+    }
+    
+    .users-table td:nth-child(3) .badge {
+        font-size: 0.9rem;
+        padding: 0.5rem;
+        display: flex;
+        align-items: center;
+        width: fit-content;
+    }
+    
+    /* Status */
+    .users-table td:nth-child(4) {
+        display: inline-block;
+        width: 48%;
+        margin-bottom: 0.5rem;
+        text-align: right !important;
+        vertical-align: top;
+    }
+    
+    .users-table td:nth-child(4) .badge {
+        font-size: 0.8rem;
+        padding: 0.4rem 0.6rem;
+    }
+    
+    /* Purchases */
+    .users-table td:nth-child(5) {
+        clear: both;
+        margin-top: 0.5rem;
+        margin-bottom: 0.5rem;
+        background: #f8f9fa;
+        padding: 0.75rem !important;
+        border-radius: 0.5rem;
+    }
+    
+    .users-table td:nth-child(5) .text-center {
+        text-align: left !important;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    
+    .users-table td:nth-child(5):before {
+        content: "История покупок:";
+        font-weight: 600;
+        color: #5a6c7d;
+        font-size: 0.9rem;
+    }
+    
+    /* Registered Date */
+    .users-table td:nth-child(6) {
+        font-size: 0.8rem;
+        color: #858796;
+        margin-bottom: 1rem;
+        padding-top: 0.5rem !important;
+    }
+    
+    .users-table td:nth-child(6) i {
+        width: 16px;
+        text-align: center;
+    }
+    
+    /* Actions */
+    .users-table td:nth-child(7) {
+        border-top: 1px solid #f8f9fa;
+        padding-top: 1rem !important;
+        margin-top: 0.5rem;
+    }
+    
+    .users-table td:nth-child(7) .btn-group {
+        display: flex;
+        width: 100%;
+        gap: 0.5rem;
+    }
+    
+    .users-table td:nth-child(7) .btn {
+        flex: 1;
+        padding: 0.75rem;
+        border-radius: 0.35rem !important;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .users-table td:nth-child(7) .btn i {
+        margin-right: 0;
+    }
+}
 </style>
 
 

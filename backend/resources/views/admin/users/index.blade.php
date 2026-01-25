@@ -29,7 +29,7 @@
     @endif
 
     <!-- Статистика -->
-    <div class="row mb-4">
+    <div class="row mb-4 users-stats">
         <div class="col-lg-3 col-md-6 col-6 mb-3 mb-lg-0">
             <div class="stat-card stat-card-primary stat-card-compact">
                 <div class="stat-card-body">
@@ -119,7 +119,7 @@
 
         <div class="card-body-modern">
             <div class="table-responsive">
-                <table id="users-table" class="table table-hover table-striped mb-0 modern-table">
+                <table id="users-table" class="table table-hover table-striped mb-0 users-table">
                     <thead class="thead-light">
                         <tr>
                             <th style="width: 50px" class="text-center">ID</th>
