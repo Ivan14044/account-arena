@@ -1,6 +1,8 @@
 @extends('adminlte::page')
 
-@section('title', 'Панель управления')
+@section('title', __('Панель управления'))
+
+@section('plugins.DateRangePicker', true)
 
 @section('content_header')
     <div class="content-header-modern">
@@ -8,22 +10,16 @@
             <div class="mb-2 mb-md-0">
                 <h1 class="m-0 font-weight-bold text-dark">{{ __('Панель управления') }}</h1>
             </div>
-            <div class="w-100 w-md-auto" style="max-width: 280px;">
-                <form method="GET" class="mb-0">
-                    <div class="input-group input-group-sm">
-                        <div class="input-group-prepend">
-                            <span class="input-group-text bg-white border-right-0"><i class="far fa-calendar-alt text-muted"></i></span>
-                        </div>
-                        <select name="period" class="form-control border-left-0 shadow-none" onchange="this.form.submit()">
-                            <option value="today" {{ $period === 'today' ? 'selected' : '' }}>{{ __('Сегодня') }}</option>
-                            <option value="yesterday" {{ $period === 'yesterday' ? 'selected' : '' }}>{{ __('Вчера') }}</option>
-                            <option value="week" {{ $period === 'week' ? 'selected' : '' }}>{{ __('На этой неделе') }}</option>
-                            <option value="month" {{ $period === 'month' ? 'selected' : '' }}>{{ __('В этом месяце') }}</option>
-                            <option value="year" {{ $period === 'year' ? 'selected' : '' }}>{{ __('В этом году') }}</option>
-                            <option value="all" {{ $period === 'all' ? 'selected' : '' }}>{{ __('За весь период') }}</option>
-                            <option value="custom" {{ $period === 'custom' ? 'selected' : '' }}>{{ __('Произвольный период') }}</option>
-                        </select>
-                    </div>
+            <div class="w-100 w-md-auto d-flex align-items-center">
+                <div id="reportrange" class="form-control form-control-sm bg-white d-flex align-items-center" style="cursor: pointer; min-width: 280px; height: 31px;">
+                    <i class="far fa-calendar-alt mr-2 text-primary"></i>
+                    <span class="flex-grow-1 text-truncate"></span>
+                    <i class="fa fa-caret-down ml-2 opacity-50"></i>
+                </div>
+                <form id="date-range-form" method="GET" class="d-none">
+                    <input type="hidden" name="start_date" id="start_date" value="{{ request('start_date') }}">
+                    <input type="hidden" name="end_date" id="end_date" value="{{ request('end_date') }}">
+                    <input type="hidden" name="period" id="period" value="{{ $period }}">
                 </form>
             </div>
         </div>
@@ -31,32 +27,6 @@
 @stop
 
 @section('content')
-    @if($period === 'custom')
-        <div class="row mb-4">
-            <div class="col-12">
-                <div class="card border-0 shadow-sm">
-                    <div class="card-body">
-                        <form method="GET" class="mb-0">
-                            <div class="row">
-                                <div class="col-12 col-md-4 mb-2 mb-md-0">
-                                    <label class="mb-1 text-muted small">{{ __('Дата начала') }}</label>
-                                    <input type="date" name="start_date" class="form-control" value="{{ request('start_date') }}">
-                                </div>
-                                <div class="col-12 col-md-4 mb-2 mb-md-0">
-                                    <label class="mb-1 text-muted small">{{ __('Дата окончания') }}</label>
-                                    <input type="date" name="end_date" class="form-control" value="{{ request('end_date') }}">
-                                </div>
-                                <div class="col-12 col-md-4 d-flex align-items-end">
-                                    <input type="hidden" name="period" value="custom">
-                                    <button type="submit" class="btn btn-primary w-100"><i class="fas fa-filter mr-2"></i>{{ __('Применить') }}</button>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
-    @endif
 
     <!-- Общая статистика -->
     <div class="row mb-3">
@@ -352,27 +322,96 @@
 
 @section('js')
 <script>
-    // Wait for Chart.js to load and DOM to be ready
+    // --- DateRangePicker Logic ---
+    document.addEventListener('DOMContentLoaded', function() {
+        if (typeof $ === 'undefined' || typeof moment === 'undefined' || typeof $.fn.daterangepicker === 'undefined') {
+            return;
+        }
+
+        var start = moment().subtract(29, 'days');
+        var end = moment();
+        var period = '{{ $period }}';
+
+        @if(request('start_date') && request('end_date'))
+            start = moment('{{ request('start_date') }}');
+            end = moment('{{ request('end_date') }}');
+        @elseif($period === 'today')
+            start = end = moment();
+        @elseif($period === 'yesterday')
+            start = end = moment().subtract(1, 'days');
+        @elseif($period === 'week')
+            start = moment().startOf('week');
+            end = moment().endOf('week').add(1, 'days').subtract(1, 'seconds');
+        @elseif($period === 'month')
+            start = moment().startOf('month');
+            end = moment().endOf('month');
+        @elseif($period === 'year')
+            start = moment().startOf('year');
+            end = moment().endOf('year');
+        @elseif($period === 'all')
+            start = moment('2020-01-01');
+            end = moment();
+        @endif
+
+        function cb(start, end, label) {
+            $('#reportrange span').html(start.format('D MMMM YYYY') + ' - ' + end.format('D MMMM YYYY'));
+            
+            var finalPeriod = 'custom';
+            if (label === '{{ __('Сегодня') }}') finalPeriod = 'today';
+            else if (label === '{{ __('Вчера') }}') finalPeriod = 'yesterday';
+            else if (label === '{{ __('На этой неделе') }}') finalPeriod = 'week';
+            else if (label === '{{ __('В этом месяце') }}') finalPeriod = 'month';
+            else if (label === '{{ __('В этом году') }}') finalPeriod = 'year';
+            else if (label === '{{ __('Весь период') }}') finalPeriod = 'all';
+
+            $('#start_date').val(start.format('YYYY-MM-DD'));
+            $('#end_date').val(end.format('YYYY-MM-DD'));
+            $('#period').val(finalPeriod);
+        }
+
+        $('#reportrange').daterangepicker({
+            startDate: start,
+            endDate: end,
+            opens: 'left',
+            alwaysShowCalendars: true,
+            ranges: {
+               '{{ __('Сегодня') }}': [moment(), moment()],
+               '{{ __('Вчера') }}': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+               '{{ __('На этой неделе') }}': [moment().startOf('week'), moment().endOf('week')],
+               '{{ __('В этом месяце') }}': [moment().startOf('month'), moment().endOf('month')],
+               '{{ __('В этом году') }}': [moment().startOf('year'), moment().endOf('year')],
+               '{{ __('Весь период') }}': [moment('2020-01-01'), moment()]
+            },
+            locale: {
+                format: 'DD.MM.YYYY',
+                applyLabel: '{{ __('Применить') }}',
+                cancelLabel: '{{ __('Отмена') }}',
+                customRangeLabel: '{{ __('Свой период') }}',
+                daysOfWeek: ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'],
+                monthNames: ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'],
+                firstDay: 1
+            }
+        }, cb);
+
+        cb(start, end, '');
+
+        $('#reportrange').on('apply.daterangepicker', function(ev, picker) {
+            $('#date-range-form').submit();
+        });
+    });
+
+    // --- Chart.js Logic ---
     function initCharts() {
-        // Check if Chart is available
         if (typeof Chart === 'undefined') {
-            // Retry after a short delay if Chart.js is still loading
             setTimeout(initCharts, 100);
             return;
         }
 
-        // Check if chart elements exist
         const salesChartElement = document.getElementById('salesChart');
         const categoryChartElement = document.getElementById('categoryChart');
-        
-        if (!salesChartElement && !categoryChartElement) {
-            return; // No charts to initialize
-        }
+        if (!salesChartElement && !categoryChartElement) return;
 
-        // Данные для тултипов (переданы из контроллера)
         var salesTooltips = {!! json_encode($salesChartData['tooltips']) !!};
-
-        // Тексты для локализации JS
         const LABELS = {
             sales: '{{ __('Продажи') }}',
             sum: '{{ __('Сумма продаж') }}',
@@ -383,10 +422,9 @@
             returning: '{{ __('Вернувшихся') }}'
         };
 
-        // График продаж
         if (salesChartElement) {
             const salesCtx = salesChartElement.getContext('2d');
-            const salesChart = new Chart(salesCtx, {
+            new Chart(salesCtx, {
                 type: 'line',
                 data: {
                     labels: {!! json_encode($salesChartData['labels']) !!},
@@ -406,9 +444,7 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    legend: {
-                        display: false
-                    },
+                    legend: { display: false },
                     tooltips: {
                         mode: 'index',
                         intersect: false,
@@ -418,23 +454,18 @@
                         footerFontColor: '#666',
                         borderColor: 'rgba(0,0,0,0.1)',
                         borderWidth: 1,
-                        titleFontSize: 14,
-                        bodyFontSize: 13,
-                        footerFontSize: 12,
                         cornerRadius: 8,
                         xPadding: 12,
                         yPadding: 12,
                         callbacks: {
-                            label: function(tooltipItem, data) {
+                            label: function(tooltipItem) {
                                 return LABELS.sum + ': $' + parseFloat(tooltipItem.yLabel).toFixed(2);
                             },
-                            footer: function(tooltipItems, data) {
-                                // tooltipItems is an array of items for the hovered index
+                            footer: function(tooltipItems) {
                                 var index = tooltipItems[0].index;
                                 var extra = salesTooltips;
-                                
                                 return [
-                                    '', // Spacer
+                                    '',
                                     '📦 ' + LABELS.items + ': ' + extra.items[index] + ' шт',
                                     '🧾 ' + LABELS.orders + ': ' + extra.orders[index],
                                     '💲 ' + LABELS.avg + ': $' + extra.avg_check[index],
@@ -446,39 +477,21 @@
                     },
                     scales: {
                         yAxes: [{
-                            ticks: {
-                                beginAtZero: true,
-                                fontColor: '#999',
-                                callback: function(value) {
-                                    return '$' + value;
-                                }
-                            },
-                            gridLines: {
-                                display: true,
-                                color: 'rgba(0, 0, 0, 0.03)',
-                                drawBorder: false
-                            }
+                            ticks: { beginAtZero: true, fontColor: '#999', callback: (v) => '$' + v },
+                            gridLines: { color: 'rgba(0, 0, 0, 0.03)', drawBorder: false }
                         }],
                         xAxes: [{
-                            gridLines: {
-                                display: false
-                            },
-                            ticks: {
-                                fontColor: '#999',
-                                maxRotation: 0,
-                                autoSkip: true,
-                                maxTicksLimit: 10
-                            }
+                            gridLines: { display: false },
+                            ticks: { fontColor: '#999', maxRotation: 0, autoSkip: true, maxTicksLimit: 10 }
                         }]
                     }
                 }
             });
         }
 
-        // График по категориям
         if (categoryChartElement) {
             const categoryCtx = categoryChartElement.getContext('2d');
-            const categoryChart = new Chart(categoryCtx, {
+            new Chart(categoryCtx, {
                 type: 'doughnut',
                 data: {
                     labels: {!! json_encode($categoryChartData['labels']) !!},
@@ -490,18 +503,13 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    legend: {
-                        position: 'bottom',
-                        display: true
-                    },
+                    legend: { position: 'bottom', display: true },
                     tooltips: {
                         callbacks: {
                             label: function(tooltipItem, data) {
                                 var dataset = data.datasets[tooltipItem.datasetIndex];
                                 var index = tooltipItem.index;
-                                var value = dataset.data[index];
-                                var label = data.labels[index];
-                                return label + ': ' + value + ' шт.';
+                                return data.labels[index] + ': ' + dataset.data[index] + ' шт.';
                             }
                         }
                     }
@@ -510,11 +518,9 @@
         }
     }
 
-    // Initialize charts when DOM is ready
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initCharts);
     } else {
-        // DOM is already ready
         initCharts();
     }
 </script>
