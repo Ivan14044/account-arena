@@ -480,8 +480,10 @@
 .form-control-modern {
     border: 1px solid #d1d3e2;
     border-radius: 0.375rem;
-    padding: 0.65rem 1rem;
+    padding: 0.5rem 1rem;
     font-size: 0.875rem;
+    line-height: 1.5;
+    height: auto;
     transition: all 0.2s ease;
 }
 
