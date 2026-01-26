@@ -31,7 +31,7 @@
     @endif
 
     <!-- Статистика -->
-    <div class="row mb-4">
+    <div class="row mb-4 withdrawals-stats">
         <div class="col-lg-3 col-md-6 col-6 mb-3 mb-lg-0">
             <div class="stat-card stat-card-primary stat-card-compact w-100">
                 <div class="stat-card-body">
@@ -157,7 +157,7 @@
         </div>
         <div class="card-body-modern">
             <div class="table-responsive">
-                <table id="withdrawals-table" class="table table-hover modern-table">
+                <table id="withdrawals-table" class="table table-hover modern-table withdrawals-table">
                     <thead>
                     <tr>
                         <th style="width: 60px" class="text-center">ID</th>

@@ -29,7 +29,7 @@
     @endif
 
     <!-- Статистика -->
-    <div class="row mb-4">
+    <div class="row mb-4 suppliers-stats">
         <div class="col-lg-4 col-6">
             <div class="stat-card stat-card-primary stat-card-compact">
                 <div class="stat-card-body">
@@ -106,7 +106,7 @@
         <div class="card-body-modern p-0">
             @if($suppliers->count() > 0)
             <div class="table-responsive">
-                <table class="table table-hover modern-table mb-0">
+                <table class="table table-hover modern-table mb-0 suppliers-table">
                     <thead>
                     <tr>
                         <th style="width: 60px" class="text-center">ID</th>

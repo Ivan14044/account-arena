@@ -4358,6 +4358,570 @@ body {
         padding: 0.6rem;
     }
 }
+/* ========================================
+   VOUCHERS PAGE - MOBILE STYLES
+   ======================================== */
+@media (max-width: 575px) {
+    /* Vouchers Stats */
+    .row.vouchers-stats {
+        display: flex;
+        flex-wrap: wrap;
+        margin-right: -0.25rem;
+        margin-left: -0.25rem;
+    }
+    .row.vouchers-stats > [class*="col-"] {
+        flex: 0 0 50% !important;
+        max-width: 50% !important;
+        width: 50% !important;
+        padding-right: 0.25rem;
+        padding-left: 0.25rem;
+        margin-bottom: 0.5rem !important;
+        display: flex;
+    }
+    .vouchers-stats .stat-card {
+        padding: 1rem 0.5rem !important;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-bottom: 0 !important;
+    }
+    .vouchers-stats .stat-card-body {
+        padding: 0 !important;
+        width: 100%;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        text-align: center !important;
+    }
+    .vouchers-stats .stat-icon {
+        position: static !important;
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        width: 40px !important;
+        height: 40px !important;
+        border-radius: 50%;
+        margin: 0 auto 0.5rem auto !important;
+        font-size: 1.25rem !important;
+        background: rgba(0,0,0,0.05) !important;
+    }
+    .vouchers-stats .stat-value {
+        font-size: 1.25rem !important;
+        font-weight: 800 !important;
+        text-align: center !important;
+        width: 100%;
+        display: block;
+        color: #2c3e50;
+    }
+    .vouchers-stats .stat-label {
+        font-size: 0.65rem !important;
+        text-align: center !important;
+        width: 100%;
+        display: block;
+        color: #858796;
+        text-transform: uppercase;
+        font-weight: 700;
+    }
+    
+    /* Specific Colors */
+    .vouchers-stats .stat-card-primary .stat-icon i { color: #4e73df !important; }
+    .vouchers-stats .stat-card-success .stat-icon i { color: #1cc88a !important; }
+    .vouchers-stats .stat-card-warning .stat-icon i { color: #f6c23e !important; }
+    .vouchers-stats .stat-card-info .stat-icon i { color: #36b9cc !important; }
+
+    /* Vouchers Table */
+    .vouchers-table, .vouchers-table tbody, .vouchers-table tr, .vouchers-table td {
+        display: block;
+        width: 100%;
+    }
+    .vouchers-table thead { display: none; }
+    .vouchers-table tr {
+        background: #fff;
+        border: 1px solid #e3e6f0;
+        border-radius: 0.75rem;
+        margin-bottom: 1rem;
+        padding: 1rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        position: relative;
+    }
+    .vouchers-table td {
+        border: none;
+        padding: 0 !important;
+        margin-bottom: 0.5rem;
+        text-align: left !important;
+    }
+    /* ID */
+    .vouchers-table td:nth-child(1) {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        width: auto !important;
+        z-index: 2;
+    }
+    /* Code */
+    .vouchers-table td:nth-child(2) {
+        margin-bottom: 0.5rem;
+        padding-right: 3rem !important;
+    }
+    .vouchers-table td:nth-child(2) code {
+        font-size: 1.1rem;
+    }
+    /* Amount & Currency */
+    .vouchers-table td:nth-child(3), .vouchers-table td:nth-child(4) {
+        display: inline-block;
+        width: auto !important;
+        font-size: 1.25rem;
+        font-weight: 800;
+        margin-bottom: 1rem;
+    }
+    /* User */
+    .vouchers-table td:nth-child(5) {
+        margin-bottom: 0.75rem;
+        border-top: 1px solid #f0f2f5;
+        padding-top: 0.75rem !important;
+    }
+    /* Status & Used At */
+    .vouchers-table td:nth-child(6), .vouchers-table td:nth-child(7) {
+        display: inline-block;
+        width: auto !important;
+        margin-right: 0.5rem;
+    }
+    /* Actions */
+    .vouchers-table td:nth-child(8) {
+        margin-top: 1rem;
+        padding-top: 0.5rem !important;
+        border-top: 1px dashed #e3e6f0;
+    }
+    .vouchers-table td:nth-child(8) .action-buttons {
+        display: flex;
+        gap: 0.5rem;
+    }
+    .vouchers-table td:nth-child(8) .btn { flex: 1; padding: 0.6rem; }
+}
+
+/* ========================================
+   SUPPLIERS PAGE - MOBILE STYLES
+   ======================================== */
+@media (max-width: 575px) {
+    /* Suppliers Stats - reuse Vouchers styles basically, but specific class */
+    .row.suppliers-stats {
+        display: flex;
+        flex-wrap: wrap;
+        margin-right: -0.25rem;
+        margin-left: -0.25rem;
+    }
+    .row.suppliers-stats > [class*="col-"] {
+        flex: 0 0 50% !important;
+        max-width: 50% !important;
+        padding: 0 0.25rem;
+        margin-bottom: 0.5rem !important;
+        display: flex;
+    }
+    .suppliers-stats .stat-card {
+        padding: 1rem 0.5rem !important;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-bottom: 0 !important;
+    }
+    .suppliers-stats .stat-card-body {
+        padding: 0 !important;
+        width: 100%;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        text-align: center !important;
+    }
+    .suppliers-stats .stat-icon {
+        position: static !important;
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        width: 40px !important;
+        height: 40px !important;
+        border-radius: 50%;
+        margin: 0 auto 0.5rem auto !important;
+        font-size: 1.25rem !important;
+        background: rgba(0,0,0,0.05) !important;
+    }
+    
+    .suppliers-stats .stat-card-primary .stat-icon i { color: #4e73df !important; }
+    .suppliers-stats .stat-card-success .stat-icon i { color: #1cc88a !important; }
+    .suppliers-stats .stat-card-info .stat-icon i { color: #36b9cc !important; }
+    
+    .suppliers-stats .stat-value {
+        font-size: 1.25rem !important;
+        font-weight: 800 !important;
+        text-align: center !important;
+        width: 100%;
+        display: block;
+        color: #2c3e50;
+    }
+    .suppliers-stats .stat-label {
+        font-size: 0.65rem !important;
+        text-align: center !important;
+        width: 100%;
+        display: block;
+        color: #858796;
+        text-transform: uppercase;
+        font-weight: 700;
+    }
+
+    /* Suppliers Table */
+    .suppliers-table, .suppliers-table tbody, .suppliers-table tr, .suppliers-table td {
+        display: block;
+        width: 100%;
+    }
+    .suppliers-table thead { display: none; }
+    .suppliers-table tr {
+        background: #fff;
+        border: 1px solid #e3e6f0;
+        border-radius: 0.75rem;
+        margin-bottom: 1rem;
+        padding: 1rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        position: relative;
+    }
+    .suppliers-table td {
+        border: none;
+        padding: 0 !important;
+        margin-bottom: 0.5rem;
+        text-align: left !important;
+    }
+    /* ID */
+    .suppliers-table td:nth-child(1) {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        width: auto !important;
+    }
+    /* Name */
+    .suppliers-table td:nth-child(2) {
+        font-size: 1.2rem;
+        font-weight: 700;
+        padding-right: 3rem !important;
+        color: #2c3e50;
+    }
+    /* Email */
+    .suppliers-table td:nth-child(3) {
+        font-size: 0.85rem;
+        color: #5a6c7d;
+        margin-bottom: 1rem;
+        border-bottom: 1px solid #f0f2f5;
+        padding-bottom: 0.5rem !important;
+    }
+    /* Rating, Balance, Commission */
+    .suppliers-table td:nth-child(4),
+    .suppliers-table td:nth-child(5),
+    .suppliers-table td:nth-child(6) {
+        display: inline-block;
+        width: auto !important;
+        margin-right: 1rem;
+        margin-bottom: 0.5rem;
+    }
+    .suppliers-table td:nth-child(5) {
+        font-weight: 800;
+        font-size: 1.1rem;
+    }
+    /* Methods */
+    .suppliers-table td:nth-child(7) {
+        margin-bottom: 1rem;
+    }
+    /* Actions */
+    .suppliers-table td:nth-child(8) .btn {
+        width: 100%;
+        padding: 0.75rem;
+    }
+}
+
+/* ========================================
+   WITHDRAWAL REQUESTS - MOBILE STYLES
+   ======================================== */
+@media (max-width: 575px) {
+    /* Withdrawals Stats - reuse Vouchers styles */
+    .row.withdrawals-stats {
+        display: flex;
+        flex-wrap: wrap;
+        margin-right: -0.25rem;
+        margin-left: -0.25rem;
+    }
+    .row.withdrawals-stats > [class*="col-"] {
+        flex: 0 0 50% !important;
+        max-width: 50% !important;
+        padding: 0 0.25rem;
+        margin-bottom: 0.5rem !important;
+        display: flex;
+    }
+    .withdrawals-stats .stat-card {
+        padding: 1rem 0.5rem !important;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-bottom: 0 !important;
+    }
+    .withdrawals-stats .stat-card-body {
+        padding: 0 !important;
+        width: 100%;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        text-align: center !important;
+    }
+    .withdrawals-stats .stat-icon {
+        position: static !important;
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        width: 40px !important;
+        height: 40px !important;
+        border-radius: 50%;
+        margin: 0 auto 0.5rem auto !important;
+        font-size: 1.25rem !important;
+        background: rgba(0,0,0,0.05) !important;
+    }
+    
+    .withdrawals-stats .stat-card-primary .stat-icon i { color: #4e73df !important; }
+    .withdrawals-stats .stat-card-success .stat-icon i { color: #1cc88a !important; }
+    .withdrawals-stats .stat-card-warning .stat-icon i { color: #f6c23e !important; }
+    .withdrawals-stats .stat-card-info .stat-icon i { color: #36b9cc !important; }
+
+    .withdrawals-stats .stat-value {
+        font-size: 1.25rem !important;
+        font-weight: 800 !important;
+        text-align: center !important;
+        width: 100%;
+        display: block;
+        color: #2c3e50;
+    }
+    .withdrawals-stats .stat-label {
+        font-size: 0.65rem !important;
+        text-align: center !important;
+        width: 100%;
+        display: block;
+        color: #858796;
+        text-transform: uppercase;
+        font-weight: 700;
+    }
+    
+    /* Table */
+    .withdrawals-table, .withdrawals-table tbody, .withdrawals-table tr, .withdrawals-table td {
+        display: block;
+        width: 100%;
+    }
+    .withdrawals-table thead { display: none; }
+    .withdrawals-table tr {
+        display: block;
+        background: #fff;
+        border: 1px solid #e3e6f0;
+        border-radius: 0.75rem;
+        margin-bottom: 1rem;
+        padding: 1rem;
+        position: relative;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+    }
+    .withdrawals-table td {
+        display: block;
+        width: 100%;
+        border: none;
+        padding: 0 !important;
+        margin-bottom: 0.5rem;
+        text-align: left !important;
+    }
+    
+    /* ID */
+    .withdrawals-table td:nth-child(1) {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        width: auto !important;
+    }
+    
+    /* Supplier */
+    .withdrawals-table td:nth-child(2) {
+        font-size: 1.1rem;
+        margin-bottom: 1rem;
+        padding-right: 3rem !important;
+    }
+    
+    /* Amount */
+    .withdrawals-table td:nth-child(3) {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: #2c3e50;
+        margin-bottom: 0.25rem;
+    }
+    
+    /* Method */
+    .withdrawals-table td:nth-child(4) {
+        display: inline-block;
+        width: auto !important;
+        margin-bottom: 1rem;
+    }
+    
+    /* Details */
+    .withdrawals-table td:nth-child(5) {
+        background: #f8f9fa;
+        padding: 0.5rem !important;
+        border-radius: 0.5rem;
+        font-size: 0.8rem;
+        word-break: break-all;
+        margin-bottom: 1rem;
+    }
+    
+    /* Status & Date */
+    .withdrawals-table td:nth-child(6),
+    .withdrawals-table td:nth-child(7) {
+        display: inline-block;
+        width: auto !important;
+        margin-right: 1rem;
+    }
+    
+    /* Actions */
+    .withdrawals-table td:nth-child(8) {
+        margin-top: 0.5rem;
+        padding-top: 0.5rem !important;
+        border-top: 1px dashed #e3e6f0;
+    }
+    .withdrawals-table td:nth-child(8) .btn {
+        width: 100%;
+        padding: 0.6rem;
+    }
+}
+
+/* ========================================
+   NOTIFICATIONS - MOBILE STYLES
+   ======================================== */
+@media (max-width: 575px) {
+    /* Notifications Stats - reuse Vouchers styles */
+    .row.notifications-stats {
+        display: flex;
+        flex-wrap: wrap;
+        margin-right: -0.25rem;
+        margin-left: -0.25rem;
+    }
+    .row.notifications-stats > [class*="col-"] {
+        flex: 0 0 50% !important;
+        max-width: 50% !important;
+        padding: 0 0.25rem;
+        margin-bottom: 0.5rem !important;
+        display: flex;
+    }
+    .notifications-stats .stat-card {
+        padding: 1rem 0.5rem !important;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-bottom: 0 !important;
+    }
+    .notifications-stats .stat-card-body {
+        padding: 0 !important;
+        width: 100%;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        text-align: center !important;
+    }
+    .notifications-stats .stat-icon {
+        position: static !important;
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        width: 40px !important;
+        height: 40px !important;
+        border-radius: 50%;
+        margin: 0 auto 0.5rem auto !important;
+        font-size: 1.25rem !important;
+        background: rgba(0,0,0,0.05) !important;
+    }
+    
+    .notifications-stats .stat-card-primary .stat-icon i { color: #4e73df !important; }
+    .notifications-stats .stat-card-success .stat-icon i { color: #1cc88a !important; }
+    .notifications-stats .stat-card-warning .stat-icon i { color: #f6c23e !important; }
+
+    .notifications-stats .stat-value {
+        font-size: 1.25rem !important;
+        font-weight: 800 !important;
+        text-align: center !important;
+        width: 100%;
+        display: block;
+        color: #2c3e50;
+    }
+    .notifications-stats .stat-label {
+        font-size: 0.65rem !important;
+        text-align: center !important;
+        width: 100%;
+        display: block;
+        color: #858796;
+        text-transform: uppercase;
+        font-weight: 700;
+    }
+
+    /* Table */
+    .notifications-table, .notifications-table tbody, .notifications-table tr, .notifications-table td {
+        display: block;
+        width: 100%;
+    }
+    .notifications-table thead { display: none; }
+    .notifications-table tr {
+        display: block;
+        background: #fff;
+        border: 1px solid #e3e6f0;
+        border-radius: 0.75rem;
+        margin-bottom: 1rem;
+        padding: 1rem;
+        position: relative;
+    }
+    .notifications-table td {
+        display: block;
+        width: 100%;
+        border: none;
+        padding: 0 !important;
+        margin-bottom: 0.5rem;
+        text-align: left !important;
+    }
+    
+    /* ID */
+    .notifications-table td:nth-child(1) {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        width: auto !important;
+    }
+    
+    /* User */
+    .notifications-table td:nth-child(2) {
+        font-weight: 700;
+        font-size: 1.1rem;
+        padding-right: 3rem !important;
+        margin-bottom: 1rem;
+        border-bottom: 1px solid #f0f2f5;
+        padding-bottom: 0.5rem !important;
+    }
+    
+    /* Message */
+    .notifications-table td:nth-child(3) {
+        margin-bottom: 1rem;
+    }
+    
+    /* Status & Date */
+    .notifications-table td:nth-child(4),
+    .notifications-table td:nth-child(5) {
+        display: inline-block;
+        width: auto !important;
+        margin-right: 1rem;
+    }
+    
+    /* Actions */
+    .notifications-table td:nth-child(6) .btn {
+        width: 100%;
+        margin-top: 0.5rem;
+        padding: 0.6rem;
+    }
+}
 </style>
 
 
