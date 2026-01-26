@@ -306,18 +306,6 @@
 
 @section('css')
     @include('admin.layouts.modern-styles')
-<style>
-    .card {
-        transition: transform 0.2s, box-shadow 0.2s;
-    }
-    .card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.08) !important;
-    }
-    .stat-card:hover {
-        transform: translateY(-3px);
-    }
-</style>
 @endsection
 
 @section('js')

@@ -61,7 +61,7 @@ class DashboardController extends Controller
                         ELSE GREATEST(0, JSON_LENGTH(accounts_data) - COALESCE(used, 0)) 
                     END) as available_products,
                     SUM(CASE 
-                        WHEN delivery_type = 'manual' THEN 0 
+                        WHEN delivery_type = 'manual' THEN price
                         ELSE GREATEST(0, JSON_LENGTH(accounts_data) - COALESCE(used, 0)) * price 
                     END) as total_value
                 ")
@@ -242,7 +242,7 @@ class DashboardController extends Controller
             ->join('category_translations', function($join) {
                 $join->on('categories.id', '=', 'category_translations.category_id')
                     ->where('category_translations.code', '=', 'name')
-                    ->where('category_translations.locale', '=', 'ru');
+                    ->where('category_translations.locale', '=', app()->getLocale());
             })
             ->where('purchases.status', '=', 'completed')
             ->select('category_translations.value as category_name', \Illuminate\Support\Facades\DB::raw('count(purchases.id) as sales_count'))
