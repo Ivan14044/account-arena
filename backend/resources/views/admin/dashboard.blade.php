@@ -8,13 +8,13 @@
             <div class="mb-2 mb-md-0">
                 <h1 class="m-0 font-weight-bold text-dark">{{ __('Панель управления') }}</h1>
             </div>
-            <div class="w-100 w-md-auto">
+            <div class="w-100 w-md-auto" style="max-width: 280px;">
                 <form method="GET" class="mb-0">
-                    <div class="input-group">
+                    <div class="input-group input-group-sm">
                         <div class="input-group-prepend">
                             <span class="input-group-text bg-white border-right-0"><i class="far fa-calendar-alt text-muted"></i></span>
                         </div>
-                        <select name="period" class="form-control border-left-0" onchange="this.form.submit()">
+                        <select name="period" class="form-control border-left-0 shadow-none" onchange="this.form.submit()">
                             <option value="today" {{ $period === 'today' ? 'selected' : '' }}>{{ __('Сегодня') }}</option>
                             <option value="yesterday" {{ $period === 'yesterday' ? 'selected' : '' }}>{{ __('Вчера') }}</option>
                             <option value="week" {{ $period === 'week' ? 'selected' : '' }}>{{ __('На этой неделе') }}</option>
