@@ -226,6 +226,21 @@ class UserController extends Controller
                     'new_balance' => $newBalance,
                     'comment' => $comment,
                 ]);
+
+                // Запись в Activity Log (БД)
+                \App\Models\AuditLog::log(
+                    'update_balance',
+                    'User',
+                    $user->id,
+                    auth()->id(),
+                    [
+                        'operation' => $operation,
+                        'amount' => (float)$amount,
+                        'old_balance' => (float)$oldBalance,
+                        'new_balance' => (float)$newBalance,
+                        'comment' => $comment,
+                    ]
+                );
             });
 
             // Получаем обновленный баланс для сообщения

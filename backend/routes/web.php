@@ -76,6 +76,7 @@ Route::prefix('/admin')
             Route::resource('settings', SettingController::class)->only(['index', 'store']);
             Route::post('settings/test-smtp', [SettingController::class, 'testSmtp'])->name('settings.test-smtp');
             Route::get('settings/notification-check', [SettingController::class, 'getNotificationSettings'])->name('settings.notification-check');
+            Route::resource('activity-logs', \App\Http\Controllers\Admin\AuditLogController::class)->only(['index']);
             Route::resource('service-accounts', ServiceAccountController::class)->except(['show']);
             Route::get('service-accounts/{serviceAccount}/export', [ServiceAccountController::class, 'export'])->name('service-accounts.export');
             Route::post('service-accounts/{serviceAccount}/import', [ServiceAccountController::class, 'import'])->name('service-accounts.import');

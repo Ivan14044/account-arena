@@ -514,6 +514,12 @@ return [
             'icon' => 'fas fa-fw mr-1 fa-cog',
         ],
         [
+            'text' => 'Журнал действий',
+            'url' => 'admin/activity-logs',
+            'icon' => 'fas fa-fw mr-1 fa-history',
+            'can' => 'main-admin',
+        ],
+        [
             'text' => 'Администраторы',
             'url' => 'admin/admins',
             'icon' => 'fas fa-fw mr-1 fa-user-shield',
