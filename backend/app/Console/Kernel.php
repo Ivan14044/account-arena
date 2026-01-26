@@ -29,6 +29,9 @@ class Kernel extends ConsoleKernel
         // Автоматическая обработка заказов, ожидающих появления товара (каждые 30 минут)
         $schedule->command('process:waiting-stock-orders')->everyThirtyMinutes();
 
+        // Автоматическое закрытие диспутов при отсутствии активности (каждый час)
+        $schedule->command('disputes:auto-close')->hourly();
+
     }
 
     /**

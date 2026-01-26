@@ -42,7 +42,7 @@ class SettingController extends Controller
                 // Нам не нужно делать это здесь вручную.
 
                 // Для checkbox полей нужно сохранять даже если они false
-                if (in_array($key, ['support_chat_enabled', 'support_chat_greeting_enabled', 'smtp_verify_peer'])) {
+                if (in_array($key, ['support_chat_enabled', 'support_chat_greeting_enabled', 'smtp_verify_peer', 'dispute_auto_close_enabled'])) {
                     Option::set($key, $request->has($key) ? true : false);
                 } elseif (!empty($value) || $value === '0' || $value === 0) {
                     Option::set($key, $value);
@@ -287,6 +287,10 @@ class SettingController extends Controller
             ],
             'pixel' => [
                 'facebook_pixel_id' => ['nullable', 'string', 'max:255'],
+            ],
+            'disputes' => [
+                'dispute_auto_close_enabled' => ['nullable', 'boolean'],
+                'dispute_auto_close_hours' => ['required', 'integer', 'min:1', 'max:720'],
             ],
             default => [],
         };

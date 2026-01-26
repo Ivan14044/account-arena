@@ -57,6 +57,11 @@
                         <i class="fab fa-facebook mr-2"></i>Facebook Pixel
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="tab_disputes" data-toggle="pill" href="#content_disputes" role="tab">
+                        <i class="fas fa-gavel mr-2"></i>Диспуты
+                    </a>
+                </li>
             </ul>
         </div>
         <div class="card-body">
@@ -501,6 +506,56 @@
                             @enderror
                             <small class="form-text text-muted">
                                 Введите ваш Facebook Pixel ID (обычно это 15-16 цифр). Оставьте пустым, чтобы отключить Pixel.
+                            </small>
+                        </div>
+
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save mr-2"></i>Сохранить настройки
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Disputes Settings -->
+                <div class="tab-pane fade" id="content_disputes" role="tabpanel">
+                    <form method="POST" action="{{ route('admin.settings.store') }}">
+                        <input type="hidden" name="form" value="disputes">
+                        @csrf
+
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle mr-2"></i>
+                            <strong>Авто-закрытие диспутов</strong>
+                            <p class="mb-0 mt-1">Система может автоматически закрывать диспуты при отсутствии активности одной из сторон.</p>
+                            <ul class="mb-0 mt-1 pl-4 small">
+                                <li>Если продавец (поставщик) не реагирует на <strong>новый</strong> диспут — закрытие в пользу покупателя (Возврат).</li>
+                                <li>Порог бездействия: задается ниже (по умолчанию 24 часа).</li>
+                            </ul>
+                        </div>
+
+                        <div class="form-group">
+                            <div class="custom-control custom-switch">
+                                <input type="checkbox" class="custom-control-input" id="dispute_auto_close_enabled"
+                                    name="dispute_auto_close_enabled" value="1" {{ old('dispute_auto_close_enabled', \App\Models\Option::get('dispute_auto_close_enabled')) ? 'checked' : '' }}>
+                                <label class="custom-control-label" for="dispute_auto_close_enabled">
+                                    Включить авто-закрытие диспутов
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="dispute_auto_close_hours">
+                                <i class="fas fa-clock mr-2"></i>Тауймаут бездействия (часов)
+                            </label>
+                            <input type="number" class="form-control @error('dispute_auto_close_hours') is-invalid @enderror" 
+                                id="dispute_auto_close_hours" name="dispute_auto_close_hours"
+                                value="{{ old('dispute_auto_close_hours', \App\Models\Option::get('dispute_auto_close_hours', 24)) }}" min="1" max="720">
+                            @error('dispute_auto_close_hours')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                            <small class="form-text text-muted">
+                                Время ожидания ответа на новый диспут. Если за это время статус диспута не изменится, сработает авто-возврат покупателю.
+                                <br>Рекомендуемое значение: <strong>24</strong> часа.
                             </small>
                         </div>
 
