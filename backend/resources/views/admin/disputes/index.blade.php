@@ -103,9 +103,9 @@
                 <div class="col-md-3 mb-3">
                     <label class="form-label">Владелец товара</label>
                     <select name="owner" class="form-control form-control-modern">
-                        <option value="">Все товары</option>
-                        <option value="admin" {{ request('owner') == 'admin' ? 'selected' : '' }}>🛡️ Мои товары</option>
-                        <option value="suppliers" {{ request('owner') == 'suppliers' ? 'selected' : '' }}>Товары поставщиков</option>
+                        <option value="">{{ __('Все товары') }}</option>
+                        <option value="admin" {{ request('owner') == 'admin' ? 'selected' : '' }}>🛡️ {{ __('Мои товары') }}</option>
+                        <option value="suppliers" {{ request('owner') == 'suppliers' ? 'selected' : '' }}>{{ __('Товары поставщиков') }}</option>
                     </select>
                 </div>
 
