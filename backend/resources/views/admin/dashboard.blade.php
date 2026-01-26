@@ -10,11 +10,11 @@
             <div class="mb-2 mb-md-0">
                 <h1 class="m-0 font-weight-bold text-dark">{{ __('Панель управления') }}</h1>
             </div>
-            <div class="w-100 w-md-auto d-flex align-items-center">
-                <div id="reportrange" class="form-control form-control-sm bg-white d-flex align-items-center" style="cursor: pointer; min-width: 280px; height: 31px;">
-                    <i class="far fa-calendar-alt mr-2 text-primary"></i>
-                    <span class="flex-grow-1 text-truncate"></span>
-                    <i class="fa fa-caret-down ml-2 opacity-50"></i>
+            <div class="w-100 w-md-auto d-flex align-items-center justify-content-md-end">
+                <div id="reportrange" class="form-control form-control-sm bg-white d-flex align-items-center shadow-none border" style="cursor: pointer; width: auto; min-width: 160px; height: 31px;">
+                    <i class="far fa-calendar-alt mr-2 text-primary opacity-70"></i>
+                    <span class="flex-grow-1 text-truncate font-weight-600" style="font-size: 0.85rem;"></span>
+                    <i class="fa fa-caret-down ml-2 opacity-50 small"></i>
                 </div>
                 <form id="date-range-form" method="GET" class="d-none">
                     <input type="hidden" name="start_date" id="start_date" value="{{ request('start_date') }}">
@@ -354,16 +354,38 @@
         @endif
 
         function cb(start, end, label) {
-            $('#reportrange span').html(start.format('D MMMM YYYY') + ' - ' + end.format('D MMMM YYYY'));
-            
-            var finalPeriod = 'custom';
-            if (label === '{{ __('Сегодня') }}') finalPeriod = 'today';
-            else if (label === '{{ __('Вчера') }}') finalPeriod = 'yesterday';
-            else if (label === '{{ __('На этой неделе') }}') finalPeriod = 'week';
-            else if (label === '{{ __('В этом месяце') }}') finalPeriod = 'month';
-            else if (label === '{{ __('В этом году') }}') finalPeriod = 'year';
-            else if (label === '{{ __('Весь период') }}') finalPeriod = 'all';
+            var periodLabels = {
+                'today': '{{ __('Сегодня') }}',
+                'yesterday': '{{ __('Вчера') }}',
+                'week': '{{ __('На этой неделе') }}',
+                'month': '{{ __('В этом месяце') }}',
+                'year': '{{ __('В этом году') }}',
+                'all': '{{ __('Весь период') }}'
+            };
 
+            var finalPeriod = 'custom';
+            var displayText = '';
+
+            if (label && label !== '{{ __('Свой период') }}') {
+                displayText = label;
+                if (label === '{{ __('Сегодня') }}') finalPeriod = 'today';
+                else if (label === '{{ __('Вчера') }}') finalPeriod = 'yesterday';
+                else if (label === '{{ __('На этой неделе') }}') finalPeriod = 'week';
+                else if (label === '{{ __('В этом месяце') }}') finalPeriod = 'month';
+                else if (label === '{{ __('В этом году') }}') finalPeriod = 'year';
+                else if (label === '{{ __('Весь период') }}') finalPeriod = 'all';
+            } else {
+                // Если пресет не был передан явно (при загрузке), проверяем текущий $period
+                if (period !== 'custom' && periodLabels[period]) {
+                    displayText = periodLabels[period];
+                    finalPeriod = period;
+                } else {
+                    displayText = start.format('D MMM') + ' - ' + end.format('D MMM YYYY');
+                    finalPeriod = 'custom';
+                }
+            }
+
+            $('#reportrange span').html(displayText);
             $('#start_date').val(start.format('YYYY-MM-DD'));
             $('#end_date').val(end.format('YYYY-MM-DD'));
             $('#period').val(finalPeriod);
