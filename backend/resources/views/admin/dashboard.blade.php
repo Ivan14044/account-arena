@@ -4,21 +4,24 @@
 
 @section('content_header')
     <div class="content-header-modern">
-        <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
-            <div>
-                <h1 class="m-0 font-weight-light">Панель управления</h1>
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center">
+            <div class="mb-2 mb-md-0">
+                <h1 class="m-0 font-weight-bold text-dark">{{ __('Панель управления') }}</h1>
             </div>
             <div class="w-100 w-md-auto">
-                <form method="GET" class="mb-0" style="max-width: 100%;">
+                <form method="GET" class="mb-0">
                     <div class="input-group">
-                        <select name="period" class="form-control form-control-sm" onchange="this.form.submit()">
-                            <option value="today" {{ $period === 'today' ? 'selected' : '' }}>Сегодня</option>
-                            <option value="yesterday" {{ $period === 'yesterday' ? 'selected' : '' }}>Вчера</option>
-                            <option value="week" {{ $period === 'week' ? 'selected' : '' }}>На этой неделе</option>
-                            <option value="month" {{ $period === 'month' ? 'selected' : '' }}>В этом месяце</option>
-                            <option value="year" {{ $period === 'year' ? 'selected' : '' }}>В этом году</option>
-                            <option value="all" {{ $period === 'all' ? 'selected' : '' }}>За весь период</option>
-                            <option value="custom" {{ $period === 'custom' ? 'selected' : '' }}>Произвольный период</option>
+                        <div class="input-group-prepend">
+                            <span class="input-group-text bg-white border-right-0"><i class="far fa-calendar-alt text-muted"></i></span>
+                        </div>
+                        <select name="period" class="form-control border-left-0" onchange="this.form.submit()">
+                            <option value="today" {{ $period === 'today' ? 'selected' : '' }}>{{ __('Сегодня') }}</option>
+                            <option value="yesterday" {{ $period === 'yesterday' ? 'selected' : '' }}>{{ __('Вчера') }}</option>
+                            <option value="week" {{ $period === 'week' ? 'selected' : '' }}>{{ __('На этой неделе') }}</option>
+                            <option value="month" {{ $period === 'month' ? 'selected' : '' }}>{{ __('В этом месяце') }}</option>
+                            <option value="year" {{ $period === 'year' ? 'selected' : '' }}>{{ __('В этом году') }}</option>
+                            <option value="all" {{ $period === 'all' ? 'selected' : '' }}>{{ __('За весь период') }}</option>
+                            <option value="custom" {{ $period === 'custom' ? 'selected' : '' }}>{{ __('Произвольный период') }}</option>
                         </select>
                     </div>
                 </form>
@@ -31,21 +34,21 @@
     @if($period === 'custom')
         <div class="row mb-4">
             <div class="col-12">
-                <div class="card">
+                <div class="card border-0 shadow-sm">
                     <div class="card-body">
                         <form method="GET" class="mb-0">
-                            <div class="row g-3">
-                                <div class="col-12 col-md-4">
-                                    <label class="mb-1"><small>Дата начала</small></label>
+                            <div class="row">
+                                <div class="col-12 col-md-4 mb-2 mb-md-0">
+                                    <label class="mb-1 text-muted small">{{ __('Дата начала') }}</label>
                                     <input type="date" name="start_date" class="form-control" value="{{ request('start_date') }}">
                                 </div>
-                                <div class="col-12 col-md-4">
-                                    <label class="mb-1"><small>Дата окончания</small></label>
+                                <div class="col-12 col-md-4 mb-2 mb-md-0">
+                                    <label class="mb-1 text-muted small">{{ __('Дата окончания') }}</label>
                                     <input type="date" name="end_date" class="form-control" value="{{ request('end_date') }}">
                                 </div>
                                 <div class="col-12 col-md-4 d-flex align-items-end">
                                     <input type="hidden" name="period" value="custom">
-                                    <button type="submit" class="btn btn-primary w-100 w-md-auto">Применить</button>
+                                    <button type="submit" class="btn btn-primary w-100"><i class="fas fa-filter mr-2"></i>{{ __('Применить') }}</button>
                                 </div>
                             </div>
                         </form>
@@ -56,20 +59,21 @@
     @endif
 
     <!-- Общая статистика -->
-    <div class="row mb-2">
+    <div class="row mb-3">
         <div class="col-12">
-            <h5 class="dashboard-section-header">
-                <i class="fas fa-chart-bar"></i>Общая статистика
+            <h5 class="text-secondary font-weight-bold">
+                <i class="fas fa-database mr-2"></i>{{ __('Общая статистика') }}
             </h5>
         </div>
     </div>
 
     <div class="row dashboard-stats-row">
+        <!-- Total Products -->
         <div class="col-lg-3 col-md-6 mb-3 d-flex">
             <div class="stat-card stat-card-primary w-100">
                 <div class="stat-card-body">
                     <div class="stat-main-info">
-                        <div class="stat-label">Всего товаров</div>
+                        <div class="stat-label">{{ __('Всего товаров') }}</div>
                         <div class="stat-value">{{ number_format($totalProducts, 0) }}</div>
                     </div>
                     <a href="{{ route('admin.service-accounts.index') }}" class="stat-link text-primary">
@@ -82,14 +86,15 @@
             </div>
         </div>
 
+        <!-- Available Products -->
         <div class="col-lg-3 col-md-6 mb-3 d-flex">
-            <div class="stat-card stat-card-success w-100">
+            <div class="stat-card stat-card-info w-100">
                 <div class="stat-card-body">
                     <div class="stat-main-info">
-                        <div class="stat-label">Товаров доступно для продажи</div>
+                        <div class="stat-label">{{ __('Доступно к продаже') }}</div>
                         <div class="stat-value">{{ number_format($availableProducts, 0) }}</div>
                     </div>
-                    <a href="{{ route('admin.service-accounts.index') }}" class="stat-link text-success">
+                    <a href="{{ route('admin.service-accounts.index') }}" class="stat-link text-info">
                         {{ __('Подробнее') }} <i class="fas fa-arrow-right"></i>
                     </a>
                 </div>
@@ -99,31 +104,33 @@
             </div>
         </div>
 
-        <div class="col-lg-3 col-md-6 mb-3 d-flex">
-            <div class="stat-card stat-card-info w-100">
-                <div class="stat-card-body">
-                    <div class="stat-main-info">
-                        <div class="stat-label">Товаров на сумму</div>
-                        <div class="stat-value">{{ number_format($totalProductsValue, 2) }}<span class="stat-unit">{{ \App\Models\Option::get('currency') }}</span></div>
-                    </div>
-                    <a href="{{ route('admin.service-accounts.index') }}" class="stat-link text-info">
-                        {{ __('Подробнее') }} <i class="fas fa-arrow-right"></i>
-                    </a>
-                </div>
-                <div class="stat-icon-bg">
-                    <i class="fas fa-calculator"></i>
-                </div>
-            </div>
-        </div>
-
+        <!-- Total Value -->
         <div class="col-lg-3 col-md-6 mb-3 d-flex">
             <div class="stat-card stat-card-warning w-100">
                 <div class="stat-card-body">
                     <div class="stat-main-info">
-                        <div class="stat-label">Всего пользователей</div>
+                        <div class="stat-label">{{ __('Стоимость стока') }}</div>
+                        <div class="stat-value">{{ number_format($totalProductsValue, 2) }}<span class="stat-unit">{{ \App\Models\Option::get('currency') }}</span></div>
+                    </div>
+                    <a href="{{ route('admin.service-accounts.index') }}" class="stat-link text-warning">
+                        {{ __('Подробнее') }} <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="stat-icon-bg">
+                    <i class="fas fa-coins"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Total Users -->
+        <div class="col-lg-3 col-md-6 mb-3 d-flex">
+            <div class="stat-card stat-card-secondary w-100">
+                <div class="stat-card-body">
+                    <div class="stat-main-info">
+                        <div class="stat-label">{{ __('Пользователей') }}</div>
                         <div class="stat-value">{{ number_format($totalUsers, 0) }}</div>
                     </div>
-                    <a href="{{ route('admin.users.index') }}" class="stat-link text-warning">
+                    <a href="{{ route('admin.users.index') }}" class="stat-link text-secondary">
                         {{ __('Подробнее') }} <i class="fas fa-arrow-right"></i>
                     </a>
                 </div>
@@ -135,87 +142,93 @@
     </div>
 
     <!-- Статистика за период -->
-    <div class="row mt-3 mb-2">
-        <div class="col-12">
-            <h5 class="dashboard-section-header">
-                <i class="fas fa-calendar-day"></i>Статистика за период
+    <div class="row mt-4 mb-3">
+        <div class="col-12 border-bottom pb-2">
+            <div class="d-flex align-items-center">
+                <h5 class="text-dark font-weight-bold mb-0">
+                    <i class="fas fa-chart-line mr-2 text-primary"></i>{{ __('Показатели за период') }}
+                </h5>
                 @php
                     $periodLabels = [
-                        'today' => 'Сегодня',
-                        'yesterday' => 'Вчера',
-                        'week' => 'На этой неделе',
-                        'month' => 'В этом месяце',
-                        'year' => 'В этом году',
-                        'all' => 'За весь период',
-                        'custom' => 'Произвольный период'
+                        'today' => __('Сегодня'),
+                        'yesterday' => __('Вчера'),
+                        'week' => __('На этой неделе'),
+                        'month' => __('В этом месяце'),
+                        'year' => __('В этом году'),
+                        'all' => __('За весь период'),
+                        'custom' => __('Произвольный период')
                     ];
-                    $periodLabel = $periodLabels[$period] ?? 'Выбранный период';
+                    $periodLabel = $periodLabels[$period] ?? __('Выбранный период');
                 @endphp
-                <span class="badge badge-info ml-2">{{ $periodLabel }}</span>
-            </h5>
+                <span class="badge badge-light border ml-3 px-3">{{ $periodLabel }}</span>
+            </div>
         </div>
     </div>
 
     <div class="row dashboard-stats-row">
+        <!-- Revenue (Most important = Success Color) -->
         <div class="col-lg-3 col-md-6 mb-3 d-flex">
             <div class="stat-card stat-card-success w-100">
                 <div class="stat-card-body">
                     <div class="stat-main-info">
-                        <div class="stat-label">Покупки за период</div>
-                        <div class="stat-value">{{ number_format($purchasesInPeriod, 0) }}</div>
+                        <div class="stat-label">{{ __('Доход') }}</div>
+                        <div class="stat-value">{{ number_format($revenueInPeriod, 2) }}<span class="stat-unit">{{ \App\Models\Option::get('currency') }}</span></div>
                     </div>
                     <a href="{{ route('admin.purchases.index') }}" class="stat-link text-success">
                         {{ __('Подробнее') }} <i class="fas fa-arrow-right"></i>
                     </a>
                 </div>
                 <div class="stat-icon-bg">
-                    <i class="fas fa-cart-plus"></i>
+                    <i class="fas fa-file-invoice-dollar"></i>
                 </div>
             </div>
         </div>
 
+        <!-- Purchases Count -->
         <div class="col-lg-3 col-md-6 mb-3 d-flex">
-            <div class="stat-card stat-card-danger w-100">
+            <div class="stat-card stat-card-primary w-100">
                 <div class="stat-card-body">
                     <div class="stat-main-info">
-                        <div class="stat-label">Продано за период</div>
-                        <div class="stat-value">{{ number_format($soldInPeriod, 0) }}</div>
+                        <div class="stat-label">{{ __('Заказов') }}</div>
+                        <div class="stat-value">{{ number_format($purchasesInPeriod, 0) }}</div>
                     </div>
-                    <a href="{{ route('admin.purchases.index') }}" class="stat-link text-danger">
+                    <a href="{{ route('admin.purchases.index') }}" class="stat-link text-primary">
                         {{ __('Подробнее') }} <i class="fas fa-arrow-right"></i>
                     </a>
                 </div>
                 <div class="stat-icon-bg">
-                    <i class="fas fa-shopping-cart"></i>
+                    <i class="fas fa-shopping-bag"></i>
                 </div>
             </div>
         </div>
 
-        <div class="col-lg-3 col-md-6 mb-3 d-flex">
-            <div class="stat-card stat-card-warning w-100">
-                <div class="stat-card-body">
-                    <div class="stat-main-info">
-                        <div class="stat-label">Доход за период</div>
-                        <div class="stat-value">{{ number_format($revenueInPeriod, 2) }}<span class="stat-unit">{{ \App\Models\Option::get('currency') }}</span></div>
-                    </div>
-                    <a href="{{ route('admin.purchases.index') }}" class="stat-link text-warning">
-                        {{ __('Подробнее') }} <i class="fas fa-arrow-right"></i>
-                    </a>
-                </div>
-                <div class="stat-icon-bg">
-                    <i class="fas fa-dollar-sign"></i>
-                </div>
-            </div>
-        </div>
-
+        <!-- Sold Items -->
         <div class="col-lg-3 col-md-6 mb-3 d-flex">
             <div class="stat-card stat-card-info w-100">
                 <div class="stat-card-body">
                     <div class="stat-main-info">
-                        <div class="stat-label">Средний чек</div>
-                        <div class="stat-value">{{ number_format($averageOrderValue, 2) }}<span class="stat-unit">{{ \App\Models\Option::get('currency') }}</span></div>
+                        <div class="stat-label">{{ __('Товаров продано') }}</div>
+                        <div class="stat-value">{{ number_format($soldInPeriod, 0) }}</div>
                     </div>
                     <a href="{{ route('admin.purchases.index') }}" class="stat-link text-info">
+                        {{ __('Подробнее') }} <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="stat-icon-bg">
+                    <i class="fas fa-boxes"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Average Check -->
+        <div class="col-lg-3 col-md-6 mb-3 d-flex">
+            <div class="stat-card stat-card-secondary w-100">
+                <div class="stat-card-body">
+                    <div class="stat-main-info">
+                        <div class="stat-label">{{ __('Средний чек') }}</div>
+                        <div class="stat-value">{{ number_format($averageOrderValue, 2) }}<span class="stat-unit">{{ \App\Models\Option::get('currency') }}</span></div>
+                    </div>
+                    <a href="{{ route('admin.purchases.index') }}" class="stat-link text-secondary">
                         {{ __('Подробнее') }} <i class="fas fa-arrow-right"></i>
                     </a>
                 </div>
@@ -229,18 +242,18 @@
     <!-- Графики и аналитика -->
     <div class="row mt-3">
         <div class="col-12 mb-3">
-            <h5 class="text-muted mb-0"><i class="fas fa-chart-bar mr-2"></i>Аналитика продаж</h5>
+            <h5 class="text-secondary mb-0 footer-header"><i class="fas fa-chart-bar mr-2"></i>{{ __('Аналитика продаж') }}</h5>
         </div>
     </div>
 
     <div class="row">
         <!-- График продаж за 30 дней -->
         <div class="col-lg-8 mb-4">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-white">
-                    <h6 class="mb-0"><i class="fas fa-chart-line mr-2"></i>Продажи за последние 30 дней</h6>
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white border-bottom-0">
+                    <h6 class="mb-0 font-weight-bold text-dark"><i class="fas fa-chart-line mr-2 text-primary"></i>{{ __('Продажи за последние 30 дней') }}</h6>
                 </div>
-                <div class="card-body">
+                <div class="card-body pt-0">
                     <canvas id="salesChart" height="300"></canvas>
                 </div>
             </div>
@@ -248,11 +261,11 @@
 
         <!-- Круговой график по категориям -->
         <div class="col-lg-4 mb-4">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-white">
-                    <h6 class="mb-0"><i class="fas fa-chart-pie mr-2"></i>Продажи по категориям</h6>
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white border-bottom-0">
+                    <h6 class="mb-0 font-weight-bold text-dark"><i class="fas fa-chart-pie mr-2 text-info"></i>{{ __('По категориям') }}</h6>
                 </div>
-                <div class="card-body">
+                <div class="card-body pt-0">
                     <canvas id="categoryChart"></canvas>
                 </div>
             </div>
@@ -261,39 +274,39 @@
 
     <!-- Топ товаров -->
     @if(count($topProducts) > 0)
-        <div class="row mt-4">
+        <div class="row mt-2">
             <div class="col-12">
                 <div class="card border-0 shadow-sm">
-                    <div class="card-header bg-white">
-                        <h6 class="mb-0"><i class="fas fa-fire mr-2"></i>Топ продаваемых товаров</h6>
+                    <div class="card-header bg-white border-bottom-0">
+                        <h6 class="mb-0 font-weight-bold text-dark"><i class="fas fa-fire mr-2 text-danger"></i>{{ __('Топ продаваемых товаров') }}</h6>
                     </div>
-                    <div class="card-body">
+                    <div class="card-body p-0">
                         <div class="table-responsive">
                             <table class="table table-hover mb-0 top-products-table">
-                                <thead>
+                                <thead class="bg-light">
                                     <tr>
-                                        <th>Название</th>
-                                        <th class="text-center">Продано</th>
-                                        <th class="text-right">Выручка</th>
-                                        <th class="text-center">Действие</th>
+                                        <th class="border-top-0">{{ __('Название') }}</th>
+                                        <th class="text-center border-top-0">{{ __('Продано') }}</th>
+                                        <th class="text-right border-top-0">{{ __('Выручка') }}</th>
+                                        <th class="text-center border-top-0" style="width: 100px;">{{ __('Действие') }}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     @foreach($topProducts as $product)
                                         <tr>
-                                            <td>
-                                                <a href="{{ route('admin.service-accounts.edit', $product['id']) }}" class="text-dark">
+                                            <td class="align-middle">
+                                                <a href="{{ route('admin.service-accounts.edit', $product['id']) }}" class="text-dark font-weight-bold">
                                                     {{ $product['title'] }}
                                                 </a>
                                             </td>
-                                            <td class="text-center">
-                                                <span class="badge badge-success">{{ $product['sold'] }} шт.</span>
+                                            <td class="text-center align-middle">
+                                                <span class="badge badge-light border">{{ $product['sold'] }} {{ __('шт.') }}</span>
                                             </td>
-                                            <td class="text-right font-weight-bold text-success">
+                                            <td class="text-right font-weight-bold text-success align-middle">
                                                 ${{ number_format($product['revenue'], 2) }}
                                             </td>
-                                            <td class="text-center">
-                                                <a href="{{ route('admin.service-accounts.edit', $product['id']) }}" class="btn btn-sm btn-primary">
+                                            <td class="text-center align-middle">
+                                                <a href="{{ route('admin.service-accounts.edit', $product['id']) }}" class="btn btn-sm btn-outline-primary shadow-sm">
                                                     <i class="fas fa-edit"></i>
                                                 </a>
                                             </td>
@@ -316,8 +329,11 @@
         transition: transform 0.2s, box-shadow 0.2s;
     }
     .card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+        transform: translateY(-2px);
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.08) !important;
+    }
+    .stat-card:hover {
+        transform: translateY(-3px);
     }
 </style>
 @endsection
@@ -344,6 +360,17 @@
         // Данные для тултипов (переданы из контроллера)
         var salesTooltips = {!! json_encode($salesChartData['tooltips']) !!};
 
+        // Тексты для локализации JS
+        const LABELS = {
+            sales: '{{ __('Продажи') }}',
+            sum: '{{ __('Сумма продаж') }}',
+            items: '{{ __('Товаров') }}',
+            orders: '{{ __('Заказов') }}',
+            avg: '{{ __('Ср. чек') }}',
+            new: '{{ __('Новых') }}',
+            returning: '{{ __('Вернувшихся') }}'
+        };
+
         // График продаж
         if (salesChartElement) {
             const salesCtx = salesChartElement.getContext('2d');
@@ -352,14 +379,15 @@
                 data: {
                     labels: {!! json_encode($salesChartData['labels']) !!},
                     datasets: [{
-                        label: 'Продажи',
+                        label: LABELS.sales,
                         data: {!! json_encode($salesChartData['data']) !!},
                         borderColor: 'rgb(0, 123, 255)',
-                        backgroundColor: 'rgba(0, 123, 255, 0.1)',
-                        pointRadius: 3,
-                        pointHoverRadius: 5,
+                        backgroundColor: 'rgba(0, 123, 255, 0.05)',
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
                         pointBackgroundColor: 'rgb(0, 123, 255)',
-                        tension: 0.4,
+                        borderWidth: 2,
+                        tension: 0.3,
                         fill: true
                     }]
                 },
@@ -372,16 +400,21 @@
                     tooltips: {
                         mode: 'index',
                         intersect: false,
-                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                        titleFontColor: '#333',
+                        bodyFontColor: '#666',
+                        footerFontColor: '#666',
+                        borderColor: 'rgba(0,0,0,0.1)',
+                        borderWidth: 1,
                         titleFontSize: 14,
                         bodyFontSize: 13,
                         footerFontSize: 12,
-                        cornerRadius: 4,
-                        xPadding: 10,
-                        yPadding: 10,
+                        cornerRadius: 8,
+                        xPadding: 12,
+                        yPadding: 12,
                         callbacks: {
                             label: function(tooltipItem, data) {
-                                return 'Сумма продаж: $' + parseFloat(tooltipItem.yLabel).toFixed(2);
+                                return LABELS.sum + ': $' + parseFloat(tooltipItem.yLabel).toFixed(2);
                             },
                             footer: function(tooltipItems, data) {
                                 // tooltipItems is an array of items for the hovered index
@@ -390,11 +423,11 @@
                                 
                                 return [
                                     '', // Spacer
-                                    '📦 Товаров: ' + extra.items[index] + ' шт',
-                                    '🧾 Заказов: ' + extra.orders[index],
-                                    '💲 Ср. чек: $' + extra.avg_check[index],
-                                    '👤 Новых: ' + extra.new_buyers[index],
-                                    '🔄 Вернувшихся: ' + extra.returning_buyers[index]
+                                    '📦 ' + LABELS.items + ': ' + extra.items[index] + ' шт',
+                                    '🧾 ' + LABELS.orders + ': ' + extra.orders[index],
+                                    '💲 ' + LABELS.avg + ': $' + extra.avg_check[index],
+                                    '👤 ' + LABELS.new + ': ' + extra.new_buyers[index],
+                                    '🔄 ' + LABELS.returning + ': ' + extra.returning_buyers[index]
                                 ];
                             }
                         }
@@ -403,13 +436,15 @@
                         yAxes: [{
                             ticks: {
                                 beginAtZero: true,
+                                fontColor: '#999',
                                 callback: function(value) {
                                     return '$' + value;
                                 }
                             },
                             gridLines: {
                                 display: true,
-                                color: 'rgba(0, 0, 0, 0.05)'
+                                color: 'rgba(0, 0, 0, 0.03)',
+                                drawBorder: false
                             }
                         }],
                         xAxes: [{
@@ -417,8 +452,10 @@
                                 display: false
                             },
                             ticks: {
-                                maxRotation: 45,
-                                minRotation: 45
+                                fontColor: '#999',
+                                maxRotation: 0,
+                                autoSkip: true,
+                                maxTicksLimit: 10
                             }
                         }]
                     }
