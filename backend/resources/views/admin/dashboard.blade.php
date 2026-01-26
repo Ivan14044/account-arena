@@ -80,7 +80,7 @@
                 <div class="stat-card-body">
                     <div class="stat-main-info">
                         <div class="stat-label">
-                            {{ __('Стоимость стока') }}
+                            {{ __('Товаров на сумму') }}
                             <i class="fas fa-info-circle ml-1 scale-75 opacity-50" 
                                data-toggle="tooltip" 
                                title="{{ __('Суммарная цена всех загруженных аккаунтов. Услуги с ручной выдачей не учитываются.') }}"></i>
