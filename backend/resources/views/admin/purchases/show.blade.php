@@ -269,9 +269,7 @@
                         </a>
                     @endif
                     
-                    <button class="btn btn-light btn-block btn-modern text-left py-2 mb-2" onclick="window.print()">
-                        <i class="fas fa-print mr-3 text-secondary"></i>{{ __('Печать счета') }}
-                    </button>
+
                 </div>
             </div>
 
