@@ -23,7 +23,7 @@
         </div>
     @endif
 
-    <div class="card card-modern">
+    <div class="card card-modern settings-page">
         <div class="card-header-modern p-0 border-0">
             <ul class="nav nav-tabs-modern" id="settings-tabs" role="tablist">
                 <li class="nav-item">

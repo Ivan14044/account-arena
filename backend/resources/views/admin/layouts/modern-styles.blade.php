@@ -4922,6 +4922,85 @@ body {
         padding: 0.6rem;
     }
 }
+/* ========================================
+   SETTINGS PAGE - MOBILE STYLES
+   ======================================== */
+@media (max-width: 575px) {
+    .settings-page .card-header-modern {
+        background: #fff;
+        border-bottom: 1px solid #e3e6f0;
+    }
+    
+    /* Horizontal Scrollable Tabs */
+    .settings-page .nav-tabs-modern {
+        display: flex;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none; 
+        border-bottom: none;
+        padding: 0.5rem;
+    }
+    
+    .settings-page .nav-tabs-modern::-webkit-scrollbar {
+        display: none; 
+    }
+    
+    .settings-page .nav-item {
+        flex: 0 0 auto;
+        margin-bottom: 0;
+        margin-right: 0.5rem;
+    }
+    
+    .settings-page .nav-link {
+        white-space: nowrap;
+        padding: 0.6rem 1rem;
+        border-radius: 2rem !important; /* Pill shape looks good on mobile */
+        background: #f8f9fc;
+        border: 1px solid #eaecf4;
+        color: #858796;
+    }
+    
+    .settings-page .nav-link.active {
+        background: #4e73df;
+        color: #fff;
+        border-color: #4e73df;
+    }
+
+    /* Forms */
+    .settings-page .card-body {
+        padding: 1rem;
+    }
+    
+    .settings-page .form-control {
+        font-size: 16px; /* Stop iOS zoom */
+        height: auto;
+        padding: 0.6rem 1rem;
+    }
+    
+    /* Checkboxes (Countries) */
+    .settings-page .col-md-4 {
+        margin-bottom: 0.5rem;
+    }
+    
+    /* Buttons Stacking */
+    .settings-page .form-group .btn {
+        display: flex;
+        width: 100%;
+        margin: 0;
+        margin-bottom: 0.75rem;
+        justify-content: center;
+        align-items: center;
+    }
+    
+    .settings-page .form-group .btn:last-child {
+        margin-bottom: 0;
+    }
+    
+    .settings-page .ml-2 {
+        margin-left: 0 !important;
+    }
+}
 </style>
 
 
