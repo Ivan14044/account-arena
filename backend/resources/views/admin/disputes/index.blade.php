@@ -211,9 +211,11 @@
                                 </td>
                                 <td class="text-center align-middle">
                                     <small class="text-muted">
-                                        {{ $dispute->created_at->format('d.m.Y') }}
+                                        {{ $dispute->created_at->translatedFormat('d.m.Y') }}
                                         <br>
-                                        {{ $dispute->created_at->format('H:i') }}
+                                        {{ $dispute->created_at->translatedFormat('H:i') }}
+                                        <br>
+                                        <span class="small opacity-75">({{ $dispute->created_at->diffForHumans() }})</span>
                                     </small>
                                 </td>
                                 <td class="text-center align-middle">

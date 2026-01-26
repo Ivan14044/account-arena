@@ -91,21 +91,21 @@
                                         <span class="badge badge-info">{{ $availableAccounts }} / {{ $totalAccounts }}</span>
                                     </td>
                                     <td>
-                                        {{ $product->created_at->format('d.m.Y H:i') }}
+                                        {{ $product->created_at->translatedFormat('d.m.Y H:i') }}
                                         <br><small class="text-muted">{{ $product->created_at->diffForHumans() }}</small>
                                     </td>
                                     <td>
                                         <div class="btn-group" role="group">
-                                            <a href="{{ route('admin.product-moderation.show', $product) }}" class="btn btn-sm btn-info" title="Просмотр">
+                                            <a href="{{ route('admin.product-moderation.show', $product) }}" class="btn btn-sm btn-info" title="{{ __('Просмотр') }}">
                                                 <i class="fas fa-eye"></i>
                                             </a>
-                                            <form action="{{ route('admin.product-moderation.approve', $product) }}" method="POST" class="d-inline" onsubmit="return confirm('Одобрить этот товар?');">
+                                            <form action="{{ route('admin.product-moderation.approve', $product) }}" method="POST" class="d-inline" onsubmit="return confirm('{{ __('Одобрить этот товар?') }}');">
                                                 @csrf
-                                                <button type="submit" class="btn btn-sm btn-success" title="Одобрить">
+                                                <button type="submit" class="btn btn-sm btn-success" title="{{ __('Одобрить') }}">
                                                     <i class="fas fa-check"></i>
                                                 </button>
                                             </form>
-                                            <button type="button" class="btn btn-sm btn-danger" data-toggle="modal" data-target="#rejectModal{{ $product->id }}" title="Отклонить">
+                                            <button type="button" class="btn btn-sm btn-danger" data-toggle="modal" data-target="#rejectModal{{ $product->id }}" title="{{ __('Отклонить') }}">
                                                 <i class="fas fa-times"></i>
                                             </button>
                                         </div>
@@ -117,20 +117,20 @@
                                                     <form action="{{ route('admin.product-moderation.reject', $product) }}" method="POST">
                                                         @csrf
                                                         <div class="modal-header">
-                                                            <h5 class="modal-title">Отклонить товар</h5>
+                                                            <h5 class="modal-title">{{ __('Отклонить товар') }}</h5>
                                                             <button type="button" class="close" data-dismiss="modal">&times;</button>
                                                         </div>
                                                         <div class="modal-body">
-                                                            <p>Вы уверены, что хотите отклонить товар <strong>"{{ $product->title }}"</strong>?</p>
+                                                            <p>{{ __('Вы уверены, что хотите отклонить товар') }} <strong>"{{ $product->title }}"</strong>?</p>
                                                             <div class="form-group">
-                                                                <label for="moderation_comment{{ $product->id }}">Причина отклонения <span class="text-danger">*</span></label>
-                                                                <textarea name="moderation_comment" id="moderation_comment{{ $product->id }}" class="form-control" rows="3" required maxlength="1000" placeholder="Укажите причину отклонения товара..."></textarea>
-                                                                <small class="form-text text-muted">Этот комментарий будет отправлен поставщику.</small>
+                                                                <label for="moderation_comment{{ $product->id }}">{{ __('Причина отклонения') }} <span class="text-danger">*</span></label>
+                                                                <textarea name="moderation_comment" id="moderation_comment{{ $product->id }}" class="form-control" rows="3" required maxlength="1000" placeholder="{{ __('Укажите причину отклонения товара...') }}"></textarea>
+                                                                <small class="form-text text-muted">{{ __('Этот комментарий будет отправлен поставщику.') }}</small>
                                                             </div>
                                                         </div>
                                                         <div class="modal-footer">
-                                                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Отмена</button>
-                                                            <button type="submit" class="btn btn-danger">Отклонить</button>
+                                                            <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ __('Отмена') }}</button>
+                                                            <button type="submit" class="btn btn-danger">{{ __('Отклонить') }}</button>
                                                         </div>
                                                     </form>
                                                 </div>

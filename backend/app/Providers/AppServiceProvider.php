@@ -33,6 +33,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Установка локали для дат (Carbon)
+        \Carbon\Carbon::setLocale('ru');
+
         // Регистрация Observer-ов
         Category::observe(CategoryObserver::class);
         ServiceAccount::observe(ServiceAccountObserver::class);
