@@ -73,7 +73,8 @@
 
     <div class="card card-modern">
         <div class="card-body p-0">
-            <div class="table-responsive">
+            <!-- Desktop Table View -->
+            <div class="table-responsive d-none d-md-block">
                 <table class="table table-striped table-hover mb-0">
                     <thead class="thead-light">
                         <tr>
@@ -122,26 +123,6 @@
                                         <button class="btn btn-xs btn-outline-primary" data-toggle="modal" data-target="#modal-log-{{ $log->id }}">
                                             <i class="fas fa-eye mr-1"></i>Просмотр
                                         </button>
-                                        
-                                        <!-- Modal -->
-                                        <div class="modal fade" id="modal-log-{{ $log->id }}" tabindex="-1" role="dialog" aria-hidden="true">
-                                            <div class="modal-dialog modal-lg" role="document">
-                                                <div class="modal-content">
-                                                    <div class="modal-header">
-                                                        <h5 class="modal-title">Детали изменения #{{ $log->id }}</h5>
-                                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                                            <span aria-hidden="true">&times;</span>
-                                                        </button>
-                                                    </div>
-                                                    <div class="modal-body bg-light">
-                                                        <pre class="mb-0 border rounded p-3 bg-white"><code>{{ json_encode($log->changes, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) }}</code></pre>
-                                                    </div>
-                                                    <div class="modal-footer">
-                                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Закрыть</button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
                                     @else
                                         <span class="text-muted text-sm">-</span>
                                     @endif
@@ -161,6 +142,81 @@
                     </tbody>
                 </table>
             </div>
+
+            <!-- Mobile Card View -->
+            <div class="d-md-none bg-light">
+                @forelse($logs as $log)
+                    <div class="card mb-2 shadow-none border-bottom rounded-0">
+                        <div class="card-body p-3">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <span class="badge badge-info">{{ $log->action }}</span>
+                                <small class="text-muted">{{ $log->created_at->format('d.m.Y H:i') }}</small>
+                            </div>
+                            
+                            <div class="mb-2">
+                                @if($log->user)
+                                    <div class="d-flex align-items-center mb-1">
+                                        <i class="fas fa-user-shield text-muted mr-2" style="width: 16px;"></i>
+                                        <a href="{{ route('admin.users.edit', $log->user_id) }}" class="text-dark font-weight-bold">
+                                            {{ $log->user->name }}
+                                        </a>
+                                    </div>
+                                @else
+                                    <div class="text-muted"><i class="fas fa-robot mr-2"></i>System</div>
+                                @endif
+                                
+                                @if($log->model_type)
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-cube text-muted mr-2" style="width: 16px;"></i>
+                                        <span>{{ class_basename($log->model_type) }} #{{ $log->model_id }}</span>
+                                    </div>
+                                @endif
+                            </div>
+                            
+                            <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
+                                <small class="text-muted"><i class="fas fa-globe mr-1"></i>{{ $log->ip }}</small>
+                                
+                                @if(!empty($log->changes))
+                                    <button class="btn btn-sm btn-outline-primary" data-toggle="modal" data-target="#modal-log-{{ $log->id }}">
+                                        Детали
+                                    </button>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                @empty
+                    <div class="text-center text-muted py-5">
+                        <i class="fas fa-search fa-3x mb-3 text-gray-300"></i>
+                        <p class="mb-0">Записей в журнале не найдено</p>
+                    </div>
+                @endforelse
+            </div>
+            
+            <!-- Shared Modals (moved outside loops to avoid duplication issues if we wanted, but keep inside for simplicity of ID matching) -->
+            <!-- Note: Modals are duplicated in HTML but IDs are unique by log ID, so it works. Ideally move modals outside. -->
+            @foreach($logs as $log)
+                @if(!empty($log->changes))
+                    <div class="modal fade" id="modal-log-{{ $log->id }}" tabindex="-1" role="dialog" aria-hidden="true">
+                        <div class="modal-dialog modal-lg" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Детали изменения #{{ $log->id }}</h5>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body bg-light">
+                                    <pre class="mb-0 border rounded p-3 bg-white"><code>{{ json_encode($log->changes, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) }}</code></pre>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Закрыть</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @endif
+            @endforeach
+
         </div>
         <div class="card-footer d-flex justify-content-center">
             {{ $logs->links() }}
