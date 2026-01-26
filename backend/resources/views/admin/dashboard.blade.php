@@ -168,17 +168,21 @@
     <div class="row dashboard-stats-row">
         <!-- Revenue (Most important = Success Color) -->
         <div class="col-lg-3 col-md-6 mb-3 d-flex">
-            <div class="stat-card stat-card-success w-100">
-                <div class="stat-card-body">
-                    <div class="stat-main-info">
-                        <div class="stat-label">{{ __('Доход') }}</div>
-                        <div class="stat-value">{{ number_format($revenueInPeriod, 2) }}<span class="stat-unit">{{ \App\Models\Option::get('currency') }}</span></div>
+            <div class="stat-card stat-card-success w-100 shadow-sm border-0">
+                <div class="stat-card-body p-4">
+                    <div class="stat-main-info text-left">
+                        <div class="stat-label text-uppercase small font-weight-bold opacity-70 mb-1">{{ __('Доход') }}</div>
+                        <div class="stat-value h2 font-weight-bold mb-0">
+                            {{ number_format($revenueInPeriod, 2) }}<span class="small font-weight-normal text-muted ml-1">{{ \App\Models\Option::get('currency') }}</span>
+                        </div>
                     </div>
-                    <a href="{{ route('admin.purchases.index') }}" class="stat-link text-success">
-                        {{ __('Подробнее') }} <i class="fas fa-arrow-right"></i>
+                </div>
+                <div class="stat-card-footer px-4 py-2 bg-light border-top rounded-bottom">
+                    <a href="{{ route('admin.purchases.index') }}" class="stat-link text-success small font-weight-bold">
+                        {{ __('Детали') }} <i class="fas fa-chevron-right ml-1"></i>
                     </a>
                 </div>
-                <div class="stat-icon-bg">
+                <div class="stat-icon-bg opacity-10">
                     <i class="fas fa-file-invoice-dollar"></i>
                 </div>
             </div>
@@ -186,17 +190,19 @@
 
         <!-- Purchases Count -->
         <div class="col-lg-3 col-md-6 mb-3 d-flex">
-            <div class="stat-card stat-card-primary w-100">
-                <div class="stat-card-body">
-                    <div class="stat-main-info">
-                        <div class="stat-label">{{ __('Заказов') }}</div>
-                        <div class="stat-value">{{ number_format($purchasesInPeriod, 0) }}</div>
+            <div class="stat-card stat-card-primary w-100 shadow-sm border-0">
+                <div class="stat-card-body p-4">
+                    <div class="stat-main-info text-left">
+                        <div class="stat-label text-uppercase small font-weight-bold opacity-70 mb-1">{{ __('Заказов') }}</div>
+                        <div class="stat-value h2 font-weight-bold mb-0">{{ number_format($purchasesInPeriod, 0) }}</div>
                     </div>
-                    <a href="{{ route('admin.purchases.index') }}" class="stat-link text-primary">
-                        {{ __('Подробнее') }} <i class="fas fa-arrow-right"></i>
+                </div>
+                <div class="stat-card-footer px-4 py-2 bg-light border-top rounded-bottom">
+                    <a href="{{ route('admin.purchases.index') }}" class="stat-link text-primary small font-weight-bold">
+                        {{ __('Детали') }} <i class="fas fa-chevron-right ml-1"></i>
                     </a>
                 </div>
-                <div class="stat-icon-bg">
+                <div class="stat-icon-bg opacity-10">
                     <i class="fas fa-shopping-bag"></i>
                 </div>
             </div>
@@ -204,17 +210,19 @@
 
         <!-- Sold Items -->
         <div class="col-lg-3 col-md-6 mb-3 d-flex">
-            <div class="stat-card stat-card-info w-100">
-                <div class="stat-card-body">
-                    <div class="stat-main-info">
-                        <div class="stat-label">{{ __('Товаров продано') }}</div>
-                        <div class="stat-value">{{ number_format($soldInPeriod, 0) }}</div>
+            <div class="stat-card stat-card-info w-100 shadow-sm border-0">
+                <div class="stat-card-body p-4">
+                    <div class="stat-main-info text-left">
+                        <div class="stat-label text-uppercase small font-weight-bold opacity-70 mb-1">{{ __('Товаров продано') }}</div>
+                        <div class="stat-value h2 font-weight-bold mb-0">{{ number_format($soldInPeriod, 0) }}</div>
                     </div>
-                    <a href="{{ route('admin.purchases.index') }}" class="stat-link text-info">
-                        {{ __('Подробнее') }} <i class="fas fa-arrow-right"></i>
+                </div>
+                <div class="stat-card-footer px-4 py-2 bg-light border-top rounded-bottom">
+                    <a href="{{ route('admin.purchases.index') }}" class="stat-link text-info small font-weight-bold">
+                        {{ __('Детали') }} <i class="fas fa-chevron-right ml-1"></i>
                     </a>
                 </div>
-                <div class="stat-icon-bg">
+                <div class="stat-icon-bg opacity-10">
                     <i class="fas fa-boxes"></i>
                 </div>
             </div>
@@ -222,17 +230,21 @@
 
         <!-- Average Check -->
         <div class="col-lg-3 col-md-6 mb-3 d-flex">
-            <div class="stat-card stat-card-secondary w-100">
-                <div class="stat-card-body">
-                    <div class="stat-main-info">
-                        <div class="stat-label">{{ __('Средний чек') }}</div>
-                        <div class="stat-value">{{ number_format($averageOrderValue, 2) }}<span class="stat-unit">{{ \App\Models\Option::get('currency') }}</span></div>
+            <div class="stat-card stat-card-secondary w-100 shadow-sm border-0">
+                <div class="stat-card-body p-4">
+                    <div class="stat-main-info text-left">
+                        <div class="stat-label text-uppercase small font-weight-bold opacity-70 mb-1">{{ __('Средний чек') }}</div>
+                        <div class="stat-value h2 font-weight-bold mb-0">
+                            {{ number_format($averageOrderValue, 2) }}<span class="small font-weight-normal text-muted ml-1">{{ \App\Models\Option::get('currency') }}</span>
+                        </div>
                     </div>
-                    <a href="{{ route('admin.purchases.index') }}" class="stat-link text-secondary">
-                        {{ __('Подробнее') }} <i class="fas fa-arrow-right"></i>
+                </div>
+                <div class="stat-card-footer px-4 py-2 bg-light border-top rounded-bottom">
+                    <a href="{{ route('admin.purchases.index') }}" class="stat-link text-secondary small font-weight-bold">
+                        {{ __('Детали') }} <i class="fas fa-chevron-right ml-1"></i>
                     </a>
                 </div>
-                <div class="stat-icon-bg">
+                <div class="stat-icon-bg opacity-10">
                     <i class="fas fa-receipt"></i>
                 </div>
             </div>
@@ -240,32 +252,32 @@
     </div>
 
     <!-- Графики и аналитика -->
-    <div class="row mt-3">
+    <div class="row mt-4">
         <div class="col-12 mb-3">
-            <h5 class="text-secondary mb-0 footer-header"><i class="fas fa-chart-bar mr-2"></i>{{ __('Аналитика продаж') }}</h5>
+            <h5 class="text-secondary font-weight-bold"><i class="fas fa-chart-bar mr-2 text-muted"></i>{{ __('Аналитика продаж') }}</h5>
         </div>
     </div>
 
     <div class="row">
         <!-- График продаж за 30 дней -->
         <div class="col-lg-8 mb-4">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-header bg-white border-bottom-0">
-                    <h6 class="mb-0 font-weight-bold text-dark"><i class="fas fa-chart-line mr-2 text-primary"></i>{{ __('Продажи за последние 30 дней') }}</h6>
+            <div class="card border-0 shadow-sm h-100 overflow-hidden">
+                <div class="card-header bg-white border-bottom-0 pt-3">
+                    <h6 class="mb-0 font-weight-bold text-dark"><i class="fas fa-chart-line mr-2 text-primary"></i>{{ __('Динамика выручки') }}</h6>
                 </div>
-                <div class="card-body pt-0">
-                    <canvas id="salesChart" height="300"></canvas>
+                <div class="card-body p-3" style="min-height: 400px; max-height: 400px; position: relative;">
+                    <canvas id="salesChart"></canvas>
                 </div>
             </div>
         </div>
 
         <!-- Круговой график по категориям -->
         <div class="col-lg-4 mb-4">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-header bg-white border-bottom-0">
+            <div class="card border-0 shadow-sm h-100 overflow-hidden">
+                <div class="card-header bg-white border-bottom-0 pt-3">
                     <h6 class="mb-0 font-weight-bold text-dark"><i class="fas fa-chart-pie mr-2 text-info"></i>{{ __('По категориям') }}</h6>
                 </div>
-                <div class="card-body pt-0">
+                <div class="card-body d-flex align-items-center justify-content-center p-3" style="min-height: 400px; max-height: 400px; position: relative;">
                     <canvas id="categoryChart"></canvas>
                 </div>
             </div>
