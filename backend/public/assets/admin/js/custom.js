@@ -118,34 +118,63 @@
 
     // --- AJAX ACTIONS ---
 
+    // --- AJAX ACTIONS ---
+
+    function scheduleNext(key, fn) {
+        if (timeouts[key]) clearTimeout(timeouts[key]);
+        // Default interval
+        let delay = CONFIG.polling[key];
+        // Ensure minimum 5s to prevent massive flooding if config is wrong
+        if (delay < 5000) delay = 5000;
+
+        timeouts[key] = setTimeout(fn, delay);
+    }
+
     function fetchSettings() {
         $.ajax({
             url: CONFIG.routes.settings,
             method: 'GET',
             dataType: 'json',
+            timeout: 15000, // 15s timeout
             success: function (data) {
                 state.settings = {
                     manual_delivery_enabled: data.manual_delivery_enabled !== false,
                     sound_enabled: data.sound_enabled !== false
                 };
+            },
+            error: function (xhr) {
+                console.debug('[Settings] Poll failed:', xhr.statusText);
+            },
+            complete: function () {
+                scheduleNext('settings', fetchSettings);
             }
         });
     }
 
     function fetchManualCount() {
-        if (timeouts.manual) clearTimeout(timeouts.manual);
-
         $.ajax({
             url: CONFIG.routes.manual,
             method: 'GET',
             dataType: 'json',
             cache: false,
             data: { _t: Date.now() },
+            timeout: 10000,
             success: function (data) {
                 updateBadge('manual', data.count || 0);
             },
-            complete: function () {
-                timeouts.manual = setTimeout(fetchManualCount, CONFIG.polling.manual);
+            error: function (xhr) {
+                // Determine if we should slow down
+                console.debug('[Manual] Poll failed:', xhr.statusText);
+            },
+            complete: function (xhr) {
+                // If error, maybe backoff slightly? For now keep constant but ensure it's rescheduled ONLY after complete
+                if (xhr.status !== 200) {
+                    // On error, wait a bit longer (e.g. 15s) to let server recover
+                    if (timeouts.manual) clearTimeout(timeouts.manual);
+                    timeouts.manual = setTimeout(fetchManualCount, 15000);
+                } else {
+                    scheduleNext('manual', fetchManualCount);
+                }
             }
         });
     }
@@ -155,8 +184,17 @@
             url: CONFIG.routes.disputes,
             method: 'GET',
             dataType: 'json',
+            timeout: 10000,
             success: function (data) {
                 updateBadge('disputes', data.count || 0);
+            },
+            complete: function (xhr) {
+                if (xhr.status !== 200) {
+                    if (timeouts.disputes) clearTimeout(timeouts.disputes);
+                    timeouts.disputes = setTimeout(fetchDisputesCount, 60000); // 60s backoff
+                } else {
+                    scheduleNext('disputes', fetchDisputesCount);
+                }
             }
         });
     }
@@ -166,8 +204,17 @@
             url: CONFIG.routes.support,
             method: 'GET',
             dataType: 'json',
+            timeout: 10000,
             success: function (data) {
                 updateBadge('support', data.count || 0);
+            },
+            complete: function (xhr) {
+                if (xhr.status !== 200) {
+                    if (timeouts.support) clearTimeout(timeouts.support);
+                    timeouts.support = setTimeout(fetchSupportCount, 60000);
+                } else {
+                    scheduleNext('support', fetchSupportCount);
+                }
             }
         });
     }
@@ -177,6 +224,7 @@
             url: CONFIG.routes.notifications,
             method: 'GET',
             dataType: 'json',
+            timeout: 10000,
             success: function (data) {
                 if (data && typeof data.total !== 'undefined') {
                     const currentCount = parseInt(data.total);
@@ -187,6 +235,14 @@
                         }
                     }
                     state.notifications.count = currentCount;
+                }
+            },
+            complete: function (xhr) {
+                if (xhr.status !== 200) {
+                    if (timeouts.notifications) clearTimeout(timeouts.notifications);
+                    timeouts.notifications = setTimeout(fetchAdminNotifications, 60000);
+                } else {
+                    scheduleNext('notifications', fetchAdminNotifications);
                 }
             }
         });
@@ -199,26 +255,17 @@
         if (!location.pathname.startsWith("/admin")) return;
 
         $(document).ready(function () {
-            // 1. Initial data fetch
+            // 1. Initial data fetch and start cycles
             fetchSettings();
 
-            // Start fetching data almost immediately after ready
-            setTimeout(() => {
-                fetchManualCount();    // This one starts its own chain
-                fetchDisputesCount();
-                fetchSupportCount();
-                fetchAdminNotifications();
-            }, 200);
-
-            // 2. Setup regular intervals
-            setInterval(fetchSettings, CONFIG.polling.settings);
-            setInterval(fetchDisputesCount, CONFIG.polling.disputes);
-            setInterval(fetchSupportCount, CONFIG.polling.support);
-            setInterval(fetchAdminNotifications, CONFIG.polling.notifications);
+            // Stagger start times to avoid initial burst
+            setTimeout(fetchManualCount, 500);
+            setTimeout(fetchDisputesCount, 1500);
+            setTimeout(fetchSupportCount, 2500);
+            setTimeout(fetchAdminNotifications, 3500);
 
             // 3. Audio unlock (browser restriction bypass)
             $(document).one('click', function () {
-                // Just create and play an empty/silent sound or just log
                 console.debug('[Audio] First interaction recorded, audio unlocked');
             });
         });

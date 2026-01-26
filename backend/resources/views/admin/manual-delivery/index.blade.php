@@ -339,6 +339,9 @@
     }
     
     function updateStatistics() {
+        // Clear any existing timeout to prevent duplicates
+        if (window.updateStatsTimeout) clearTimeout(window.updateStatsTimeout);
+        
         fetch('{{ route("admin.manual-delivery.statistics") }}', {
             method: 'GET',
             headers: {
@@ -390,13 +393,18 @@
                     // Обновляем badge в меню
                     updateMenuBadge(newCount);
                 }
+                
+                // SUCCESS: Poll again in 60s
+                window.updateStatsTimeout = setTimeout(updateStatistics, 60000);
             })
             .catch(error => {
                 // Логируем ошибку только в development режиме
                 if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
                     console.error('Error updating statistics:', error);
                 }
-                // Не показываем ошибку пользователю, чтобы не мешать работе
+                
+                // ERROR: Poll again in 120s (backoff)
+                window.updateStatsTimeout = setTimeout(updateStatistics, 120000);
             });
     }
     
@@ -422,13 +430,10 @@
         }
     }
     
-    // Обновляем каждые 60 секунд
-    setInterval(updateStatistics, 60000);
-    
     // Обновляем badge в меню при загрузке страницы
     updateMenuBadge(lastCount);
     
-    // Обновляем статистику сразу при загрузке
+    // Обновляем статистику сразу при загрузке (start nested loop)
     updateStatistics();
 })();
 </script>
