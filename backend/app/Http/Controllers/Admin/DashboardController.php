@@ -61,7 +61,7 @@ class DashboardController extends Controller
                         ELSE GREATEST(0, JSON_LENGTH(accounts_data) - COALESCE(used, 0)) 
                     END) as available_products,
                     SUM(CASE 
-                        WHEN delivery_type = 'manual' THEN price
+                        WHEN delivery_type = 'manual' THEN 0
                         ELSE GREATEST(0, JSON_LENGTH(accounts_data) - COALESCE(used, 0)) * price 
                     END) as total_value
                 ")

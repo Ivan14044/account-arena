@@ -79,8 +79,16 @@
             <div class="stat-card stat-card-warning w-100">
                 <div class="stat-card-body">
                     <div class="stat-main-info">
-                        <div class="stat-label">{{ __('Стоимость стока') }}</div>
-                        <div class="stat-value">{{ number_format($totalProductsValue, 2) }}<span class="stat-unit">{{ \App\Models\Option::get('currency') }}</span></div>
+                        <div class="stat-label">
+                            {{ __('Стоимость стока') }}
+                            <i class="fas fa-info-circle ml-1 scale-75 opacity-50" 
+                               data-toggle="tooltip" 
+                               title="{{ __('Суммарная цена всех загруженных аккаунтов. Услуги с ручной выдачей не учитываются.') }}"></i>
+                        </div>
+                        <div class="stat-value">
+                            {{ number_format($totalProductsValue, 2, '.', ',') }}
+                            <span class="stat-unit" style="text-transform: uppercase; font-size: 0.9rem; margin-left: 4px; opacity: 0.8;">{{ \App\Models\Option::get('currency', 'USD') }}</span>
+                        </div>
                     </div>
                     <a href="{{ route('admin.service-accounts.index') }}" class="stat-link text-warning">
                         {{ __('Подробнее') }} <i class="fas fa-arrow-right"></i>
