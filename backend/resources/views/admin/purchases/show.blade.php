@@ -1,117 +1,137 @@
 @extends('adminlte::page')
 
-@section('title', 'Покупка #' . $purchase->order_number)
+@section('title', __('Покупка') . ' #' . $purchase->order_number)
 
 @section('content_header')
-    <h1>
-        <i class="fas fa-shopping-bag"></i> Покупка #{{ $purchase->order_number }}
-        <small class="text-muted">(ID: {{ $purchase->id }})</small>
-    </h1>
+    <div class="content-header-modern">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="m-0 font-weight-light">
+                    <i class="fas fa-shopping-bag mr-2"></i>{{ __('Покупка') }} #{{ $purchase->order_number }}
+                    <small class="text-muted ml-2">(ID: {{ $purchase->id }})</small>
+                </h1>
+            </div>
+            <div>
+                <a href="{{ route('admin.purchases.index') }}" class="btn btn-secondary btn-modern">
+                    <i class="fas fa-arrow-left mr-2"></i>{{ __('Назад к списку') }}
+                </a>
+            </div>
+        </div>
+    </div>
 @stop
 
 @section('content')
     <div class="row">
         <!-- Основная информация -->
         <div class="col-md-8">
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title"><i class="fas fa-info-circle"></i> Информация о покупке</h3>
+            <div class="card card-modern mb-4">
+                <div class="card-header-modern">
+                    <h5 class="mb-0 font-weight-normal"><i class="fas fa-info-circle mr-2 text-muted"></i>{{ __('Информация о покупке') }}</h5>
                 </div>
-                <div class="card-body">
-                    <table class="table table-bordered">
+                <div class="card-body-modern p-0">
+                    <table class="table table-hover mb-0">
                         <tr>
-                            <th style="width: 200px;">Номер заказа</th>
-                            <td><code class="text-primary">{{ $purchase->order_number }}</code></td>
+                            <th style="width: 250px;" class="pl-4">{{ __('Номер заказа') }}</th>
+                            <td><code class="text-primary font-weight-bold" style="font-size: 1.1rem;">{{ $purchase->order_number }}</code></td>
                         </tr>
                         <tr>
-                            <th>Пользователь</th>
+                            <th class="pl-4">{{ __('Покупатель') }}</th>
                             <td>
                                 @if($purchase->user)
-                                    <a href="{{ route('admin.users.edit', $purchase->user) }}">
-                                        <i class="fas fa-user"></i> {{ $purchase->user->email }}
-                                    </a>
-                                    <br>
-                                    <small class="text-muted">{{ $purchase->user->name }}</small>
+                                    <div class="d-flex align-items-center">
+                                        <div class="mr-3">
+                                            <div class="avatar-circle-sm bg-primary-soft text-primary">
+                                                {{ strtoupper($purchase->user->name[0] ?? 'U') }}
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <a href="{{ route('admin.users.edit', $purchase->user) }}" class="text-dark font-weight-bold">
+                                                {{ $purchase->user->email }}
+                                            </a>
+                                            <br>
+                                            <small class="text-muted">{{ $purchase->user->name }}</small>
+                                        </div>
+                                    </div>
                                 @elseif($purchase->guest_email)
-                                    <i class="fas fa-user"></i> {{ $purchase->guest_email }}
-                                    <br>
-                                    <small class="text-muted">Гостевой заказ</small>
+                                    <div class="d-flex align-items-center">
+                                        <div class="mr-3">
+                                            <div class="avatar-circle-sm bg-info-soft text-info text-center pt-1" style="width: 32px; height: 32px; border-radius: 50%; font-size: 0.8rem; line-height: 24px;">
+                                                <i class="fas fa-user-secret"></i>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <span class="text-dark font-weight-bold">{{ $purchase->guest_email }}</span>
+                                            <br>
+                                            <span class="badge badge-info-soft text-info badge-pill">{{ __('Гостевой заказ') }}</span>
+                                        </div>
+                                    </div>
                                 @else
-                                    <span class="text-muted">Не указан</span>
+                                    <span class="text-muted">{{ __('Не указан') }}</span>
                                 @endif
                             </td>
                         </tr>
                         <tr>
-                            <th>Товар</th>
+                            <th class="pl-4">{{ __('Товар') }}</th>
                             <td>
                                 @if($purchase->serviceAccount)
-                                    <a href="{{ route('admin.service-accounts.edit', $purchase->serviceAccount) }}">
+                                    <a href="{{ route('admin.service-accounts.edit', $purchase->serviceAccount) }}" class="font-weight-500">
                                         {{ $purchase->serviceAccount->title }}
                                     </a>
+                                    @if($purchase->serviceAccount->sku)
+                                        <br><small class="text-muted">SKU: {{ $purchase->serviceAccount->sku }}</small>
+                                    @endif
                                 @else
-                                    <span class="text-muted">Товар удален</span>
+                                    <span class="text-danger font-weight-bold">{{ __('Товар удален') }}</span>
                                 @endif
                             </td>
                         </tr>
                         <tr>
-                            <th>Количество</th>
-                            <td><span class="badge badge-info">{{ $purchase->quantity }} шт.</span></td>
+                            <th class="pl-4">{{ __('Количество') }}</th>
+                            <td><span class="badge badge-info badge-modern">{{ $purchase->quantity }} {{ __('шт.') }}</span></td>
                         </tr>
                         <tr>
-                            <th>Цена за единицу</th>
+                            <th class="pl-4">{{ __('Цена за единицу') }}</th>
                             <td>${{ number_format($purchase->price, 2) }}</td>
                         </tr>
                         <tr>
-                            <th>Общая сумма</th>
-                            <td><strong class="text-success">${{ number_format($purchase->total_amount, 2) }}</strong></td>
-                        </tr>
-                        <tr>
-                            <th>Статус</th>
+                            <th class="pl-4">{{ __('Общая сумма') }}</th>
                             <td>
-                                @php
-                                    $statusColors = [
-                                        'completed' => 'success',
-                                        'pending' => 'warning',
-                                        'failed' => 'danger',
-                                        'refunded' => 'info',
-                                    ];
-                                    $statusLabels = [
-                                        'completed' => 'Завершено',
-                                        'pending' => 'В обработке',
-                                        'failed' => 'Ошибка',
-                                        'refunded' => 'Возврат',
-                                    ];
-                                    $color = $statusColors[$purchase->status] ?? 'secondary';
-                                    $label = $statusLabels[$purchase->status] ?? $purchase->status;
-                                @endphp
-                                <span class="badge badge-{{ $color }}">{{ $label }}</span>
+                                <div class="h5 mb-0 text-success font-weight-bold">${{ number_format($purchase->total_amount, 2) }}</div>
                             </td>
                         </tr>
                         <tr>
-                            <th>Дата покупки</th>
+                            <th class="pl-4">{{ __('Статус') }}</th>
                             <td>
-                                {{ $purchase->created_at->format('d.m.Y H:i:s') }}
-                                <br>
+                                <span class="badge badge-{{ $purchase->getStatusBadgeClass() }} badge-modern px-3 py-2" style="font-size: 0.85rem;">
+                                    {{ $purchase->getStatusText() }}
+                                </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th class="pl-4">{{ __('Дата создания') }}</th>
+                            <td>
+                                <div class="text-dark">{{ $purchase->created_at->translatedFormat('d F Y, H:i') }}</div>
                                 <small class="text-muted">{{ $purchase->created_at->diffForHumans() }}</small>
                             </td>
                         </tr>
                         @if($purchase->transaction)
                             <tr>
-                                <th>ID транзакции</th>
-                                <td>#{{ $purchase->transaction->id }}</td>
+                                <th class="pl-4">{{ __('ID транзакции') }}</th>
+                                <td><code class="text-muted">#{{ $purchase->transaction->id }}</code></td>
                             </tr>
                             <tr>
-                                <th>Метод оплаты</th>
+                                <th class="pl-4">{{ __('Метод оплаты') }}</th>
                                 <td>
                                     @php
-                                        $methods = [
-                                            'balance' => 'Баланс',
-                                            'crypto' => 'Криптовалюта',
-                                            'credit_card' => 'Банковская карта',
-                                            'free' => 'Бесплатно',
+                                        $methodNames = [
+                                            'balance' => __('Баланс'),
+                                            'crypto' => __('Криптовалюта'),
+                                            'credit_card' => __('Банковская карта'),
+                                            'free' => __('Бесплатно'),
                                         ];
+                                        $method = $purchase->transaction->payment_method;
                                     @endphp
-                                    {{ $methods[$purchase->transaction->payment_method] ?? $purchase->transaction->payment_method }}
+                                    <span class="badge badge-light border">{{ $methodNames[$method] ?? $method }}</span>
                                 </td>
                             </tr>
                         @endif
@@ -120,55 +140,53 @@
             </div>
 
             <!-- Данные аккаунтов -->
-            <div class="card">
-                <div class="card-header bg-success">
-                    <h3 class="card-title">
-                        <i class="fas fa-user-lock"></i> Выданные данные аккаунтов ({{ count($purchase->account_data ?? []) }} шт.)
-                    </h3>
-                    @if(is_array($purchase->account_data) && count($purchase->account_data) > 0)
-                        <div class="card-tools">
-                            <button class="btn btn-sm btn-light" 
+            <div class="card card-modern mb-4 overflow-hidden">
+                <div class="card-header-modern bg-success-soft">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0 text-success"><i class="fas fa-key mr-2"></i>{{ __('Выданные данные') }} ({{ count($purchase->account_data ?? []) }})</h5>
+                        @if(is_array($purchase->account_data) && count($purchase->account_data) > 0)
+                            <button class="btn btn-sm btn-success btn-modern" 
                                     onclick="downloadAllPurchaseAccounts(this)" 
                                     data-accounts="{{ json_encode($purchase->account_data) }}"
-                                    data-order="{{ $purchase->order_number }}"
-                                    title="Скачать все">
-                                <i class="fas fa-file-download text-success"></i> Скачать всё (.txt)
+                                    data-order="{{ $purchase->order_number }}">
+                                <i class="fas fa-file-download mr-1"></i> {{ __('Скачать всё') }} (.txt)
                             </button>
-                        </div>
-                    @endif
+                        @endif
+                    </div>
                 </div>
-                <div class="card-body">
+                <div class="card-body-modern p-4">
                     @if(is_array($purchase->account_data) && count($purchase->account_data) > 0)
-                        @foreach($purchase->account_data as $index => $accountItem)
-                            <div class="mb-3 p-3 bg-light border rounded">
-                                <div class="d-flex justify-content-between align-items-start">
-                                    <div class="flex-fill">
-                                        <h6 class="mb-2">Аккаунт #{{ $index + 1 }}</h6>
-                                        <pre class="mb-0" style="font-size: 0.9rem;">{{ is_string($accountItem) ? $accountItem : json_encode($accountItem, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) }}</pre>
-                                    </div>
-                                    <div class="btn-group-vertical ml-2">
-                                        <button 
-                                            class="btn btn-sm btn-primary" 
-                                            onclick="copyToClipboard(this)" 
-                                            data-text="{{ is_string($accountItem) ? $accountItem : json_encode($accountItem, JSON_UNESCAPED_UNICODE) }}"
-                                            title="Копировать">
-                                            <i class="fas fa-copy"></i>
-                                        </button>
-                                        <button 
-                                            class="btn btn-sm btn-info" 
-                                            onclick="downloadSingleAccount(this)" 
-                                            data-text="{{ is_string($accountItem) ? $accountItem : json_encode($accountItem, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) }}"
-                                            data-filename="order_{{ $purchase->order_number }}_acc_{{ $index + 1 }}.txt"
-                                            title="Скачать">
-                                            <i class="fas fa-download"></i>
-                                        </button>
+                        <div class="row">
+                            @foreach($purchase->account_data as $index => $accountItem)
+                                <div class="col-12 mb-3">
+                                    <div class="account-data-item p-3 rounded border bg-light shadow-none">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <span class="badge badge-light border">{{ __('Аккаунт') }} #{{ $index + 1 }}</span>
+                                            <div class="btn-group">
+                                                <button class="btn btn-xs btn-outline-primary" 
+                                                        onclick="copyToClipboard(this)" 
+                                                        data-text="{{ is_string($accountItem) ? $accountItem : json_encode($accountItem, JSON_UNESCAPED_UNICODE) }}"
+                                                        title="{{ __('Копировать') }}">
+                                                    <i class="fas fa-copy mr-1"></i>{{ __('Копировать') }}
+                                                </button>
+                                                <button class="btn btn-xs btn-outline-info" 
+                                                        onclick="downloadSingleAccount(this)" 
+                                                        data-text="{{ is_string($accountItem) ? $accountItem : json_encode($accountItem, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) }}"
+                                                        data-filename="order_{{ $purchase->order_number }}_acc_{{ $index + 1 }}.txt"
+                                                        title="{{ __('Скачать') }}">
+                                                    <i class="fas fa-download"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <pre class="mb-0 bg-white p-3 rounded border" style="font-size: 0.95rem; font-family: 'Fira Code', 'Roboto Mono', monospace;">{{ is_string($accountItem) ? $accountItem : json_encode($accountItem, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) }}</pre>
                                     </div>
                                 </div>
-                            </div>
-                        @endforeach
+                            @endforeach
+                        </div>
                     @else
-                        <div class="alert alert-warning">
-                            <i class="fas fa-exclamation-triangle"></i> Нет данных аккаунтов для этой покупки
+                        <div class="text-center py-4">
+                            <i class="fas fa-exclamation-triangle fa-3x text-warning opacity-50 mb-3"></i>
+                            <p class="text-muted mb-0">{{ __('Нет данных для этой покупки') }}</p>
                         </div>
                     @endif
                 </div>
@@ -176,18 +194,16 @@
 
             <!-- Заметки и обработка -->
             @if($purchase->admin_notes || $purchase->processing_notes || $purchase->processed_by)
-                <div class="card card-warning card-outline">
-                    <div class="card-header">
-                        <h3 class="card-title">
-                            <i class="fas fa-clipboard-list"></i> Заметки и обработка
-                        </h3>
+                <div class="card card-modern border-warning-soft">
+                    <div class="card-header-modern bg-warning-soft">
+                        <h5 class="mb-0 text-warning"><i class="fas fa-clipboard-list mr-2"></i>{{ __('Заметки и история обработки') }}</h5>
                     </div>
-                    <div class="card-body">
+                    <div class="card-body-modern p-4">
                         <div class="row">
                             @if($purchase->processing_notes)
-                                <div class="col-md-6">
-                                    <label class="text-muted small uppercase">Заметки для менеджера (Manual Delivery)</label>
-                                    <div class="p-3 bg-light rounded border mb-3">
+                                <div class="col-md-6 mb-4 mb-md-0">
+                                    <div class="font-weight-bold small text-muted text-uppercase mb-2">{{ __('Инструкции к заказу') }}</div>
+                                    <div class="p-3 bg-light rounded border border-warning-soft">
                                         {{ $purchase->processing_notes }}
                                     </div>
                                 </div>
@@ -195,8 +211,8 @@
 
                             @if($purchase->admin_notes)
                                 <div class="col-md-6">
-                                    <label class="text-muted small uppercase">Внутренние заметки админа</label>
-                                    <div class="p-3 bg-light rounded border mb-3 border-warning">
+                                    <div class="font-weight-bold small text-muted text-uppercase mb-2">{{ __('Внутренние заметки') }}</div>
+                                    <div class="p-3 bg-light rounded border border-warning-soft">
                                         {{ $purchase->admin_notes }}
                                     </div>
                                 </div>
@@ -204,23 +220,25 @@
                         </div>
 
                         @if($purchase->processed_by)
-                            <div class="mt-2 border-top pt-3">
+                            <div class="mt-4 pt-4 border-top">
                                 <div class="d-flex align-items-center">
                                     <div class="mr-3">
-                                        <i class="fas fa-user-cog fa-2x text-muted"></i>
+                                        <div class="avatar-circle bg-light text-muted border">
+                                            <i class="fas fa-user-cog"></i>
+                                        </div>
                                     </div>
                                     <div>
-                                        <div class="text-muted small">Обработал заказ:</div>
-                                        <div class="font-weight-bold">
+                                        <div class="text-muted small">{{ __('Обработал заказ') }}:</div>
+                                        <div class="font-weight-bold text-dark">
                                             @if($purchase->processor)
-                                                {{ $purchase->processor->name }} ({{ $purchase->processor->email }})
+                                                {{ $purchase->processor->name }} <span class="text-muted font-weight-normal ml-1">({{ $purchase->processor->email }})</span>
                                             @else
-                                                Администратор #{{ $purchase->processed_by }}
+                                                Admin ID #{{ $purchase->processed_by }}
                                             @endif
                                         </div>
                                         <div class="text-muted small">
                                             <i class="far fa-clock mr-1"></i>
-                                            {{ $purchase->processed_at ? $purchase->processed_at->format('d.m.Y H:i') : 'N/A' }}
+                                            {{ $purchase->processed_at ? $purchase->processed_at->translatedFormat('d F Y, H:i') : __('Неизвестно') }}
                                         </div>
                                     </div>
                                 </div>
@@ -234,46 +252,49 @@
         <!-- Боковая панель -->
         <div class="col-md-4">
             <!-- Действия -->
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title"><i class="fas fa-cog"></i> Действия</h3>
+            <div class="card card-modern mb-4">
+                <div class="card-header-modern">
+                    <h5 class="mb-0 font-weight-normal"><i class="fas fa-bolt mr-2 text-primary"></i>{{ __('Действия') }}</h5>
                 </div>
-                <div class="card-body">
-                    <a href="{{ route('admin.purchases.index') }}" class="btn btn-secondary btn-block">
-                        <i class="fas fa-arrow-left"></i> Назад к списку
-                    </a>
-                    
+                <div class="card-body-modern p-3">
                     @if($purchase->user)
-                        <a href="{{ route('admin.users.edit', $purchase->user) }}" class="btn btn-info btn-block">
-                            <i class="fas fa-user-edit"></i> Профиль пользователя
+                        <a href="{{ route('admin.users.edit', $purchase->user) }}" class="btn btn-light btn-block btn-modern text-left py-2 mb-2">
+                            <i class="fas fa-user-circle mr-3 text-info"></i>{{ __('Профиль покупателя') }}
                         </a>
                     @endif
 
                     @if($purchase->serviceAccount)
-                        <a href="{{ route('admin.service-accounts.edit', $purchase->serviceAccount) }}" class="btn btn-warning btn-block">
-                            <i class="fas fa-edit"></i> Редактировать товар
+                        <a href="{{ route('admin.service-accounts.edit', $purchase->serviceAccount) }}" class="btn btn-light btn-block btn-modern text-left py-2 mb-2">
+                            <i class="fas fa-store mr-3 text-warning"></i>{{ __('Редактировать товар') }}
                         </a>
                     @endif
+                    
+                    <button class="btn btn-light btn-block btn-modern text-left py-2 mb-2" onclick="window.print()">
+                        <i class="fas fa-print mr-3 text-secondary"></i>{{ __('Печать счета') }}
+                    </button>
                 </div>
             </div>
 
             <!-- Статистика пользователя -->
             @if($purchase->user)
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title"><i class="fas fa-chart-bar"></i> Статистика пользователя</h3>
+                <div class="card card-modern mb-4 shadow-sm border-0">
+                    <div class="card-header-modern">
+                        <h5 class="mb-0 font-weight-normal"><i class="fas fa-chart-line mr-2 text-success"></i>{{ __('Статистика клиента') }}</h5>
                     </div>
-                    <div class="card-body">
-                        <table class="table table-sm">
-                            <tr>
-                                <th>Баланс:</th>
-                                <td class="text-right">${{ number_format($purchase->user->balance, 2) }}</td>
-                            </tr>
-                            <tr>
-                                <th>Всего покупок:</th>
-                                <td class="text-right">{{ $purchase->user->purchases()->count() }}</td>
-                            </tr>
-                        </table>
+                    <div class="card-body-modern p-0">
+                        <div class="p-4 border-bottom d-flex justify-content-between align-items-center">
+                            <div class="text-muted small uppercase font-weight-bold">{{ __('Баланс') }}</div>
+                            <div class="h5 mb-0 font-weight-bold text-dark">${{ number_format($purchase->user->balance, 2) }}</div>
+                        </div>
+                        <div class="p-4 d-flex justify-content-between align-items-center">
+                            <div class="text-muted small uppercase font-weight-bold">{{ __('Всего покупок') }}</div>
+                            <div class="h5 mb-0 font-weight-bold text-dark">{{ $purchase->user->purchases()->count() }}</div>
+                        </div>
+                    </div>
+                    <div class="card-footer-modern bg-light text-center p-3">
+                        <a href="{{ route('admin.purchases.index', ['user_id' => $purchase->user_id]) }}" class="small font-weight-bold">
+                            {{ __('Все заказы клиента') }} <i class="fas fa-chevron-right ml-1"></i>
+                        </a>
                     </div>
                 </div>
             @endif
@@ -281,37 +302,28 @@
     </div>
 @endsection
 
+@section('css')
+    @include('admin.layouts.modern-styles')
+@endsection
+
 @section('js')
 <script>
 function copyToClipboard(button) {
     const text = button.getAttribute('data-text');
+    const originalContent = button.innerHTML;
     
     if (navigator.clipboard) {
         navigator.clipboard.writeText(text).then(() => {
-            // Визуальная обратная связь
-            const originalHTML = button.innerHTML;
-            button.innerHTML = '<i class="fas fa-check"></i>';
-            button.classList.remove('btn-primary');
+            button.innerHTML = '<i class="fas fa-check mr-1"></i>{{ __("Скопировано") }}';
+            button.classList.remove('btn-outline-primary');
             button.classList.add('btn-success');
             
             setTimeout(() => {
-                button.innerHTML = originalHTML;
+                button.innerHTML = originalContent;
                 button.classList.remove('btn-success');
-                button.classList.add('btn-primary');
-            }, 1500);
-        }).catch(err => {
-            alert('Ошибка копирования: ' + err);
+                button.classList.add('btn-outline-primary');
+            }, 2000);
         });
-    } else {
-        // Fallback для старых браузеров
-        const textarea = document.createElement('textarea');
-        textarea.value = text;
-        document.body.appendChild(textarea);
-        textarea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textarea);
-        
-        alert('Скопировано!');
     }
 }
 
@@ -325,13 +337,17 @@ function downloadAllPurchaseAccounts(button) {
     const accounts = JSON.parse(button.getAttribute('data-accounts'));
     const orderNumber = button.getAttribute('data-order');
     
-    let content = "";
+    let content = "Order: " + orderNumber + "\n";
+    content += "Date: " + new Date().toLocaleString() + "\n";
+    content += "------------------------------------------\n\n";
+    
     accounts.forEach((acc, index) => {
-        content += `--- Account #${index + 1} ---\n`;
-        content += (typeof acc === 'string' ? acc : JSON.stringify(acc, null, 2)) + "\n\n";
+        content += `[Account #${index + 1}]\n`;
+        content += (typeof acc === 'string' ? acc : JSON.stringify(acc, null, 2)) + "\n";
+        content += "------------------------------------------\n\n";
     });
     
-    downloadFile(content, `order_${orderNumber}_all_accounts.txt`);
+    downloadFile(content, `order_${orderNumber}_accounts.txt`);
 }
 
 function downloadFile(content, filename) {

@@ -94,6 +94,39 @@ class Purchase extends Model
     const STATUS_COMPLETED = 'completed';
     const STATUS_FAILED = 'failed';
     const STATUS_CANCELLED = 'cancelled';
+    const STATUS_REFUNDED = 'refunded';
+
+    /**
+     * Получить текст статуса
+     */
+    public function getStatusText(): string
+    {
+        return match($this->status) {
+            self::STATUS_PENDING => __('В обработке'),
+            self::STATUS_PROCESSING => __('В работе'),
+            self::STATUS_COMPLETED => __('Завершено'),
+            self::STATUS_FAILED => __('Ошибка'),
+            self::STATUS_CANCELLED => __('Отменено'),
+            self::STATUS_REFUNDED => __('Возврат'),
+            default => $this->status,
+        };
+    }
+
+    /**
+     * Получить CSS класс для статуса
+     */
+    public function getStatusBadgeClass(): string
+    {
+        return match($this->status) {
+            self::STATUS_PENDING => 'warning',
+            self::STATUS_PROCESSING => 'primary',
+            self::STATUS_COMPLETED => 'success',
+            self::STATUS_FAILED => 'danger',
+            self::STATUS_CANCELLED => 'secondary',
+            self::STATUS_REFUNDED => 'info',
+            default => 'secondary',
+        };
+    }
 
     /**
      * Проверить, находится ли заказ в обработке
