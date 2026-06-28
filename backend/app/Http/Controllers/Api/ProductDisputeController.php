@@ -107,6 +107,17 @@ class ProductDisputeController extends Controller
             ], 422);
         }
 
+        // FIX (H15 / bug BUG-03): как и canDispute(), не разрешаем создавать спор
+        // на транзакцию в неподходящем статусе (например уже refunded/failed/
+        // pending). Ранее store() этот статус не проверял, что позволяло открыть
+        // спор на уже возвращённую покупку и получить бесплатную замену.
+        if (!in_array($transaction->status, ['completed', 'success', null], true)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Статус транзакции не позволяет создать претензию',
+            ], 422);
+        }
+
         // Проверяем, что транзакция не старше 30 дней
         if ($transaction->created_at->diffInDays(now()) > 30) {
             return response()->json([
@@ -172,19 +183,41 @@ class ProductDisputeController extends Controller
             $screenshotType = 'link';
         }
 
-        // Создаем претензию
-        $dispute = ProductDispute::create([
-            'transaction_id' => $transaction->id,
-            'user_id' => $request->user()->id,
-            'supplier_id' => $supplierId,
-            'service_account_id' => $serviceAccountId, // ИСПРАВЛЕНО: Используем полученный ID
-            'reason' => $validated['reason'],
-            'customer_description' => $validated['description'],
-            'screenshot_url' => $screenshotUrl,
-            'screenshot_type' => $screenshotType,
-            'status' => ProductDispute::STATUS_NEW,
-            'refund_amount' => $transaction->amount, // Сумма возврата = сумма транзакции
-        ]);
+        // Создаем претензию.
+        // FIX (H15): ловим гонку (TOCTOU) — между exists()-проверкой и create()
+        // два параллельных запроса могли создать два спора на одну транзакцию.
+        // Теперь это страхует unique-индекс product_disputes.transaction_id;
+        // нарушение констрейнта превращаем в дружелюбный 422.
+        try {
+            $dispute = ProductDispute::create([
+                'transaction_id' => $transaction->id,
+                'user_id' => $request->user()->id,
+                'supplier_id' => $supplierId,
+                'service_account_id' => $serviceAccountId, // ИСПРАВЛЕНО: Используем полученный ID
+                'reason' => $validated['reason'],
+                'customer_description' => $validated['description'],
+                'screenshot_url' => $screenshotUrl,
+                'screenshot_type' => $screenshotType,
+                'status' => ProductDispute::STATUS_NEW,
+                'refund_amount' => $transaction->amount, // Сумма возврата = сумма транзакции
+            ]);
+        } catch (\Illuminate\Database\QueryException $e) {
+            // Только нарушение уникальности transaction_id трактуем как "дубликат".
+            // Прочие ошибки БД не маскируем — пробрасываем дальше.
+            $message = $e->getMessage();
+            $isDuplicate = str_contains($message, 'product_disputes_transaction_id_unique')
+                || str_contains($message, 'UNIQUE constraint failed')
+                || (isset($e->errorInfo[1]) && (int) $e->errorInfo[1] === 1062);
+
+            if ($isDuplicate) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Претензия на эту покупку уже создана',
+                ], 422);
+            }
+
+            throw $e;
+        }
 
         // Очищаем кеш счетчика новых претензий
         Cache::forget('disputes_new_count');
