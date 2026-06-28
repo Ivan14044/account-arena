@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\WithdrawalRequest;
+use App\Models\SupplierEarning;
 use App\Models\SupplierNotification;
 use App\Services\BalanceService;
 use Illuminate\Http\Request;
@@ -47,9 +48,9 @@ class WithdrawalRequestController extends Controller
 
         $statistics = [
             'total' => WithdrawalRequest::count(),
-            'pending' => WithdrawalRequest::where('status', 'pending')->count(),
-            'paid' => WithdrawalRequest::where('status', 'paid')->count(),
-            'total_amount' => WithdrawalRequest::where('status', 'paid')->sum('amount'),
+            'pending' => WithdrawalRequest::where('status', WithdrawalRequest::STATUS_PENDING)->count(),
+            'paid' => WithdrawalRequest::where('status', WithdrawalRequest::STATUS_PAID)->count(),
+            'total_amount' => WithdrawalRequest::where('status', WithdrawalRequest::STATUS_PAID)->sum('amount'),
         ];
 
         return view('admin.withdrawal-requests.index', compact('withdrawalRequests', 'suppliers', 'statistics'));
@@ -69,7 +70,7 @@ class WithdrawalRequestController extends Controller
      */
     public function approve(WithdrawalRequest $withdrawalRequest, BalanceService $balanceService)
     {
-        if ($withdrawalRequest->status !== 'pending') {
+        if ($withdrawalRequest->status !== WithdrawalRequest::STATUS_PENDING) {
             return back()->with('error', 'Можно одобрить только запросы со статусом "В обработке".');
         }
 
@@ -91,9 +92,9 @@ class WithdrawalRequestController extends Controller
                 // Вычисляем доступную сумму с учетом других pending запросов
                 $availableAmount = \App\Models\SupplierEarning::where('supplier_id', $supplier->id)
                     ->where(function($q) {
-                        $q->where('status', 'available')
+                        $q->where('status', SupplierEarning::STATUS_AVAILABLE)
                           ->orWhere(function($q2) {
-                              $q2->where('status', 'held')
+                              $q2->where('status', SupplierEarning::STATUS_HELD)
                                  ->whereNotNull('available_at')
                                  ->where('available_at', '<=', now());
                           });
@@ -101,7 +102,7 @@ class WithdrawalRequestController extends Controller
 
                 // Вычитаем сумму других pending запросов (кроме текущего)
                 $pendingWithdrawals = WithdrawalRequest::where('supplier_id', $supplier->id)
-                    ->where('status', 'pending')
+                    ->where('status', WithdrawalRequest::STATUS_PENDING)
                     ->where('id', '!=', $withdrawalRequest->id)
                     ->sum('amount');
                 
@@ -118,7 +119,7 @@ class WithdrawalRequestController extends Controller
                 }
 
                 $withdrawalRequest->update([
-                    'status' => 'approved',
+                    'status' => WithdrawalRequest::STATUS_APPROVED,
                     'processed_at' => now(),
                 ]);
 
@@ -168,7 +169,7 @@ class WithdrawalRequestController extends Controller
             'admin_comment' => ['nullable', 'string', 'max:1000'],
         ]);
 
-        if ($withdrawalRequest->status !== 'approved') {
+        if ($withdrawalRequest->status !== WithdrawalRequest::STATUS_APPROVED) {
             return back()->with('error', 'Можно отметить как оплаченный только одобренные запросы.');
         }
 
@@ -198,7 +199,7 @@ class WithdrawalRequestController extends Controller
             // Списываем по принципу FIFO (первыми выводим самые старые доступные earnings)
             $remainingAmount = $withdrawalRequest->amount;
             $earningsToWithdraw = \App\Models\SupplierEarning::where('supplier_id', $supplier->id)
-                ->where('status', 'available')
+                ->where('status', SupplierEarning::STATUS_AVAILABLE)
                 ->orderBy('available_at', 'asc')
                 ->orderBy('created_at', 'asc')
                 ->lockForUpdate()
@@ -215,7 +216,7 @@ class WithdrawalRequestController extends Controller
                 // Если списываем полностью - меняем статус на withdrawn
                 if ($amountToDeduct >= $earning->amount) {
                     $earning->update([
-                        'status' => 'withdrawn',
+                        'status' => SupplierEarning::STATUS_WITHDRAWN,
                         'processed_at' => now(),
                     ]);
                 } else {
@@ -227,14 +228,14 @@ class WithdrawalRequestController extends Controller
                         'purchase_id' => $earning->purchase_id,
                         'transaction_id' => $earning->transaction_id,
                         'amount' => $earning->amount - $amountToDeduct,
-                        'status' => 'available',
+                        'status' => SupplierEarning::STATUS_AVAILABLE,
                         'available_at' => now(), // Устанавливаем текущее время, так как средства уже доступны
                     ]);
 
                     // Текущую запись помечаем как withdrawn
                     $earning->update([
                         'amount' => $amountToDeduct,
-                        'status' => 'withdrawn',
+                        'status' => SupplierEarning::STATUS_WITHDRAWN,
                         'processed_at' => now(),
                     ]);
                 }
@@ -242,7 +243,7 @@ class WithdrawalRequestController extends Controller
 
             // Обновляем запрос на вывод
             $withdrawalRequest->update([
-                'status' => 'paid',
+                'status' => WithdrawalRequest::STATUS_PAID,
                 'admin_comment' => $validated['admin_comment'] ?? null,
                 'processed_at' => now(),
             ]);
@@ -286,12 +287,12 @@ class WithdrawalRequestController extends Controller
             'admin_comment' => ['required', 'string', 'max:1000'],
         ]);
 
-        if ($withdrawalRequest->status === 'paid') {
+        if ($withdrawalRequest->status === WithdrawalRequest::STATUS_PAID) {
             return back()->with('error', 'Нельзя отклонить уже оплаченный запрос.');
         }
 
         $withdrawalRequest->update([
-            'status' => 'rejected',
+            'status' => WithdrawalRequest::STATUS_REJECTED,
             'admin_comment' => $validated['admin_comment'],
             'processed_at' => now(),
         ]);

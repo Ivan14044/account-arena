@@ -316,7 +316,7 @@ class ProductPurchaseService
                             'purchase_id' => $purchase->id,
                             'transaction_id' => $transaction->id,
                             'amount' => $supplierAmount,
-                            'status' => 'held',
+                            'status' => SupplierEarning::STATUS_HELD,
                             'available_at' => $availableAt,
                         ]);
 
