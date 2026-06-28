@@ -475,9 +475,19 @@ class CryptomusController extends Controller
         }
 
         try {
-            // ВАЖНО: Обновляем статус транзакции ПЕРЕД пополнением
+            // SECURITY FIX (H10 / bug H10): атомарная идемпотентность пополнения —
+            // кредитуем баланс только один раз даже при ретрае вебхука позже окна 24ч.
+            $claimed = Transaction::whereKey($transaction->id)
+                ->where('status', '!=', 'completed')
+                ->update(['status' => 'completed']);
+            if ($claimed === 0) {
+                Log::info('Cryptomus webhook (TopUp): duplicate webhook ignored (already completed)', [
+                    'order_id' => $orderId,
+                    'transaction_id' => $transaction->id,
+                ]);
+                return \App\Http\Responses\ApiResponse::success(['message' => 'Already processed']);
+            }
             $transaction->status = 'completed';
-            $transaction->save();
 
             $balanceService = app(BalanceService::class);
 
@@ -555,24 +565,25 @@ class CryptomusController extends Controller
             return \App\Http\Responses\ApiResponse::success();
         }
 
-        // ВАЖНО: Проверяем дублирование покупок
-        $existingPurchase = \App\Models\Purchase::where('transaction_id', $transaction->id)->first();
-        if ($existingPurchase) {
-            Log::info('Cryptomus webhook (User Purchase): Purchase already exists (duplicate webhook)', [
-                'order_id' => $orderId,
-                'transaction_id' => $transaction->id,
-                'purchase_id' => $existingPurchase->id,
-                'user_id' => $userId,
-            ]);
-            return \App\Http\Responses\ApiResponse::success(['message' => 'Already processed']);
-        }
-
         $promocode = trim((string)($metadata['promocode'] ?? ''));
 
         try {
-            // ВАЖНО: Обновляем статус транзакции ПЕРЕД созданием покупок
+            // SECURITY FIX (C6 / bug C6): атомарная идемпотентность вебхука.
+            // Раньше проверка дублей + установка статуса шли без блокировки →
+            // параллельные вебхуки давали двойную выдачу. Теперь атомарный
+            // compare-and-set: только ОДИН вызов переводит статус в completed.
+            $claimed = Transaction::whereKey($transaction->id)
+                ->where('status', '!=', 'completed')
+                ->update(['status' => 'completed']);
+            if ($claimed === 0) {
+                Log::info('Cryptomus webhook (User Purchase): duplicate webhook ignored (already completed)', [
+                    'order_id' => $orderId,
+                    'transaction_id' => $transaction->id,
+                    'user_id' => $userId,
+                ]);
+                return \App\Http\Responses\ApiResponse::success(['message' => 'Already processed']);
+            }
             $transaction->status = 'completed';
-            $transaction->save();
 
             // ВАЖНО: Подготавливаем данные с проверкой наличия и актуальной цены
             $preparedProductsData = [];
@@ -679,26 +690,23 @@ class CryptomusController extends Controller
             return \App\Http\Responses\ApiResponse::success();
         }
 
-        // ВАЖНО: Проверяем дублирование покупок для гостя
-        if ($transaction) {
-            $existingPurchase = \App\Models\Purchase::where('transaction_id', $transaction->id)->first();
-            if ($existingPurchase) {
-                Log::info('Cryptomus webhook (Guest): Purchase already exists (duplicate webhook)', [
+        $promocode = trim((string)($metadata['promocode'] ?? ''));
+
+        try {
+            // SECURITY FIX (C6 / bug C6): атомарная идемпотентность вебхука (см.
+            // handleUserPurchaseWebhook). Только ОДИН параллельный вебхук выдаёт товар.
+            $claimed = Transaction::whereKey($transaction->id)
+                ->where('status', '!=', 'completed')
+                ->update(['status' => 'completed']);
+            if ($claimed === 0) {
+                Log::info('Cryptomus webhook (Guest): duplicate webhook ignored (already completed)', [
                     'order_id' => $orderId,
                     'transaction_id' => $transaction->id,
-                    'purchase_id' => $existingPurchase->id,
                     'guest_email' => $guestEmail,
                 ]);
                 return \App\Http\Responses\ApiResponse::success(['message' => 'Already processed']);
             }
-        }
-
-        $promocode = trim((string)($metadata['promocode'] ?? ''));
-
-        try {
-            // ВАЖНО: Обновляем статус транзакции ПЕРЕД созданием покупок
             $transaction->status = 'completed';
-            $transaction->save();
 
             // ВАЖНО: Проверяем наличие товаров и актуальные цены перед созданием покупок
             $validatedProductsData = [];
