@@ -936,7 +936,9 @@ class SpaController extends Controller
         
         // Микроразметка (JSON-LD)
         if (isset($metaTags['schema'])) {
-            $headTags[] = '<script type="application/ld+json">' . json_encode($metaTags['schema'], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . '</script>';
+            // SECURITY FIX (M5): JSON_HEX_TAG экранирует < и > → исключает
+            // разрыв </script> в JSON-LD через названия товаров/категорий (XSS).
+            $headTags[] = '<script type="application/ld+json">' . json_encode($metaTags['schema'], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG) . '</script>';
         }
 
         // Вставка в HEAD (сразу после <head>)
