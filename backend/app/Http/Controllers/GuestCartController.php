@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\{ServiceAccount, Purchase, Transaction, Option, Promocode};
 use App\Services\PromocodeValidationService;
+use App\Services\PricingService;
 use App\Services\ProductPurchaseService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
@@ -55,13 +56,8 @@ class GuestCartController extends Controller
         $productsData = $prepareResult['data'];
         $productsTotal = $prepareResult['total'];
 
-        $totalAmount = $productsTotal;
-
-        // Применяем скидку по промокоду если есть
-        if ($promoData && ($promoData['type'] ?? '') === 'discount') {
-            $discountPercent = floatval($promoData['discount_percent'] ?? 0);
-            $totalAmount = $totalAmount - ($totalAmount * $discountPercent / 100);
-        }
+        // Единый расчёт суммы (кэп 99% + округление + пол 0.01, как у авторизованных).
+        $totalAmount = PricingService::computeOrderTotal($productsTotal, null, $promoData);
 
         // Сохраняем данные заказа в сессии для последующей обработки после оплаты
         $orderData = [
