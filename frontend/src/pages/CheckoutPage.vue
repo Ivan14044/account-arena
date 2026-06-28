@@ -412,7 +412,7 @@
                             <div
                                 v-if="currentRulesText && currentRulesText.trim()"
                                 class="purchase-rules-content"
-                                v-html="currentRulesText"
+                                v-safe-html="currentRulesText"
                             ></div>
                             <!-- ✅ ИСПРАВЛЕНИЕ: Fallback на случай пустого текста -->
                             <div

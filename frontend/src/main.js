@@ -11,6 +11,7 @@ import Toast, { POSITION } from 'vue-toastification';
 import 'vue-toastification/dist/index.css';
 import Vue3Lottie from 'vue3-lottie';
 import IntersectDirective from './directives/intersect';
+import SafeHtmlDirective from './directives/safeHtml';
 import { initPerformanceOptimizations } from './utils/performance';
 
 // Проверка производительности при загрузке (после монтирования DOM)
@@ -41,6 +42,7 @@ app.use(Toast, {
 });
 app.use(Vue3Lottie);
 app.directive('intersect', IntersectDirective);
+app.directive('safe-html', SafeHtmlDirective);
 
 // Монтируем приложение
 app.mount('#app');

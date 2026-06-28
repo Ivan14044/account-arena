@@ -6,11 +6,11 @@
             <div class="hero-content flex flex-col items-center">
                 <h1
                     class="text-[32px] md:text-[48px] lg:text-[64px] font-medium leading-none text-gray-900 dark:text-white mb-4 text-center"
-                    v-html="heroTitle"
+                    v-safe-html="heroTitle"
                 ></h1>
                 <p
                     class="description text-gray-700 dark:text-gray-400 mb-6 md:mb-10 leading-6 text-lg text-center"
-                    v-html="heroDescription"
+                    v-safe-html="heroDescription"
                 ></p>
                 <a
                     class="cta-button dark:border-gray-300 dark:text-white dark:hover:border-blue-900 pointer-events-auto cursor-pointer mb-12"

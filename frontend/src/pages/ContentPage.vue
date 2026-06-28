@@ -7,7 +7,7 @@
             </h1>
         </div>
 
-        <div class="dark:text-gray-300" v-html="pageStore.page[locale].content"></div>
+        <div class="dark:text-gray-300" v-safe-html="pageStore.page[locale].content"></div>
     </div>
 </template>
 

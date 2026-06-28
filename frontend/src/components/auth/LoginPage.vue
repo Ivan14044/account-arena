@@ -120,6 +120,7 @@ import { ref } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { useAuthStore } from '../../stores/auth';
+import { safeRedirectPath } from '@/utils/safeRedirect';
 import { useSeo } from '@/composables/useSeo';
 import SocialAuthButtons from './SocialAuthButtons.vue';
 import LanguageSelector from '@/components/layout/LanguageSelector.vue';
@@ -165,8 +166,8 @@ const handleSubmit = async () => {
             // Небольшая задержка для гарантии сохранения данных
             await new Promise(resolve => setTimeout(resolve, 50));
 
-            const redirectTo = route.query.redirect as string;
-            await router.push(redirectTo || '/');
+            // SECURITY FIX (M4): редирект только на внутренние пути (anti open-redirect)
+            await router.push(safeRedirectPath(route.query.redirect));
         }
     } catch {
         errors.value = authStore.errors || {};

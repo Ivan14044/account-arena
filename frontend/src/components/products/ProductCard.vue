@@ -116,7 +116,7 @@
             <p
                 v-if="displayDescription"
                 class="product-description"
-                v-html="displayDescription"
+                v-safe-html="displayDescription"
             ></p>
         </div>
 
