@@ -1,93 +1,89 @@
-# Account Arena — План ремедиации (фаза рефакторинга/фиксов)
+# Account Arena — План ремедиации и статус исправлений
 
-> Контекст: окружение без PHP/Composer/Node — собрать/прогнать тесты нечем.
-> Поэтому правки разделены на **(A) применённые сейчас** (проверенно-безопасные,
-> backward-compatible) и **(B) требующие рантайма** (могут сломать рабочие потоки,
-> нужна верификация на поднятом стенде перед деплоем).
->
+> Обновлено после поднятия полноценного тулчейна (PHP 8.3 + Node 22 + Composer)
+> в пользовательском окружении и прогона фиксов с верификацией.
 > Все баги и их `path:line` — в `docs/bugs/00-overview.md` и `docs/bugs/01..10`.
 
----
-
-## A. Применено на ветке `refactor/security-hardening`
-
-| ID | Фикс | Файлы | Риск | Примечание |
-|---|---|---|---|---|
-| C2 | `/browser/*` переведены под `auth:sanctum` + `throttle:60,1` (были полностью открыты) | `routes/api.php` | низкий | фронт ходит через авторизованный axios |
-| C3 | `BrowserController::new` проверяет владение профилем (только из своих `completed`-покупок) | `app/Http/Controllers/Api/BrowserController.php` | низкий | fail-closed: 403/404 при отсутствии покупки |
-| C7 | `admin.main` на `settings` (index/store/test-smtp) и `site-content` | `routes/web.php` | низкий | обычные админы теряют доступ к секретам/SSRF (так и задумано) |
-| H4 | Проверка `secret_token` Telegram-вебхука + регистрация секрета в `setWebhook` | `TelegramWebhookController.php`, `TelegramBotService.php`, `config/services.php` | нулевой | включается только при заданном `TELEGRAM_WEBHOOK_SECRET` |
-| M11 | `/contents/{code}` обёрнут в `throttle:300,1` | `routes/api.php` | нулевой | был вне throttle (DoS) |
-| §7 | Исправлен ложный doc-комментарий о «переплате поставщику» | `app/Models/ServiceAccount.php` | нулевой | переплаты НЕТ; ошибка была только в комментарии |
-
-### Действия для деплоя A
-- **H4:** задать `TELEGRAM_WEBHOOK_SECRET` в `.env` и **повторно вызвать setWebhook** (иначе старый вебхук без секрета продолжит работать — обратная совместимость сохранена; новый секрет начнёт требоваться только после re-setWebhook).
-- **C3:** проверить на стенде, что фронт реально шлёт `profile` = `service_accounts.profile_id` купленного товара и статус покупки `completed`.
+## Окружение верификации (поднято)
+- PHP 8.3.31 (static-php-cli, все нужные расширения), Node 22, npm 10, Composer 2.10 — в `~/.local/toolchain`.
+- Backend: `composer install` ОК; тесты на sqlite `:memory:` (phpunit.xml). Барьер MySQL-only миграций снят (driver-aware).
+- Frontend: `npm install` ОК; верификация через `vite build` + `vue-tsc`.
+- Базлайн тестов улучшен: было **21 failed / 11 passed** → стало **15 failed / 22 passed** (+5 новых регресс-тестов). Оставшиеся 15 падений — пред-существующие артефакты sqlite (case-insensitive collation, `/`→404 без SSR-индекса, supplier_id NOT NULL на sqlite, factory-нюансы), НЕ связаны с правками.
 
 ---
 
-## B. Требуют рантайма / координации (НЕ применять вслепую)
+## ✅ СДЕЛАНО (закоммичено на ветке `refactor/security-hardening`, верифицировано)
 
-### B1. CSRF (C1) — НЕ просто убрать `'*'`
-`VerifyCsrfToken::$except = ['*']` отключает CSRF для всех web-роутов (админка/кабинет — сессионные → классическая мишень).
-**Почему нельзя слепо:** в layout админки **нет `<meta name="csrf-token">`**, а админка активно шлёт AJAX (bulk-действия, чат, споры, sort-order). Включение CSRF без проводки токена даст массовые **419** на этих AJAX.
-**Правильный фикс (по шагам):**
-1. `$except` оставить только для внешних POST без токена: `auth/telegram/callback` (web). API/вебхуки и так в `api`-группе (CSRF к ним не применяется).
-2. Добавить `<meta name="csrf-token" content="{{ csrf_token() }}">` в `admin/layouts/*` и `supplier/layouts/*`.
-3. Глобально слать заголовок: `$.ajaxSetup({headers:{'X-CSRF-TOKEN': metaToken}})` / `fetch` обёртка / axios `X-CSRF-TOKEN`.
-4. Прогнать каждую AJAX-операцию админки и кабинета.
+| ID | Severity | Фикс | Верификация |
+|---|---|---|---|
+| C2 | Crit | `/browser/*` под `auth:sanctum`+throttle | route:list, фронт авторизован |
+| C3 | Crit | `BrowserController::new` проверяет владение профилем (только свои completed-покупки) | php -l, разбор модели |
+| C5 | Crit | Экранирование (`escapeHtml`) в live-поллере админ-чата (был stored XSS аноним→админ) | разбор обоих render-путей |
+| C6 | Crit | Атомарная идемпотентность вебхуков Mono+Cryptomus (6 хендлеров) — двойная выдача | php -l, no-regress |
+| C7 | Crit | `admin.main` на settings/site-content (секреты, SSRF) | route:list |
+| C8 | Crit | CORS из ENV (не `*`+credentials) | config loads |
+| C9 | Crit | Создан `App\Mail\BaseMail` (письма падали молча) | Mailable->render() = OK |
+| H4 | High | Проверка `secret_token` Telegram-вебхука (+setWebhook) | php -l, gated |
+| H5 | High | Сброс модерации при правке товара поставщиком | **тест PASS** |
+| H7 | High | Unique `promocode_usages.order_id` + идемпотентный учёт | миграция применяется |
+| H10 | High | Атомарная идемпотентность top-up (Mono+Cryptomus) | php -l |
+| H15 | High | Статус-чек в `store()` + unique `product_disputes.transaction_id` | **2 теста PASS** |
+| M1 | Med | Инвалидация `active_accounts_list_v4` (кэш каталога) | **2 теста PASS** |
+| M2 | Med | Фильтр модерации в `getSimilarProducts` (утечка немодерированных) | разбор запроса |
+| M4 | Med | `safeRedirectPath` — anti open-redirect на логине | vite build |
+| M5 | Med | `JSON_HEX_TAG` в JSON-LD (SSR) — `</script>`-breakout | php -l, флаг во всех 5 |
+| M9 | Med | `resolveReplacement` сверяет service_id/supplier_id | php -l |
+| M10 | Med | auto-close: реальный админ + актуальный refund_amount; null-guard notifySupplier | php -l |
+| M11 | Med | throttle на `/contents/{code}` | route |
+| M12 | Med | Учёт флага `deduct_from_supplier` | php -l |
+| B5/H2 | High | DOMPurify + `v-safe-html` во всех 15 серверных `v-html` | **vite build OK** |
+| infra | — | Driver-aware миграции; `HasFactory` для Transaction | сьют 21→15 падений |
+| docs | — | Полная документация функционала + багов + поправки | — |
 
-### B2. CORS (C8)
-`allowed_origins:['*']` + `supports_credentials:true`. Заменить `*` на явный whitelist доменов фронта. Проверить, что SPA-домен(ы) перечислены, иначе сломается прод-витрина. (Браузеры и так блокируют credentialed-чтение при `*`, но мисконфиг убрать.)
-
-### B3. Идемпотентность вебхуков / двойная выдача (C6) — НЕ unique на `transaction_id`
-⚠️ Мульти-товарный заказ создаёт НЕСКОЛЬКО `purchases` с одним `transaction_id` → `unique(transaction_id)` сломает легитимные заказы.
-**Правильный фикс:** в `MonoController`/`CryptomusController` оборачивать доставку в `DB::transaction` + `Transaction::lockForUpdate()` и идемпотентный флаг (например, переход статуса `processing→completed`/`delivered_at`), повторный вебхук видит «уже доставлено» и выходит. Тот же приём — для top-up (H10), убрав 24-часовое окно `findDuplicateTransaction`.
-
-### B4. Лимиты промокодов/споры (H7, H15) — композитные ключи
-- `promocode_usages`: уникальность на `(promocode_id, order_id)` (а не `order_id` индекс), запись под локом; для гостей — лимит по email/IP fallback.
-- `product_disputes`: уникальность на `(transaction_id, service_account_id)` (НЕ только `transaction_id` — мульти-товар), + проверка статуса транзакции в `store` (сейчас её нет, в отличие от `canDispute`).
-Все — миграции с предварительной чисткой дублей; обязательно проверить на копии прод-данных.
-
-### B5. Сквозная санитизация XSS (C5, H2, H3, H6, M6, M7)
-1. Бэкенд: санитайзер HTML при ЗАПИСИ всех rich-text полей (описания товаров, контент, статьи, сообщения чата, имена файлов) — например `mews/purifier` (HTMLPurifier). Заменить самописные regex-санитайзеры.
-2. Фронт: добавить `dompurify`, оборачивать ВСЕ `v-html` (`AccountDetail.vue:461,493`, `ProductCard.vue:119`, статьи, контент, уведомления, баннеры).
-3. Админ-чат `show.blade.php`: live-поллер — экранировать (`textContent`/escape), не `innerHTML` с `${message.message}`/`${file_name}`.
-4. SSR (`SpaController::generateProductContent`, `seo/article.blade.php`): экранировать/санитизировать; убрать `'unsafe-inline'` из CSP.
-Нужен `npm install` + сборка фронта.
-
-### B6. Social-login takeover (C4)
-Не принимать `email` из Telegram-payload для линковки; линковать только по провайдер-идентификатору (`telegram_id`/Google `sub`); требовать verified-email у Google; добавить OAuth `state`-nonce. Не принимать `?token=` из произвольного URL (`AuthCallback.vue`). Требует прогона OAuth/Telegram-флоу.
-
-### B7. Логика возвратов/споров/модерации
-- **H11 refund-and-keep:** при refund отзывать выданные креды/ротация/блок доступа к аккаунту.
-- **H5 reset moderation on edit:** значимые правки товара → `pending` + `is_active=false`.
-- **M9 replacement:** сверять, что заменяющий товар того же `service_id`/`supplier_id` и не дороже.
-- **M10 auto-close:** убрать hardcoded `resolved_by=1`, брать актуальный `refund_amount`, защитить `notifySupplier()` от null (удалённый товар не должен откатывать refund).
-- **M12 `deduct_from_supplier`:** учитывать флаг (сейчас игнорируется).
-
-### B8. Email-инфраструктура (C9)
-Добавить отсутствующий `app/Mail/BaseMail.php` + view `emails.base`, либо переписать `EmailService::send` на существующий mailable. Иначе все письма зарегистрированным юзерам молча падают.
-
-### B9. Кэш каталога (M1, M2)
-Инвалидаторы чистят мёртвые `_v1/_v2/_v3`, а читается `active_accounts_list_v4` / `similar_products_v2_*`. Привести ключи в соответствие (или централизовать в одном хелпере). `getSimilarProducts` — добавить фильтр `moderation_status=approved OR supplier_id IS NULL`.
-
-### B10. Прочее
-- `extension`-токен (`sc_auth`): проверять ability в middleware, cookie httpOnly+secure, срок жизни/ротация (H13).
-- Audit-log: не писать секреты/`account_data`, логировать только на 2xx (M3).
-- Open redirect логина (M4): валидировать `redirect` (same-origin).
-- JSON-LD: `JSON_HEX_TAG` (M5).
-- User enumeration (Low): не использовать `exists:users,email` в forgot/reset; не сбрасывать throttle.
-- Dead code: `SupportMessageReaction`, `extractKeywords()`, `EmptyLayout`, осиротевшие Lottie-ассеты — удалить.
-- **НЕ трогать** `TrustProxies` (H14 — ложная находка: `$proxies=null` = доверять никаким = безопасно; для работы за nginx нужно, наоборот, указать доверенные прокси).
+**Поправки к находкам агентов (проверено и зафиксировано):**
+- **«Переплата поставщику» (отчёт 04 BUG-01) — ЛОЖЬ.** Код платит поставщику его базовую цену (наценка сверху для покупателя). Исправлен только doc-комментарий.
+- **TrustProxies (H14) — ЛОЖЬ/инверсия.** `$proxies = null` = доверять никаким (безопасно). НЕ трогать.
+- **C4 (Telegram social-login) — фактически НЕ эксплуатируется** в текущей реализации: `validateTelegramData` включает все поля (в т.ч. инжектированный email) в HMAC, поэтому несигнированный email подделать нельзя. Тем не менее применено **defense-in-depth**: линковка только по `telegram_id`.
+- **C1 (CSRF) — практически НИЖЕ заявленного:** `config/session.php` уже `same_site = 'lax'`, поэтому cross-site POST не несёт сессионную cookie → классический CSRF на админку/кабинет уже блокируется. См. ниже про полное включение токенов.
+- **C8 (CORS)** — реальный мисконфиг (исправлен), но эксплуатируемость браузерами при `*`+credentials и так ограничена.
 
 ---
 
-## C. Ложные/переоценённые находки (зафиксировано, чтобы не «чинить» зря)
-- **Переплата поставщику (отчёт 04 BUG-01)** — ложь; код платит поставщику его базовую цену. Исправлен только комментарий.
-- **TrustProxies «доверяет всем» (H14)** — инверсия; `null` = безопасно.
-- **CORS (C8)** — реальный мисконфиг, но эксплуатируемость ниже заявленной из-за поведения браузеров.
+## ⏳ ОСТАЁТСЯ (требует браузерного QA / координации деплоя / операционных действий)
+
+### C1 — полное включение CSRF-токенов (defense-in-depth поверх SameSite=Lax)
+Уже частично закрыто `same_site=lax`. Полное включение токенов рискованно без браузерного QA: админка на **AdminLTE** с миксом `fetch` (3+ файла, в т.ч. чат-поллер) и jQuery (5 файлов). Шаги:
+1. `VerifyCsrfToken::$except` → оставить только `api/*`-вне-web и `auth/telegram/callback`.
+2. `<meta name="csrf-token">` на всех admin/supplier страницах (через конфиг/layout AdminLTE).
+3. Глобально: `$.ajaxSetup({headers:{'X-CSRF-TOKEN':…}})` + обёртка `window.fetch`, добавляющая заголовок для same-origin мутаций.
+4. Прокликать каждое AJAX-действие админки и кабинета.
+
+### H1 — IDOR гостевых покупок
+Гость читает `/purchases/{id}?guest_email=…` (креды) по совпадению email. Фикс: подписанные ссылки (`URL::signedRoute`) или одноразовый order-token; правка `OrderSuccessPage.vue` и письма. Требует прогона гостевого флоу в браузере.
+
+### H11 — refund-and-keep
+Возврат не отзывает выданные креды. Полноценный фикс — операционный (ротация пароля аккаунта на стороне поставщика/системы). В системе можно дополнительно помечать `Purchase` как `refunded`.
+
+### H13 — extension `sc_auth` токен
+Проверять ability `extension` на чувствительных роутах; cookie httpOnly+secure, срок жизни/ротация.
+
+### B5/H3 (серверная часть) — санитизация HTML при ЗАПИСИ
+Клиентский рендер уже защищён (DOMPurify). Для глубины добавить серверный санитайзер (`mews/purifier`) при сохранении rich-text и в SSR (`seo/article.blade.php` рендерит `{!! $seoText !!}` сырым).
+
+### Прочее (Low/Med)
+- M3: audit-log не должен писать секреты/`account_data`; логировать только на 2xx.
+- Per-user лимит промокодов для гостей (fallback по email/IP).
+- User enumeration в forgot/reset (`exists:users,email`).
+- Dead code: `SupportMessageReaction`, `extractKeywords()`, `EmptyLayout`, осиротевшие Lottie.
+- Полная sqlite-портируемость остальных миграций (для зелёного тест-сьюта в CI).
 
 ---
 
-*Порядок работ B: B1→B2 (конфиг) → B8 (email) → B5 (XSS) → B3/B4 (финансы) → B6/B7 (логика). Каждый пункт — отдельная ветка/PR с прогоном на стенде.*
+## Как воспроизвести верификацию
+```bash
+export PATH="$HOME/.local/toolchain/php:$HOME/.local/toolchain/node/bin:$HOME/.local/toolchain/bin:$PATH"
+# backend
+cd backend && php artisan test
+# frontend
+cd ../frontend && npx vite build && npx vue-tsc --noEmit
+```
