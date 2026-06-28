@@ -18,7 +18,19 @@ return [
     'paths' => ['*'],
 
     'allowed_methods' => ['GET','POST','PUT','PATCH','DELETE','OPTIONS'],
-    'allowed_origins' => ['*'],
+
+    /*
+    | SECURITY FIX (C8 / bug C8): нельзя сочетать allowed_origins=['*'] с
+    | supports_credentials=true. Origins берутся из ENV (CORS_ALLOWED_ORIGINS,
+    | список через запятую) с безопасным дефолтом — собственный APP_URL.
+    | Витрина (SPA) отдаётся самим Laravel, т.е. same-origin; для отдельного
+    | фронтенд-домена/деплоя добавьте его в CORS_ALLOWED_ORIGINS.
+    */
+    'allowed_origins' => array_values(array_filter(array_map(
+        'trim',
+        explode(',', (string) env('CORS_ALLOWED_ORIGINS', (string) env('APP_URL')))
+    ))),
+
     'allowed_origins_patterns' => [],
     'allowed_headers' => ['*'],
     'exposed_headers' => [],
