@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Models\ServiceAccount;
 use App\Models\Purchase;
 use App\Services\NotificationTemplateService;
+use App\Services\PricingService;
 use App\Services\MonoPaymentService;
 use App\Services\EmailService;
 use App\Services\NotifierService;
@@ -219,16 +220,10 @@ class MonoController extends Controller
             if (!($promoData['ok'] ?? false)) {
                 return response()->json(['success' => false, 'message' => $promoData['message'] ?? 'Invalid promocode'], 422);
             }
-
-            // Применяем скидку по промокоду
-            if (($promoData['type'] ?? '') === 'discount') {
-                $discountPercent = (int)($promoData['discount_percent'] ?? 0);
-                $discountAmount = round($totalAmount * $discountPercent / 100, 2);
-                $totalAmount = round($totalAmount - $discountAmount, 2);
-            }
         }
 
-        $totalAmount = max($totalAmount, 0.01); // Минимальная сумма
+        // Единый расчёт суммы (кэп 99% + округление, как у авторизованных).
+        $totalAmount = PricingService::computeOrderTotal($totalAmount, null, $promoData);
 
         // Prepare payment metadata for Transaction
         $paymentMetadata = [
@@ -314,27 +309,7 @@ class MonoController extends Controller
             }
         }
 
-        $totalAmount = $productsTotal;
-
-        // Применяем персональную скидку пользователя (если есть и активна)
-        $personalDiscountPercent = $user->getActivePersonalDiscount();
-        $promoDiscountPercent = 0;
-        
-        // Применяем скидку по промокоду если есть
-        if ($promoData && ($promoData['type'] ?? '') === 'discount') {
-            $promoDiscountPercent = floatval($promoData['discount_percent'] ?? 0);
-        }
-
-        // ВАЖНО: Ограничиваем максимальную суммарную скидку 99% (чтобы итоговая сумма была минимум 1%)
-        // Это предотвращает ситуацию, когда персональная скидка + промокод дают более 100% скидки
-        $totalDiscountPercent = $personalDiscountPercent + $promoDiscountPercent;
-        $maxDiscountPercent = min(99, $totalDiscountPercent);
-        
-        if ($maxDiscountPercent > 0) {
-            $totalAmount = $totalAmount - ($totalAmount * $maxDiscountPercent / 100);
-        }
-
-        $totalAmount = max(round($totalAmount, 2), 0.01); // Минимальная сумма
+        $totalAmount = PricingService::computeOrderTotal($productsTotal, $user, $promoData); // Минимальная сумма
 
         // Подготавливаем данные для webhook
         $productsDataForWebhook = collect($productsData)->map(function($item) {

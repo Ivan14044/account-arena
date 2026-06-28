@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\{Transaction, Option, Promocode, PromocodeUsage, ServiceAccount, Purchase};
 use App\Services\PromocodeValidationService;
+use App\Services\PricingService;
 use App\Services\EmailService;
 use App\Services\NotifierService;
 use App\Services\ProductPurchaseService;
@@ -48,28 +49,7 @@ class CartController extends Controller
             $productsData = $prepareResult['data'];
             $productsTotal = $prepareResult['total'];
 
-            $totalAmount = $productsTotal;
-
-            // Применяем персональную скидку пользователя (если есть и активна)
-            $personalDiscountPercent = $user->getActivePersonalDiscount();
-            $promoDiscountPercent = 0;
-            
-            // Применяем скидку по промокоду если есть
-            if ($promoData && ($promoData['type'] ?? '') === 'discount') {
-                $promoDiscountPercent = floatval($promoData['discount_percent'] ?? 0);
-            }
-
-            // ВАЖНО: Ограничиваем максимальную суммарную скидку 99% (чтобы итоговая сумма была минимум 1%)
-            // Это предотвращает ситуацию, когда персональная скидка + промокод дают более 100% скидки
-            $totalDiscountPercent = $personalDiscountPercent + $promoDiscountPercent;
-            $maxDiscountPercent = min(99, $totalDiscountPercent);
-            
-            if ($maxDiscountPercent > 0) {
-                $totalAmount = $totalAmount - ($totalAmount * $maxDiscountPercent / 100);
-            }
-
-            // ВАЖНО: Округляем и проверяем минимальную сумму (как в MonoController и CryptomusController)
-            $totalAmount = max(round($totalAmount, 2), 0.01);
+            $totalAmount = PricingService::computeOrderTotal($productsTotal, $user, $promoData);
 
             // ИСПРАВЛЕНО: Правильная проверка баланса с учетом null
             $currentBalance = $user->balance ?? 0;
