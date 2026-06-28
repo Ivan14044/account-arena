@@ -148,9 +148,9 @@ class ProductDispute extends Model
     /**
      * Обработать претензию с возвратом средств
      */
-    public function resolveWithRefund($adminId, $comment = null)
+    public function resolveWithRefund($adminId, $comment = null, $deductFromSupplier = true)
     {
-        DB::transaction(function () use ($adminId, $comment) {
+        DB::transaction(function () use ($adminId, $comment, $deductFromSupplier) {
             // ВАЖНО: Блокируем саму запись претензии для предотвращения двойного вызова
             $dispute = self::where('id', $this->id)->lockForUpdate()->firstOrFail();
 
@@ -189,7 +189,8 @@ class ProductDispute extends Model
             }
 
             // ВАЖНО: Обрабатываем SupplierEarning только если товар от поставщика
-            if ($dispute->supplier_id && $dispute->supplier) {
+            // FIX (M12): и только если админ не снял флаг "удержать с поставщика".
+            if ($dispute->supplier_id && $dispute->supplier && $deductFromSupplier) {
                 // Ищем SupplierEarning для этой транзакции
                 $supplierEarning = SupplierEarning::where('transaction_id', $dispute->transaction_id)
                     ->where('supplier_id', $dispute->supplier_id)
@@ -297,11 +298,15 @@ class ProductDispute extends Model
      */
     protected function notifySupplier()
     {
+        // FIX (M10 / BUG-06): защищаемся от удалённого товара. Ранее обращение
+        // к $this->serviceAccount->title при отсутствующем товаре кидало
+        // исключение ВНУТРИ транзакции возврата и откатывало весь refund.
+        $productTitle = $this->serviceAccount->title ?? ('#' . $this->service_account_id);
         SupplierNotification::create([
             'user_id' => $this->supplier_id,
             'type' => 'product_dispute',
             'title' => 'Претензия на товар',
-            'message' => "Претензия #{$this->id} на товар \"{$this->serviceAccount->title}\" решена. Решение: " . $this->getDecisionText(),
+            'message' => "Претензия #{$this->id} на товар \"{$productTitle}\" решена. Решение: " . $this->getDecisionText(),
             'data' => [
                 'dispute_id' => $this->id,
                 'decision' => $this->admin_decision,

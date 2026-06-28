@@ -105,7 +105,13 @@ class ProductDisputeController extends Controller
 
         // Обрабатываем возврат
         try {
-            $dispute->resolveWithRefund(auth()->id(), $request->admin_comment);
+            // FIX (M12): учитываем флаг deduct_from_supplier (ранее он валидировался,
+            // но игнорировался — клоубэк с поставщика происходил всегда).
+            $dispute->resolveWithRefund(
+                auth()->id(),
+                $request->admin_comment,
+                $request->boolean('deduct_from_supplier', true)
+            );
             
             // Очищаем кеш счетчика новых претензий
             Cache::forget('disputes_new_count');
@@ -150,6 +156,22 @@ class ProductDisputeController extends Controller
                 // Проверяем, что товар не является тем же самым, что был куплен
                 if ($replacementAccount->id === $dispute->service_account_id) {
                     throw new \Exception('Нельзя заменить товар на тот же самый. Выберите другой товар.');
+                }
+
+                // SECURITY FIX (M9 / bug M10): товар-замена должен быть из той же
+                // услуги и принадлежать тому же владельцу, что и оригинал. Ранее
+                // resolveReplacement принимал любой replacement_account_id (только
+                // exists), поэтому можно было бесплатно выдать произвольный/чужой/
+                // более дорогой товар. getReplacementProducts уже фильтрует так же —
+                // дублируем проверку на сервере как защитный барьер.
+                $original = $dispute->serviceAccount;
+                if ($original) {
+                    if ((int) $replacementAccount->service_id !== (int) $original->service_id) {
+                        throw new \Exception('Товар для замены должен быть из той же услуги.');
+                    }
+                    if ((int) $replacementAccount->supplier_id !== (int) $dispute->supplier_id) {
+                        throw new \Exception('Товар для замены должен принадлежать тому же владельцу.');
+                    }
                 }
 
                 // Выдаем новый товар пользователю (используем логику из ProductPurchaseService)
