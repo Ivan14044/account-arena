@@ -131,8 +131,8 @@ class MonoController extends Controller
                     'purchase_order_number' => $existingPurchase->order_number,
                 ]);
                 // Обновляем статус транзакции, если еще не обновлен
-                if ($transaction->status !== 'completed' && $status === 'success') {
-                    $transaction->status = 'completed';
+                if ($transaction->status !== Transaction::STATUS_COMPLETED && $status === 'success') {
+                    $transaction->status = Transaction::STATUS_COMPLETED;
                     $transaction->save();
                 }
                 return \App\Http\Responses\ApiResponse::success(['message' => 'Already processed']);
@@ -255,7 +255,7 @@ class MonoController extends Controller
                 'amount' => $totalAmount,
                 'currency' => Option::get('currency', 'USD'),
                 'payment_method' => 'monobank',
-                'status' => 'pending',
+                'status' => Transaction::STATUS_PENDING,
                 'metadata' => [
                     'invoice_id' => $invoice['invoiceId'],
                     'payment_type' => 'guest',
@@ -371,7 +371,7 @@ class MonoController extends Controller
                 'amount' => $totalAmount,
                 'currency' => Option::get('currency', 'USD'),
                 'payment_method' => 'monobank',
-                'status' => 'pending',
+                'status' => Transaction::STATUS_PENDING,
                 'metadata' => [
                     'invoice_id' => $invoice['invoiceId'],
                     'payment_type' => 'user',
@@ -440,8 +440,8 @@ class MonoController extends Controller
             // Атомарный compare-and-set гарантирует, что баланс кредитуется только
             // один раз даже при ретрае вебхука позже 24ч.
             $claimed = Transaction::whereKey($transaction->id)
-                ->where('status', '!=', 'completed')
-                ->update(['status' => 'completed']);
+                ->where('status', '!=', Transaction::STATUS_COMPLETED)
+                ->update(['status' => Transaction::STATUS_COMPLETED]);
             if ($claimed === 0) {
                 Log::info('MonoBank Webhook (TopUp): duplicate webhook ignored (already completed)', [
                     'invoiceId' => $invoiceId,
@@ -449,7 +449,7 @@ class MonoController extends Controller
                 ]);
                 return \App\Http\Responses\ApiResponse::success(['message' => 'Already processed']);
             }
-            $transaction->status = 'completed';
+            $transaction->status = Transaction::STATUS_COMPLETED;
 
             // Use BalanceService for safe balance top-up
             // BalanceService automatically checks for duplicates by invoice_id
@@ -575,8 +575,8 @@ class MonoController extends Controller
             // быть несколько покупок). Теперь — атомарный compare-and-set: только
             // ОДИН вызов переводит статус в completed и продолжает выдачу.
             $claimed = Transaction::whereKey($transaction->id)
-                ->where('status', '!=', 'completed')
-                ->update(['status' => 'completed']);
+                ->where('status', '!=', Transaction::STATUS_COMPLETED)
+                ->update(['status' => Transaction::STATUS_COMPLETED]);
             if ($claimed === 0) {
                 Log::info('MonoBank Webhook (User Purchase): duplicate webhook ignored (already completed)', [
                     'invoiceId' => $invoiceId,
@@ -586,7 +586,7 @@ class MonoController extends Controller
                 return \App\Http\Responses\ApiResponse::success(['message' => 'Already processed']);
             }
             // держим in-memory статус согласованным для последующего кода
-            $transaction->status = 'completed';
+            $transaction->status = Transaction::STATUS_COMPLETED;
 
             $purchaseService = app(\App\Services\ProductPurchaseService::class);
 
@@ -748,8 +748,8 @@ class MonoController extends Controller
             // комментарий в handleUserPurchaseWebhook). Только ОДИН параллельный
             // вебхук переводит pending→completed и продолжает выдачу.
             $claimed = Transaction::whereKey($transaction->id)
-                ->where('status', '!=', 'completed')
-                ->update(['status' => 'completed']);
+                ->where('status', '!=', Transaction::STATUS_COMPLETED)
+                ->update(['status' => Transaction::STATUS_COMPLETED]);
             if ($claimed === 0) {
                 Log::info('MonoBank Webhook (Guest): duplicate webhook ignored (already completed)', [
                     'invoiceId' => $invoiceId,
@@ -758,7 +758,7 @@ class MonoController extends Controller
                 ]);
                 return \App\Http\Responses\ApiResponse::success(['message' => 'Already processed']);
             }
-            $transaction->status = 'completed';
+            $transaction->status = Transaction::STATUS_COMPLETED;
 
             // ВАЖНО: Проверяем наличие товаров и актуальные цены перед созданием покупок
             $validatedProductsData = [];
@@ -922,7 +922,7 @@ class MonoController extends Controller
                     'amount' => $amount,
                     'currency' => Option::get('currency', 'USD'),
                     'payment_method' => 'monobank',
-                    'status' => 'pending',
+                    'status' => Transaction::STATUS_PENDING,
                     'metadata' => [
                         'invoice_id' => $invoice['invoiceId'],
                         'payment_type' => 'topup',

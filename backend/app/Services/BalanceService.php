@@ -125,7 +125,7 @@ class BalanceService
                 'amount' => $amount,
                 'currency' => \App\Models\Option::get('currency', 'USD'),
                 'payment_method' => $this->mapTypeToPaymentMethod($type),
-                'status' => 'completed',
+                'status' => Transaction::STATUS_COMPLETED,
                 'metadata' => array_merge($metadata, [
                     'balance_transaction_id' => $balanceTransaction->id,
                     'old_balance' => $oldBalance,
@@ -222,7 +222,7 @@ class BalanceService
                 'amount' => $amount,
                 'currency' => \App\Models\Option::get('currency', 'USD'),
                 'payment_method' => $this->mapTypeToPaymentMethod($type),
-                'status' => 'completed',
+                'status' => Transaction::STATUS_COMPLETED,
                 'metadata' => array_merge($metadata, [
                     'balance_transaction_id' => $balanceTransaction->id,
                     'old_balance' => $oldBalance,

@@ -193,7 +193,7 @@ class ProductPurchaseService
         'currency' => Option::get('currency'),
         'payment_method' => $paymentMethod,
         'service_account_id' => $product->id,
-        'status' => 'completed',
+        'status' => Transaction::STATUS_COMPLETED,
     ]);
 
     // Определяем начальный статус и данные аккаунтов

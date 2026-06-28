@@ -170,7 +170,7 @@ class BalanceController extends Controller
         
         $transactions = \App\Models\BalanceTransaction::where('user_id', $user->id)
             ->where('created_at', '>=', $thirtyDaysAgo)
-            ->where('status', 'completed')
+            ->where('status', \App\Models\BalanceTransaction::STATUS_COMPLETED)
             ->get();
 
         $totalTopUps = $transactions->whereIn('type', [
