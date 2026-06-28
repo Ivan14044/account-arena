@@ -7,6 +7,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class SupplierEarning extends Model
 {
+    /** Статусы заработка поставщика (значения = enum миграции 2025_12_13_000001). */
+    public const STATUS_HELD = 'held';
+    public const STATUS_AVAILABLE = 'available';
+    public const STATUS_WITHDRAWN = 'withdrawn';
+    public const STATUS_REVERSED = 'reversed';
+
     protected $table = 'supplier_earnings';
 
     protected $fillable = [
@@ -45,7 +51,7 @@ class SupplierEarning extends Model
      */
     public function scopeReadyToRelease($query)
     {
-        return $query->where('status', 'held')->whereNotNull('available_at')->where('available_at', '<=', now());
+        return $query->where('status', self::STATUS_HELD)->whereNotNull('available_at')->where('available_at', '<=', now());
     }
 
     /**
@@ -54,9 +60,9 @@ class SupplierEarning extends Model
     public function scopeAvailable($query)
     {
         return $query->where(function($q) {
-            $q->where('status', 'available')
+            $q->where('status', self::STATUS_AVAILABLE)
               ->orWhere(function($q2) {
-                  $q2->where('status', 'held')->whereNotNull('available_at')->where('available_at', '<=', now());
+                  $q2->where('status', self::STATUS_HELD)->whereNotNull('available_at')->where('available_at', '<=', now());
               });
         });
     }
@@ -70,7 +76,7 @@ class SupplierEarning extends Model
     public function reverse(?string $reason = null): bool
     {
         // Нельзя отменить уже отмененные или выведенные средства
-        if ($this->status === 'reversed') {
+        if ($this->status === self::STATUS_REVERSED) {
             \Illuminate\Support\Facades\Log::warning('Attempt to reverse already reversed SupplierEarning', [
                 'earning_id' => $this->id,
                 'supplier_id' => $this->supplier_id,
@@ -79,7 +85,7 @@ class SupplierEarning extends Model
             return false;
         }
 
-        if ($this->status === 'withdrawn') {
+        if ($this->status === self::STATUS_WITHDRAWN) {
             \Illuminate\Support\Facades\Log::error('Attempt to reverse withdrawn SupplierEarning - funds already withdrawn!', [
                 'earning_id' => $this->id,
                 'supplier_id' => $this->supplier_id,
@@ -92,7 +98,7 @@ class SupplierEarning extends Model
 
         // Обновляем статус на reversed
         $this->update([
-            'status' => 'reversed',
+            'status' => self::STATUS_REVERSED,
             'processed_at' => now(),
         ]);
 
@@ -148,7 +154,7 @@ class SupplierEarning extends Model
         // Текущую запись отменяем
         $this->update([
             'amount' => $amountToReverse,
-            'status' => 'reversed',
+            'status' => self::STATUS_REVERSED,
             'processed_at' => now(),
         ]);
 

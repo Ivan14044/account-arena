@@ -379,7 +379,7 @@ class BalanceService
 
             // Находим earnings, готовые к переводу
             $readyToRelease = SupplierEarning::where('supplier_id', $lockedSupplier->id)
-                ->where('status', 'held')
+                ->where('status', SupplierEarning::STATUS_HELD)
                 ->whereNotNull('available_at')
                 ->where('available_at', '<=', now())
                 ->lockForUpdate()
@@ -398,7 +398,7 @@ class BalanceService
             // Обновляем статус на 'available'
             SupplierEarning::whereIn('id', $readyToRelease->pluck('id'))
                 ->update([
-                    'status' => 'available',
+                    'status' => SupplierEarning::STATUS_AVAILABLE,
                     'processed_at' => now(),
                 ]);
 

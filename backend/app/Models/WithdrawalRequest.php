@@ -10,6 +10,12 @@ class WithdrawalRequest extends Model
 {
     use HasFactory, SoftDeletes;
 
+    /** Статусы заявки на вывод (значения = enum миграции 2025_11_03_094553). */
+    public const STATUS_PENDING = 'pending';
+    public const STATUS_APPROVED = 'approved';
+    public const STATUS_REJECTED = 'rejected';
+    public const STATUS_PAID = 'paid';
+
     protected $fillable = [
         'supplier_id',
         'amount',
@@ -38,7 +44,7 @@ class WithdrawalRequest extends Model
      */
     public function scopePending($query)
     {
-        return $query->where('status', 'pending');
+        return $query->where('status', self::STATUS_PENDING);
     }
 
     /**
@@ -46,7 +52,7 @@ class WithdrawalRequest extends Model
      */
     public function scopeApproved($query)
     {
-        return $query->where('status', 'approved');
+        return $query->where('status', self::STATUS_APPROVED);
     }
 
     /**
@@ -54,7 +60,7 @@ class WithdrawalRequest extends Model
      */
     public function scopePaid($query)
     {
-        return $query->where('status', 'paid');
+        return $query->where('status', self::STATUS_PAID);
     }
 
     /**
@@ -62,6 +68,6 @@ class WithdrawalRequest extends Model
      */
     public function scopeRejected($query)
     {
-        return $query->where('status', 'rejected');
+        return $query->where('status', self::STATUS_REJECTED);
     }
 }

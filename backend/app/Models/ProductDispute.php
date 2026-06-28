@@ -194,7 +194,7 @@ class ProductDispute extends Model
                 // Ищем SupplierEarning для этой транзакции
                 $supplierEarning = SupplierEarning::where('transaction_id', $dispute->transaction_id)
                     ->where('supplier_id', $dispute->supplier_id)
-                    ->where('status', '!=', 'reversed')
+                    ->where('status', '!=', SupplierEarning::STATUS_REVERSED)
                     ->first();
 
                 if ($supplierEarning) {
@@ -202,7 +202,7 @@ class ProductDispute extends Model
                     $supplierAmountToDeduct = $supplierEarning->amount;
                     $originalStatus = $supplierEarning->status;
 
-                    if ($originalStatus === 'withdrawn' || $originalStatus === 'available') {
+                    if ($originalStatus === SupplierEarning::STATUS_WITHDRAWN || $originalStatus === SupplierEarning::STATUS_AVAILABLE) {
                         // Если средства уже доступны или выведены, списываем с баланса
                         if ($dispute->supplier->supplier_balance < $supplierAmountToDeduct) {
                             throw new \Exception("Insufficient supplier balance for refund. Required: {$supplierAmountToDeduct} USD");

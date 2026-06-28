@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Supplier;
 use App\Http\Controllers\Controller;
 use App\Models\ServiceAccount;
 use App\Models\Transaction;
+use App\Models\SupplierEarning;
 use Illuminate\Http\Request;
 
 class DashboardController extends Controller
@@ -126,7 +127,7 @@ class DashboardController extends Controller
             \Illuminate\Support\Facades\DB::transaction(function () use ($supplier) {
                 // Находим earnings, готовые к переводу
                 $readyToRelease = \App\Models\SupplierEarning::where('supplier_id', $supplier->id)
-                    ->where('status', 'held')
+                    ->where('status', SupplierEarning::STATUS_HELD)
                     ->whereNotNull('available_at')
                     ->where('available_at', '<=', now())
                     ->lockForUpdate()
@@ -146,7 +147,7 @@ class DashboardController extends Controller
                 // Обновляем статус на 'available'
                 $readyToRelease->each(function ($earning) {
                     $earning->update([
-                        'status' => 'available',
+                        'status' => SupplierEarning::STATUS_AVAILABLE,
                         'processed_at' => now(),
                     ]);
                 });

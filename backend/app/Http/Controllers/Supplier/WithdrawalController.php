@@ -23,16 +23,16 @@ class WithdrawalController extends Controller
         // Get available and held amounts from supplier_earnings
         $availableAmount = SupplierEarning::where('supplier_id', $supplier->id)
             ->where(function($q) {
-                $q->where('status', 'available')
+                $q->where('status', SupplierEarning::STATUS_AVAILABLE)
                   ->orWhere(function($q2) {
-                      $q2->where('status', 'held')
+                      $q2->where('status', SupplierEarning::STATUS_HELD)
                          ->whereNotNull('available_at')
                          ->where('available_at', '<=', now());
                   });
             })->sum('amount');
 
         $heldAmount = SupplierEarning::where('supplier_id', $supplier->id)
-            ->where('status', 'held')
+            ->where('status', SupplierEarning::STATUS_HELD)
             ->where(function($q) {
                 $q->whereNull('available_at')
                   ->orWhere('available_at', '>', now());
@@ -85,16 +85,16 @@ class WithdrawalController extends Controller
         // Recompute available and held amounts for the form
         $availableAmount = SupplierEarning::where('supplier_id', $supplier->id)
             ->where(function($q) {
-                $q->where('status', 'available')
+                $q->where('status', SupplierEarning::STATUS_AVAILABLE)
                   ->orWhere(function($q2) {
-                      $q2->where('status', 'held')
+                      $q2->where('status', SupplierEarning::STATUS_HELD)
                          ->whereNotNull('available_at')
                          ->where('available_at', '<=', now());
                   });
             })->sum('amount');
 
         $heldAmount = SupplierEarning::where('supplier_id', $supplier->id)
-            ->where('status', 'held')
+            ->where('status', SupplierEarning::STATUS_HELD)
             ->where(function($q) {
                 $q->whereNull('available_at')
                   ->orWhere('available_at', '>', now());
@@ -132,9 +132,9 @@ class WithdrawalController extends Controller
             // Recompute available amount at the moment of request (with locks)
             $availableAmount = SupplierEarning::where('supplier_id', $supplier->id)
                 ->where(function($q) {
-                    $q->where('status', 'available')
+                    $q->where('status', SupplierEarning::STATUS_AVAILABLE)
                       ->orWhere(function($q2) {
-                          $q2->where('status', 'held')
+                          $q2->where('status', SupplierEarning::STATUS_HELD)
                              ->whereNotNull('available_at')
                              ->where('available_at', '<=', now());
                       });
@@ -145,7 +145,7 @@ class WithdrawalController extends Controller
             // ВАЖНО: Вычитаем сумму уже созданных pending запросов на вывод
             // Это предотвращает создание нескольких запросов, сумма которых превышает доступную
             $pendingWithdrawals = WithdrawalRequest::where('supplier_id', $supplier->id)
-                ->where('status', 'pending')
+                ->where('status', WithdrawalRequest::STATUS_PENDING)
                 ->lockForUpdate()
                 ->sum('amount');
             
@@ -182,7 +182,7 @@ class WithdrawalController extends Controller
                 'amount' => $amount,
                 'payment_method' => $request->payment_method,
                 'payment_details' => $paymentDetails,
-                'status' => 'pending',
+                'status' => WithdrawalRequest::STATUS_PENDING,
             ]);
 
             return redirect()->route('supplier.withdrawals.index')
@@ -201,7 +201,7 @@ class WithdrawalController extends Controller
         }
 
         // Can only cancel pending requests
-        if ($withdrawal->status !== 'pending') {
+        if ($withdrawal->status !== WithdrawalRequest::STATUS_PENDING) {
             return back()->with('error', 'Можно отменить только запросы со статусом "В обработке".');
         }
 
@@ -217,7 +217,7 @@ class WithdrawalController extends Controller
         // ВАЖНО: Используем статус 'rejected' для отмененных пользователем запросов
         // Это позволяет отличать их от отклоненных администратором
         // В будущем можно добавить отдельный статус 'cancelled' в миграцию
-        $withdrawal->update(['status' => 'rejected']);
+        $withdrawal->update(['status' => WithdrawalRequest::STATUS_REJECTED]);
 
         return back()->with('success', 'Запрос на вывод средств отменен.');
     }
@@ -232,7 +232,7 @@ class WithdrawalController extends Controller
             \Illuminate\Support\Facades\DB::transaction(function () use ($supplier) {
                 // Находим earnings, готовые к переводу
                 $readyToRelease = SupplierEarning::where('supplier_id', $supplier->id)
-                    ->where('status', 'held')
+                    ->where('status', SupplierEarning::STATUS_HELD)
                     ->whereNotNull('available_at')
                     ->where('available_at', '<=', now())
                     ->lockForUpdate()
@@ -252,7 +252,7 @@ class WithdrawalController extends Controller
                 // Обновляем статус на 'available'
                 $readyToRelease->each(function ($earning) {
                     $earning->update([
-                        'status' => 'available',
+                        'status' => SupplierEarning::STATUS_AVAILABLE,
                         'processed_at' => now(),
                     ]);
                 });
