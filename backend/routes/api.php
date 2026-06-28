@@ -130,32 +130,43 @@ Route::middleware(['verify.webhook:monobank', 'throttle:100,1'])->group(function
     Route::post('/mono/webhook', [MonoController::class, 'webhook']);
 });
 
-Route::get('/contents/{code}', [ContentController::class, 'show']);
-
-Route::get('/browser/new', [BrowserController::class, 'new']);
-
-Route::post('/browser/stop', function (Request $request) {
-    $base = rtrim(config('services.browser_api.url'), '/');
-    $resp = Http::timeout(60)->asJson()->post($base . '/stop', $request->all());
-
-    return response($resp->body(), $resp->status())
-        ->withHeaders(['Content-Type' => 'application/json']);
+// SECURITY FIX (M11): добавлен rate limiting — ранее endpoint был вне throttle (DoS).
+Route::middleware('throttle:300,1')->group(function () {
+    Route::get('/contents/{code}', [ContentController::class, 'show']);
 });
 
-Route::post('/browser/stop_all', function (Request $request) {
-    $base = rtrim(config('services.browser_api.url'), '/');
-    $resp = Http::timeout(60)->asJson()->post($base . '/stop_all', $request->all());
+// SECURITY FIX (C2/C3): browser-control endpoints были полностью без авторизации —
+// любой неавторизованный пользователь мог листать/гасить ВСЕ сессии платформы и
+// запускать чужие аккаунты. Теперь требуется auth:sanctum + rate limiting.
+// Проверка владения конкретным профилем выполняется в BrowserController::new.
+// ОСТАЁТСЯ (см. docs/REMEDIATION.md): per-user скоупинг stop/stop_all/list требует
+// доработки upstream browser_api, чтобы авторизованный пользователь не гасил чужие сессии.
+Route::middleware(['auth:sanctum', 'throttle:60,1'])->group(function () {
+    Route::get('/browser/new', [BrowserController::class, 'new']);
 
-    return response($resp->body(), $resp->status())
-        ->withHeaders(['Content-Type' => 'application/json']);
-});
+    Route::post('/browser/stop', function (Request $request) {
+        $base = rtrim(config('services.browser_api.url'), '/');
+        $resp = Http::timeout(60)->asJson()->post($base . '/stop', $request->all());
 
-Route::get('/browser/list', function () {
-    $base = rtrim(config('services.browser_api.url'), '/');
-    $resp = Http::timeout(60)->get($base . '/list');
+        return response($resp->body(), $resp->status())
+            ->withHeaders(['Content-Type' => 'application/json']);
+    });
 
-    return response($resp->body(), $resp->status())
-        ->withHeaders(['Content-Type' => 'application/json']);
+    Route::post('/browser/stop_all', function (Request $request) {
+        $base = rtrim(config('services.browser_api.url'), '/');
+        $resp = Http::timeout(60)->asJson()->post($base . '/stop_all', $request->all());
+
+        return response($resp->body(), $resp->status())
+            ->withHeaders(['Content-Type' => 'application/json']);
+    });
+
+    Route::get('/browser/list', function () {
+        $base = rtrim(config('services.browser_api.url'), '/');
+        $resp = Http::timeout(60)->get($base . '/list');
+
+        return response($resp->body(), $resp->status())
+            ->withHeaders(['Content-Type' => 'application/json']);
+    });
 });
 
 Route::middleware('ext.auth')->group(function () {
