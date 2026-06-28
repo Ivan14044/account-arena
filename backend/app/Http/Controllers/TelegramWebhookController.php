@@ -13,6 +13,19 @@ class TelegramWebhookController extends Controller
      */
     public function handle(Request $request)
     {
+        // SECURITY FIX (H4): проверка секрета вебхука. Telegram присылает
+        // X-Telegram-Bot-Api-Secret-Token, если он был задан при setWebhook.
+        // Включается только при наличии config('services.telegram.webhook_secret')
+        // (обратная совместимость: без секрета поведение прежнее).
+        $expectedSecret = config('services.telegram.webhook_secret');
+        if (!empty($expectedSecret)) {
+            $provided = (string) $request->header('X-Telegram-Bot-Api-Secret-Token', '');
+            if (!hash_equals((string) $expectedSecret, $provided)) {
+                Log::warning('Telegram webhook rejected: invalid secret token');
+                abort(403);
+            }
+        }
+
         try {
             $update = $request->all();
 

@@ -4,7 +4,7 @@
             <div>
                 <h1
                     class="text-2xl font-medium md:text-4xl md:font-light text-dark dark:text-white"
-                    v-html="pageTitle"
+                    v-safe-html="pageTitle"
                 ></h1>
                 <p v-if="!isCategoryPage" class="mt-3 text-gray-600 dark:text-gray-300">
                     {{ $t('articles.description') }}
@@ -12,7 +12,7 @@
                 <div
                     v-else-if="categoryTextHtml"
                     class="mt-3 text-gray-600 dark:text-gray-300"
-                    v-html="categoryTextHtml"
+                    v-safe-html="categoryTextHtml"
                 ></div>
             </div>
             <BackLink class="self-start" />

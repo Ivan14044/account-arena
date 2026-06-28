@@ -458,7 +458,7 @@
                                             <div
                                                 v-if="description"
                                                 class="text-gray-900 dark:text-gray-300 info-body product-content"
-                                                v-html="description"
+                                                v-safe-html="description"
                                             />
                                             <p
                                                 v-else
@@ -490,7 +490,7 @@
                                             </h3>
                                             <div
                                                 class="text-gray-900 dark:text-gray-300 info-body product-content"
-                                                v-html="additionalDescription"
+                                                v-safe-html="additionalDescription"
                                             />
                                         </div>
                                     </div>

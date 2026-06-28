@@ -8,7 +8,7 @@
         >
             <h1
                 class="text-4xl md:text-5xl lg:text-6xl font-light text-gray-900 dark:text-white mb-6 leading-tight"
-                v-html="content.welcomeBanner.headline"
+                v-safe-html="content.welcomeBanner.headline"
             ></h1>
             <p class="text-xl md:text-2xl text-gray-600 dark:text-gray-400 mb-8 max-w-3xl mx-auto">
                 {{ content.welcomeBanner.subtitle }}

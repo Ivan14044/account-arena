@@ -64,8 +64,12 @@ Route::prefix('/admin')
             Route::resource('notification-templates', NotificationTemplateController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
             Route::resource('notifications', NotificationController::class)->only(['index', 'create', 'store', 'destroy']);
             Route::resource('contents', ContentController::class)->except(['show']);
-            Route::get('site-content', [SiteContentController::class, 'index'])->name('site-content.index');
-            Route::post('site-content', [SiteContentController::class, 'store'])->name('site-content.store');
+            // SECURITY FIX (C7): site-content редактирует публичный контент/меню сайта —
+            // ограничиваем главным администратором.
+            Route::middleware(['admin.main'])->group(function () {
+                Route::get('site-content', [SiteContentController::class, 'index'])->name('site-content.index');
+                Route::post('site-content', [SiteContentController::class, 'store'])->name('site-content.store');
+            });
             Route::resource('articles', ArticleController::class)->except(['show']);
             Route::resource('product-categories', ProductCategoryController::class)->except(['show']);
             Route::resource('product-subcategories', ProductSubcategoryController::class)->except(['show']);
@@ -73,8 +77,14 @@ Route::prefix('/admin')
             Route::resource('banners', BannerController::class)->except(['show']);
             Route::resource('email-templates', EmailTemplateController::class);
             Route::post('email-templates/{email_template}/send-test', [EmailTemplateController::class, 'sendTest'])->name('email-templates.send-test');
-            Route::resource('settings', SettingController::class)->only(['index', 'store']);
-            Route::post('settings/test-smtp', [SettingController::class, 'testSmtp'])->name('settings.test-smtp');
+            // SECURITY FIX (C7): страница настроек отдаёт РАСШИФРОВАННЫЕ секреты
+            // (SMTP-пароль, Telegram-токен), сохраняет их и делает исходящие
+            // SMTP-коннекты (blind SSRF в test-smtp). Ограничиваем главным админом.
+            // notification-check (только чтение тумблеров уведомлений) оставлен всем админам.
+            Route::middleware(['admin.main'])->group(function () {
+                Route::resource('settings', SettingController::class)->only(['index', 'store']);
+                Route::post('settings/test-smtp', [SettingController::class, 'testSmtp'])->name('settings.test-smtp');
+            });
             Route::get('settings/notification-check', [SettingController::class, 'getNotificationSettings'])->name('settings.notification-check');
             Route::resource('activity-logs', \App\Http\Controllers\Admin\AuditLogController::class)->only(['index']);
             Route::resource('service-accounts', ServiceAccountController::class)->except(['show']);

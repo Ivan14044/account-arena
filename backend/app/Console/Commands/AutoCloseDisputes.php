@@ -58,12 +58,23 @@ class AutoCloseDisputes extends Command
                 
                 $comment = "Автоматическое решение: Продавец не ответил в течение {$hours} часов.";
                 
-                // Using the existing method to refund
-                // Using Admin ID 1 (System/Main Admin) or null if allowed, usually better to pick a system user ID
-                // For safety, we try to use ID 1, assuming it exists.
-                $systemAdminId = 1; 
+                // FIX (M10): атрибутируем авто-возврат реальному администратору,
+                // а не жёстко зашитому ID=1 (которого может не быть или он может
+                // не быть админом → битый resolved_by / FK).
+                $systemAdmin = \App\Models\User::where('is_admin', true)->orderBy('id')->first();
+                if (!$systemAdmin) {
+                    throw new \Exception('Не найден администратор для авто-закрытия претензии.');
+                }
 
-                $dispute->resolveWithRefund($systemAdminId, $comment);
+                // FIX (M10): задаём АКТУАЛЬНУЮ сумму возврата (как при ручной
+                // обработке), иначе resolveWithRefund использует устаревшее/нулевое
+                // refund_amount, сохранённое при создании претензии.
+                if (!$dispute->transaction || $dispute->transaction->amount === null) {
+                    throw new \Exception('У претензии нет транзакции с суммой — авто-возврат пропущен.');
+                }
+                $dispute->refund_amount = $dispute->transaction->amount;
+
+                $dispute->resolveWithRefund($systemAdmin->id, $comment);
                 
                 Log::info("Dispute #{$dispute->id} auto-refunded due to seller inactivity.");
                 

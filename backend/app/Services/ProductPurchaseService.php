@@ -541,11 +541,30 @@ class ProductPurchaseService
             ->first();
 
         if ($promo) {
-            \App\Models\PromocodeUsage::create([
-                'promocode_id' => $promo->id,
-                'user_id' => $userId,
-                'order_id' => $orderId ? (string)$orderId : null,
-            ]);
+            // FIX (H7): защита от двойного учёта на один order_id. Уникальный
+            // индекс promocode_usages.order_id ловит гонку/ретрай; нарушение
+            // трактуем как "уже учтено" и НЕ роняем покупку (которая выполняется
+            // во внешней транзакции).
+            try {
+                \App\Models\PromocodeUsage::create([
+                    'promocode_id' => $promo->id,
+                    'user_id' => $userId,
+                    'order_id' => $orderId ? (string)$orderId : null,
+                ]);
+            } catch (\Illuminate\Database\QueryException $e) {
+                $message = $e->getMessage();
+                $isDuplicate = str_contains($message, 'promocode_usages_order_id_unique')
+                    || str_contains($message, 'UNIQUE constraint failed')
+                    || (isset($e->errorInfo[1]) && (int) $e->errorInfo[1] === 1062);
+                if ($isDuplicate) {
+                    Log::info('Promocode usage already recorded for order (idempotent skip)', [
+                        'code' => $code,
+                        'order_id' => $orderId,
+                    ]);
+                    return;
+                }
+                throw $e;
+            }
 
             // Если есть лимит, увеличиваем счетчик
             if ((int)$promo->usage_limit > 0) {

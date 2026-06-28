@@ -197,10 +197,16 @@ class ServiceAccount extends Model
     /**
      * Получить цену с учетом комиссии поставщика
      * Формула: final_price = supplier_price / (1 - commission/100)
-     * 
+     *
+     * Модель «наценка сверху»: поставщик получает РОВНО свою запрошенную цену,
+     * а комиссия платформы добавляется поверх для покупателя.
+     *
      * Пример: поставщик указал 10 USD, комиссия 10%
-     * - Поставщик получает: 10 * 0.9 = 9 USD
      * - Покупатель платит: 10 / 0.9 = 11.11 USD
+     * - Поставщик получает: 11.11 * (1 - 0.10) = 10.00 USD (его базовая цена)
+     * - Платформа удерживает: 11.11 - 10.00 = 1.11 USD
+     * (Сумма поставщику считается в ProductPurchaseService::createSupplierEarning
+     *  как total * (1 - commission/100); см. также docs/bugs/00-overview.md §7.)
      */
     public function getPriceWithCommission()
     {
@@ -427,8 +433,16 @@ class ServiceAccount extends Model
             3600, // Кеш на 1 час
             function() use ($limit) {
                 // Базовый запрос
+                // SECURITY FIX (M2 / bug M2): тот же фильтр видимости, что в
+                // index/show — иначе немодерированные/отклонённые товары поставщиков
+                // (is_active можно проставить, но moderation_status != approved)
+                // утекали в карусель «похожие».
                 $query = ServiceAccount::with(['category', 'supplier'])
                     ->where('is_active', true)
+                    ->where(function ($q) {
+                        $q->where('moderation_status', 'approved')
+                          ->orWhereNull('supplier_id');
+                    })
                     ->where('id', '!=', $this->id) // Исключаем текущий товар
                     ->whereNotNull('title')
                     ->whereNotNull('price')

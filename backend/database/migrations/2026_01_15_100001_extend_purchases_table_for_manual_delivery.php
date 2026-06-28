@@ -20,9 +20,13 @@ return new class extends Migration
         // Для других БД может потребоваться другой подход
         // Сначала обновляем существующие статусы 'pending' и 'failed' если они есть
         DB::statement("UPDATE purchases SET status = 'completed' WHERE status NOT IN ('completed', 'pending', 'failed')");
-        
-        // Изменяем тип колонки на enum с расширенными статусами
-        DB::statement("ALTER TABLE purchases MODIFY COLUMN status ENUM('pending', 'processing', 'completed', 'failed', 'cancelled') DEFAULT 'completed'");
+
+        // Изменяем тип колонки на enum с расширенными статусами.
+        // ENUM/MODIFY COLUMN — синтаксис MySQL/MariaDB; на sqlite (тесты) колонка
+        // status уже строковая и принимает любые значения, поэтому пропускаем.
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE purchases MODIFY COLUMN status ENUM('pending', 'processing', 'completed', 'failed', 'cancelled') DEFAULT 'completed'");
+        }
         
         Schema::table('purchases', function (Blueprint $table) {
             // Добавляем поля для ручной обработки
@@ -71,8 +75,10 @@ return new class extends Migration
             ]);
         });
         
-        // Возвращаем старое enum (только основные статусы)
-        DB::statement("ALTER TABLE purchases MODIFY COLUMN status ENUM('pending', 'completed', 'failed') DEFAULT 'completed'");
+        // Возвращаем старое enum (только основные статусы) — только MySQL/MariaDB
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE purchases MODIFY COLUMN status ENUM('pending', 'completed', 'failed') DEFAULT 'completed'");
+        }
         
         // Обновляем статусы processing и cancelled на completed
         DB::statement("UPDATE purchases SET status = 'completed' WHERE status IN ('processing', 'cancelled')");

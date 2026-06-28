@@ -70,7 +70,7 @@
                             </div>
                             <div
                                 class="text-xs text-gray-600 dark:text-gray-300 mt-1"
-                                v-html="getTranslation(item, 'message')"
+                                v-safe-html="getTranslation(item, 'message')"
                             />
                             <div class="flex justify-between items-center mt-2">
                                 <time class="text-xs text-gray-500" :datetime="item.created_at">

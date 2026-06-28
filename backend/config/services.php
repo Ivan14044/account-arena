@@ -47,4 +47,12 @@ return [
         'url' => env('BROWSER_API_URL', 'https://workspace.account-arena.com/api/'),
     ],
 
+    'telegram' => [
+        // SECURITY FIX (H4): секрет для проверки входящих вебхуков Telegram.
+        // Если задан — handle() требует совпадения заголовка
+        // X-Telegram-Bot-Api-Secret-Token, а setWebhook регистрирует secret_token.
+        // Если пуст — поведение остаётся прежним (обратная совместимость).
+        'webhook_secret' => env('TELEGRAM_WEBHOOK_SECRET'),
+    ],
+
 ];

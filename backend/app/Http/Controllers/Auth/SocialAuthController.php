@@ -129,28 +129,23 @@ class SocialAuthController extends Controller
             $user = User::where('telegram_id', $telegramData['id'])->first();
 
             if (!$user) {
-                $existingUser = null;
-                if (!empty($telegramData['email'])) {
-                    $existingUser = User::where('email', $telegramData['email'])->first();
-                }
-
-                if ($existingUser) {
-                    $existingUser->telegram_id = $telegramData['id'];
-                    $existingUser->telegram_username = $telegramData['username'] ?? null;
-                    $existingUser->provider = 'telegram';
-                    $existingUser->save();
-                    $user = $existingUser;
-                } else {
-                    $user = User::create([
-                        'provider' => 'telegram',
-                        'telegram_id' => $telegramData['id'],
-                        'telegram_username' => $telegramData['username'] ?? null,
-                        'name' => $telegramData['first_name'] . ' ' . ($telegramData['last_name'] ?? ''),
-                        'email' => $telegramData['email'] ?? $telegramData['id'] . '@telegram.org',
-                        'avatar' => $telegramData['photo_url'] ?? null,
-                        'password' => Hash::make(rand(100000, 999999)),
-                    ]);
-                }
+                // SECURITY HARDENING (C4): линкуем ТОЛЬКО по telegram_id. Раньше
+                // telegram_id привязывался к существующему аккаунту по email из
+                // payload. Telegram не присылает email (его нет в подписанных
+                // данных), а привязка по непроверенному email на этапе ЛОГИНА —
+                // небезопасный паттерн (риск захвата аккаунта, если email когда-либо
+                // окажется неподписанным). Если telegram_id не найден — создаём
+                // новый аккаунт. Привязку соцсетей к существующему аккаунту следует
+                // делать в авторизованном профиле, а не при входе.
+                $user = User::create([
+                    'provider' => 'telegram',
+                    'telegram_id' => $telegramData['id'],
+                    'telegram_username' => $telegramData['username'] ?? null,
+                    'name' => $telegramData['first_name'] . ' ' . ($telegramData['last_name'] ?? ''),
+                    'email' => $telegramData['id'] . '@telegram.org',
+                    'avatar' => $telegramData['photo_url'] ?? null,
+                    'password' => Hash::make(rand(100000, 999999)),
+                ]);
             } else {
                 $user->telegram_username = $telegramData['username'] ?? $user->telegram_username;
                 $user->avatar = $telegramData['photo_url'] ?? $user->avatar;

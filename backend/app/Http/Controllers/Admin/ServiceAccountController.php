@@ -808,5 +808,6 @@ class ServiceAccountController extends Controller
         Cache::forget('active_accounts_list');
         Cache::forget('active_accounts_list_v2');
         Cache::forget('active_accounts_list_v3');
+        Cache::forget('active_accounts_list_v4'); // FIX (M1): актуальный ключ чтения каталога
     }
 }

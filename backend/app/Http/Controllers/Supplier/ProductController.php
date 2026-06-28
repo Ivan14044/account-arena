@@ -253,8 +253,14 @@ class ProductController extends Controller
             $validated['image_url'] = Storage::url($path);
         }
         
-        $validated['is_active'] = $request->boolean('is_active', false);
-        
+        // SECURITY FIX (H5 / bug H5): любое редактирование товара поставщиком
+        // возвращает его на повторную модерацию. Ранее update() не сбрасывал
+        // moderation_status, поэтому одобренный товар можно было незаметно
+        // подменить (цена/описание/сток/перевод) — изменения уходили в прод
+        // без ре-ревью (в т.ч. обход витринной XSS-санитизации).
+        $validated['moderation_status'] = 'pending';
+        $validated['is_active'] = false; // скрыт до повторного одобрения админом
+
         // Handle bulk accounts if provided - add to existing
         if ($request->has('bulk_accounts') && !empty(trim($request->input('bulk_accounts')))) {
             $newAccounts = $request->input('bulk_accounts');

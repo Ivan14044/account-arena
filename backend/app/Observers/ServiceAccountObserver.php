@@ -19,6 +19,11 @@ class ServiceAccountObserver
         Cache::forget('active_accounts_list');
         Cache::forget('active_accounts_list_v2');
         Cache::forget('active_accounts_list_v3');
+        // FIX (M1 / bug M1): актуальный ключ чтения каталога — _v4. Раньше
+        // инвалидаторы чистили только устаревшие _v1.._v3, а реально читаемый
+        // active_accounts_list_v4 НИКОГДА не сбрасывался → стейл-сток (оверселл),
+        // стейл-цена и задержка скрытия снятых/отклонённых товаров до 5 минут.
+        Cache::forget('active_accounts_list_v4');
         Log::info('ServiceAccount cache cleared');
     }
 

@@ -289,7 +289,15 @@ class TelegramBotService
             return false;
         }
 
-        $result = $this->makeApiRequest('setWebhook', ['url' => $webhookUrl]);
+        // SECURITY FIX (H4): регистрируем secret_token, если он сконфигурирован,
+        // чтобы входящие вебхуки можно было аутентифицировать в контроллере.
+        $params = ['url' => $webhookUrl];
+        $webhookSecret = config('services.telegram.webhook_secret');
+        if (!empty($webhookSecret)) {
+            $params['secret_token'] = $webhookSecret;
+        }
+
+        $result = $this->makeApiRequest('setWebhook', $params);
 
         if ($result) {
             Log::info('TelegramBotService: Webhook set successfully', ['url' => $webhookUrl]);

@@ -21,7 +21,7 @@
             <div class="text-center mb-8 relative z-2">
                 <h2
                     class="text-[32px] md:text-[48px] lg:text-[64px]m text-gray-900 dark:text-white mt-3 leading-none"
-                    v-html="stepsTitle"
+                    v-safe-html="stepsTitle"
                 ></h2>
             </div>
 
@@ -99,7 +99,7 @@
             <div class="text-center mb-16">
                 <h2
                     class="text-[32px] md:text-[48px] lg:text-[64px] font-medium text-gray-900 dark:text-white mt-3"
-                    v-html="promoteTitle"
+                    v-safe-html="promoteTitle"
                 ></h2>
             </div>
 

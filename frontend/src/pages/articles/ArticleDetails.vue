@@ -41,7 +41,7 @@
                     </div>
 
                     <div class="prose prose-neutral dark:prose-invert max-w-none relative">
-                        <div class="content" v-html="article.content"></div>
+                        <div class="content" v-safe-html="article.content"></div>
                         <div class="text-xs text-gray-500 dark:text-gray-300 my-4 float-end">
                             {{ formatDate(article.date) }}
                         </div>
