@@ -407,6 +407,16 @@
     @if(!$chat->isFromTelegram())
         <script>
         (function() {
+            // SECURITY FIX (C5 / bug C5): экранирование пользовательского текста
+            // перед вставкой в innerHTML. Текст сообщений/имена файлов/имя гостя
+            // приходят от покупателя или из Telegram без серверной санитизации,
+            // и live-поллер ранее вставлял их в innerHTML как есть → stored XSS в
+            // сессии админа (аноним → захват админки).
+            function escapeHtml(value) {
+                return String(value ?? '').replace(/[&<>"']/g, function (c) {
+                    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+                });
+            }
             const messageInput = document.getElementById('admin-message-input');
             const typingIndicator = document.getElementById('user-typing-indicator');
             const messagesContainer = document.getElementById('messages-container');
@@ -472,17 +482,17 @@
                         if (isImage(attachment.mime_type)) {
                             attachmentsHtml += `
                                 <div class="attachment-item mb-2">
-                                    <a href="${attachment.file_url}" target="_blank" class="d-block">
-                                        <img src="${attachment.file_url}" alt="${attachment.file_name}" class="img-thumbnail" style="max-width: 200px; max-height: 200px; cursor: pointer;">
+                                    <a href="${escapeHtml(attachment.file_url)}" target="_blank" class="d-block">
+                                        <img src="${escapeHtml(attachment.file_url)}" alt="${escapeHtml(attachment.file_name)}" class="img-thumbnail" style="max-width: 200px; max-height: 200px; cursor: pointer;">
                                     </a>
                                 </div>
                             `;
                         } else {
                             attachmentsHtml += `
                                 <div class="attachment-item mb-2">
-                                    <a href="${attachment.file_url}" target="_blank" class="d-flex align-items-center text-decoration-none" download>
+                                    <a href="${escapeHtml(attachment.file_url)}" target="_blank" class="d-flex align-items-center text-decoration-none" download>
                                         <i class="fas fa-file mr-2"></i>
-                                        <span>${attachment.file_name}</span>
+                                        <span>${escapeHtml(attachment.file_name)}</span>
                                         <small class="ml-2">(${formatFileSize(attachment.file_size)})</small>
                                     </a>
                                 </div>
@@ -502,7 +512,7 @@
                                 </span>
                             </div>
                             <div class="message-text">
-                                ${message.message}
+                                ${escapeHtml(message.message)}
                             </div>
                             ${attachmentsHtml}
                         </div>
@@ -693,6 +703,12 @@
     @if($chat->isFromTelegram())
         <script>
                     (function() {
+                        // SECURITY FIX (C5): экранирование пользовательского текста перед innerHTML.
+                        function escapeHtml(value) {
+                            return String(value ?? '').replace(/[&<>"']/g, function (c) {
+                                return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+                            });
+                        }
                         const DEBUG_MODE = true; // Enable for debugging (set to true to see logs)
                         
                         function logError(message, error) {
@@ -855,7 +871,7 @@
                             } else {
                                 // Для Telegram чатов используем guest_name
                                 if (chat.source === 'telegram') {
-                                    senderName = `<i class="fab fa-telegram mr-1"></i> ${chat.guest_name || 'Telegram User'}`;
+                                    senderName = `<i class="fab fa-telegram mr-1"></i> ${escapeHtml(chat.guest_name || 'Telegram User')}`;
                                 } else if (chat.user) {
                                     senderName = (message.user && message.user.name) ? message.user.name : 'Пользователь';
                                 } else {
@@ -870,21 +886,21 @@
                                     if (isImage(attachment.mime_type)) {
                                         attachmentsHtml += `
                                             <div class="attachment-item mb-2">
-                                                <img src="${attachment.file_url}" 
-                                                     alt="${attachment.file_name}" 
+                                                <img src="${escapeHtml(attachment.file_url)}" 
+                                                     alt="${escapeHtml(attachment.file_name)}" 
                                                      class="img-thumbnail image-preview-trigger" 
                                                      style="max-width: 200px; max-height: 200px; cursor: pointer;"
-                                                     data-image-url="${attachment.file_url}"
-                                                     data-image-name="${attachment.file_name}"
+                                                     data-image-url="${escapeHtml(attachment.file_url)}"
+                                                     data-image-name="${escapeHtml(attachment.file_name)}"
                                                      title="Нажмите для просмотра">
                                             </div>
                                         `;
                                     } else {
                                         attachmentsHtml += `
                                             <div class="attachment-item mb-2">
-                                                <a href="${attachment.file_url}" target="_blank" class="d-flex align-items-center text-decoration-none" download>
+                                                <a href="${escapeHtml(attachment.file_url)}" target="_blank" class="d-flex align-items-center text-decoration-none" download>
                                                     <i class="fas fa-file mr-2"></i>
-                                                    <span>${attachment.file_name}</span>
+                                                    <span>${escapeHtml(attachment.file_name)}</span>
                                                     <small class="ml-2">(${formatFileSize(attachment.file_size)})</small>
                                                 </a>
                                             </div>
@@ -900,12 +916,12 @@
                             
                             let senderNameHtml = '';
                             if (!isAdmin) {
-                                senderNameHtml = `<div class="message-sender-name">${chat.guest_name || 'Пользователь'}</div>`;
+                                senderNameHtml = `<div class="message-sender-name">${escapeHtml(chat.guest_name || 'Пользователь')}</div>`;
                             }
                             
                             let messageTextHtml = '';
                             if (message.message && message.message.trim()) {
-                                messageTextHtml = `<div class="message-text">${message.message}</div>`;
+                                messageTextHtml = `<div class="message-text">${escapeHtml(message.message)}</div>`;
                             }
                             
                             messageDiv.innerHTML = `
