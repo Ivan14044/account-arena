@@ -54,4 +54,29 @@ class Transaction extends Model
     {
         return $this->hasOne(Purchase::class);
     }
+
+    /**
+     * Атомарно «застолбить» транзакцию как завершённую (идемпотентность вебхуков).
+     *
+     * Делает атомарный compare-and-set: переводит статус в completed только если
+     * он ещё не completed. Возвращает true РОВНО для одного из конкурентных
+     * вызовов (провайдеры присылают вебхуки с ретраями), остальные получают false.
+     * При успехе выставляет in-memory статус, чтобы последующий код видел completed.
+     *
+     * Раньше этот CAS был раскопирован 6 раз в MonoController/CryptomusController.
+     */
+    public function claimForCompletion(): bool
+    {
+        $claimed = static::whereKey($this->getKey())
+            ->where('status', '!=', self::STATUS_COMPLETED)
+            ->update(['status' => self::STATUS_COMPLETED]);
+
+        if ($claimed > 0) {
+            $this->status = self::STATUS_COMPLETED;
+
+            return true;
+        }
+
+        return false;
+    }
 }
