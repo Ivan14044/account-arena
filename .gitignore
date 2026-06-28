@@ -66,6 +66,9 @@ tmp/
 !SERVER_SETUP_GUIDE.md
 !QUICK_START.md
 !SERVER_COMMANDS.md
+# Правила проекта и документация — ОТСЛЕЖИВАЕМ (раньше выпадали из-за *.md выше).
+!CLAUDE.md
+!docs/**
 
 # Игнорируем все временные инструкции и заметки
 DEPLOY_INSTRUCTIONS.md
