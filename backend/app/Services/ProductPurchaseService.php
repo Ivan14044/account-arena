@@ -250,95 +250,7 @@ class ProductPurchaseService
         'status' => $initialStatus,
     ]);
 
-    /*
-     * NEW: Создаём запись SupplierEarning вместо немедленного увеличения supplier_balance.
-     * Логика:
-     * - Если товар принадлежит поставщику (есть supplier_id), то вычисляем сумму для поставщика
-     *   с учётом комиссии поставщика (supplier_commission %).
-     * - available_at = now + supplier_hold_hours (или 6 часов по-умолчанию).
-     * - status = 'held'.
-     *
-     * Это позволит позже переводить суммы в доступный баланс после окончания холда.
-     */
-
-    try {
-        $supplierId = $product->supplier_id ?? null;
-        if ($supplierId) {
-            // ВАЖНО: Блокируем поставщика для предотвращения race condition при создании earnings
-            $supplier = User::lockForUpdate()->find($supplierId);
-            if ($supplier && $supplier->is_supplier) {
-                // Комиссия платформы в процентах (если null — по умолчанию 0)
-                $supplierCommission = $supplier->supplier_commission !== null
-                    ? (float)$supplier->supplier_commission
-                    : 0.0;
-
-                // За сколько процентов остаётся поставщику
-                $supplierSharePercent = max(0, min(100, 100 - $supplierCommission));
-
-                // Сумма, причитающаяся поставщику (округляем до 2 знаков)
-                $supplierAmount = round($total * ($supplierSharePercent / 100.0), 2);
-
-                // ВАЖНО: Проверяем, что сумма положительная
-                if ($supplierAmount <= 0) {
-                    Log::warning('ProductPurchaseService: Supplier amount is zero or negative', [
-                        'supplier_id' => $supplier->id,
-                        'purchase_id' => $purchase->id ?? null,
-                        'transaction_id' => $transaction->id ?? null,
-                        'total' => $total,
-                        'supplier_share_percent' => $supplierSharePercent,
-                        'calculated_amount' => $supplierAmount,
-                    ]);
-                    // Пропускаем создание earning с нулевой или отрицательной суммой, но продолжаем выполнение метода
-                } else {
-                    // ВАЖНО: Проверяем, что для этой покупки еще не создан SupplierEarning
-                    // Это предотвращает дублирование при повторных вызовах
-                    $existingEarning = SupplierEarning::where('purchase_id', $purchase->id)
-                        ->where('transaction_id', $transaction->id)
-                        ->where('supplier_id', $supplier->id)
-                        ->first();
-                    
-                    if ($existingEarning) {
-                        Log::warning('ProductPurchaseService: SupplierEarning already exists for this purchase', [
-                            'supplier_id' => $supplier->id,
-                            'purchase_id' => $purchase->id,
-                            'transaction_id' => $transaction->id,
-                            'existing_earning_id' => $existingEarning->id,
-                            'existing_amount' => $existingEarning->amount,
-                            'existing_status' => $existingEarning->status,
-                        ]);
-                        // Пропускаем создание дубликата, но продолжаем выполнение метода
-                    } else {
-                        $holdHours = (int) ($supplier->supplier_hold_hours ?? 6);
-                        $availableAt = now()->addHours($holdHours);
-
-                        SupplierEarning::create([
-                            'supplier_id' => $supplier->id,
-                            'purchase_id' => $purchase->id,
-                            'transaction_id' => $transaction->id,
-                            'amount' => $supplierAmount,
-                            'status' => SupplierEarning::STATUS_HELD,
-                            'available_at' => $availableAt,
-                        ]);
-
-                        Log::info('Supplier earning created (held)', [
-                            'supplier_id' => $supplier->id,
-                            'purchase_id' => $purchase->id,
-                            'transaction_id' => $transaction->id,
-                            'amount' => $supplierAmount,
-                            'available_at' => $availableAt->toDateTimeString(),
-                        ]);
-                    }
-                }
-            }
-        }
-    } catch (\Throwable $e) {
-        // Не ломаем основную покупку, но логируем ошибку — потребуется ручная проверка
-        Log::error('Failed to create supplier earning', [
-            'error' => $e->getMessage(),
-            'purchase_id' => $purchase->id ?? null,
-            'transaction_id' => $transaction->id ?? null,
-        ]);
-    }
+    $this->createSupplierEarning($product, $purchase, $transaction, $total);
 
         return [
             'transaction' => $transaction,
@@ -589,6 +501,93 @@ class ProductPurchaseService
             ]);
         }
     }
+    /**
+     * Создаём запись SupplierEarning (held) для товара поставщика — с учётом
+     * комиссии и холда. Не ломает покупку при ошибке (логирует). Выполняется
+     * в рамках транзакции создания покупки. (Вынесено из createProductPurchase.)
+     */
+    private function createSupplierEarning(ServiceAccount $product, Purchase $purchase, Transaction $transaction, float $total): void
+    {
+        try {
+            $supplierId = $product->supplier_id ?? null;
+            if ($supplierId) {
+                // ВАЖНО: Блокируем поставщика для предотвращения race condition при создании earnings
+                $supplier = User::lockForUpdate()->find($supplierId);
+                if ($supplier && $supplier->is_supplier) {
+                    // Комиссия платформы в процентах (если null — по умолчанию 0)
+                    $supplierCommission = $supplier->supplier_commission !== null
+                        ? (float)$supplier->supplier_commission
+                        : 0.0;
+    
+                    // За сколько процентов остаётся поставщику
+                    $supplierSharePercent = max(0, min(100, 100 - $supplierCommission));
+    
+                    // Сумма, причитающаяся поставщику (округляем до 2 знаков)
+                    $supplierAmount = round($total * ($supplierSharePercent / 100.0), 2);
+    
+                    // ВАЖНО: Проверяем, что сумма положительная
+                    if ($supplierAmount <= 0) {
+                        Log::warning('ProductPurchaseService: Supplier amount is zero or negative', [
+                            'supplier_id' => $supplier->id,
+                            'purchase_id' => $purchase->id ?? null,
+                            'transaction_id' => $transaction->id ?? null,
+                            'total' => $total,
+                            'supplier_share_percent' => $supplierSharePercent,
+                            'calculated_amount' => $supplierAmount,
+                        ]);
+                        // Пропускаем создание earning с нулевой или отрицательной суммой, но продолжаем выполнение метода
+                    } else {
+                        // ВАЖНО: Проверяем, что для этой покупки еще не создан SupplierEarning
+                        // Это предотвращает дублирование при повторных вызовах
+                        $existingEarning = SupplierEarning::where('purchase_id', $purchase->id)
+                            ->where('transaction_id', $transaction->id)
+                            ->where('supplier_id', $supplier->id)
+                            ->first();
+                        
+                        if ($existingEarning) {
+                            Log::warning('ProductPurchaseService: SupplierEarning already exists for this purchase', [
+                                'supplier_id' => $supplier->id,
+                                'purchase_id' => $purchase->id,
+                                'transaction_id' => $transaction->id,
+                                'existing_earning_id' => $existingEarning->id,
+                                'existing_amount' => $existingEarning->amount,
+                                'existing_status' => $existingEarning->status,
+                            ]);
+                            // Пропускаем создание дубликата, но продолжаем выполнение метода
+                        } else {
+                            $holdHours = (int) ($supplier->supplier_hold_hours ?? 6);
+                            $availableAt = now()->addHours($holdHours);
+    
+                            SupplierEarning::create([
+                                'supplier_id' => $supplier->id,
+                                'purchase_id' => $purchase->id,
+                                'transaction_id' => $transaction->id,
+                                'amount' => $supplierAmount,
+                                'status' => SupplierEarning::STATUS_HELD,
+                                'available_at' => $availableAt,
+                            ]);
+    
+                            Log::info('Supplier earning created (held)', [
+                                'supplier_id' => $supplier->id,
+                                'purchase_id' => $purchase->id,
+                                'transaction_id' => $transaction->id,
+                                'amount' => $supplierAmount,
+                                'available_at' => $availableAt->toDateTimeString(),
+                            ]);
+                        }
+                    }
+                }
+            }
+        } catch (\Throwable $e) {
+            // Не ломаем основную покупку, но логируем ошибку — потребуется ручная проверка
+            Log::error('Failed to create supplier earning', [
+                'error' => $e->getMessage(),
+                'purchase_id' => $purchase->id ?? null,
+                'transaction_id' => $transaction->id ?? null,
+            ]);
+        }
+    }
+
 }
 
 
