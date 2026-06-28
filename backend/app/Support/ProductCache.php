@@ -28,6 +28,14 @@ class ProductCache
     public const SIMILAR_TTL = 3600;
 
     /**
+     * Ключ счётчика версии кэша «похожих». Входит в ключ similarKey(), поэтому
+     * инкремент версии делает ВСЕ старые записи «похожих» недостижимыми (они
+     * протухают по TTL). Это портируемый способ массовой инвалидации без cache
+     * tags (которые не поддерживаются драйверами file/array).
+     */
+    public const SIMILAR_VERSION_KEY = 'similar_products_version';
+
+    /**
      * Устаревшие версии ключа списка. Больше не пишутся, но всё ещё сбрасываются
      * при инвалидации — на случай, если в каком-то кэше остались старые значения
      * во время выкатки.
@@ -38,10 +46,24 @@ class ProductCache
         'active_accounts_list_v3',
     ];
 
-    /** Ключ кэша «похожих товаров» для конкретного товара и лимита. */
+    /** Ключ кэша «похожих товаров» для конкретного товара и лимита (с учётом версии). */
     public static function similarKey(int $productId, int $limit): string
     {
-        return "similar_products_v2_{$productId}_{$limit}";
+        $version = (int) Cache::get(self::SIMILAR_VERSION_KEY, 1);
+
+        return "similar_products_v3_{$version}_{$productId}_{$limit}";
+    }
+
+    /**
+     * Инвалидировать кэш «похожих товаров» (для всех товаров и лимитов).
+     * Изменение любого товара может влиять на чужие карусели «похожих», поэтому
+     * сбрасываем всё через инкремент версии. Раньше этот кэш не сбрасывался вовсе
+     * (только TTL 1ч) — карусель могла показывать снятые/изменённые товары.
+     */
+    public static function flushSimilar(): void
+    {
+        $version = (int) Cache::get(self::SIMILAR_VERSION_KEY, 1);
+        Cache::forever(self::SIMILAR_VERSION_KEY, $version + 1);
     }
 
     /** Сбросить кэш списка каталога (актуальный + устаревшие ключи). */
