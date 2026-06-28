@@ -72,15 +72,15 @@
                                             @endif
                                         </td>
                                         <td>
-                                            @if($product->moderation_status === 'pending')
+                                            @if($product->moderation_status === \App\Models\ServiceAccount::MODERATION_PENDING)
                                                 <span class="badge badge-warning">
                                                     <i class="fas fa-clock"></i> Ожидает модерации
                                                 </span>
-                                            @elseif($product->moderation_status === 'approved')
+                                            @elseif($product->moderation_status === \App\Models\ServiceAccount::MODERATION_APPROVED)
                                                 <span class="badge badge-success">
                                                     <i class="fas fa-check"></i> Одобрен
                                                 </span>
-                                            @elseif($product->moderation_status === 'rejected')
+                                            @elseif($product->moderation_status === \App\Models\ServiceAccount::MODERATION_REJECTED)
                                                 <span class="badge badge-danger">
                                                     <i class="fas fa-times"></i> Отклонен
                                                 </span>

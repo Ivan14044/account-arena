@@ -338,7 +338,7 @@ class ServiceAccount extends Model
      */
     public function scopePendingModeration($query)
     {
-        return $query->where('moderation_status', 'pending');
+        return $query->where('moderation_status', self::MODERATION_PENDING);
     }
 
     /**
@@ -346,7 +346,7 @@ class ServiceAccount extends Model
      */
     public function scopeApproved($query)
     {
-        return $query->where('moderation_status', 'approved');
+        return $query->where('moderation_status', self::MODERATION_APPROVED);
     }
 
     /**
@@ -354,7 +354,7 @@ class ServiceAccount extends Model
      */
     public function scopeRejected($query)
     {
-        return $query->where('moderation_status', 'rejected');
+        return $query->where('moderation_status', self::MODERATION_REJECTED);
     }
 
     /**
@@ -374,7 +374,7 @@ class ServiceAccount extends Model
         if (!$this->requiresModeration()) {
             return true;
         }
-        return $this->moderation_status === 'approved';
+        return $this->moderation_status === self::MODERATION_APPROVED;
     }
 
     /**
@@ -382,6 +382,14 @@ class ServiceAccount extends Model
      */
     const DELIVERY_AUTOMATIC = 'automatic';
     const DELIVERY_MANUAL = 'manual';
+
+    /**
+     * Константы статуса модерации (значения совпадают с enum миграции
+     * 2026_01_05_153441_add_moderation_to_service_accounts_table).
+     */
+    public const MODERATION_PENDING = 'pending';
+    public const MODERATION_APPROVED = 'approved';
+    public const MODERATION_REJECTED = 'rejected';
 
     /**
      * Проверить, требует ли товар ручной выдачи
@@ -440,7 +448,7 @@ class ServiceAccount extends Model
                 $query = ServiceAccount::with(['category', 'supplier'])
                     ->where('is_active', true)
                     ->where(function ($q) {
-                        $q->where('moderation_status', 'approved')
+                        $q->where('moderation_status', self::MODERATION_APPROVED)
                           ->orWhereNull('supplier_id');
                     })
                     ->where('id', '!=', $this->id) // Исключаем текущий товар

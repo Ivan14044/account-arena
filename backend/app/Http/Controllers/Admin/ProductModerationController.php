@@ -82,7 +82,7 @@ class ProductModerationController extends Controller
     public function approve(ServiceAccount $product)
     {
         // Проверяем, что товар на модерации
-        if ($product->moderation_status !== 'pending') {
+        if ($product->moderation_status !== ServiceAccount::MODERATION_PENDING) {
             return back()->with('error', 'Товар уже обработан.');
         }
 
@@ -92,7 +92,7 @@ class ProductModerationController extends Controller
                 $lockedProduct = ServiceAccount::lockForUpdate()->findOrFail($product->id);
                 
                 // Проверяем, что товар еще на модерации (после блокировки)
-                if ($lockedProduct->moderation_status !== 'pending') {
+                if ($lockedProduct->moderation_status !== ServiceAccount::MODERATION_PENDING) {
                     throw new \Exception('Товар уже обработан другим администратором.');
                 }
 
@@ -117,7 +117,7 @@ class ProductModerationController extends Controller
                 
                 // Одобряем товар
                 $lockedProduct->update([
-                    'moderation_status' => 'approved',
+                    'moderation_status' => ServiceAccount::MODERATION_APPROVED,
                     'is_active' => true, // Активируем товар
                     'moderated_at' => now(),
                     'moderated_by' => auth()->id(),
@@ -192,7 +192,7 @@ class ProductModerationController extends Controller
     public function reject(Request $request, ServiceAccount $product)
     {
         // Проверяем, что товар на модерации
-        if ($product->moderation_status !== 'pending') {
+        if ($product->moderation_status !== ServiceAccount::MODERATION_PENDING) {
             return back()->with('error', 'Товар уже обработан.');
         }
 
@@ -206,13 +206,13 @@ class ProductModerationController extends Controller
                 $lockedProduct = ServiceAccount::lockForUpdate()->findOrFail($product->id);
                 
                 // Проверяем, что товар еще на модерации (после блокировки)
-                if ($lockedProduct->moderation_status !== 'pending') {
+                if ($lockedProduct->moderation_status !== ServiceAccount::MODERATION_PENDING) {
                     throw new \Exception('Товар уже обработан другим администратором.');
                 }
                 
                 // Отклоняем товар
                 $lockedProduct->update([
-                    'moderation_status' => 'rejected',
+                    'moderation_status' => ServiceAccount::MODERATION_REJECTED,
                     'is_active' => false, // Деактивируем товар
                     'moderation_comment' => $validated['moderation_comment'],
                     'moderated_at' => now(),
