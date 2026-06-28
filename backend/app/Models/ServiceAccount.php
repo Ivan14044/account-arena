@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Cache;
+use App\Support\ProductCache;
 
 class ServiceAccount extends Model
 {
@@ -437,8 +438,8 @@ class ServiceAccount extends Model
     public function getSimilarProducts(int $limit = 6)
     {
         return Cache::remember(
-            "similar_products_v2_{$this->id}_{$limit}",
-            3600, // Кеш на 1 час
+            ProductCache::similarKey($this->id, $limit),
+            ProductCache::SIMILAR_TTL,
             function() use ($limit) {
                 // Базовый запрос
                 // SECURITY FIX (M2 / bug M2): тот же фильтр видимости, что в

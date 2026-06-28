@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\ServiceAccount;
+use App\Support\ProductCache;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Http;
@@ -805,9 +806,6 @@ class ServiceAccountController extends Controller
      */
     private function clearServiceAccountCache(): void
     {
-        Cache::forget('active_accounts_list');
-        Cache::forget('active_accounts_list_v2');
-        Cache::forget('active_accounts_list_v3');
-        Cache::forget('active_accounts_list_v4'); // FIX (M1): актуальный ключ чтения каталога
+        ProductCache::flushCatalog();
     }
 }
