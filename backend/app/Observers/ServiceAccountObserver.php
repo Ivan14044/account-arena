@@ -17,6 +17,9 @@ class ServiceAccountObserver
     private function clearAccountsCache(): void
     {
         ProductCache::flushCatalog();
+        // FIX: изменение товара может влиять на чужие карусели «похожих» —
+        // раньше этот кэш не инвалидировался (только TTL 1ч).
+        ProductCache::flushSimilar();
         Log::info('ServiceAccount cache cleared');
     }
 

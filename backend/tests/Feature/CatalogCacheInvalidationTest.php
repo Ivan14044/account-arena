@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\ServiceAccount;
+use App\Support\ProductCache;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Tests\TestCase;
@@ -33,5 +34,18 @@ class CatalogCacheInvalidationTest extends TestCase
         $product->update(['price' => 999.99]);
 
         $this->assertNull(Cache::get('active_accounts_list_v4'));
+    }
+
+    public function test_product_change_invalidates_similar_products_cache(): void
+    {
+        // Ключ «похожих» содержит версию; изменение товара инкрементит её,
+        // делая прежний кэш недостижимым (фикс отсутствовавшей инвалидации).
+        $keyBefore = ProductCache::similarKey(123, 6);
+
+        ServiceAccount::factory()->create();
+
+        $keyAfter = ProductCache::similarKey(123, 6);
+
+        $this->assertNotSame($keyBefore, $keyAfter);
     }
 }
