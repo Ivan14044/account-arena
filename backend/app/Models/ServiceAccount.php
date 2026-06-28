@@ -433,8 +433,16 @@ class ServiceAccount extends Model
             3600, // Кеш на 1 час
             function() use ($limit) {
                 // Базовый запрос
+                // SECURITY FIX (M2 / bug M2): тот же фильтр видимости, что в
+                // index/show — иначе немодерированные/отклонённые товары поставщиков
+                // (is_active можно проставить, но moderation_status != approved)
+                // утекали в карусель «похожие».
                 $query = ServiceAccount::with(['category', 'supplier'])
                     ->where('is_active', true)
+                    ->where(function ($q) {
+                        $q->where('moderation_status', 'approved')
+                          ->orWhereNull('supplier_id');
+                    })
                     ->where('id', '!=', $this->id) // Исключаем текущий товар
                     ->whereNotNull('title')
                     ->whereNotNull('price')
