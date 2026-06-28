@@ -45,7 +45,7 @@ class DashboardController extends Controller
                 $query->where('supplier_id', $supplierId);
             })
             ->where('created_at', '>=', $thirtyDaysAgo)
-            ->where('status', 'completed')
+            ->where('status', Transaction::STATUS_COMPLETED)
             ->get() ?? collect();
         
         // Расчет статистики

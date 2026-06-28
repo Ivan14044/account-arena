@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\DB;
 use App\Models\SupplierEarning;
+use App\Models\Transaction;
 
 class ProductDispute extends Model
 {
@@ -160,7 +161,7 @@ class ProductDispute extends Model
             }
 
             // ВАЖНО: Проверяем, что транзакция еще не была возвращена (также после блокировки)
-            if ($dispute->transaction->status === 'refunded') {
+            if ($dispute->transaction->status === Transaction::STATUS_REFUNDED) {
                 throw new \Exception('Transaction already refunded');
             }
 
@@ -223,7 +224,7 @@ class ProductDispute extends Model
             }
 
             // Обновляем статус транзакции
-            $dispute->transaction->update(['status' => 'refunded']);
+            $dispute->transaction->update(['status' => Transaction::STATUS_REFUNDED]);
 
             // Обновляем претензию
             $dispute->update([

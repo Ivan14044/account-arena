@@ -52,7 +52,7 @@ class CreateTestPurchase extends Command
             'service_account_id' => $product->id,
             'amount' => $amount,
             'type' => 'purchase',
-            'status' => 'completed',
+            'status' => Transaction::STATUS_COMPLETED,
             'description' => "Покупка: {$product->title}",
             'credentials' => [
                 'login' => 'test@example.com',

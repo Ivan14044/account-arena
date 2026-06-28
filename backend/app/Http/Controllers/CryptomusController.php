@@ -124,7 +124,7 @@ class CryptomusController extends Controller
                     'amount' => $totalAmount,
                     'currency' => Option::get('currency', 'USD'),
                     'payment_method' => 'cryptomus',
-                    'status' => 'pending',
+                    'status' => Transaction::STATUS_PENDING,
                     'metadata' => [
                         'order_id' => $orderId,
                         ...$paymentMetadata,
@@ -245,7 +245,7 @@ class CryptomusController extends Controller
                     'amount' => $totalAmount,
                     'currency' => Option::get('currency', 'USD'),
                     'payment_method' => 'cryptomus',
-                    'status' => 'pending',
+                    'status' => Transaction::STATUS_PENDING,
                     'metadata' => [
                         'order_id' => $orderId,
                         ...$paymentMetadata,
@@ -314,7 +314,7 @@ class CryptomusController extends Controller
                     'amount' => $amount,
                     'currency' => Option::get('currency', 'USD'),
                     'payment_method' => 'cryptomus',
-                    'status' => 'pending',
+                    'status' => Transaction::STATUS_PENDING,
                     'metadata' => [
                         'order_id' => $orderId,
                         'payment_type' => 'topup',
@@ -427,8 +427,8 @@ class CryptomusController extends Controller
                     'purchase_order_number' => $existingPurchase->order_number,
                 ]);
                 // Обновляем статус транзакции, если еще не обновлен
-                if ($transaction->status !== 'completed') {
-                    $transaction->status = 'completed';
+                if ($transaction->status !== Transaction::STATUS_COMPLETED) {
+                    $transaction->status = Transaction::STATUS_COMPLETED;
                     $transaction->save();
                 }
                 return \App\Http\Responses\ApiResponse::success(['message' => 'Already processed']);
@@ -478,8 +478,8 @@ class CryptomusController extends Controller
             // SECURITY FIX (H10 / bug H10): атомарная идемпотентность пополнения —
             // кредитуем баланс только один раз даже при ретрае вебхука позже окна 24ч.
             $claimed = Transaction::whereKey($transaction->id)
-                ->where('status', '!=', 'completed')
-                ->update(['status' => 'completed']);
+                ->where('status', '!=', Transaction::STATUS_COMPLETED)
+                ->update(['status' => Transaction::STATUS_COMPLETED]);
             if ($claimed === 0) {
                 Log::info('Cryptomus webhook (TopUp): duplicate webhook ignored (already completed)', [
                     'order_id' => $orderId,
@@ -487,7 +487,7 @@ class CryptomusController extends Controller
                 ]);
                 return \App\Http\Responses\ApiResponse::success(['message' => 'Already processed']);
             }
-            $transaction->status = 'completed';
+            $transaction->status = Transaction::STATUS_COMPLETED;
 
             $balanceService = app(BalanceService::class);
 
@@ -573,8 +573,8 @@ class CryptomusController extends Controller
             // параллельные вебхуки давали двойную выдачу. Теперь атомарный
             // compare-and-set: только ОДИН вызов переводит статус в completed.
             $claimed = Transaction::whereKey($transaction->id)
-                ->where('status', '!=', 'completed')
-                ->update(['status' => 'completed']);
+                ->where('status', '!=', Transaction::STATUS_COMPLETED)
+                ->update(['status' => Transaction::STATUS_COMPLETED]);
             if ($claimed === 0) {
                 Log::info('Cryptomus webhook (User Purchase): duplicate webhook ignored (already completed)', [
                     'order_id' => $orderId,
@@ -583,7 +583,7 @@ class CryptomusController extends Controller
                 ]);
                 return \App\Http\Responses\ApiResponse::success(['message' => 'Already processed']);
             }
-            $transaction->status = 'completed';
+            $transaction->status = Transaction::STATUS_COMPLETED;
 
             // ВАЖНО: Подготавливаем данные с проверкой наличия и актуальной цены
             $preparedProductsData = [];
@@ -696,8 +696,8 @@ class CryptomusController extends Controller
             // SECURITY FIX (C6 / bug C6): атомарная идемпотентность вебхука (см.
             // handleUserPurchaseWebhook). Только ОДИН параллельный вебхук выдаёт товар.
             $claimed = Transaction::whereKey($transaction->id)
-                ->where('status', '!=', 'completed')
-                ->update(['status' => 'completed']);
+                ->where('status', '!=', Transaction::STATUS_COMPLETED)
+                ->update(['status' => Transaction::STATUS_COMPLETED]);
             if ($claimed === 0) {
                 Log::info('Cryptomus webhook (Guest): duplicate webhook ignored (already completed)', [
                     'order_id' => $orderId,
@@ -706,7 +706,7 @@ class CryptomusController extends Controller
                 ]);
                 return \App\Http\Responses\ApiResponse::success(['message' => 'Already processed']);
             }
-            $transaction->status = 'completed';
+            $transaction->status = Transaction::STATUS_COMPLETED;
 
             // ВАЖНО: Проверяем наличие товаров и актуальные цены перед созданием покупок
             $validatedProductsData = [];

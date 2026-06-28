@@ -20,7 +20,7 @@ class OrderController extends Controller
             ->whereHas('serviceAccount', function($q) use ($supplierId) {
                 $q->where('supplier_id', $supplierId);
             })
-            ->where('status', 'completed');
+            ->where('status', Transaction::STATUS_COMPLETED);
         
         // Filters
         if ($request->filled('product_id')) {

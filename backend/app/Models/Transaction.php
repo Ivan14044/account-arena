@@ -9,6 +9,16 @@ class Transaction extends Model
 {
     use HasFactory;
 
+    /**
+     * Статусы транзакции. Колонка transactions.status — обычная строка
+     * (default 'completed', миграция 2025_11_02_092101). Это статус НАШЕЙ
+     * транзакции; статус платёжного шлюза ('success' у Monobank) — отдельное
+     * понятие и константой здесь не является.
+     */
+    public const STATUS_PENDING = 'pending';
+    public const STATUS_COMPLETED = 'completed';
+    public const STATUS_REFUNDED = 'refunded';
+
     protected $fillable = [
         'user_id',
         'guest_email', // Email для гостевых транзакций

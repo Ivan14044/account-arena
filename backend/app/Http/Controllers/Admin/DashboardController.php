@@ -79,14 +79,14 @@ class DashboardController extends Controller
             $purchasesInPeriod = $purchasesQuery->count();
 
             // Продано за период (количество завершенных покупок)
-            $soldInPeriodQuery = Purchase::where('status', 'completed');
+            $soldInPeriodQuery = Purchase::where('status', Purchase::STATUS_COMPLETED);
             if ($startDate && $endDate) {
                 $soldInPeriodQuery->whereBetween('created_at', [$startDate, $endDate]);
             }
             $soldInPeriod = $soldInPeriodQuery->count();
 
             // Доход за период (сумма продаж товаров за период)
-            $revenueInPeriodQuery = Purchase::where('status', 'completed');
+            $revenueInPeriodQuery = Purchase::where('status', Purchase::STATUS_COMPLETED);
             if ($startDate && $endDate) {
                 $revenueInPeriodQuery->whereBetween('created_at', [$startDate, $endDate]);
             }
@@ -130,7 +130,7 @@ class DashboardController extends Controller
         
         // 1. Быстрая SQL агрегация основных метрик (Orders, Revenue, Items)
         // Это предотвращает загрузку лишних данных и ошибки памяти (500 error fix)
-        $dailyStats = Purchase::where('status', 'completed')
+        $dailyStats = Purchase::where('status', Purchase::STATUS_COMPLETED)
             ->where('created_at', '>=', $startDate)
             ->selectRaw('DATE(created_at) as date, COUNT(*) as orders, SUM(total_amount) as revenue, SUM(quantity) as items')
             ->groupBy('date')
@@ -139,7 +139,7 @@ class DashboardController extends Controller
 
         // 2. Логика New/Returning Buyers (Оптимизированная)
         // Запрашиваем только user_id и дату для минимизации памяти
-        $periodPurchasesUser = Purchase::where('status', 'completed')
+        $periodPurchasesUser = Purchase::where('status', Purchase::STATUS_COMPLETED)
             ->where('created_at', '>=', $startDate)
             ->whereNotNull('user_id')
             ->select('user_id', 'created_at')
@@ -154,7 +154,7 @@ class DashboardController extends Controller
         $userFirstPurchaseDates = [];
         
         if (!empty($userIds)) {
-            $userFirstPurchaseDates = Purchase::where('status', 'completed')
+            $userFirstPurchaseDates = Purchase::where('status', Purchase::STATUS_COMPLETED)
                 ->whereIn('user_id', $userIds)
                 ->selectRaw('user_id, MIN(created_at) as first_at')
                 ->groupBy('user_id')
@@ -244,7 +244,7 @@ class DashboardController extends Controller
                     ->where('category_translations.code', '=', 'name')
                     ->where('category_translations.locale', '=', app()->getLocale());
             })
-            ->where('purchases.status', '=', 'completed')
+            ->where('purchases.status', '=', Purchase::STATUS_COMPLETED)
             ->select('category_translations.value as category_name', \Illuminate\Support\Facades\DB::raw('count(purchases.id) as sales_count'))
             ->groupBy('category_translations.value')
             ->get();
@@ -272,7 +272,7 @@ class DashboardController extends Controller
      */
     private function getTopProducts($limit = 5)
     {
-        return Purchase::where('status', 'completed')
+        return Purchase::where('status', Purchase::STATUS_COMPLETED)
             ->selectRaw('service_account_id, count(*) as sold, sum(total_amount) as revenue')
             ->groupBy('service_account_id')
             ->orderByDesc('sold')
