@@ -65,7 +65,7 @@ class ProductController extends Controller
         
         // ВАЖНО: Товары поставщика требуют модерации
         // Устанавливаем статус модерации и деактивируем товар до одобрения
-        $validated['moderation_status'] = 'pending';
+        $validated['moderation_status'] = ServiceAccount::MODERATION_PENDING;
         $validated['is_active'] = false; // Не показывать до одобрения администратором
         
         // Исключаем SEO поля - поставщики не могут их заполнять
@@ -153,7 +153,7 @@ class ProductController extends Controller
                 'used' => 0,
                 'supplier_id' => auth()->id(),
                 // ВАЖНО: Товары поставщика требуют модерации
-                'moderation_status' => 'pending',
+                'moderation_status' => ServiceAccount::MODERATION_PENDING,
                 'is_active' => false, // Не показывать до одобрения администратором
             ];
             
@@ -258,7 +258,7 @@ class ProductController extends Controller
         // moderation_status, поэтому одобренный товар можно было незаметно
         // подменить (цена/описание/сток/перевод) — изменения уходили в прод
         // без ре-ревью (в т.ч. обход витринной XSS-санитизации).
-        $validated['moderation_status'] = 'pending';
+        $validated['moderation_status'] = ServiceAccount::MODERATION_PENDING;
         $validated['is_active'] = false; // скрыт до повторного одобрения админом
 
         // Handle bulk accounts if provided - add to existing

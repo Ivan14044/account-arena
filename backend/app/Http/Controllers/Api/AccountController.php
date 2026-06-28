@@ -29,7 +29,7 @@ class AccountController extends Controller
                 ->whereNotNull('price')
                 // ВАЖНО: Показываем только одобренные товары или товары администратора
                 ->where(function($query) {
-                    $query->where('moderation_status', 'approved')
+                    $query->where('moderation_status', ServiceAccount::MODERATION_APPROVED)
                           ->orWhereNull('supplier_id'); // Товары администратора не требуют модерации
                 })
                 ->orderBy('sort_order', 'asc') // Использовать sort_order для ручной сортировки
@@ -87,7 +87,7 @@ class AccountController extends Controller
             ->where('is_active', true)
             // ВАЖНО: Показываем только одобренные товары или товары администратора
             ->where(function($query) {
-                $query->where('moderation_status', 'approved')
+                $query->where('moderation_status', ServiceAccount::MODERATION_APPROVED)
                       ->orWhereNull('supplier_id'); // Товары администратора не требуют модерации
             })
             ->where(function($query) use ($id) {
@@ -164,7 +164,7 @@ class AccountController extends Controller
         $account = ServiceAccount::where('is_active', true)
             // ВАЖНО: Показываем только одобренные товары или товары администратора
             ->where(function($query) {
-                $query->where('moderation_status', 'approved')
+                $query->where('moderation_status', ServiceAccount::MODERATION_APPROVED)
                       ->orWhereNull('supplier_id'); // Товары администратора не требуют модерации
             })
             ->where(function($query) use ($id) {

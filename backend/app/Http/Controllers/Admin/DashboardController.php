@@ -51,7 +51,7 @@ class DashboardController extends Controller
             // ОПТИМИЗИРОВАНО: Значения "всего" через SQL агрегацию с учетом типов доставки
             $stats = ServiceAccount::where('is_active', true)
                 ->where(function($query) {
-                    $query->where('moderation_status', 'approved')
+                    $query->where('moderation_status', ServiceAccount::MODERATION_APPROVED)
                           ->orWhereNull('supplier_id');
                 })
                 ->selectRaw("
