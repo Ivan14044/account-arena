@@ -3,6 +3,7 @@
 namespace App\Observers;
 
 use App\Models\Category;
+use App\Support\ProductCache;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
@@ -22,10 +23,7 @@ class CategoryObserver
         Cache::forget('categories_tree_article');
         
         // Также очищаем кеш товаров, так как изменение категории может повлиять на счетчики в каталоге
-        Cache::forget('active_accounts_list');
-        Cache::forget('active_accounts_list_v2');
-        Cache::forget('active_accounts_list_v3');
-        Cache::forget('active_accounts_list_v4'); // FIX (M1): актуальный ключ чтения каталога
+        ProductCache::flushCatalog();
 
         Log::info('Categories and dependent accounts cache cleared');
     }

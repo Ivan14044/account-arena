@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\ServiceAccount;
+use App\Support\ProductCache;
 use Illuminate\Support\Facades\Cache;
 
 class AccountController extends Controller
@@ -14,7 +15,7 @@ class AccountController extends Controller
      */
     public function index()
     {
-        $data = Cache::remember('active_accounts_list_v4', 300, function () {
+        $data = Cache::remember(ProductCache::CATALOG_LIST, ProductCache::CATALOG_LIST_TTL, function () {
             $accounts = ServiceAccount::with(['category', 'supplier'])
                 ->select([
                     'id', 'sku', 'title', 'title_en', 'title_uk', 
