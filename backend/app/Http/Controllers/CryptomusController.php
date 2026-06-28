@@ -556,47 +556,7 @@ class CryptomusController extends Controller
             }
 
             // ВАЖНО: Подготавливаем данные с проверкой наличия и актуальной цены
-            $preparedProductsData = [];
-            foreach ($productsData as $item) {
-                // Блокируем товар для проверки наличия и цены
-                $product = \App\Models\ServiceAccount::lockForUpdate()->find($item['product_id']);
-                if (!$product) {
-                    Log::warning('Cryptomus webhook (User Purchase): Product not found', ['product_id' => $item['product_id']]);
-                    continue;
-                }
-                
-                // Проверяем наличие товара
-                $available = $product->getAvailableStock();
-                if ($available < $item['quantity']) {
-                    Log::error('Cryptomus webhook (User Purchase): Insufficient stock', [
-                        'product_id' => $item['product_id'],
-                        'requested' => $item['quantity'],
-                        'available' => $available,
-                    ]);
-                    continue;
-                }
-                
-                // Проверяем актуальную цену
-                $currentPrice = $product->getCurrentPrice();
-                $actualTotal = $currentPrice * $item['quantity'];
-                
-                if (abs($item['price'] - $currentPrice) > 0.01) {
-                    Log::warning('Cryptomus webhook (User Purchase): Price changed', [
-                        'product_id' => $item['product_id'],
-                        'original_price' => $item['price'],
-                        'current_price' => $currentPrice,
-                        'original_total' => $item['total'],
-                        'actual_total' => $actualTotal,
-                    ]);
-                }
-                
-                $preparedProductsData[] = [
-                    'product' => $product,
-                    'quantity' => $item['quantity'],
-                    'price' => $currentPrice, // Используем актуальную цену
-                    'total' => $actualTotal, // Пересчитываем с актуальной ценой
-                ];
-            }
+            $preparedProductsData = app(\App\Services\PaymentFulfillmentService::class)->revalidateProducts($productsData, 'Cryptomus webhook (User Purchase)');
             
             if (empty($preparedProductsData)) {
                 Log::error('Cryptomus webhook (User Purchase): No valid products after validation', [
@@ -675,44 +635,7 @@ class CryptomusController extends Controller
             }
 
             // ВАЖНО: Проверяем наличие товаров и актуальные цены перед созданием покупок
-            $validatedProductsData = [];
-            foreach ($productsData as $item) {
-                $product = \App\Models\ServiceAccount::lockForUpdate()->find($item['product_id']);
-                if (!$product) {
-                    Log::warning('Cryptomus webhook (Guest): Product not found', ['product_id' => $item['product_id']]);
-                    continue;
-                }
-                
-                // Проверяем наличие товара
-                $available = $product->getAvailableStock();
-                if ($available < $item['quantity']) {
-                    Log::error('Cryptomus webhook (Guest): Insufficient stock', [
-                        'product_id' => $item['product_id'],
-                        'requested' => $item['quantity'],
-                        'available' => $available,
-                    ]);
-                    continue;
-                }
-                
-                // Проверяем актуальную цену
-                $currentPrice = $product->getCurrentPrice();
-                $actualTotal = $currentPrice * $item['quantity'];
-                
-                if (abs($item['price'] - $currentPrice) > 0.01) {
-                    Log::warning('Cryptomus webhook (Guest): Price changed', [
-                        'product_id' => $item['product_id'],
-                        'original_price' => $item['price'],
-                        'current_price' => $currentPrice,
-                    ]);
-                }
-                
-                $validatedProductsData[] = [
-                    'product_id' => $item['product_id'],
-                    'quantity' => $item['quantity'],
-                    'price' => $currentPrice,
-                    'total' => $actualTotal,
-                ];
-            }
+            $validatedProductsData = app(\App\Services\PaymentFulfillmentService::class)->revalidateProducts($productsData, 'Cryptomus webhook (Guest)');
             
             if (empty($validatedProductsData)) {
                 Log::error('Cryptomus webhook (Guest): No valid products after validation', [
