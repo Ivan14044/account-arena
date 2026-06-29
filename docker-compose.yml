@@ -1,0 +1,42 @@
+# Локальное окружение для разработки Account Arena.
+# Поднимает ТОЛЬКО сервисы данных (MySQL + Redis) в Docker.
+# Сам сайт (PHP + Vite) запускается нативно через ~/.local/toolchain — см. scripts/start.sh.
+# Это НЕ продакшн-конфиг: пароли простые, всё доступно только на localhost.
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: aa_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: subcloudy
+      MYSQL_USER: subcloudy
+      MYSQL_PASSWORD: subcloudy
+      MYSQL_ROOT_PASSWORD: subcloudy
+    ports:
+      - "127.0.0.1:3306:3306"
+    volumes:
+      - aa_mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-psubcloudy"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    container_name: aa_redis
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:6379:6379"
+    volumes:
+      - aa_redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+volumes:
+  aa_mysql_data:
+  aa_redis_data:

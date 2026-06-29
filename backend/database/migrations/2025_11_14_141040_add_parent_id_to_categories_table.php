@@ -12,7 +12,14 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('categories', function (Blueprint $table) {
-            $table->unsignedBigInteger('parent_id')->nullable()->after('type');
+            // Колонка `type` добавляется более поздней миграцией
+            // (2025_12_01_000000_add_type_to_categories_table). На чистой БД её здесь
+            // ещё нет, поэтому позиционируем после `type` только если она существует —
+            // иначе колонка просто добавляется в конец (позиция ни на что не влияет).
+            $column = $table->unsignedBigInteger('parent_id')->nullable();
+            if (Schema::hasColumn('categories', 'type')) {
+                $column->after('type');
+            }
             $table->foreign('parent_id')->references('id')->on('categories')->onDelete('cascade');
         });
     }
