@@ -119,10 +119,10 @@ class ProductDisputeController extends Controller
         }
 
         // Проверяем, что транзакция не старше 30 дней
-        if ($transaction->created_at->diffInDays(now()) > 30) {
+        if ($transaction->created_at->diffInDays(now()) > ProductDispute::DISPUTE_WINDOW_DAYS) {
             return response()->json([
                 'success' => false,
-                'message' => 'Срок подачи претензии истек (максимум 30 дней)',
+                'message' => 'Срок подачи претензии истек (максимум ' . ProductDispute::DISPUTE_WINDOW_DAYS . ' дней)',
             ], 422);
         }
 
@@ -316,7 +316,7 @@ class ProductDisputeController extends Controller
         $checks = [
             'exists' => $transaction->dispute()->exists(),
             'has_service_account' => (bool) $transaction->service_account_id,
-            'not_expired' => $transaction->created_at->diffInDays(now()) <= 30,
+            'not_expired' => $transaction->created_at->diffInDays(now()) <= ProductDispute::DISPUTE_WINDOW_DAYS,
             'status_ok' => in_array($transaction->status, ['completed', 'success', null]),
         ];
 

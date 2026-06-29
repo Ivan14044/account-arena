@@ -316,8 +316,8 @@ class ServiceAccount extends Model
         // Для товаров с ручной выдачей наличие определяется по is_active, а не по accounts_data
         if ($this->requiresManualDelivery()) {
             // Если товар активен, возвращаем специальное значение, означающее "в наличии"
-            // 999 используется как индикатор "неограниченное количество" для ручной выдачи
-            return $this->is_active ? 999 : 0;
+            // UNLIMITED_STOCK = индикатор "неограниченное количество" для ручной выдачи
+            return $this->is_active ? self::UNLIMITED_STOCK : 0;
         }
         
         // Для автоматической выдачи - приоритетно используем пре-подсчитанное значение
@@ -400,6 +400,13 @@ class ServiceAccount extends Model
     public const MODERATION_PENDING = 'pending';
     public const MODERATION_APPROVED = 'approved';
     public const MODERATION_REJECTED = 'rejected';
+
+    /**
+     * Сентинел «неограниченный сток» для товаров ручной выдачи: getAvailableStock()
+     * возвращает это значение для активного manual-товара (наличие определяется
+     * по is_active, а не по accounts_data).
+     */
+    public const UNLIMITED_STOCK = 999;
 
     /**
      * Проверить, требует ли товар ручной выдачи
