@@ -76,6 +76,7 @@ import { useRouter } from 'vue-router';
 import { useProductTitle } from '@/composables/useProductTitle';
 import { useProductCategoriesStore } from '@/stores/productCategories';
 import ProductCard from '@/components/products/ProductCard.vue';
+import { getPriceFormatter } from '@/utils/money';
 
 interface FilterProps {
     categoryId?: number | null;
@@ -88,24 +89,6 @@ interface FilterProps {
 const props = defineProps<{
     filters?: FilterProps;
 }>();
-
-// Кэшируем форматтеры ГЛОБАЛЬНО
-const globalPriceFormatters = new Map<string, Intl.NumberFormat>();
-
-const getGlobalPriceFormatter = (currency: string) => {
-    if (!globalPriceFormatters.has(currency)) {
-        globalPriceFormatters.set(
-            currency,
-            new Intl.NumberFormat('ru-RU', {
-                style: 'currency',
-                currency: currency,
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-            })
-        );
-    }
-    return globalPriceFormatters.get(currency)!;
-};
 
 const accountsStore = useAccountsStore();
 const productCartStore = useProductCartStore();
@@ -145,7 +128,7 @@ const accounts = computed(() => {
         return accountsCache.value.data;
     }
     
-    const priceFormatter = getGlobalPriceFormatter(currency);
+    const priceFormatter = getPriceFormatter(currency);
     
     const data = accountsStore.list.map(account => {
         const cached: any = Object.assign({}, account);
@@ -172,7 +155,7 @@ const accounts = computed(() => {
 // КРИТИЧЕСКАЯ ОПТИМИЗАЦИЯ: Обогащаем displayedAccounts предвычисленными quantity, isFavorite и ценами
 const enrichedDisplayedAccounts = computed(() => {
     const currency = optionStore.getOption('currency', 'USD');
-    const priceFormatter = getGlobalPriceFormatter(currency);
+    const priceFormatter = getPriceFormatter(currency);
     const favoritesSetValue = favorites.value;
     const quantitiesValue = quantities.value;
     

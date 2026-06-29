@@ -1843,6 +1843,7 @@ import { useLoadingStore } from '@/stores/loading';
 import { useSeo } from '@/composables/useSeo';
 import axios from '@/bootstrap'; // Используем настроенный axios из bootstrap
 import { useProductTitle } from '@/composables/useProductTitle';
+import { formatPrice } from '@/utils/money';
 
 const { t } = useI18n();
 
@@ -1923,20 +1924,11 @@ const disputeForm = ref({
 });
 
 const formatBalance = (balance: number | string) => {
-    const numBalance = typeof balance === 'string' ? parseFloat(balance) : balance;
-    return new Intl.NumberFormat('ru-RU', {
-        style: 'currency',
-        currency: 'USD',
-        minimumFractionDigits: 2
-    }).format(numBalance);
+    return formatPrice(balance, 'USD');
 };
 
 const formatAmount = (amount: number, currency: string = 'USD') => {
-    return new Intl.NumberFormat('ru-RU', {
-        style: 'currency',
-        currency: currency || 'USD',
-        minimumFractionDigits: 2
-    }).format(amount);
+    return formatPrice(amount, currency || 'USD');
 };
 
 const formatPaymentMethod = (method: string) => {

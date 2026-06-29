@@ -279,29 +279,12 @@ import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useOptionStore } from '@/stores/options';
 import { useProductTitle } from '@/composables/useProductTitle';
+import { formatPrice } from '@/utils/money';
 
 import { useRouter } from 'vue-router';
 
-// Кэшируем форматтеры для производительности ГЛОБАЛЬНО (вне компонента)
-const priceFormatters = new Map<string, Intl.NumberFormat>();
-
-const getPriceFormatter = (currency: string) => {
-    if (!priceFormatters.has(currency)) {
-        priceFormatters.set(
-            currency,
-            new Intl.NumberFormat('ru-RU', {
-                style: 'currency',
-                currency: currency,
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-            })
-        );
-    }
-    return priceFormatters.get(currency)!;
-};
-
 const formatPriceValue = (price: number, currency: string = 'USD') => {
-    return getPriceFormatter(currency).format(price);
+    return formatPrice(price, currency);
 };
 
 const props = defineProps<{
