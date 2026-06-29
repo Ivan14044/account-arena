@@ -468,6 +468,8 @@ import { useSeo } from '@/composables/useSeo';
 import axios from '@/bootstrap'; // Используем настроенный axios из bootstrap
 import { useProductCartStore } from '@/stores/productCart';
 import { useProductTitle } from '@/composables/useProductTitle';
+import { useCheckoutPricing } from '@/composables/useCheckoutPricing';
+import { usePurchaseRules } from '@/composables/usePurchaseRules';
 import { useAuthStore } from '@/stores/auth';
 import { useLoadingStore } from '@/stores/loading';
 import { useOptionStore } from '@/stores/options';
@@ -487,7 +489,7 @@ useSeo({
 const router = useRouter();
 const toast = useToast();
 const { showAlert } = useAlert();
-const { locale, t } = useI18n();
+const { t } = useI18n();
 const productCartStore = useProductCartStore();
 const { getProductTitle } = useProductTitle();
 const authStore = useAuthStore();
@@ -498,111 +500,34 @@ const selectedPayment = ref<'card' | 'crypto' | 'balance' | ''>('');
 const inputCode = ref('');
 const guestEmail = ref(''); // Email для гостевых покупок
 
-// Purchase Rules
-const purchaseRulesEnabled = ref(false);
-const purchaseRulesText = ref<Record<string, string>>({});
-const agreedToRules = ref(false);
-const showRulesModal = ref(false);
+// Purchase Rules (вынесено в композабл)
+const {
+    purchaseRulesEnabled,
+    agreedToRules,
+    showRulesModal,
+    currentRulesText,
+    loadRules: loadPurchaseRules
+} = usePurchaseRules();
 const isProcessingCheckout = ref(false);
 let applyTimer: number | null = null;
 const isApplied = computed(
     () => !!promo.code && !!promo.result && !promo.error && promo.code === inputCode.value
 );
 
-const subtotalPaid = computed(() => {
-    return productCartStore.totalAmount;
-});
-
-// Personal discount (only for authenticated users)
-const personalDiscountPercent = computed(() => {
-    if (!authStore.isAuthenticated || !authStore.user) {
-        return 0;
-    }
-
-    const discount = authStore.user.personal_discount || 0;
-    const expiresAt = authStore.user.personal_discount_expires_at;
-
-    // Check if discount is active
-    if (discount <= 0) {
-        return 0;
-    }
-
-    // Check expiration date if exists
-    if (expiresAt) {
-        const expiryDate = new Date(expiresAt);
-        if (new Date() > expiryDate) {
-            return 0;
-        }
-    }
-
-    return Number(discount);
-});
-
-const personalDiscountAmount = computed(() => {
-    if (personalDiscountPercent.value <= 0) {
-        return 0;
-    }
-    return (subtotalPaid.value * personalDiscountPercent.value) / 100;
-});
-
-// Apply personal discount first, then promo discount
-const subtotalAfterPersonalDiscount = computed(() => {
-    return Math.max(0, subtotalPaid.value - personalDiscountAmount.value);
-});
-
-const promoDiscountPercent = computed(() =>
-    promo.result?.type === 'discount' ? Number(promo.result.discount_percent || 0) : 0
-);
-const promoDiscountAmount = computed(
-    () => (subtotalAfterPersonalDiscount.value * promoDiscountPercent.value) / 100
-);
-const finalTotal = computed(() =>
-    Math.max(0, subtotalAfterPersonalDiscount.value - promoDiscountAmount.value)
-);
-const isZeroTotalWithServices = computed(
-    () => finalTotal.value === 0 && productCartStore.items.length > 0
-);
+// Ценообразование вынесено в композабл (чистая реактивная цепочка)
+const {
+    subtotalPaid,
+    personalDiscountPercent,
+    personalDiscountAmount,
+    promoDiscountPercent,
+    promoDiscountAmount,
+    finalTotal,
+    isZeroTotalWithServices
+} = useCheckoutPricing();
 
 const formatCurrency = (value: number) => {
     const currency = optionStore.getOption('currency', 'USD');
     return `${value.toFixed(2)} ${currency?.toUpperCase()}`;
-};
-
-// Computed property to get current locale rules text
-const currentRulesText = computed(() => {
-    const currentLocale = locale.value;
-    const rulesText =
-        purchaseRulesText.value[currentLocale] ||
-        purchaseRulesText.value.ru ||
-        purchaseRulesText.value.en ||
-        '';
-    return rulesText;
-});
-
-// Загрузка правил покупки
-const loadPurchaseRules = async () => {
-    try {
-        const response = await axios.get('/purchase-rules');
-
-        if (response.data.enabled && response.data.rules) {
-            // Store all locales as object
-            purchaseRulesText.value = response.data.rules || {};
-
-            // Check if there's text for current locale or fallback locales
-            const currentLocale = locale.value;
-            const hasText =
-                purchaseRulesText.value[currentLocale] ||
-                purchaseRulesText.value.ru ||
-                purchaseRulesText.value.en;
-
-            // Enable only if there's non-empty text
-            if (hasText && hasText.trim()) {
-                purchaseRulesEnabled.value = true;
-            }
-        }
-    } catch (error) {
-        console.error('Error loading purchase rules:', error);
-    }
 };
 
 onMounted(() => {
