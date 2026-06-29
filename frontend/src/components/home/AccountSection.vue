@@ -76,7 +76,7 @@ import { useRouter } from 'vue-router';
 import { useProductTitle } from '@/composables/useProductTitle';
 import { useProductCategoriesStore } from '@/stores/productCategories';
 import ProductCard from '@/components/products/ProductCard.vue';
-import { getPriceFormatter } from '@/utils/money';
+import { getPriceFormatter, effectivePrice } from '@/utils/money';
 import { loadFavorites, saveFavorites } from '@/utils/favorites';
 
 interface FilterProps {
@@ -138,7 +138,7 @@ const accounts = computed(() => {
         cached._discountPercentRounded = account.discount_percent 
             ? Math.round(account.discount_percent) 
             : 0;
-        const priceToFormat = account.current_price || account.price;
+        const priceToFormat = effectivePrice(account);
         cached._formattedPrice = priceFormatter.format(priceToFormat);
         return cached;
     });
@@ -166,7 +166,7 @@ const enrichedDisplayedAccounts = computed(() => {
         enriched._cachedQuantity = quantity;
         enriched._isFavorite = favoritesSetValue.has(account.id);
         
-        const price = account.current_price || account.price;
+        const price = effectivePrice(account);
         enriched._formattedTotalPrice = priceFormatter.format(price * quantity);
         enriched.delivery_type = account.delivery_type || 'automatic';
         
@@ -316,7 +316,7 @@ const addToCart = (account: any) => {
         return;
     }
 
-    const priceToUse = account.current_price || account.price;
+    const priceToUse = effectivePrice(account);
     productCartStore.addItem(
         {
             ...account,
@@ -345,7 +345,7 @@ const buyNow = (account: any) => {
     }
 
     productCartStore.clearCart();
-    const priceToUse = account.current_price || account.price;
+    const priceToUse = effectivePrice(account);
     productCartStore.addItem(
         {
             ...account,

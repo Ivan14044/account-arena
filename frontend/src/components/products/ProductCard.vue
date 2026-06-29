@@ -279,7 +279,7 @@ import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useOptionStore } from '@/stores/options';
 import { useProductTitle } from '@/composables/useProductTitle';
-import { formatPrice } from '@/utils/money';
+import { formatPrice, effectivePrice } from '@/utils/money';
 
 import { useRouter } from 'vue-router';
 
@@ -315,13 +315,13 @@ const isInStock = computed(() => props.product.quantity > 0);
 
 const localFormattedPrice = computed(() => {
     if (props.formattedPrice) return props.formattedPrice;
-    const price = props.product.current_price || props.product.price;
+    const price = effectivePrice(props.product);
     return formatPriceValue(price, currentCurrency.value);
 });
 
 const localFormattedTotalPrice = computed(() => {
     if (props.formattedTotalPrice) return props.formattedTotalPrice;
-    const price = props.product.current_price || props.product.price;
+    const price = effectivePrice(props.product);
     return formatPriceValue(price * (props.quantity || 1), currentCurrency.value);
 });
 
