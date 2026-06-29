@@ -1844,6 +1844,7 @@ import { useSeo } from '@/composables/useSeo';
 import axios from '@/bootstrap'; // Используем настроенный axios из bootstrap
 import { useProductTitle } from '@/composables/useProductTitle';
 import { formatPrice } from '@/utils/money';
+import { PurchaseStatus, purchaseStatusClass } from '@/constants/purchaseStatus';
 
 const { t } = useI18n();
 
@@ -1955,22 +1956,12 @@ const formatStatus = (status: string) => {
     return statuses[status] || status;
 };
 
-const getStatusClass = (status: string) => {
-    const classes: Record<string, string> = {
-        completed: 'status-completed',
-        pending: 'status-pending',
-        processing: 'status-processing',
-        failed: 'status-failed',
-        cancelled: 'status-cancelled',
-        refunded: 'status-refunded'
-    };
-    return classes[status] || 'status-completed';
-};
+const getStatusClass = (status: string) => purchaseStatusClass(status);
 
 // Определение текущего этапа прогресс-бара
 const getProgressStage = (purchase: any): number => {
-    if (purchase.status === 'completed') return 3;
-    if (purchase.status === 'processing') return 2;
+    if (purchase.status === PurchaseStatus.COMPLETED) return 3;
+    if (purchase.status === PurchaseStatus.PROCESSING) return 2;
     return 1;
 };
 
@@ -2025,7 +2016,7 @@ const fetchPurchases = async () => {
             filteredPurchases.value = data.purchases;
             
             // Загружаем статистику обработки, если есть заказы в processing
-            const hasProcessingOrders = purchases.value.some(p => p.status === 'processing');
+            const hasProcessingOrders = purchases.value.some(p => p.status === PurchaseStatus.PROCESSING);
             if (hasProcessingOrders) {
                 await fetchProcessingStats();
             }
@@ -2071,7 +2062,7 @@ const startProcessingOrdersPolling = () => {
     // Запускаем адаптивный polling
     const poll = async () => {
         // Проверяем, есть ли еще заказы в processing
-        const processingOrders = purchases.value.filter(p => p.status === 'processing');
+        const processingOrders = purchases.value.filter(p => p.status === PurchaseStatus.PROCESSING);
         if (processingOrders.length === 0) {
             stopProcessingOrdersPolling();
             return;
@@ -2307,7 +2298,7 @@ const handleSubmit = async () => {
 // Функции для работы с претензиями
 const canCreateDispute = (purchase: any): boolean => {
     // Только для completed транзакций (не для processing и других статусов)
-    if (purchase.status !== 'completed') return false;
+    if (purchase.status !== PurchaseStatus.COMPLETED) return false;
 
     // Проверяем наличие transaction_id
     if (!purchase.transaction_id) return false;

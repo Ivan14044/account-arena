@@ -610,6 +610,7 @@ import { useSeo } from '@/composables/useSeo';
 import axios from '@/bootstrap'; // Используем настроенный axios из bootstrap
 import { useProductTitle } from '@/composables/useProductTitle';
 import { useLoadingStore } from '@/stores/loading';
+import { PurchaseStatus } from '@/constants/purchaseStatus';
 
 const { t } = useI18n();
 
@@ -740,7 +741,7 @@ const startPolling = () => {
 // Запуск опроса для обновления статуса заказов в обработке
 const startStatusPolling = () => {
     // Проверяем, есть ли заказы в обработке
-    const hasProcessingOrders = purchases.value.some(p => p.status === 'processing');
+    const hasProcessingOrders = purchases.value.some(p => p.status === PurchaseStatus.PROCESSING);
     if (!hasProcessingOrders) {
         return; // Нет заказов в обработке, не нужно опрашивать
     }
@@ -756,7 +757,7 @@ const startStatusPolling = () => {
     isStatusPollingActive.value = true;
     statusPollingInterval.value = setInterval(async () => {
         // Проверяем, есть ли еще заказы в обработке перед каждым опросом
-        const hasProcessing = purchases.value.some(p => p.status === 'processing');
+        const hasProcessing = purchases.value.some(p => p.status === PurchaseStatus.PROCESSING);
         if (!hasProcessing) {
             stopStatusPolling();
             return;
@@ -930,7 +931,7 @@ const fetchPurchases = async (skipLoading = false) => {
                     previousPurchasesState.value = initialState;
                     // Помечаем все завершенные заказы как "показанные", чтобы не показывать уведомления при первой загрузке
                     newPurchases.forEach(purchase => {
-                        if (purchase.status === 'completed') {
+                        if (purchase.status === PurchaseStatus.COMPLETED) {
                             shownNotifications.value.add(purchase.id);
                         }
                     });
@@ -947,8 +948,8 @@ const fetchPurchases = async (skipLoading = false) => {
                         // Проверяем, перешел ли заказ из processing в completed
                         if (
                             previousPurchase &&
-                            previousPurchase.status === 'processing' &&
-                            purchase.status === 'completed' &&
+                            previousPurchase.status === PurchaseStatus.PROCESSING &&
+                            purchase.status === PurchaseStatus.COMPLETED &&
                             !shownNotifications.value.has(purchaseId)
                         ) {
                             notificationsToShow.push({
@@ -1084,14 +1085,14 @@ ${t('profile.purchases.download_labels.quantity')}: ${purchase.account_data.leng
 
 // Получить этап прогресса заказа
 const getProgressStage = (purchase) => {
-    if (purchase.status === 'completed') return 3;
-    if (purchase.status === 'processing') return 2;
+    if (purchase.status === PurchaseStatus.COMPLETED) return 3;
+    if (purchase.status === PurchaseStatus.PROCESSING) return 2;
     return 1;
 };
 
 // Получить длительность обработки заказа
 const getProcessingDuration = (purchase) => {
-    if (purchase.status !== 'processing') return '';
+    if (purchase.status !== PurchaseStatus.PROCESSING) return '';
     
     const now = new Date();
     const created = new Date(purchase.created_at);
