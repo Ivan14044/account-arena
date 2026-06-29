@@ -8,6 +8,8 @@
 - PHP 8.3.31 (static-php-cli, все нужные расширения), Node 22, npm 10, Composer 2.10 — в `~/.local/toolchain`.
 - Backend: `composer install` ОК; тесты на sqlite `:memory:` (phpunit.xml). Барьер MySQL-only миграций снят (driver-aware).
 - Frontend: `npm install` ОК; верификация через `vite build` + `vue-tsc`.
+- **Локальный запуск одной командой** (`scripts/start.sh`): MySQL+Redis в Docker (`docker-compose.yml`), PHP+Vite нативно через тулчейн. Инструкция — `docs/LOCAL_DEV.md`.
+- **Фикс миграции на чистой MySQL:** `2025_11_14_141040_add_parent_id_to_categories_table` использовала `->after('type')`, но колонка `type` добавляется более поздней миграцией (`2025_12_01_000000`). На sqlite `after()` игнорируется (поэтому тесты не ловили), на свежей MySQL — падение `Unknown column 'type'`. Теперь `after('type')` применяется только при наличии колонки (поведение-сохраняющий гард; на уже мигрированном проде не выполняется повторно). Верификация: полный `migrate` на чистой MySQL ОК; sqlite-базлайн без изменений (15 failed / 40 passed).
 - Базлайн тестов улучшен: было **21 failed / 11 passed** → стало **15 failed / 22 passed** (+5 новых регресс-тестов). Оставшиеся 15 падений — пред-существующие артефакты sqlite (case-insensitive collation, `/`→404 без SSR-индекса, supplier_id NOT NULL на sqlite, factory-нюансы), НЕ связаны с правками.
 
 ---
