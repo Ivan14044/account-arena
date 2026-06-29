@@ -39,3 +39,11 @@ export const formatPrice = (
     const amount = typeof value === 'string' ? parseFloat(value) : Number(value);
     return getPriceFormatter(currency || 'USD').format(Number.isFinite(amount) ? amount : 0);
 };
+
+/**
+ * The price a product should sell at: discounted `current_price` when present,
+ * otherwise the base `price`. Replaces the `current_price || price` idiom.
+ */
+export const effectivePrice = (
+    product: { current_price?: number | null; price?: number | null } | null | undefined,
+): number => product?.current_price || product?.price || 0;

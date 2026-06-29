@@ -31,6 +31,7 @@ import { useProductCartStore } from '@/stores/productCart';
 import { useToast } from 'vue-toastification';
 import ProductCard from '@/components/products/ProductCard.vue';
 import { loadFavorites, saveFavorites } from '@/utils/favorites';
+import { effectivePrice } from '@/utils/money';
 
 const props = defineProps<{
     productId: string | number;
@@ -94,7 +95,7 @@ const addToCart = (account: any) => {
         return;
     }
 
-    const priceToUse = account.current_price || account.price;
+    const priceToUse = effectivePrice(account);
     productCartStore.addItem(
         {
             ...account,
@@ -122,7 +123,7 @@ const buyNow = (account: any) => {
     }
 
     productCartStore.clearCart();
-    const priceToUse = account.current_price || account.price;
+    const priceToUse = effectivePrice(account);
     productCartStore.addItem(
         {
             ...account,
