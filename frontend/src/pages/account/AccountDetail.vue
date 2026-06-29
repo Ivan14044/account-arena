@@ -523,25 +523,8 @@ import { useProductTitle } from '@/composables/useProductTitle';
 import { useSeo } from '@/composables/useSeo';
 import { useStructuredData } from '@/composables/useStructuredData';
 import { useHreflang } from '@/composables/useHreflang';
+import { getPriceFormatter } from '@/utils/money';
 import SimilarProducts from '@/components/products/SimilarProducts.vue';
-
-// Кэшируем форматтеры для производительности ГЛОБАЛЬНО
-const globalPriceFormatters = new Map<string, Intl.NumberFormat>();
-
-const getGlobalPriceFormatter = (currency: string) => {
-    if (!globalPriceFormatters.has(currency)) {
-        globalPriceFormatters.set(
-            currency,
-            new Intl.NumberFormat('ru-RU', {
-                style: 'currency',
-                currency: currency,
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-            })
-        );
-    }
-    return globalPriceFormatters.get(currency)!;
-};
 
 const route = useRoute();
 const router = useRouter();
@@ -776,7 +759,7 @@ function formatPrice(value: number): string {
     const num = Number(value ?? 0);
     const currency = optionStore.getOption('currency', 'USD');
     try {
-        return getGlobalPriceFormatter(currency).format(num);
+        return getPriceFormatter(currency).format(num);
     } catch {
         return `${currency} ${num.toFixed(2)}`;
     }

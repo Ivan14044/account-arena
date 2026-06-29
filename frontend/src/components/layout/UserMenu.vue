@@ -143,6 +143,7 @@ import { useAuthStore } from '@/stores/auth';
 import { useRouter } from 'vue-router';
 import { LogIn, User, ChevronDown, LogOut, UserPen } from 'lucide-vue-next';
 import { useOptionStore } from '@/stores/options';
+import { formatPrice } from '@/utils/money';
 import { useProductCartStore } from '@/stores/productCart';
 import { useNotificationStore } from '@/stores/notifications';
 
@@ -159,16 +160,7 @@ const isAuthenticated = computed(() => !!authStore.user);
 
 // Форматирование баланса
 const formatBalance = (balance: number | string) => {
-    const currency = optionStore.getOption('currency', 'USD');
-    const numBalance = typeof balance === 'string' ? parseFloat(balance) : Number(balance);
-    
-    // Используем Intl.NumberFormat для консистентности
-    return new Intl.NumberFormat('ru-RU', {
-        style: 'currency',
-        currency: currency,
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-    }).format(numBalance);
+    return formatPrice(balance, optionStore.getOption('currency', 'USD'));
 };
 
 const handleAuthAction = () => {

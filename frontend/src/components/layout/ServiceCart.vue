@@ -31,6 +31,7 @@ import { ShoppingBag } from 'lucide-vue-next';
 import { useProductCartStore } from '@/stores/productCart';
 import { useRouter } from 'vue-router';
 import { useOptionStore } from '@/stores/options';
+import { formatPrice as formatPriceValue } from '@/utils/money';
 
 const productCartStore = useProductCartStore();
 const optionStore = useOptionStore();
@@ -44,13 +45,7 @@ const totalAmount = computed(() => productCartStore.totalAmount);
 
 // Форматирование цены
 const formatPrice = (price) => {
-    const currency = optionStore.getOption('currency', 'USD');
-    return new Intl.NumberFormat('ru-RU', {
-        style: 'currency',
-        currency: currency,
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-    }).format(price);
+    return formatPriceValue(price, optionStore.getOption('currency', 'USD'));
 };
 </script>
 
