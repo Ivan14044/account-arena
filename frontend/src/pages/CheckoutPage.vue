@@ -165,37 +165,12 @@
                         </div>
 
                         <div class="space-y-2">
-                            <div class="flex items-stretch gap-0">
-                                <input
-                                    v-model.trim="inputCode"
-                                    :placeholder="$t('checkout.promocode_placeholder')"
-                                    class="flex-1 h-11 px-3 border rounded-l-lg rounded-r-none"
-                                    :class="
-                                        isApplied
-                                            ? '!border-green-400 !bg-green-400/10'
-                                            : '!border-gray-700 dark:!border-gray-300'
-                                    "
-                                    :disabled="isApplied"
-                                />
-                                <button
-                                    class="h-11 w-12 grid place-items-center border border-l-0 rounded-r-lg rounded-l-none transition-all text-white disabled:opacity-50"
-                                    :class="
-                                        isApplied
-                                            ? 'border-red-500 bg-red-500 hover:bg-red-600 dark:border-red-700 dark:bg-red-900 dark:hover:bg-red-800'
-                                            : 'border-blue-500 bg-blue-500 hover:bg-blue-600 dark:border-blue-700 dark:bg-blue-900 dark:hover:bg-blue-800'
-                                    "
-                                    :disabled="promo.loading || (!isApplied && !inputCode)"
-                                    :aria-label="
-                                        isApplied
-                                            ? $t('checkout.promocode_clear_aria')
-                                            : $t('checkout.promocode_apply_aria')
-                                    "
-                                    @click.prevent="onPrimaryPromoClick"
-                                >
-                                    <X v-if="isApplied" class="w-5 h-5" />
-                                    <Check v-else class="w-5 h-5" />
-                                </button>
-                            </div>
+                            <PromoCodeInput
+                                v-model="inputCode"
+                                :is-applied="isApplied"
+                                :loading="promo.loading"
+                                @primary-click="onPrimaryPromoClick"
+                            />
                         </div>
                     </div>
                     <BoxLoader v-if="promo.loading" :expand-padding="true" />
@@ -319,37 +294,12 @@
                     class="glass-card rounded-3xl p-4 relative overflow-hidden text-dark dark:text-white"
                 >
                     <h3 class="font-normal mb-2">{{ $t('checkout.title') }}</h3>
-                    <div class="flex items-stretch gap-0">
-                        <input
-                            v-model.trim="inputCode"
-                            :placeholder="$t('checkout.promocode_placeholder')"
-                            class="flex-1 h-11 px-3 border rounded-l-lg rounded-r-none"
-                            :class="
-                                isApplied
-                                    ? '!border-green-400 !bg-green-400/10'
-                                    : '!border-gray-700 dark:!border-gray-300'
-                            "
-                            :disabled="isApplied"
-                        />
-                        <button
-                            class="h-11 w-12 grid place-items-center border border-l-0 rounded-r-lg rounded-l-none transition-all text-white disabled:opacity-50"
-                            :class="
-                                isApplied
-                                    ? 'border-red-500 bg-red-500 hover:bg-red-600 dark:border-red-700 dark:bg-red-900 dark:hover:bg-red-800'
-                                    : 'border-blue-500 bg-blue-500 hover:bg-blue-600 dark:border-blue-700 dark:bg-blue-900 dark:hover:bg-blue-800'
-                            "
-                            :disabled="promo.loading || (!isApplied && !inputCode)"
-                            :aria-label="
-                                isApplied
-                                    ? $t('checkout.promocode_clear_aria')
-                                    : $t('checkout.promocode_apply_aria')
-                            "
-                            @click.prevent="onPrimaryPromoClick"
-                        >
-                            <X v-if="isApplied" class="w-5 h-5" />
-                            <Check v-else class="w-5 h-5" />
-                        </button>
-                    </div>
+                    <PromoCodeInput
+                        v-model="inputCode"
+                        :is-applied="isApplied"
+                        :loading="promo.loading"
+                        @primary-click="onPrimaryPromoClick"
+                    />
                     <BoxLoader v-if="promo.loading" />
                 </div>
             </div>
@@ -477,7 +427,7 @@ import { usePromoStore } from '@/stores/promo';
 import PaymentList from '@/components/checkout/PaymentList.vue';
 import BackLink from '@/components/layout/BackLink.vue';
 import BoxLoader from '@/components/BoxLoader.vue';
-import { Check, X } from 'lucide-vue-next';
+import PromoCodeInput from '@/components/checkout/PromoCodeInput.vue';
 
 // SEO мета-теги (noindex для служебной страницы)
 useSeo({
@@ -499,7 +449,7 @@ const selectedPayment = ref<'card' | 'crypto' | 'balance' | ''>('');
 const guestEmail = ref(''); // Email для гостевых покупок
 
 // Промокод вынесен в композабл (inputCode здесь — общий источник для платёжного flow)
-const { inputCode, isApplied, onApply, onClear, onPrimaryPromoClick } = useCheckoutPromo();
+const { inputCode, isApplied, onPrimaryPromoClick } = useCheckoutPromo();
 
 // Purchase Rules (вынесено в композабл)
 const {
