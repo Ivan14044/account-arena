@@ -96,6 +96,7 @@ import { debounce } from 'lodash-es';
 import { useProductCategoriesStore, type ProductCategory } from '@/stores/productCategories';
 import { useAccountsStore } from '@/stores/accounts';
 import { useI18n } from 'vue-i18n';
+import { getTranslatedField } from '@/utils/localization';
 
 const categoriesStore = useProductCategoriesStore();
 const accountsStore = useAccountsStore();
@@ -189,14 +190,7 @@ const selectedSubcategories = computed(() => {
 });
 
 const getSubcategoryName = (subcategory: any): string => {
-    if (
-        subcategory.translations &&
-        subcategory.translations[locale.value] &&
-        subcategory.translations[locale.value]['name']
-    ) {
-        return subcategory.translations[locale.value]['name'];
-    }
-    return subcategory.name || '';
+    return getTranslatedField(subcategory, 'name', locale.value);
 };
 
 // КРИТИЧЕСКАЯ ОПТИМИЗАЦИЯ: Используем предвычисленные счетчики вместо filter операций
