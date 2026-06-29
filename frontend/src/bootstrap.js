@@ -21,16 +21,24 @@ axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 axios.interceptors.request.use(config => {
     // Получаем текущую локаль из localStorage
     const currentLocale = localStorage.getItem('user-language') || 'uk';
+    // SSOT для токена авторизации: единая точка добавления заголовка.
+    // localStorage['token'] — постоянный источник, синхронизируемый стором auth.
+    const token = localStorage.getItem('token');
     const headers = config.headers;
 
     if (headers && typeof headers.set === 'function') {
         if (!headers.has('X-Locale')) {
             headers.set('X-Locale', currentLocale);
         }
+        // Не перезаписываем явно переданный заголовок (на случай спец-запросов).
+        if (token && !headers.has('Authorization')) {
+            headers.set('Authorization', `Bearer ${token}`);
+        }
     } else {
         config.headers = {
             ...(headers || {}),
-            'X-Locale': headers?.['X-Locale'] ?? currentLocale
+            'X-Locale': headers?.['X-Locale'] ?? currentLocale,
+            ...(token ? { Authorization: headers?.['Authorization'] ?? `Bearer ${token}` } : {})
         };
     }
 

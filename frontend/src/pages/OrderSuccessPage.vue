@@ -900,11 +900,7 @@ const fetchPurchases = async (skipLoading = false) => {
             return;
         }
 
-        const response = await axios.get('/purchases', {
-            headers: {
-                Authorization: `Bearer ${token}`
-            }
-        });
+        const response = await axios.get('/purchases');
 
         if (response.data.success) {
             const newPurchases = response.data.purchases;

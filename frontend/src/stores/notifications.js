@@ -15,13 +15,8 @@ export const useNotificationStore = defineStore('notifications', {
             if (this.isLoaded) return;
 
             try {
-                const token = localStorage.getItem('token');
-
                 const response = await axios.get('/notifications', {
-                    params: { limit },
-                    headers: {
-                        Authorization: `Bearer ${token}`
-                    }
+                    params: { limit }
                 });
 
                 const { items, total, unread } = response.data;
@@ -62,17 +57,7 @@ export const useNotificationStore = defineStore('notifications', {
 
         async markNotificationsAsRead(ids) {
             try {
-                const token = localStorage.getItem('token');
-
-                await axios.post(
-                    '/notifications/read',
-                    { ids },
-                    {
-                        headers: {
-                            Authorization: `Bearer ${token}`
-                        }
-                    }
-                );
+                await axios.post('/notifications/read', { ids });
 
                 // Update local items immediately
                 const now = new Date().toISOString();
@@ -96,17 +81,7 @@ export const useNotificationStore = defineStore('notifications', {
 
         async markAllAsRead() {
             try {
-                const token = localStorage.getItem('token');
-
-                await axios.post(
-                    '/notifications/read-all',
-                    {},
-                    {
-                        headers: {
-                            Authorization: `Bearer ${token}`
-                        }
-                    }
-                );
+                await axios.post('/notifications/read-all', {});
 
                 // Update all local items immediately
                 const now = new Date().toISOString();
@@ -134,13 +109,8 @@ export const useNotificationStore = defineStore('notifications', {
             }
 
             try {
-                const token = localStorage.getItem('token');
-
                 const response = await axios.get('/notifications', {
-                    params: { limit, offset },
-                    headers: {
-                        Authorization: `Bearer ${token}`
-                    }
+                    params: { limit, offset }
                 });
 
                 return response.data.items;

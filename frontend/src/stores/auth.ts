@@ -47,15 +47,9 @@ export const useAuthStore = defineStore('auth', {
 
     actions: {
         async init() {
-            // Устанавливаем токен из localStorage при инициализации
-            const savedToken = localStorage.getItem('token');
-            if (savedToken) {
-                axios.defaults.headers.common['Authorization'] = `Bearer ${savedToken}`;
-            }
-
+            // Токен прикрепляется к запросам интерсептором в bootstrap.js
+            // (читает localStorage['token']) — здесь только подгружаем пользователя.
             if (this.token) {
-                axios.defaults.headers.common['Authorization'] = `Bearer ${this.token}`;
-
                 try {
                     await this.fetchUser();
                 } finally {
@@ -80,7 +74,6 @@ export const useAuthStore = defineStore('auth', {
 
                 localStorage.setItem('token', this.token);
                 localStorage.setItem('user', JSON.stringify(this.user));
-                axios.defaults.headers.common['Authorization'] = `Bearer ${this.token}`;
 
                 this.userLoaded = true;
                 return true;
@@ -122,7 +115,6 @@ export const useAuthStore = defineStore('auth', {
 
                 localStorage.setItem('token', this.token);
                 localStorage.setItem('user', JSON.stringify(this.user));
-                axios.defaults.headers.common['Authorization'] = `Bearer ${this.token}`;
 
                 const userLang = this.user?.lang ?? null;
                 if (userLang) {
@@ -200,9 +192,7 @@ export const useAuthStore = defineStore('auth', {
 
         async logout() {
             try {
-                await axios.get('/logout', {
-                    headers: { Authorization: `Bearer ${this.token}` }
-                });
+                await axios.get('/logout');
             } catch {
                 // Игнорируем ошибки при выходе
             } finally {
@@ -211,7 +201,6 @@ export const useAuthStore = defineStore('auth', {
                 this.userLoaded = true;
                 localStorage.removeItem('token');
                 localStorage.removeItem('user');
-                delete axios.defaults.headers.common['Authorization'];
             }
         },
 
@@ -221,9 +210,7 @@ export const useAuthStore = defineStore('auth', {
                 return;
             }
             try {
-                const response = await axios.get('/user', {
-                    headers: { Authorization: `Bearer ${this.token}` }
-                });
+                const response = await axios.get('/user');
                 this.user = response.data;
                 localStorage.setItem('user', JSON.stringify(this.user));
             } catch {
@@ -238,13 +225,7 @@ export const useAuthStore = defineStore('auth', {
             const loadingStore = useLoadingStore();
             loadingStore.start();
             try {
-                await axios.post(
-                    '/cancel-subscription',
-                    { subscription_id: id },
-                    {
-                        headers: { Authorization: `Bearer ${this.token}` }
-                    }
-                );
+                await axios.post('/cancel-subscription', { subscription_id: id });
             } finally {
                 loadingStore.stop();
             }
@@ -255,13 +236,7 @@ export const useAuthStore = defineStore('auth', {
             const loadingStore = useLoadingStore();
             loadingStore.start();
             try {
-                await axios.post(
-                    '/toggle-auto-renew',
-                    { subscription_id: id },
-                    {
-                        headers: { Authorization: `Bearer ${this.token}` }
-                    }
-                );
+                await axios.post('/toggle-auto-renew', { subscription_id: id });
             } finally {
                 loadingStore.stop();
             }
@@ -276,9 +251,7 @@ export const useAuthStore = defineStore('auth', {
             if (!isOnlyLang) loadingStore.start();
 
             try {
-                const response = await axios.post('/user', formData, {
-                    headers: { Authorization: `Bearer ${this.token}` }
-                });
+                const response = await axios.post('/user', formData);
                 this.user = response.data.user;
                 localStorage.setItem('user', JSON.stringify(this.user));
                 return true;
@@ -295,7 +268,6 @@ export const useAuthStore = defineStore('auth', {
         setToken(token: string) {
             this.token = token;
             localStorage.setItem('token', token);
-            axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
         },
 
         setUser(user: any) {
