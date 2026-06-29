@@ -94,6 +94,9 @@ project-map.md
 !update-project.sh
 !deploy.sh
 !scripts/update-nginx-spa-meta.sh
+# Локальный dev-запуск — отслеживаем
+!scripts/start.sh
+!scripts/stop.sh
 
 # Служебные файлы
 APP_KEY_FOR_RAILWAY.txt
@@ -110,4 +113,7 @@ backend/nixpacks.toml
 # Package.json в корне (если не используется)
 /package.json
 /package-lock.json
+
+# Локальное dev-окружение (scripts/start.sh): PID-файлы, логи, флаги
+/.dev-state/
 
