@@ -351,15 +351,9 @@ const handleTopUp = async () => {
             endpoint = '/cryptomus/topup';
         }
 
-        const { data } = await axios.post(
-            endpoint,
-            {
-                amount: amount.value
-            },
-            {
-                headers: { Authorization: `Bearer ${authStore.token}` }
-            }
-        );
+        const { data } = await axios.post(endpoint, {
+            amount: amount.value
+        });
 
         if (data.url) {
             // Перенаправляем на страницу оплаты

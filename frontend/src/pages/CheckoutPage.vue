@@ -768,9 +768,7 @@ const processMonoPayment = async () => {
                 })),
                 ...(promo.code ? { promocode: promo.code } : {})
             };
-            const { data } = await axios.post('/mono/create-payment', payload, {
-                headers: { Authorization: `Bearer ${authStore.token}` }
-            });
+            const { data } = await axios.post('/mono/create-payment', payload);
             if (data.url) {
                 // Небольшая задержка для отображения сообщения перед перенаправлением
                 await new Promise(resolve => setTimeout(resolve, 500));
@@ -825,9 +823,7 @@ const processCryptoPayment = async () => {
                 })),
                 ...(promo.code ? { promocode: promo.code } : {})
             };
-            const { data } = await axios.post('/cryptomus/create-payment', payload, {
-                headers: { Authorization: `Bearer ${authStore.token}` }
-            });
+            const { data } = await axios.post('/cryptomus/create-payment', payload);
             if (data.url) {
                 // Небольшая задержка для отображения сообщения перед перенаправлением
                 await new Promise(resolve => setTimeout(resolve, 500));
@@ -882,9 +878,7 @@ const processBalancePayment = async () => {
             ...(promo.code ? { promocode: promo.code } : {})
         };
 
-        await axios.post('/cart', payload, {
-            headers: { Authorization: `Bearer ${authStore.token}` }
-        });
+        await axios.post('/cart', payload);
 
         productCartStore.clearCart();
         await authStore.fetchUser();

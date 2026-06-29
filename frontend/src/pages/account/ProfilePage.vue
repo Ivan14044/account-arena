@@ -2050,11 +2050,7 @@ const fetchProcessingStats = async () => {
             return;
         }
 
-        const { data } = await axios.get('/purchases/stats/processing', {
-            headers: {
-                Authorization: `Bearer ${token}`
-            }
-        });
+        const { data } = await axios.get('/purchases/stats/processing');
 
         if (data.success && data.average_processing_time_hours !== null && data.average_processing_time_hours !== undefined) {
             averageProcessingTime.value = data.average_processing_time_hours;
@@ -2359,12 +2355,8 @@ const openStatusHistoryModal = async (purchase: any) => {
             return;
         }
         
-        const response = await axios.get(`/purchases/${purchase.id}/status-history`, {
-            headers: {
-                Authorization: `Bearer ${token}`
-            }
-        });
-        
+        const response = await axios.get(`/purchases/${purchase.id}/status-history`);
+
         if (response.data.success && response.data.status_history) {
             fullStatusHistory.value = response.data.status_history;
         } else {
@@ -2415,11 +2407,7 @@ const cancelProcessingOrder = async () => {
             return;
         }
 
-        const config: any = {
-            headers: {
-                Authorization: `Bearer ${token}`
-            }
-        };
+        const config: any = {};
 
         // Для гостевых покупок добавляем email в query параметры
         if (!purchase.user_id && purchase.guest_email) {
@@ -2610,8 +2598,7 @@ const submitDispute = async () => {
 
         const response = await axios.post('/disputes', formData, {
             headers: {
-                'Content-Type': 'multipart/form-data',
-                Authorization: `Bearer ${authStore.token}`
+                'Content-Type': 'multipart/form-data'
             }
         });
 
@@ -2633,9 +2620,7 @@ const submitDispute = async () => {
 const fetchDisputes = async () => {
     loadingDisputes.value = true;
     try {
-        const { data } = await axios.get('/disputes', {
-            headers: { Authorization: `Bearer ${authStore.token}` }
-        });
+        const { data } = await axios.get('/disputes');
 
         if (data.disputes && Array.isArray(data.disputes.data)) {
             disputes.value = data.disputes.data;
