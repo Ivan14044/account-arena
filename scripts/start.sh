@@ -70,6 +70,15 @@ for i in $(seq 1 60); do
 done
 
 # --- 2. Бэкенд: .env --------------------------------------------------------
+# Идемпотентно выставить ключ в .env: заменить строку, если есть, иначе дописать.
+ensure_env_key() {
+  local key="$1" val="$2" file="$BACKEND/.env"
+  if grep -qE "^${key}=" "$file" 2>/dev/null; then
+    grep -vE "^${key}=" "$file" > "$file.tmp" && mv "$file.tmp" "$file"
+  fi
+  printf '%s=%s\n' "$key" "$val" >> "$file"
+}
+
 if [[ ! -f "$BACKEND/.env" ]]; then
   say "Создаю backend/.env (локальные настройки)…"
   cat > "$BACKEND/.env" <<'ENV'
@@ -115,7 +124,34 @@ MONOBANK_PUBLIC_KEY=
 ENV
   ok "backend/.env создан"
 else
-  ok "backend/.env уже есть — не трогаю"
+  # .env уже есть (возможно, старый/прод-шаблон с DB_HOST=localhost и т.п.).
+  # Форсируем значения, нужные для локального Docker, сохраняя APP_KEY и секреты.
+  # Бэкап исходника — один раз, в .dev-state (он в .gitignore).
+  [[ -f "$STATE/backend.env.backup" ]] || cp "$BACKEND/.env" "$STATE/backend.env.backup"
+  say "backend/.env уже есть — выставляю локальные значения для Docker…"
+  while IFS='=' read -r k v; do
+    [[ -n "$k" ]] && ensure_env_key "$k" "$v"
+  done <<'KV'
+APP_ENV=local
+APP_DEBUG=true
+APP_URL=http://localhost:8000
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=subcloudy
+DB_USERNAME=subcloudy
+DB_PASSWORD=subcloudy
+REDIS_HOST=127.0.0.1
+REDIS_PORT=6379
+SESSION_DRIVER=redis
+CACHE_DRIVER=redis
+QUEUE_CONNECTION=redis
+CORS_ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
+FRONTEND_URL=http://localhost:3000
+SANCTUM_STATEFUL_DOMAINS=localhost:3000,127.0.0.1:3000
+MAIL_MAILER=log
+KV
+  ok "backend/.env приведён к локальному Docker (исходник — в .dev-state/backend.env.backup)"
 fi
 
 # --- 3. Бэкенд: зависимости -------------------------------------------------
