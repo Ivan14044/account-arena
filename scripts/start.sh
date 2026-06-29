@@ -154,6 +154,7 @@ if [[ ! -f "$STATE/initialized" ]]; then
   seed EmailTemplateSeeder
   seed СategorySeeder      # имя класса с кириллической «С» — так в проекте
   seed TestProductsSeeder
+  seed ArticlesSeeder
   touch "$STATE/initialized"
   ok "Демо-данные загружены"
 else

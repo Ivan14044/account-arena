@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 750" width="1200" height="750" role="img" aria-label="ГАРАНТИИ">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#181b22"/>
+      <stop offset="1" stop-color="#0b0c10"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#8a6c2a"/>
+      <stop offset="0.5" stop-color="#d8b765"/>
+      <stop offset="1" stop-color="#a9843a"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.82" cy="0.12" r="0.9">
+      <stop offset="0" stop-color="#d8b765" stop-opacity="0.22"/>
+      <stop offset="0.45" stop-color="#d8b765" stop-opacity="0.05"/>
+      <stop offset="1" stop-color="#d8b765" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1200" height="750" fill="url(#bg)"/>
+  <rect width="1200" height="750" fill="url(#glow)"/>
+  <g stroke="#ffffff" stroke-opacity="0.035">
+    <line x1="0" y1="187" x2="1200" y2="187"/><line x1="0" y1="375" x2="1200" y2="375"/><line x1="0" y1="562" x2="1200" y2="562"/>
+    <line x1="300" y1="0" x2="300" y2="750"/><line x1="600" y1="0" x2="600" y2="750"/><line x1="900" y1="0" x2="900" y2="750"/>
+  </g>
+  <rect x="28" y="28" width="1144" height="694" rx="22" fill="none" stroke="url(#gold)" stroke-opacity="0.5" stroke-width="1.5"/>
+  <g transform="translate(96,128)">
+    <line x1="0" y1="0" x2="46" y2="0" stroke="url(#gold)" stroke-width="2"/>
+    <text x="62" y="6" fill="#d8b765" font-family="Helvetica, Arial, sans-serif" font-size="26" font-weight="700" letter-spacing="6">ГАРАНТИИ</text>
+  </g>
+  <text x="600" y="430" text-anchor="middle" font-size="240">✅</text>
+  <text x="96" y="650" fill="#f4f1ea" font-family="Helvetica, Arial, sans-serif" font-size="72" font-weight="800" letter-spacing="-1">Гарантия</text>
+  <text x="1104" y="650" text-anchor="end" fill="#ffffff" fill-opacity="0.28" font-family="Helvetica, Arial, sans-serif" font-size="22" font-weight="700" letter-spacing="3">ACCOUNT ARENA</text>
+</svg>
