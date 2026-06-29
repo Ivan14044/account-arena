@@ -97,6 +97,13 @@ SESSION_DRIVER=redis
 CACHE_DRIVER=redis
 QUEUE_CONNECTION=redis
 
+# Фронт (Vite) живёт на отдельном origin :3000 — без этого браузер режет
+# все запросы к API по CORS («Проблема с сетью»). В проде SPA отдаётся самим
+# Laravel (same-origin), поэтому там эти переменные не нужны.
+CORS_ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
+FRONTEND_URL=http://localhost:3000
+SANCTUM_STATEFUL_DOMAINS=localhost:3000,127.0.0.1:3000
+
 # Письма пишутся в лог-файл, реальная почта не нужна для локалки
 MAIL_MAILER=log
 
