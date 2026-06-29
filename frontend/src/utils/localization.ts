@@ -37,3 +37,13 @@ export const getTranslatedField = (
     if (translated && translated[field]) return translated[field];
     return obj[field] || '';
 };
+
+/**
+ * Pick the translation entry for a locale from a `translations` array
+ * (the shape used by articles: `[{ locale, title, content, short }, …]`).
+ * Returns `undefined` when there is no match — callers apply their own field fallbacks.
+ */
+export const getArticleTranslation = <T extends { locale: string }>(
+    translations: T[] | null | undefined,
+    locale: string,
+): T | undefined => translations?.find((t) => t.locale === locale);

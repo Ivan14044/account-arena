@@ -58,6 +58,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { useArticlesStore } from '../../stores/articles';
 import { useLoadingStore } from '@/stores/loading';
+import { getArticleTranslation } from '@/utils/localization';
 import { useSeo } from '@/composables/useSeo';
 import { useStructuredData } from '@/composables/useStructuredData';
 import { useHreflang } from '@/composables/useHreflang';
@@ -97,7 +98,7 @@ const article = computed(() => {
     const data = articlesStore.articleById[id];
     if (!data) return null;
 
-    const translation = data.translations.find(tr => tr.locale === locale.value);
+    const translation = getArticleTranslation(data.translations, locale.value);
     return {
         ...data,
         title: translation?.title ?? 'No title',
