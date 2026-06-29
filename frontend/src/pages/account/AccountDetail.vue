@@ -524,6 +524,7 @@ import { useSeo } from '@/composables/useSeo';
 import { useStructuredData } from '@/composables/useStructuredData';
 import { useHreflang } from '@/composables/useHreflang';
 import { getPriceFormatter } from '@/utils/money';
+import { loadFavorites as loadFavoritesFromStorage, saveFavorites as saveFavoritesToStorage } from '@/utils/favorites';
 import SimilarProducts from '@/components/products/SimilarProducts.vue';
 
 const route = useRoute();
@@ -540,8 +541,6 @@ const account = ref<AccountItem | null>(null);
 const quantity = ref(1);
 
 // Управление избранным (сохранение в localStorage)
-const FAVORITES_KEY = 'product_favorites';
-
 const favorites = ref<Set<number>>(new Set());
 
 const description = computed(() => {
@@ -657,25 +656,13 @@ useHreflang(() => {
     return `${prefix}${slug}`;
 });
 
-// Загрузка избранных из localStorage
+// Загрузка/сохранение избранных в localStorage (общий SSOT — utils/favorites)
 const loadFavorites = () => {
-    try {
-        const stored = localStorage.getItem(FAVORITES_KEY);
-        if (stored) {
-            favorites.value = new Set(JSON.parse(stored));
-        }
-    } catch (e) {
-        console.error('Ошибка загрузки избранного:', e);
-    }
+    favorites.value = loadFavoritesFromStorage();
 };
 
-// Сохранение избранных в localStorage
 const saveFavorites = () => {
-    try {
-        localStorage.setItem(FAVORITES_KEY, JSON.stringify(Array.from(favorites.value)));
-    } catch (e) {
-        console.error('Ошибка сохранения избранного:', e);
-    }
+    saveFavoritesToStorage(favorites.value);
 };
 
 // Проверка, находится ли товар в избранном
