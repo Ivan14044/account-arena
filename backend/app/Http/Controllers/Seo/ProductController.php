@@ -92,7 +92,7 @@ class ProductController extends Controller
     private function getAlternateUrls(string $routeName, array $params = []): array
     {
         $alternateUrls = [];
-        $locales = ['ru', 'en', 'uk'];
+        $locales = array_keys(config('langs'));
         $baseUrl = config('app.url');
         $url = $baseUrl . route($routeName, $params, false);
         

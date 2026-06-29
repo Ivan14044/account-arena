@@ -111,7 +111,7 @@ class ProductPurchaseService
 
     // Определяем локаль для суффикса
     $locale = app()->getLocale();
-    if (!in_array($locale, ['ru', 'en', 'uk'])) {
+    if (!in_array($locale, array_keys(config('langs')))) {
         $locale = 'en';
     }
 
