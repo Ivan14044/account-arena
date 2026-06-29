@@ -53,7 +53,6 @@ ok "Docker работает"
 if [[ $FRESH -eq 1 ]]; then
   warn "Режим --fresh: удаляю старую базу данных…"
   docker compose -f "$ROOT/docker-compose.yml" down -v >/dev/null 2>&1 || true
-  rm -f "$STATE/initialized"
 fi
 
 say "Поднимаю MySQL и Redis…"
@@ -174,8 +173,12 @@ fi
 say "Применяю миграции базы данных…"
 (cd "$BACKEND" && php artisan migrate --force)
 
-if [[ ! -f "$STATE/initialized" ]]; then
-  say "Первый запуск — наполняю базу демо-данными…"
+# Сеем по РЕАЛЬНОМУ состоянию БД (есть ли админ), а не по флаг-файлу: при
+# пересоздании тома Docker (`--fresh`/`down -v`) флаг мог «застрять» и оставить
+# базу пустой — именно из-за этого админка/каталог оказывались без данных.
+ADMINS="$(cd "$BACKEND" && php artisan tinker --execute='echo "ADMINCNT=".\App\Models\User::where("is_admin",true)->count();' 2>/dev/null | sed -n 's/.*ADMINCNT=\([0-9][0-9]*\).*/\1/p' | head -n1)"
+if [[ -z "$ADMINS" || "$ADMINS" -eq 0 ]]; then
+  say "Наполняю базу демо-данными (admin + товары)…"
   seed() {
     if (cd "$BACKEND" && php artisan db:seed --class="$1" --force >/dev/null 2>&1); then
       ok "  данные: $1"
@@ -190,10 +193,18 @@ if [[ ! -f "$STATE/initialized" ]]; then
   seed EmailTemplateSeeder
   seed СategorySeeder      # имя класса с кириллической «С» — так в проекте
   seed TestProductsSeeder
-  touch "$STATE/initialized"
   ok "Демо-данные загружены"
 else
-  ok "База уже наполнена ранее — пропускаю демо-данные (для пересоздания: ./scripts/start.sh --fresh)"
+  ok "В базе уже есть админ ($ADMINS) — пропускаю демо-данные (пересоздать: ./scripts/start.sh --fresh)"
+fi
+
+# --- 5b. Ассеты Blade-админки (AdminLTE) ------------------------------------
+# Без них /admin грузится без стилей (404 на css/js). Публикуем ТОЛЬКО ассеты
+# (--only=assets), чтобы не затереть кастомный config/adminlte.php.
+if [[ ! -f "$BACKEND/public/vendor/adminlte/dist/css/adminlte.min.css" ]]; then
+  say "Публикую ассеты админки (AdminLTE)…"
+  (cd "$BACKEND" && php artisan adminlte:install --only=assets --force >/dev/null 2>&1) || true
+  ok "Ассеты админки опубликованы"
 fi
 
 # --- 6. Фронтенд: зависимости -----------------------------------------------
@@ -217,7 +228,10 @@ stop_pid "$STATE/frontend.pid"
 # --- 8. Запускаю бэкенд и фронтенд в фоне ------------------------------------
 # disown — чтобы серверы пережили закрытие окна Терминала (запуск двойным кликом).
 say "Запускаю бэкенд (порт 8000)…"
-( cd "$BACKEND" && exec php artisan serve --host=127.0.0.1 --port=8000 ) \
+# PHP_CLI_SERVER_WORKERS — встроенный сервер PHP однопоточный; без воркеров
+# параллельные запросы (страница + её css/js/картинки) отдают 503. 8 воркеров
+# снимают это для Blade-админки и SPA.
+( cd "$BACKEND" && exec env PHP_CLI_SERVER_WORKERS=8 php artisan serve --host=127.0.0.1 --port=8000 ) \
   >"$LOGS/backend.log" 2>&1 &
 echo $! > "$STATE/backend.pid"
 disown 2>/dev/null || true
