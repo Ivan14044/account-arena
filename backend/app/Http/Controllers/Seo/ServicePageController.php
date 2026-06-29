@@ -50,7 +50,7 @@ class ServicePageController extends Controller
      */
     private function getAlternateUrls(string $routeName, array $params = []): array
     {
-        $locales = ['ru', 'en', 'uk'];
+        $locales = array_keys(config('langs'));
         $urls = [];
         
         foreach ($locales as $locale) {

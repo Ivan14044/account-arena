@@ -36,7 +36,7 @@ class SpaController extends Controller
         
         // Детекция языка
         $locale = $request->get('lang') ?: $request->cookie('locale') ?: substr($request->server('HTTP_ACCEPT_LANGUAGE'), 0, 2);
-        if (!in_array($locale, ['ru', 'en', 'uk'])) $locale = 'ru';
+        if (!in_array($locale, array_keys(config('langs')))) $locale = 'ru';
         
         app()->setLocale($locale);
         
@@ -919,7 +919,7 @@ class SpaController extends Controller
         }
         
         // Hreflang - КРИТИЧЕСКИ ВАЖНО: используем canonical URL вместо текущего запроса
-        $locales = ['ru', 'en', 'uk'];
+        $locales = array_keys(config('langs'));
         
         $cleanUrl = isset($metaTags['canonical']) 
             ? $metaTags['canonical']

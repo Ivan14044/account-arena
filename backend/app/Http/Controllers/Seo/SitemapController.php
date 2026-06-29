@@ -20,7 +20,7 @@ class SitemapController extends Controller
         $sitemap = Cache::remember('sitemap_xml', 60 * 60 * 24, function () {
             // Единый стандарт URL без слэша в конце
             $baseUrl = rtrim(config('app.url'), '/');
-            $locales = ['ru', 'en', 'uk'];
+            $locales = array_keys(config('langs'));
             
             $xml = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
             $xml .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"';
@@ -119,7 +119,7 @@ class SitemapController extends Controller
         
         // Добавляем альтернативные языковые версии
         if ($locale) {
-            $locales = ['ru', 'en', 'uk'];
+            $locales = array_keys(config('langs'));
             foreach ($locales as $altLocale) {
                 $altUrl = $url . '?lang=' . $altLocale;
                 $xml .= "    <xhtml:link rel=\"alternate\" hreflang=\"{$altLocale}\" href=\"" . htmlspecialchars($altUrl, ENT_XML1, 'UTF-8') . "\" />\n";

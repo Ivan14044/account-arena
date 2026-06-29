@@ -59,7 +59,7 @@ class NotifierService
 
         // Получаем текущую локаль (по умолчанию ru)
         $locale = App::getLocale();
-        if (!in_array($locale, ['ru', 'en', 'uk'])) {
+        if (!in_array($locale, array_keys(config('langs')))) {
             $locale = 'ru';
         }
 
