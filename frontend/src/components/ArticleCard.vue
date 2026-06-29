@@ -1,6 +1,6 @@
 <template>
-    <div
-        class="article-card group h-full flex flex-col relative overflow-hidden rounded-2xl bg-white/20 dark:bg-white/[0.02] backdrop-blur-md border border-black/10 dark:border-white/[0.08] hover:border-black/20 dark:hover:border-white/[0.15] transition-all duration-500 shadow-lg before:absolute before:inset-0 before:bg-gradient-to-br before:from-white/60 dark:before:from-white/[0.08] before:to-transparent before:pointer-events-none cursor-pointer"
+    <article
+        class="article-card group h-full flex flex-col relative overflow-hidden cursor-pointer"
         role="link"
         tabindex="0"
         :aria-label="title"
@@ -8,57 +8,51 @@
         @keydown.enter="goToArticle"
         style="contain: content; transform: translateZ(0); backface-visibility: hidden;"
     >
-        <div class="relative aspect-video overflow-hidden bg-gray-100 dark:bg-white/[0.04]">
-            <ImageWithFallback :src="imageUrl" :alt="title" class="w-full h-full object-contain" />
+        <div class="article-media">
+            <ImageWithFallback :src="imageUrl" :alt="title" class="w-full h-full object-cover" />
+            <span v-if="date" class="article-date">{{ formattedDate }}</span>
         </div>
 
-        <div
-            class="relative p-4 flex flex-col flex-1 bg-gradient-to-t from-black/[0.01] to-transparent dark:from-black/[0.02]"
-        >
-            <h3
-                class="text-xl font-semibold text-gray-900 dark:text-white mb-2 line-clamp-2"
-                style="max-height: 150px"
-            >
-                {{ title }}
-            </h3>
-            <p v-if="short" class="text-sm text-gray-700 dark:text-gray-300 line-clamp-2 mb-0">
-                {{ short }}
-            </p>
-            <div class="flex flex-wrap gap-1 my-3">
+        <div class="article-body">
+            <div v-if="categories && categories.length" class="article-cats">
                 <router-link
                     v-for="category in categories"
                     :key="category.id"
                     :to="`/categories/${category.id}`"
-                    class="inline-flex items-center px-2 py-1 text-xs rounded border shadow-sm backdrop-blur-sm bg-black/50 text-white hover:bg-black/60 dark:bg-white/10 dark:hover:bg-white/20 cursor-pointer transition-colors"
+                    class="article-cat"
                     :aria-label="`Open category ${resolveCategoryName(category)}`"
                     @click.stop
                 >
                     {{ resolveCategoryName(category) }}
                 </router-link>
             </div>
-            <div class="flex items-center justify-end gap-2 mt-auto">
-                <span
-                    class="text-sm text-gray-700 dark:text-white/80 group-hover:text-gray-900 dark:group-hover:text-white transition-colors duration-300"
-                    >{{ t('articles.readMore') }}</span
-                >
-                <svg
-                    class="w-4 h-4 text-gray-600 dark:text-white/60 group-hover:text-gray-900 dark:group-hover:text-white transition-all duration-300"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                >
-                    <path d="M5 12h14" />
-                    <path d="m12 5 7 7-7 7" />
-                </svg>
+
+            <h3 class="article-title">{{ title }}</h3>
+            <p v-if="short" class="article-excerpt">{{ short }}</p>
+
+            <div class="article-foot">
+                <span class="article-readmore">
+                    {{ t('articles.readMore') }}
+                    <svg
+                        class="article-arrow"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                    >
+                        <path d="M5 12h14" />
+                        <path d="m12 5 7 7-7 7" />
+                    </svg>
+                </span>
             </div>
         </div>
-    </div>
+    </article>
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue';
 import ImageWithFallback from './ImageWithFallback.vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
@@ -78,6 +72,13 @@ const props = defineProps<{
     short?: string;
 }>();
 
+const formattedDate = computed(() => {
+    if (!props.date) return '';
+    const d = new Date(props.date);
+    if (Number.isNaN(d.getTime())) return '';
+    return d.toLocaleDateString(locale.value, { day: '2-digit', month: 'short', year: 'numeric' });
+});
+
 function resolveCategoryName(category: Category): string {
     const current = locale.value;
     const translated = category.translations?.[current]?.name;
@@ -91,18 +92,142 @@ function goToArticle() {
 
 <style scoped>
 .article-card {
-    transition:
-        transform 0.3s ease,
-        box-shadow 0.3s ease;
+    border-radius: 20px;
+    background: var(--aa-surface);
+    border: 1px solid var(--aa-border);
+    box-shadow: var(--aa-shadow-sm);
+    transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1),
+                box-shadow 0.45s ease, border-color 0.45s ease;
 }
 
 .article-card:hover {
-    transform: translate3d(0, -4px, 0);
-    box-shadow: 0 12px 25px rgba(0, 0, 0, 0.15);
+    transform: translateY(-6px);
+    box-shadow: var(--aa-shadow-md);
+    border-color: var(--aa-gold-line);
 }
 
-:global(.dark) .article-card:hover {
-    box-shadow: 0 12px 25px rgba(0, 0, 0, 0.4);
+.article-media {
+    position: relative;
+    aspect-ratio: 16 / 10;
+    overflow: hidden;
+    background: var(--aa-surface-soft);
+}
+
+.article-media :deep(img),
+.article-media :deep(*) {
+    transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.article-card:hover .article-media :deep(img) {
+    transform: scale(1.05);
+}
+
+.article-date {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    z-index: 2;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: var(--aa-gold-strong);
+    background: rgba(20, 22, 28, 0.72);
+    border: 1px solid var(--aa-gold-line);
+    backdrop-filter: blur(6px);
+}
+
+.article-body {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    padding: 20px 22px 22px;
+}
+
+.article-cats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 12px;
+}
+
+.article-cat {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 10px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    border-radius: 999px;
+    color: var(--aa-ink-soft);
+    background: var(--aa-surface-soft);
+    border: 1px solid var(--aa-border);
+    transition: color 0.25s ease, border-color 0.25s ease, background-color 0.25s ease;
+}
+
+.article-cat:hover {
+    color: var(--aa-gold-strong);
+    border-color: var(--aa-gold-line);
+    background: var(--aa-gold-soft);
+}
+
+.article-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    line-height: 1.32;
+    letter-spacing: -0.01em;
+    color: var(--aa-ink);
+    margin: 0 0 8px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    transition: color 0.25s ease;
+}
+
+.article-card:hover .article-title {
+    color: var(--aa-gold-strong);
+}
+
+.article-excerpt {
+    font-size: 0.9rem;
+    line-height: 1.55;
+    color: var(--aa-ink-soft);
+    margin: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.article-foot {
+    display: flex;
+    align-items: center;
+    margin-top: auto;
+    padding-top: 16px;
+}
+
+.article-readmore {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: var(--aa-gold-strong);
+}
+
+.article-arrow {
+    width: 16px;
+    height: 16px;
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.article-card:hover .article-arrow {
+    transform: translateX(5px);
 }
 
 @media (hover: none) and (pointer: coarse) {

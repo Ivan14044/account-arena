@@ -106,6 +106,20 @@
             <PromoteSection />
         </section>
 
+        <!-- FAQ Section -->
+        <section
+            id="faq"
+            v-intersect="{
+                class: 'animate-fade-in-up',
+                once: true,
+                threshold: 0.08,
+                rootMargin: '0px 0px -40% 0px'
+            }"
+            class="mb-16"
+        >
+            <FaqSection />
+        </section>
+
         <!-- Subscribe Section -->
         <section
             id="subscribe"
@@ -131,6 +145,7 @@ import { useStructuredData } from '@/composables/useStructuredData';
 import { useHreflang } from '@/composables/useHreflang';
 import AboutSection from '../components/home/AboutSection.vue';
 import ArticleSection from '../components/home/ArticleSection.vue';
+import FaqSection from '../components/home/FaqSection.vue';
 import HeroSection from '../components/home/HeroSection.vue';
 import PromoteSection from '../components/home/PromoteSection.vue';
 import StepsSection from '../components/home/StepsSection.vue';

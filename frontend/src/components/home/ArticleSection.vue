@@ -1,9 +1,13 @@
 <template v-if="articles.length > 0">
     <div class="text-center mb-16">
+        <span class="aa-eyebrow mb-5">{{ t('articles.eyebrow') }}</span>
         <h2
-            class="text-[32px] md:text-[48px] lg:text-[64px] font-medium text-gray-900 dark:text-white mt-3"
+            class="text-[32px] md:text-[48px] lg:text-[64px] font-medium text-gray-900 dark:text-white mt-3 leading-none"
             v-html="$t('articles.title')"
         ></h2>
+        <p class="max-w-2xl mx-auto mt-5 text-base md:text-lg text-gray-500 dark:text-gray-400">
+            {{ t('articles.description') }}
+        </p>
     </div>
     <div>
         <div

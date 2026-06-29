@@ -573,6 +573,7 @@
         "browser": "Launching browser"
     },
     "articles": {
+        "eyebrow": "Knowledge base",
         "title": "<span class='gradient-text'>Help</span> Articles",
         "allArticles": "All articles",
         "readMore": "Read more",
@@ -780,11 +781,39 @@
         }
     },
     "faq": {
+        "eyebrow": "Questions & answers",
         "title": "Frequently Asked Questions (FAQ)",
+        "heading": "Frequently asked <span class='gradient-text'>questions</span>",
         "subtitle": "Everything you need to know about buying and using digital goods on Account Arena",
         "still_have_questions": "Still have questions?",
         "contact_support_text": "If you couldn't find an answer to your question, our support team is always ready to help.",
-        "contact_support": "Contact Support"
+        "contact_support": "Contact Support",
+        "items": [
+            {
+                "question": "How do I buy an account?",
+                "answer": "Pick the product you want, click “Buy”, choose a convenient payment method and follow the instructions. Account details arrive instantly after payment."
+            },
+            {
+                "question": "Is there a warranty on accounts?",
+                "answer": "Yes. We guarantee account validity at the moment of purchase. Detailed terms are listed on the “Guarantees” page."
+            },
+            {
+                "question": "Which payment methods are available?",
+                "answer": "We accept cryptocurrency, bank cards and e-wallets. Every payment is secured and processed through trusted payment gateways."
+            },
+            {
+                "question": "How fast will I receive my account after payment?",
+                "answer": "For products with automatic delivery — instantly after payment is confirmed. For manual delivery — within 1–24 hours depending on the time of day."
+            },
+            {
+                "question": "What if the account doesn't work?",
+                "answer": "Contact our support via Telegram or the feedback form. We'll review the issue and provide a replacement according to the warranty terms."
+            },
+            {
+                "question": "Can I get a refund?",
+                "answer": "A refund is possible if the product doesn't match its description or wasn't delivered. See the “Payment & Refund” section for details."
+            }
+        ]
     },
     "guarantees": {
         "title": "Guarantees and Security",
