@@ -3,6 +3,7 @@ import { computed, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute } from 'vue-router';
 import { useArticlesStore } from '../stores/articles';
+import { getArticleTranslation } from '@/utils/localization';
 
 export function useArticleDetail() {
     const articlesStore = useArticlesStore();
@@ -38,7 +39,7 @@ export function useArticleDetail() {
         const a = articlesStore.articleById[currentId];
         if (!a) return null;
 
-        const translation = a.translations.find(t => t.locale === locale.value);
+        const translation = getArticleTranslation(a.translations, locale.value);
         return {
             ...a,
             title: translation?.title ?? 'No title',

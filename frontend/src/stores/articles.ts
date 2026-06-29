@@ -2,6 +2,7 @@
 import { defineStore } from 'pinia';
 import axios from '../bootstrap'; // Используем настроенный axios из bootstrap
 import type { Article, Category, Translation } from '../types/article';
+import { getArticleTranslation } from '@/utils/localization';
 
 type ArticleMapById = Record<number, Article>;
 type ArticlesByKey = Record<string, Article[]>;
@@ -9,6 +10,28 @@ type LoadedByKey = Record<string, boolean>;
 
 interface LoadedFlags {
     categories: boolean;
+}
+
+/**
+ * Project an article into the list-card shape for a locale (title/excerpt/short/dateString).
+ * Shared by the two localized getters so the projection rule lives in one place.
+ */
+function projectLocalizedArticle(article: Article, locale: string) {
+    const tr = getArticleTranslation(article.translations, locale);
+    return {
+        ...article,
+        title: tr?.title ?? 'No title',
+        excerpt: tr?.content ? String(tr.content).slice(0, 140) : '',
+        short: tr?.short
+            ? String(tr.short)
+            : tr?.content
+                ? String(tr.content).slice(0, 140)
+                : '',
+        dateString:
+            article.date instanceof Date
+                ? article.date.toISOString()
+                : String(article.date ?? '')
+    };
 }
 
 export const useArticlesStore = defineStore('articles', {
@@ -39,45 +62,13 @@ export const useArticlesStore = defineStore('articles', {
             const list = state.articlesByKey[key] ?? [];
             return list
                 .filter(a => Number.isFinite(a.id))
-                .map(article => {
-                    const tr = article.translations.find(t => t.locale === locale);
-                    return {
-                        ...article,
-                        title: tr?.title ?? 'No title',
-                        excerpt: tr?.content ? String(tr.content).slice(0, 140) : '',
-                        short: tr?.short
-                            ? String(tr.short)
-                            : tr?.content
-                                ? String(tr.content).slice(0, 140)
-                                : '',
-                        dateString:
-                            article.date instanceof Date
-                                ? article.date.toISOString()
-                                : String(article.date ?? '')
-                    };
-                });
+                .map(article => projectLocalizedArticle(article, locale));
         },
 
         getLocalizedPaginatedArticles: state => (locale: string) => {
             return (state.paginatedItems ?? [])
                 .filter(a => Number.isFinite(a.id))
-                .map(article => {
-                    const tr = article.translations.find(t => t.locale === locale);
-                    return {
-                        ...article,
-                        title: tr?.title ?? 'No title',
-                        excerpt: tr?.content ? String(tr.content).slice(0, 140) : '',
-                        short: tr?.short
-                            ? String(tr.short)
-                            : tr?.content
-                                ? String(tr.content).slice(0, 140)
-                                : '',
-                        dateString:
-                            article.date instanceof Date
-                                ? article.date.toISOString()
-                                : String(article.date ?? '')
-                    };
-                });
+                .map(article => projectLocalizedArticle(article, locale));
         },
 
         getCategoryById: state => (id: number) => state.categories.find(c => c.id === id)
