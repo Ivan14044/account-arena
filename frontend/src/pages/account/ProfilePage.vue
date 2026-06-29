@@ -1833,7 +1833,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount } from 'vue';
+import { ref, onMounted } from 'vue';
 import { Lock, Mail, User } from 'lucide-vue-next';
 import { useAuthStore } from '../../stores/auth';
 import { POSITION, useToast } from 'vue-toastification';
@@ -1844,6 +1844,7 @@ import { useSeo } from '@/composables/useSeo';
 import axios from '@/bootstrap'; // Используем настроенный axios из bootstrap
 import { useProductTitle } from '@/composables/useProductTitle';
 import { formatPrice } from '@/utils/money';
+import { useUserPurchases } from '@/composables/useUserPurchases';
 import { PurchaseStatus, purchaseStatusClass } from '@/constants/purchaseStatus';
 
 const { t } = useI18n();
@@ -1874,29 +1875,24 @@ const voucherLoading = ref(false);
 const voucherError = ref('');
 const voucherSuccess = ref('');
 
-// Purchases
-const purchases = ref<any[]>([]);
-const filteredPurchases = ref<any[]>([]);
-const loadingPurchases = ref(false);
-const expandedPurchases = ref<Set<number>>(new Set());
-const averageProcessingTime = ref<number | null>(null);
-const lastUpdateTime = ref<Date | null>(null);
-
-// Polling intervals
-let processingOrdersPollingInterval: ReturnType<typeof setTimeout> | null = null;
-let processingTimerInterval: ReturnType<typeof setInterval> | null = null;
+// Purchases (data layer вынесен в композабл)
+const {
+    purchases,
+    filteredPurchases,
+    loadingPurchases,
+    expandedPurchases,
+    averageProcessingTime,
+    filters,
+    fetchPurchases,
+    applyFilters,
+    resetFilters,
+    togglePurchaseDetails
+} = useUserPurchases();
 
 // Disputes (Претензии)
 const disputes = ref<any[]>([]);
 const loadingDisputes = ref(false);
 const expandedDisputes = ref<Set<number>>(new Set());
-
-// Filters
-const filters = ref({
-    date_from: '',
-    date_to: '',
-    status: ''
-});
 
 // Dispute modal
 const showDisputeModal = ref(false);
@@ -1990,162 +1986,6 @@ const getProcessingDuration = (purchase: any) => {
         return t('profile.purchases.processing_duration_days', { days, hours: remainingHours });
     }
     return t('profile.purchases.processing_duration_hours', { hours, minutes });
-};
-
-const fetchPurchases = async () => {
-    loadingPurchases.value = true;
-    try {
-        const params: any = {};
-
-        if (filters.value.date_from) {
-            params.date_from = filters.value.date_from;
-        }
-        if (filters.value.date_to) {
-            params.date_to = filters.value.date_to;
-        }
-        if (filters.value.status) {
-            params.status = filters.value.status;
-        }
-
-        // ИСПРАВЛЕНО: Используем правильный эндпоинт /purchases вместо /transactions
-        const { data } = await axios.get('/purchases', { params });
-
-        // Обрабатываем ответ - API возвращает { success: true, purchases: [...] }
-        if (data.success && Array.isArray(data.purchases)) {
-            purchases.value = data.purchases;
-            filteredPurchases.value = data.purchases;
-            
-            // Загружаем статистику обработки, если есть заказы в processing
-            const hasProcessingOrders = purchases.value.some(p => p.status === PurchaseStatus.PROCESSING);
-            if (hasProcessingOrders) {
-                await fetchProcessingStats();
-            }
-        } else {
-            purchases.value = [];
-            filteredPurchases.value = [];
-        }
-    } catch (error) {
-        console.error('Error fetching purchases:', error);
-        purchases.value = [];
-        filteredPurchases.value = [];
-    } finally {
-        loadingPurchases.value = false;
-    }
-};
-
-// Загрузка статистики обработки заказов
-const fetchProcessingStats = async () => {
-    try {
-        const token = authStore.token;
-        if (!token) {
-            return;
-        }
-
-        const { data } = await axios.get('/purchases/stats/processing');
-
-        if (data.success && data.average_processing_time_hours !== null && data.average_processing_time_hours !== undefined) {
-            averageProcessingTime.value = data.average_processing_time_hours;
-        } else {
-            averageProcessingTime.value = null;
-        }
-    } catch (error) {
-        console.error('Error fetching processing stats:', error);
-        averageProcessingTime.value = null;
-    }
-};
-
-// Запуск polling для заказов в статусе processing
-const startProcessingOrdersPolling = () => {
-    // Останавливаем предыдущий polling, если он был
-    stopProcessingOrdersPolling();
-
-    // Запускаем адаптивный polling
-    const poll = async () => {
-        // Проверяем, есть ли еще заказы в processing
-        const processingOrders = purchases.value.filter(p => p.status === PurchaseStatus.PROCESSING);
-        if (processingOrders.length === 0) {
-            stopProcessingOrdersPolling();
-            return;
-        }
-
-        // Определяем интервал на основе возраста самого старого заказа
-        const oldestOrder = processingOrders.reduce((oldest, current) => {
-            const oldestDate = new Date(oldest.created_at);
-            const currentDate = new Date(current.created_at);
-            return currentDate < oldestDate ? current : oldest;
-        });
-        
-        const hoursInProcessing = (new Date().getTime() - new Date(oldestOrder.created_at).getTime()) / (1000 * 60 * 60);
-        const pollingInterval = hoursInProcessing >= 1 ? 60000 : 30000; // 60 сек для заказов старше 1 часа, 30 сек для остальных
-
-        // Обновляем список покупок
-        try {
-            lastUpdateTime.value = new Date();
-            await fetchPurchases();
-        } catch (error) {
-            console.error('Error polling processing orders:', error);
-        }
-
-        // Планируем следующий опрос с адаптивным интервалом
-        processingOrdersPollingInterval = window.setTimeout(poll, pollingInterval);
-    };
-
-    // Запускаем первый опрос сразу
-    poll();
-};
-
-// Остановка polling для заказов в статусе processing
-const stopProcessingOrdersPolling = () => {
-    if (processingOrdersPollingInterval !== null) {
-        clearTimeout(processingOrdersPollingInterval);
-        processingOrdersPollingInterval = null;
-    }
-};
-
-// Запуск таймера обработки (обновление каждую минуту)
-const startProcessingTimer = () => {
-    // Останавливаем предыдущий таймер, если он был
-    if (processingTimerInterval !== null) {
-        clearInterval(processingTimerInterval);
-    }
-
-    // Запускаем новый таймер каждую минуту для обновления отображения времени
-    processingTimerInterval = window.setInterval(() => {
-        // Просто триггерим реактивность, чтобы обновить отображение
-        // Vue автоматически пересчитает getProcessingDuration
-    }, 60000); // 60 секунд
-};
-
-// Остановка таймера обработки
-const stopProcessingTimer = () => {
-    if (processingTimerInterval !== null) {
-        clearInterval(processingTimerInterval);
-        processingTimerInterval = null;
-    }
-};
-
-const applyFilters = () => {
-    fetchPurchases();
-};
-
-const resetFilters = () => {
-    filters.value = {
-        date_from: '',
-        date_to: '',
-        status: ''
-    };
-    fetchPurchases();
-};
-
-// Методы для работы с данными покупок
-const togglePurchaseDetails = (purchaseId: number) => {
-    if (expandedPurchases.value.has(purchaseId)) {
-        expandedPurchases.value.delete(purchaseId);
-    } else {
-        expandedPurchases.value.add(purchaseId);
-    }
-    // Принудительно обновляем реактивность
-    expandedPurchases.value = new Set(expandedPurchases.value);
 };
 
 const toggleDisputeDetails = (disputeId: number) => {
@@ -2659,15 +2499,6 @@ onMounted(async () => {
     }
 });
 
-// Останавливаем polling при размонтировании
-onBeforeUnmount(() => {
-    stopProcessingOrdersPolling();
-});
-
-// Останавливаем polling при размонтировании
-onBeforeUnmount(() => {
-    stopProcessingOrdersPolling();
-});
 </script>
 
 <style scoped>
