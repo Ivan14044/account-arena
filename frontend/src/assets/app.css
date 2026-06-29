@@ -67,6 +67,109 @@
     font-display: swap;
 }
 
+/* ============================================
+   ПРЕМИАЛЬНАЯ ДИЗАЙН-СИСТЕМА — «Obsidian + Champagne»
+   Единые токены (без индиго). Меняешь здесь — меняется везде.
+   ============================================ */
+:root {
+    /* Чернила / текст */
+    --aa-ink: #14161c;
+    --aa-ink-soft: #5c616b;
+    --aa-ink-faint: #9aa0aa;
+
+    /* Поверхности */
+    --aa-surface: #ffffff;
+    --aa-surface-soft: #faf8f3;       /* тёплый off-white */
+    --aa-surface-sunk: #f4f1ea;
+    --aa-border: rgba(20, 22, 28, 0.10);
+    --aa-border-strong: rgba(20, 22, 28, 0.16);
+
+    /* Акцент — благородное золото/шампань */
+    --aa-gold: #b08d3f;
+    --aa-gold-strong: #8a6c2a;
+    --aa-gold-soft: rgba(176, 141, 63, 0.10);
+    --aa-gold-line: rgba(176, 141, 63, 0.32);
+    --aa-gold-gradient: linear-gradient(120deg, #8a6c2a 0%, #d8b765 48%, #a9843a 100%);
+    --aa-gold-sheen: linear-gradient(120deg, #d8b765 0%, #f1dca0 50%, #c8a151 100%);
+
+    /* Главная кнопка — графит */
+    --aa-cta: #14161c;
+    --aa-cta-hover: #23262f;
+    --aa-cta-ink: #ffffff;
+
+    /* Тёмная панель-обсидиан — НЕ инвертируется между темами */
+    --aa-obsidian: #15171d;
+    --aa-obsidian-ink: #ffffff;
+
+    /* Функциональные (приглушённые, под премиум) */
+    --aa-success: #2f8f63;
+    --aa-success-soft: rgba(47, 143, 99, 0.12);
+    --aa-danger: #b4453a;
+    --aa-danger-soft: rgba(180, 69, 58, 0.12);
+
+    /* Тени */
+    --aa-shadow-sm: 0 2px 10px rgba(20, 22, 28, 0.05);
+    --aa-shadow-md: 0 14px 34px rgba(20, 22, 28, 0.10);
+    --aa-shadow-gold: 0 12px 30px rgba(176, 141, 63, 0.26);
+
+    --aa-radius: 16px;
+}
+
+.dark {
+    --aa-ink: #f4f1ea;
+    --aa-ink-soft: #a7adb8;
+    --aa-ink-faint: #767c87;
+
+    --aa-surface: #14161c;
+    --aa-surface-soft: #161922;
+    --aa-surface-sunk: #1c2029;
+    --aa-border: rgba(255, 255, 255, 0.09);
+    --aa-border-strong: rgba(255, 255, 255, 0.16);
+
+    --aa-gold: #d8b765;
+    --aa-gold-strong: #e6cd8c;
+    --aa-gold-soft: rgba(216, 183, 101, 0.12);
+    --aa-gold-line: rgba(216, 183, 101, 0.34);
+    --aa-gold-gradient: linear-gradient(120deg, #b48f43 0%, #e6cd8c 48%, #c8a151 100%);
+
+    --aa-cta: #d8b765;
+    --aa-cta-hover: #e6cd8c;
+    --aa-cta-ink: #14161c;
+
+    /* Обсидиан в тёмной теме — чуть приподнят, чтобы читаться на почти-чёрном фоне */
+    --aa-obsidian: #1c2029;
+    --aa-obsidian-ink: #ffffff;
+
+    --aa-success: #46b483;
+    --aa-success-soft: rgba(70, 180, 131, 0.14);
+    --aa-danger: #d97268;
+    --aa-danger-soft: rgba(217, 114, 104, 0.14);
+
+    --aa-shadow-sm: 0 2px 14px rgba(0, 0, 0, 0.30);
+    --aa-shadow-md: 0 18px 40px rgba(0, 0, 0, 0.46);
+    --aa-shadow-gold: 0 14px 34px rgba(216, 183, 101, 0.20);
+}
+
+/* Тонкая золотая надпечатка для акцентных слов в заголовках */
+.aa-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--aa-gold-strong);
+}
+.aa-eyebrow::before,
+.aa-eyebrow::after {
+    content: '';
+    width: 26px;
+    height: 1px;
+    background: var(--aa-gold-line);
+}
+.aa-eyebrow.aa-eyebrow--start::before { display: none; }
+
 *:focus {
     outline: none;
 }
@@ -120,24 +223,27 @@ button.swal2-cancel {
 }
 
 .gradient-text {
-    background: linear-gradient(90deg, #ff6a00, #ff00cc, #00aaff, #007bff);
+    background: var(--aa-gold-gradient);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
+    background-clip: text;
     background-size: 100% 100%;
     background-repeat: no-repeat;
     display: inline;
 }
 
 .bg-gradient-1 {
-    background: linear-gradient(90deg, #a032f5, #e440bf, #007bff);
+    background: linear-gradient(110deg, #a9843a 0%, #e6cd8c 55%, #b48f43 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
 .bg-gradient-2 {
-    background: linear-gradient(90deg, #ff6a00, #ff00cc, #00aaff);
+    background: linear-gradient(110deg, #8a6c2a 0%, #d8b765 50%, #f1dca0 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
 .text-custom-blue {
@@ -227,23 +333,35 @@ main > * {
 
 .cta-button {
     display: inline-block;
-    padding: 0.9rem 3rem;
-    border: 1px solid #0047ff;
-    color: #0047ff;
+    padding: 0.85rem 2.75rem;
+    border: 1px solid var(--aa-ink);
+    color: var(--aa-ink);
     text-decoration: none;
-    font-size: 18px;
-    border-radius: 10px;
-    font-weight: 500;
-    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+    font-size: 16px;
+    letter-spacing: 0.04em;
+    border-radius: 12px;
+    font-weight: 600;
+    transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
 }
 
 .dark .cta-button {
-    color: #fff;
+    border-color: var(--aa-gold-line);
+    color: var(--aa-ink);
 }
 
 .cta-button:hover {
-    background-color: #0047ff;
-    color: #fff !important;
+    background-color: var(--aa-ink);
+    color: var(--aa-surface) !important;
+    border-color: var(--aa-ink);
+    transform: translateY(-2px);
+    box-shadow: var(--aa-shadow-md);
+}
+
+.dark .cta-button:hover {
+    background: var(--aa-gold-gradient);
+    color: #14161c !important;
+    border-color: transparent;
+    box-shadow: var(--aa-shadow-gold);
 }
 
 /* ============================================
@@ -284,15 +402,15 @@ main > * {
     color: white;
 }
 
-/* Warning Toast - ФИОЛЕТОВЫЙ ГРАДИЕНТ (как в дизайне сайта) */
+/* Warning Toast - ЗОЛОТОЙ ГРАДИЕНТ (премиум-акцент сайта) */
 .Vue-Toastification__toast--warning {
-    background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%);
-    color: white;
-    box-shadow: 0 8px 24px rgba(108, 92, 231, 0.35);
+    background: linear-gradient(135deg, #8a6c2a 0%, #d8b765 100%);
+    color: #14161c;
+    box-shadow: 0 8px 24px rgba(176, 141, 63, 0.35);
 }
 
 .Vue-Toastification__toast--warning .Vue-Toastification__icon {
-    color: white;
+    color: #14161c;
 }
 
 /* Info Toast - синий градиент */
@@ -344,8 +462,9 @@ main > * {
 
 /* Темная тема для toast */
 .dark .Vue-Toastification__toast--warning {
-    background: linear-gradient(135deg, #5b4bcf 0%, #9189e8 100%);
-    box-shadow: 0 8px 24px rgba(91, 75, 207, 0.4);
+    background: linear-gradient(135deg, #a9843a 0%, #e6cd8c 100%);
+    color: #14161c;
+    box-shadow: 0 8px 24px rgba(176, 141, 63, 0.42);
 }
 
 /* ============================================

@@ -5,26 +5,27 @@
             preserveAspectRatio="xMidYMid slice"
             :class="[
                 'absolute inset-0 w-full h-full transition-opacity duration-700',
-                isDark ? 'opacity-50' : 'opacity-30'
+                isDark ? 'opacity-40' : 'opacity-25'
             ]"
             xmlns="http://www.w3.org/2000/svg"
         >
             <defs>
+                <!-- Премиальная тёплая дымка «шампань/обсидиан» — без индиго -->
                 <radialGradient id="grad1" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
-                    <stop offset="0%" stop-color="rgba(255, 106, 0, 0.8)" />
-                    <stop offset="100%" stop-color="rgba(255, 106, 0, 0)" />
+                    <stop offset="0%" stop-color="rgba(216, 183, 101, 0.55)" />
+                    <stop offset="100%" stop-color="rgba(216, 183, 101, 0)" />
                 </radialGradient>
                 <radialGradient id="grad2" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
-                    <stop offset="0%" stop-color="rgba(255, 0, 204, 0.8)" />
-                    <stop offset="100%" stop-color="rgba(255, 0, 204, 0)" />
+                    <stop offset="0%" stop-color="rgba(176, 141, 63, 0.5)" />
+                    <stop offset="100%" stop-color="rgba(176, 141, 63, 0)" />
                 </radialGradient>
                 <radialGradient id="grad3" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
-                    <stop offset="0%" stop-color="rgba(0, 170, 255, 0.8)" />
-                    <stop offset="100%" stop-color="rgba(0, 170, 255, 0)" />
+                    <stop offset="0%" stop-color="rgba(138, 108, 42, 0.45)" />
+                    <stop offset="100%" stop-color="rgba(138, 108, 42, 0)" />
                 </radialGradient>
                 <radialGradient id="grad4" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
-                    <stop offset="0%" stop-color="rgba(0, 123, 255, 0.8)" />
-                    <stop offset="100%" stop-color="rgba(0, 123, 255, 0)" />
+                    <stop offset="0%" stop-color="rgba(120, 104, 78, 0.4)" />
+                    <stop offset="100%" stop-color="rgba(120, 104, 78, 0)" />
                 </radialGradient>
             </defs>
 
