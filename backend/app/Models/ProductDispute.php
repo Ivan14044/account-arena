@@ -344,12 +344,7 @@ class ProductDispute extends Model
      */
     public function getDecisionText(): string
     {
-        return match($this->admin_decision) {
-            self::DECISION_REFUND => __('Возврат средств'),
-            self::DECISION_REPLACEMENT => __('Замена товара'),
-            self::DECISION_REJECTED => __('Отклонено'),
-            default => __('Не обработано'),
-        };
+        return \App\Presenters\DisputePresenter::decisionText($this->admin_decision);
     }
 
     /**
@@ -357,15 +352,7 @@ class ProductDispute extends Model
      */
     public function getReasonText(): string
     {
-        return match($this->reason) {
-            self::REASON_INVALID_ACCOUNT => __('Невалидный аккаунт'),
-            self::REASON_WRONG_DATA => __('Неверные данные'),
-            self::REASON_NOT_WORKING => __('Не работает'),
-            self::REASON_ALREADY_USED => __('Уже использован'),
-            self::REASON_BANNED => __('Заблокирован'),
-            self::REASON_OTHER => __('Другое'),
-            default => __('Не указано'),
-        };
+        return \App\Presenters\DisputePresenter::reasonText($this->reason);
     }
 
     /**
@@ -373,13 +360,7 @@ class ProductDispute extends Model
      */
     public function getStatusBadgeClass(): string
     {
-        return match($this->status) {
-            self::STATUS_NEW => 'badge-warning',
-            self::STATUS_IN_REVIEW => 'badge-info',
-            self::STATUS_RESOLVED => 'badge-success',
-            self::STATUS_REJECTED => 'badge-danger',
-            default => 'badge-secondary',
-        };
+        return \App\Presenters\DisputePresenter::statusBadgeClass($this->status);
     }
 
     /**
@@ -387,12 +368,6 @@ class ProductDispute extends Model
      */
     public function getStatusText(): string
     {
-        return match($this->status) {
-            self::STATUS_NEW => __('Новая'),
-            self::STATUS_IN_REVIEW => __('На рассмотрении'),
-            self::STATUS_RESOLVED => __('Решена'),
-            self::STATUS_REJECTED => __('Отклонена'),
-            default => __('Неизвестно'),
-        };
+        return \App\Presenters\DisputePresenter::statusText($this->status);
     }
 }

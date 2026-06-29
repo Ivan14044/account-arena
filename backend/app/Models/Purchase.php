@@ -101,15 +101,7 @@ class Purchase extends Model
      */
     public function getStatusText(): string
     {
-        return match($this->status) {
-            self::STATUS_PENDING => __('В обработке'),
-            self::STATUS_PROCESSING => __('В работе'),
-            self::STATUS_COMPLETED => __('Завершено'),
-            self::STATUS_FAILED => __('Ошибка'),
-            self::STATUS_CANCELLED => __('Отменено'),
-            self::STATUS_REFUNDED => __('Возврат'),
-            default => $this->status,
-        };
+        return \App\Presenters\PurchasePresenter::statusText($this->status);
     }
 
     /**
@@ -117,15 +109,7 @@ class Purchase extends Model
      */
     public function getStatusBadgeClass(): string
     {
-        return match($this->status) {
-            self::STATUS_PENDING => 'warning',
-            self::STATUS_PROCESSING => 'primary',
-            self::STATUS_COMPLETED => 'success',
-            self::STATUS_FAILED => 'danger',
-            self::STATUS_CANCELLED => 'secondary',
-            self::STATUS_REFUNDED => 'info',
-            default => 'secondary',
-        };
+        return \App\Presenters\PurchasePresenter::statusBadgeClass($this->status);
     }
 
     /**
