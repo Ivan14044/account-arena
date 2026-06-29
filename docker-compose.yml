@@ -3,6 +3,11 @@
 # Сам сайт (PHP + Vite) запускается нативно через ~/.local/toolchain — см. scripts/start.sh.
 # Это НЕ продакшн-конфиг: пароли простые, всё доступно только на localhost.
 
+# Фиксированное имя проекта Compose — чтобы контейнеры/тома не зависели от
+# имени папки (иначе запуск из git-worktree и из основной папки конфликтует
+# на фиксированных container_name). Один проект → одни и те же MySQL/Redis.
+name: account-arena
+
 services:
   mysql:
     image: mysql:8.0
