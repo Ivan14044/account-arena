@@ -699,31 +699,6 @@ class CryptomusController extends Controller
         return \App\Http\Responses\ApiResponse::success();
     }
 
-    /**
-     * Prepare products data for purchase creation
-     */
-    private function prepareProductsForPurchase(array $productsData): array
-    {
-        $prepared = [];
-        foreach ($productsData as $item) {
-            $product = ServiceAccount::find($item['product_id'] ?? null);
-            if (!$product) {
-                Log::warning('Cryptomus: Product not found', [
-                    'product_id' => $item['product_id'] ?? null
-                ]);
-                continue;
-            }
-
-            $prepared[] = [
-                'product' => $product,
-                'quantity' => $item['quantity'] ?? 1,
-                'price' => $item['price'] ?? 0,
-                'total' => $item['total'] ?? 0,
-            ];
-        }
-
-        return $prepared;
-    }
 
     /**
      * Send purchase notifications to user and admin

@@ -512,33 +512,4 @@ class ServiceAccount extends Model
         );
     }
 
-    /**
-     * Извлечь ключевые слова из текста
-     * 
-     * @param string $text Текст для анализа
-     * @return array Массив ключевых слов
-     */
-    private function extractKeywords(string $text): array
-    {
-        if (empty($text)) {
-            return [];
-        }
-
-        // Убираем HTML теги, приводим к нижнему регистру
-        $text = mb_strtolower(strip_tags($text));
-        
-        // Убираем знаки препинания
-        $text = preg_replace('/[^\p{L}\p{N}\s]/u', ' ', $text);
-        
-        // Разбиваем на слова
-        $words = preg_split('/\s+/', $text);
-        
-        // Фильтруем стоп-слова и короткие слова
-        $stopWords = ['и', 'в', 'на', 'с', 'для', 'от', 'до', 'по', 'из', 'к', 'а', 'но', 'или', 'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'та', 'що', 'як', 'для', 'від', 'до', 'по', 'з', 'і', 'або'];
-        $words = array_filter($words, function($word) use ($stopWords) {
-            return mb_strlen($word) > 3 && !in_array($word, $stopWords);
-        });
-        
-        return array_unique(array_values($words));
-    }
 }
