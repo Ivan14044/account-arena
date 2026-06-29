@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia';
 import axios from '../bootstrap'; // Используем настроенный axios из bootstrap
+import { getTranslatedField } from '@/utils/localization';
 
 export interface ProductSubcategory {
     id: number;
@@ -66,14 +67,7 @@ export const useProductCategoriesStore = defineStore('productCategories', {
         },
 
         getCategoryName(category: ProductCategory, locale: string): string {
-            if (
-                category.translations &&
-                category.translations[locale] &&
-                category.translations[locale]['name']
-            ) {
-                return category.translations[locale]['name'];
-            }
-            return category.name;
+            return getTranslatedField(category, 'name', locale) || category.name;
         }
     }
 });

@@ -119,6 +119,7 @@ import { scrollToElement } from '@/utils/scrollToElement';
 import { useI18n } from 'vue-i18n';
 import { useBannersStore } from '@/stores/banners';
 import { useSiteContentStore } from '@/stores/siteContent';
+import { getLocalizedField } from '@/utils/localization';
 
 const { t, locale } = useI18n();
 const siteContentStore = useSiteContentStore();
@@ -133,15 +134,7 @@ const wideBanner = computed(() => (wideBanners.value.length > 0 ? wideBanners.va
 
 // Функция для получения заголовка баннера с учетом локали
 const getBannerTitle = (banner: any): string => {
-    let title = '';
-    if (locale.value === 'en') {
-        title = banner.title_en || banner.title || '';
-    } else if (locale.value === 'uk') {
-        title = banner.title_uk || banner.title || '';
-    } else {
-        title = banner.title || '';
-    }
-    return title || 'Account Arena Banner';
+    return getLocalizedField(banner, 'title', locale.value) || 'Account Arena Banner';
 };
 
 // Функция для обработки клика по баннеру

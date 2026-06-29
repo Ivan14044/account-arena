@@ -1,66 +1,39 @@
 /**
- * Centralized localization helper for dynamic content (titles, names, descriptions)
+ * SSOT for resolving localized fields on API objects.
+ *
+ * Two shapes exist in the API:
+ *  - flat suffix fields:   { title, title_en, title_uk }
+ *  - nested translations:  { name, translations: { uk: { name }, en: { name } } }
+ *
+ * Both rules were previously copy-pasted (with subtle drift) across composables,
+ * stores and components. Keep them here so every call site resolves identically.
  */
 
-export const getLocalizedValue = (
-    data: any, 
-    field: string = 'title', 
-    locale: string = 'uk'
+/**
+ * Resolve a flat suffix-localized field (e.g. `title` / `title_en` / `title_uk`).
+ * Rule: for `ru` use the base field; otherwise prefer `field_<locale>` and fall back to base.
+ */
+export const getLocalizedField = (
+    obj: Record<string, any> | null | undefined,
+    field: string,
+    locale: string,
 ): string => {
-    if (!data) return '';
-
-    // If data is a plain string, return it
-    if (typeof data === 'string') return data;
-
-    // Handle standard translation structure: { title: 'RU', title_en: 'EN', title_uk: 'UK' }
-    if (locale === 'ru') {
-        return data[field] || data[`${field}_ru`] || data[`${field}_en`] || '';
-    }
-    
-    if (locale === 'en') {
-        return data[`${field}_en`] || data[field] || data[`${field}_uk`] || '';
-    }
-    
-    if (locale === 'uk') {
-        return data[`${field}_uk`] || data[field] || data[`${field}_en`] || '';
-    }
-
-    // Handle nested translations object (from CategoryResource)
-    if (data.translations && typeof data.translations === 'object') {
-        const translations = data.translations[locale] || 
-                           data.translations['uk'] || 
-                           data.translations['ru'] || 
-                           data.translations['en'] || 
-                           Object.values(data.translations)[0];
-        
-        if (translations && typeof translations === 'object') {
-            return translations[field] || '';
-        }
-    }
-
-    return data[field] || '';
+    if (!obj) return '';
+    if (locale === 'ru') return obj[field] || '';
+    return obj[`${field}_${locale}`] || obj[field] || '';
 };
 
 /**
- * Specifically for ServiceAccount/Product titles
+ * Resolve a field from a nested `translations` map (e.g. category/subcategory names).
+ * Rule: prefer `translations[locale][field]`, fall back to the base field.
  */
-export const getProductTitle = (product: any, locale: string = 'uk'): string => {
-    // Some API responses return title as an object { title, title_en, title_uk }
-    if (product.title && typeof product.title === 'object') {
-        return getLocalizedValue(product.title, 'title', locale);
-    }
-    
-    return getLocalizedValue(product, 'title', locale);
-};
-
-/**
- * Specifically for Category names
- */
-export const getCategoryName = (category: any, locale: string = 'uk'): string => {
-    // CategoryResource returns 'name' field
-    if (category.name && typeof category.name === 'string') {
-        return category.name;
-    }
-    
-    return getLocalizedValue(category, 'name', locale);
+export const getTranslatedField = (
+    obj: Record<string, any> | null | undefined,
+    field: string,
+    locale: string,
+): string => {
+    if (!obj) return '';
+    const translated = obj.translations?.[locale];
+    if (translated && translated[field]) return translated[field];
+    return obj[field] || '';
 };

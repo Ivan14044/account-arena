@@ -1,4 +1,5 @@
 import { useI18n } from 'vue-i18n';
+import { getLocalizedField as resolveLocalizedField } from '@/utils/localization';
 
 /**
  * Composable for getting localized product fields (title, description)
@@ -14,28 +15,7 @@ export function useProductTitle() {
         product: Record<string, any>,
         fieldName: string
     ): T => {
-        if (!product) return '' as T;
-
-        const currentLocale = locale.value;
-        let fieldValue: string | null | undefined;
-
-        switch (currentLocale) {
-            case 'uk':
-                // Use title_uk if it exists and is not null/empty, otherwise fallback to title
-                fieldValue = product[`${fieldName}_uk`] || product[fieldName] || '';
-                break;
-            case 'en':
-                // Use title_en if it exists and is not null/empty, otherwise fallback to title
-                fieldValue = product[`${fieldName}_en`] || product[fieldName] || '';
-                break;
-            case 'ru':
-            default:
-                // For Russian, use title (base field)
-                fieldValue = product[fieldName] || '';
-                break;
-        }
-
-        return (fieldValue || '') as T;
+        return resolveLocalizedField(product, fieldName, locale.value) as T;
     };
 
     const getProductTitle = (product: {

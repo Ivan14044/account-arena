@@ -1,6 +1,7 @@
 import { ref, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import axios from '../bootstrap'; // Используем настроенный axios из bootstrap
+import { getLocalizedField } from '@/utils/localization';
 
 export interface Banner {
     id: number;
@@ -24,13 +25,7 @@ export function useBanners(position: string = 'home_top') {
      * Get banner title based on current locale
      */
     const getBannerTitle = (banner: Banner): string => {
-        if (locale.value === 'en' && banner.title_en) {
-            return banner.title_en;
-        }
-        if (locale.value === 'uk' && banner.title_uk) {
-            return banner.title_uk;
-        }
-        return banner.title;
+        return getLocalizedField(banner, 'title', locale.value);
     };
 
     /**
