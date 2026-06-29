@@ -30,6 +30,7 @@ import { useProductTitle } from '@/composables/useProductTitle';
 import { useProductCartStore } from '@/stores/productCart';
 import { useToast } from 'vue-toastification';
 import ProductCard from '@/components/products/ProductCard.vue';
+import { loadFavorites, saveFavorites } from '@/utils/favorites';
 
 const props = defineProps<{
     productId: string | number;
@@ -63,30 +64,7 @@ const decreaseQuantity = (accountId: number) => {
 };
 
 // Favorites management (с сохранением в localStorage)
-const FAVORITES_STORAGE_KEY = 'product_favorites';
-
-const loadFavoritesFromStorage = (): Set<number> => {
-    try {
-        const stored = localStorage.getItem(FAVORITES_STORAGE_KEY);
-        if (stored) {
-            const parsed = JSON.parse(stored);
-            return new Set(parsed);
-        }
-    } catch (error) {
-        console.error('Error loading favorites:', error);
-    }
-    return new Set();
-};
-
-const saveFavoritesToStorage = (favs: Set<number>) => {
-    try {
-        localStorage.setItem(FAVORITES_STORAGE_KEY, JSON.stringify([...favs]));
-    } catch (error) {
-        console.error('Error saving favorites:', error);
-    }
-};
-
-const favorites = ref<Set<number>>(loadFavoritesFromStorage());
+const favorites = ref<Set<number>>(loadFavorites());
 
 const toggleFavorite = (accountId: number) => {
     if (favorites.value.has(accountId)) {
@@ -95,7 +73,7 @@ const toggleFavorite = (accountId: number) => {
         favorites.value.add(accountId);
     }
     favorites.value = new Set(favorites.value);
-    saveFavoritesToStorage(favorites.value);
+    saveFavorites(favorites.value);
 };
 
 const isFavorite = (accountId: number) => {
