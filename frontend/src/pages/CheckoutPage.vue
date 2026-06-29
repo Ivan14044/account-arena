@@ -459,17 +459,17 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed, watch } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { useToast } from 'vue-toastification';
-import { useAlert } from '@/utils/alert';
 import { useSeo } from '@/composables/useSeo';
 import { useProductCartStore } from '@/stores/productCart';
 import { useProductTitle } from '@/composables/useProductTitle';
 import { useCheckoutPricing } from '@/composables/useCheckoutPricing';
 import { usePurchaseRules } from '@/composables/usePurchaseRules';
 import { useCheckoutPayment } from '@/composables/useCheckoutPayment';
+import { useCheckoutPromo } from '@/composables/useCheckoutPromo';
 import { useAuthStore } from '@/stores/auth';
 import { useLoadingStore } from '@/stores/loading';
 import { useOptionStore } from '@/stores/options';
@@ -488,7 +488,6 @@ useSeo({
 
 const router = useRouter();
 const toast = useToast();
-const { showAlert } = useAlert();
 const { t } = useI18n();
 const productCartStore = useProductCartStore();
 const { getProductTitle } = useProductTitle();
@@ -497,8 +496,10 @@ const loadingStore = useLoadingStore();
 const optionStore = useOptionStore();
 const promo = usePromoStore();
 const selectedPayment = ref<'card' | 'crypto' | 'balance' | ''>('');
-const inputCode = ref('');
 const guestEmail = ref(''); // Email для гостевых покупок
+
+// Промокод вынесен в композабл (inputCode здесь — общий источник для платёжного flow)
+const { inputCode, isApplied, onApply, onClear, onPrimaryPromoClick } = useCheckoutPromo();
 
 // Purchase Rules (вынесено в композабл)
 const {
@@ -509,10 +510,6 @@ const {
     loadRules: loadPurchaseRules
 } = usePurchaseRules();
 const isProcessingCheckout = ref(false);
-let applyTimer: number | null = null;
-const isApplied = computed(
-    () => !!promo.code && !!promo.result && !promo.error && promo.code === inputCode.value
-);
 
 // Ценообразование вынесено в композабл (чистая реактивная цепочка)
 const {
@@ -659,47 +656,6 @@ watch(isZeroTotalWithServices, val => {
 const { processMonoPayment, processCryptoPayment, buyFree, processBalancePayment } =
     useCheckoutPayment({ guestEmail, inputCode, finalTotal });
 
-async function onApply() {
-    if (applyTimer) {
-        clearTimeout(applyTimer as unknown as number);
-    }
-    applyTimer = window.setTimeout(async () => {
-        await promo.apply(inputCode.value);
-        if (promo.error) {
-            await showAlert({
-                title: t('alert.title'),
-                text: promo.error,
-                icon: 'error',
-                confirmText: t('alert.ok')
-            });
-            return;
-        }
-        if (promo.result?.type === 'free_access') {
-            // Free access for products might need different handling
-            // This functionality may need to be implemented if needed
-        } else if (promo.result?.type === 'discount' && productCartStore.items.length === 0) {
-            await showAlert({
-                title: t('alert.title'),
-                text: t('checkout.promocode_discount_empty_cart'),
-                icon: 'success',
-                confirmText: t('alert.ok')
-            });
-        }
-    }, 500);
-}
-
-function onClear() {
-    promo.clear();
-    inputCode.value = '';
-}
-
-function onPrimaryPromoClick() {
-    if (isApplied.value) {
-        onClear();
-    } else {
-        onApply();
-    }
-}
 </script>
 
 <style scoped>
