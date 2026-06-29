@@ -101,20 +101,9 @@ class ProductPurchaseService
                 $product = ServiceAccount::lockForUpdate()->find($product->id);
             }
             
-            // Получаем аккаунты из accounts_data
-            $accountsData = $product->accounts_data ?? [];
+            // Получаем аккаунты из accounts_data (единая нормализация в модели)
+            $accountsData = ServiceAccount::normalizeAccountsData($product->accounts_data);
 
-    // ВАЖНО: Проверяем, что accounts_data является массивом
-    // Если это строка (JSON), пытаемся декодировать
-    if (!is_array($accountsData)) {
-        if (is_string($accountsData) && !empty($accountsData)) {
-            $decoded = json_decode($accountsData, true);
-            $accountsData = is_array($decoded) ? $decoded : [];
-        } else {
-            $accountsData = [];
-        }
-    }
-    
     $usedCount = $product->used ?? 0;
 
     // Выбираем нужное количество неиспользованных аккаунтов

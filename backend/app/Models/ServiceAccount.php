@@ -287,6 +287,28 @@ class ServiceAccount extends Model
     }
 
     /**
+     * Нормализовать accounts_data к массиву.
+     * Поле кастуется в array, но исторически могло храниться как JSON-строка —
+     * этот хелпер устойчиво приводит любое значение (array/JSON-строка/null) к массиву.
+     * Единый источник: раньше эта логика дублировалась в getAvailableStock() и
+     * ProductPurchaseService::createProductPurchase().
+     */
+    public static function normalizeAccountsData($raw): array
+    {
+        if (is_array($raw)) {
+            return $raw;
+        }
+
+        if (is_string($raw) && $raw !== '') {
+            $decoded = json_decode($raw, true);
+
+            return is_array($decoded) ? $decoded : [];
+        }
+
+        return [];
+    }
+
+    /**
      * Get available stock quantity
      */
     public function getAvailableStock()
@@ -304,20 +326,7 @@ class ServiceAccount extends Model
             $totalQty = (int)$this->total_qty_from_json;
         } else {
             // Иначе - стандартная логика подсчета из accounts_data
-            $accountsData = $this->accounts_data ?? [];
-            
-            // ВАЖНО: Проверяем, что accounts_data является массивом
-            if (!is_array($accountsData)) {
-                // Если это строка (JSON), пытаемся декодировать
-                if (is_string($accountsData) && !empty($accountsData)) {
-                    $decoded = json_decode($accountsData, true);
-                    $accountsData = is_array($decoded) ? $decoded : [];
-                } else {
-                    $accountsData = [];
-                }
-            }
-            
-            $totalQty = count($accountsData);
+            $totalQty = count(self::normalizeAccountsData($this->accounts_data));
         }
         
         $used = (int)($this->used ?? 0);
