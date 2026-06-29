@@ -465,11 +465,11 @@ import { useI18n } from 'vue-i18n';
 import { useToast } from 'vue-toastification';
 import { useAlert } from '@/utils/alert';
 import { useSeo } from '@/composables/useSeo';
-import axios from '@/bootstrap'; // Используем настроенный axios из bootstrap
 import { useProductCartStore } from '@/stores/productCart';
 import { useProductTitle } from '@/composables/useProductTitle';
 import { useCheckoutPricing } from '@/composables/useCheckoutPricing';
 import { usePurchaseRules } from '@/composables/usePurchaseRules';
+import { useCheckoutPayment } from '@/composables/useCheckoutPayment';
 import { useAuthStore } from '@/stores/auth';
 import { useLoadingStore } from '@/stores/loading';
 import { useOptionStore } from '@/stores/options';
@@ -655,176 +655,9 @@ watch(isZeroTotalWithServices, val => {
     }
 });
 
-const processMonoPayment = async () => {
-    try {
-        // Проверяем, гость или авторизованный пользователь
-        const isGuest = !authStore.isAuthenticated;
-
-        if (isGuest) {
-            // Гостевой платеж (только для товаров)
-            if (!guestEmail.value || !guestEmail.value.trim()) {
-                toast.error(t('checkout.guest_email_required_short'));
-                return;
-            }
-
-            const payload = {
-                guest_email: guestEmail.value.trim(),
-                products: productCartStore.items.map(item => ({
-                    id: item.id,
-                    quantity: item.quantity
-                })),
-                ...(promo.code ? { promocode: promo.code } : {})
-            };
-
-            const { data } = await axios.post('/guest/mono/create-payment', payload);
-            if (data.url) {
-                // Небольшая задержка для отображения сообщения перед перенаправлением
-                await new Promise(resolve => setTimeout(resolve, 500));
-                window.location.href = data.url;
-            } else {
-                toast.error(t('checkout.payment_error'));
-            }
-        } else {
-            // Авторизованный пользователь
-            const payload = {
-                products: productCartStore.items.map(item => ({
-                    id: item.id,
-                    quantity: item.quantity
-                })),
-                ...(promo.code ? { promocode: promo.code } : {})
-            };
-            const { data } = await axios.post('/mono/create-payment', payload);
-            if (data.url) {
-                // Небольшая задержка для отображения сообщения перед перенаправлением
-                await new Promise(resolve => setTimeout(resolve, 500));
-                window.location.href = data.url;
-            } else {
-                toast.error(t('checkout.payment_error'));
-            }
-        }
-    } catch (error) {
-        console.error('Mono payment error:', error);
-        const errMsg =
-            (error && (error as any).response?.data?.message) || t('checkout.payment_error');
-        toast.error(errMsg as string);
-    }
-};
-
-const processCryptoPayment = async () => {
-    try {
-        // Проверяем, гость или авторизованный пользователь
-        const isGuest = !authStore.isAuthenticated;
-
-        if (isGuest) {
-            // Гостевой платеж (только для товаров)
-            if (!guestEmail.value || !guestEmail.value.trim()) {
-                toast.error(t('checkout.guest_email_required_short'));
-                return;
-            }
-
-            const payload = {
-                guest_email: guestEmail.value.trim(),
-                products: productCartStore.items.map(item => ({
-                    id: item.id,
-                    quantity: item.quantity
-                })),
-                ...(promo.code ? { promocode: promo.code } : {})
-            };
-
-            const { data } = await axios.post('/guest/cryptomus/create-payment', payload);
-            if (data.url) {
-                // Небольшая задержка для отображения сообщения перед перенаправлением
-                await new Promise(resolve => setTimeout(resolve, 500));
-                window.location.href = data.url;
-            } else {
-                toast.error(t('checkout.payment_error'));
-            }
-        } else {
-            // Авторизованный пользователь
-            const payload = {
-                products: productCartStore.items.map(item => ({
-                    id: item.id,
-                    quantity: item.quantity
-                })),
-                ...(promo.code ? { promocode: promo.code } : {})
-            };
-            const { data } = await axios.post('/cryptomus/create-payment', payload);
-            if (data.url) {
-                // Небольшая задержка для отображения сообщения перед перенаправлением
-                await new Promise(resolve => setTimeout(resolve, 500));
-                window.location.href = data.url;
-            } else {
-                toast.error(t('checkout.payment_error'));
-            }
-        }
-    } catch (error) {
-        console.error('Crypto payment error:', error);
-        const errMsg =
-            (error && (error as any).response?.data?.message) || t('checkout.payment_error');
-        toast.error(errMsg as string);
-    }
-};
-
-const buyFree = async () => {
-    try {
-        // For products, free purchases are handled differently
-        // This might need to be implemented if free products are needed
-        await authStore.fetchUser();
-        promo.clear();
-        inputCode.value = '';
-        toast.success(t('checkout.free_success'));
-        await router.push('/');
-    } catch (error) {
-        console.error('Free order error:', error);
-        const errMsg =
-            (error && (error as any).response?.data?.message) || t('checkout.payment_error');
-        toast.error(errMsg as string);
-    }
-};
-
-const processBalancePayment = async () => {
-    // Показываем сообщение о подготовке заказа
-    loadingStore.start(t('checkout.preparing_product'));
-    try {
-        // Проверяем достаточно ли средств на балансе
-        if (authStore.user && authStore.user.balance < finalTotal.value) {
-            toast.error(t('checkout.insufficient_balance'));
-            loadingStore.stop();
-            return;
-        }
-
-        // Submit products purchase with balance
-        const payload = {
-            products: productCartStore.items.map(item => ({
-                id: item.id,
-                quantity: item.quantity
-            })),
-            payment_method: 'balance',
-            ...(promo.code ? { promocode: promo.code } : {})
-        };
-
-        await axios.post('/cart', payload);
-
-        productCartStore.clearCart();
-        await authStore.fetchUser();
-        promo.clear();
-        inputCode.value = '';
-        toast.success(t('checkout.balance_success'));
-        
-        // НЕ скрываем прелоадер! Переходим с видимым сообщением "Подготовка товара к выдаче"
-        // Прелоадер будет скрыт на OrderSuccessPage после загрузки данных
-        await router.push('/order-success');
-    } catch (error) {
-        console.error('Balance payment error:', error);
-        const errMsg =
-            (error && (error as any).response?.data?.message) ||
-            t('checkout.balance_payment_error');
-        toast.error(errMsg as string);
-        // Только при ошибке скрываем прелоадер
-        loadingStore.stop();
-    }
-    // УБРАН finally блок - прелоадер остается видимым до выдачи товара
-};
+// Платёжные потоки вынесены в композабл (mono/crypto/balance/free)
+const { processMonoPayment, processCryptoPayment, buyFree, processBalancePayment } =
+    useCheckoutPayment({ guestEmail, inputCode, finalTotal });
 
 async function onApply() {
     if (applyTimer) {
