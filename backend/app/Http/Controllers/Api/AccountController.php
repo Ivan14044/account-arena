@@ -40,7 +40,7 @@ class AccountController extends Controller
             return $accounts->map(function ($account) {
                 // Используем значение из JSON_LENGTH если оно есть
                 if ($account->requiresManualDelivery()) {
-                    $availableCount = $account->is_active ? 999 : 0;
+                    $availableCount = $account->is_active ? ServiceAccount::UNLIMITED_STOCK : 0;
                     $totalQuantity = 0;
                     $soldCount = 0;
                 } else {

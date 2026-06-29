@@ -35,6 +35,9 @@ class ProductDispute extends Model
         'resolved_at' => 'datetime',
     ];
 
+    /** Окно подачи претензии после покупки, в днях. */
+    public const DISPUTE_WINDOW_DAYS = 30;
+
     // Константы для статусов
     const STATUS_NEW = 'new';
     const STATUS_IN_REVIEW = 'in_review';
