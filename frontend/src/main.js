@@ -9,7 +9,6 @@ import piniaPluginPersistedstate from 'pinia-plugin-persistedstate';
 import './assets/app.css';
 import Toast, { POSITION } from 'vue-toastification';
 import 'vue-toastification/dist/index.css';
-import Vue3Lottie from 'vue3-lottie';
 import IntersectDirective from './directives/intersect';
 import SafeHtmlDirective from './directives/safeHtml';
 import { initPerformanceOptimizations } from './utils/performance';
@@ -40,7 +39,6 @@ app.use(Toast, {
     timeout: 5000,
     transition: 'Vue-Toastification__fade'
 });
-app.use(Vue3Lottie);
 app.directive('intersect', IntersectDirective);
 app.directive('safe-html', SafeHtmlDirective);
 
