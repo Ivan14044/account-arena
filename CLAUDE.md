@@ -31,8 +31,10 @@
 ```bash
 source ~/.local/toolchain/env.sh   # PHP 8.3 + Node 22 + Composer → в PATH
 ```
+- **Полноценный локальный запуск (одна команда):** `./scripts/start.sh` поднимает MySQL+Redis в Docker (`docker-compose.yml`), готовит `backend/.env`, ставит зависимости, прогоняет миграции, сидит демо-данные (admin + товары) и запускает backend (`:8000`) + Vite (`:3000`). Остановка — `./scripts/stop.sh`; пересоздать базу с нуля — `./scripts/start.sh --fresh`. Инструкция — `docs/LOCAL_DEV.md`. Это даёт **реальную MySQL** для проверок, которые sqlite-тесты не покрывают. PHP/Node берутся из тулчейна, MySQL/Redis — из Docker (гибрид).
 - **Backend (Laravel):** `cd backend && php artisan test` — тесты на sqlite `:memory:` (см. `phpunit.xml`).
   **Критерий приёмки:** не вводить **НОВЫХ** падений относительно базлайна. ~15 падений — пред-существующие sqlite-артефакты (case-insensitive collation, `/`→404 без SSR-индекса, `supplier_id` NOT NULL на sqlite); в идеале со временем довести до нуля. Также: `php -l`, `php artisan route:list`.
+- **Миграции проверяй на чистой MySQL, а не только на sqlite.** Laravel на sqlite молча игнорирует `->after('column')` и часть DDL, поэтому MySQL-only дефекты тесты **НЕ ловят** (реальный пример: `->after('type')` на колонку, которую добавляет более поздняя миграция → на MySQL падает `Unknown column 'type'`, на sqlite — нет). Для любого изменения схемы прогоняй `./scripts/start.sh --fresh` (полный `migrate` на чистой MySQL). При `->after()` убеждайся, что колонка уже существует на этом шаге (или гардь через `Schema::hasColumn(...)`).
 - **Frontend (Vue 3/Vite):** `cd frontend && npx vite build && npx vue-tsc --noEmit`. eslint содержит много пред-существующего prettier-шума (не баги) — по возможности форматируй только новые/тронутые файлы.
 - `backend/bootstrap/cache/*.php` — генерируемый кэш, не коммить (`git checkout -- backend/bootstrap/cache/`).
 - `CLAUDE.md` и `docs/**` **отслеживаются** (исправлено в `.gitignore`); прочие случайные `*.md` в корне игнорируются намеренно. Доки/правила коммить как обычные файлы — `git add -f` больше не нужен.

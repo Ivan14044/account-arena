@@ -172,15 +172,18 @@ stop_pid "$STATE/backend.pid"
 stop_pid "$STATE/frontend.pid"
 
 # --- 8. Запускаю бэкенд и фронтенд в фоне ------------------------------------
+# disown — чтобы серверы пережили закрытие окна Терминала (запуск двойным кликом).
 say "Запускаю бэкенд (порт 8000)…"
 ( cd "$BACKEND" && exec php artisan serve --host=127.0.0.1 --port=8000 ) \
   >"$LOGS/backend.log" 2>&1 &
 echo $! > "$STATE/backend.pid"
+disown 2>/dev/null || true
 
 say "Запускаю фронтенд (порт 3000)…"
 ( cd "$FRONTEND" && exec npm run dev ) \
   >"$LOGS/frontend.log" 2>&1 &
 echo $! > "$STATE/frontend.pid"
+disown 2>/dev/null || true
 
 # Ждём, пока фронт реально откликнется
 say "Жду готовности сайта…"
