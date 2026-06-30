@@ -572,6 +572,8 @@ import { ref, onMounted, onUnmounted, nextTick, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useAuthStore } from '@/stores/auth';
 import axios from '@/bootstrap';
+import { useChatNotifications } from '@/composables/useChatNotifications';
+import { useChatFormatters } from '@/composables/useChatFormatters';
 
 const { t } = useI18n();
 const authStore = useAuthStore();
@@ -597,8 +599,6 @@ const isLoadingChatHistory = ref(false);
 let pollInterval: number | null = null;
 // const previousMessagesCount = ref(0);
 const previousUnreadCountForSound = ref(0);
-const notificationPermission = ref<NotificationPermission>('default');
-const soundEnabled = ref(true); // Можно сделать настраиваемым
 const isTyping = ref(false);
 const adminIsTyping = ref(false);
 let typingTimeout: number | null = null;
@@ -610,60 +610,13 @@ const selectedRating = ref<number>(0);
 const ratingComment = ref<string>('');
 
 // Звуковые уведомления
-const playNotificationSound = () => {
-    if (!soundEnabled.value) return;
+// Уведомления (звук + браузерные) вынесены в композабл
+const { playNotificationSound, requestNotificationPermission, showBrowserNotification } =
+    useChatNotifications({ isChatOpen, onActivate: () => toggleChat() });
 
-    try {
-        const audio = new Audio('/sounds/notification.mp3');
-        audio.volume = 0.3; // 30% громкости
-        audio.play().catch(() => {
-            // Игнорируем ошибки (например, если пользователь не взаимодействовал со страницей)
-        });
-    } catch (error) {
-        console.debug('Failed to play notification sound:', error);
-    }
-};
-
-// Browser Notifications
-const requestNotificationPermission = async () => {
-    if (!('Notification' in window)) {
-        return;
-    }
-
-    if (Notification.permission === 'default') {
-        notificationPermission.value = await Notification.requestPermission();
-    } else {
-        notificationPermission.value = Notification.permission;
-    }
-};
-
-const showBrowserNotification = (title: string, body: string, icon?: string) => {
-    if (Notification.permission !== 'granted') return;
-    if (document.visibilityState === 'visible' && isChatOpen.value) return; // Не показывать если чат открыт
-
-    try {
-        const notification = new Notification(title, {
-            body,
-            icon: icon || '/favicon.ico',
-            badge: '/favicon.ico',
-            tag: 'support-chat',
-            requireInteraction: false
-        });
-
-        notification.onclick = () => {
-            window.focus();
-            notification.close();
-            if (!isChatOpen.value) {
-                toggleChat();
-            }
-        };
-
-        // Автоматически закрывать через 5 секунд
-        setTimeout(() => notification.close(), 5000);
-    } catch (error) {
-        console.debug('Failed to show browser notification:', error);
-    }
-};
+// Форматтеры отображения чата вынесены в композабл
+const { getMessageSender, formatTime, formatDate, isImageAttachment, formatFileSize } =
+    useChatFormatters({ chat });
 
 // Загрузка настроек
 const loadSettings = async () => {
@@ -1211,25 +1164,6 @@ const removeFile = (index: number) => {
     selectedFiles.value.splice(index, 1);
 };
 
-const isImageAttachment = (attachment: any): boolean => {
-    const imageMimes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'];
-    return imageMimes.includes(attachment.mime_type);
-};
-
-const formatFileSize = (bytes: number): string => {
-    if (!bytes) return '0 B';
-    const units = ['B', 'KB', 'MB', 'GB'];
-    let size = bytes;
-    let unit = 0;
-
-    while (size >= 1024 && unit < units.length - 1) {
-        size /= 1024;
-        unit++;
-    }
-
-    return `${size.toFixed(2)} ${units[unit]}`;
-};
-
 // Отправка рейтинга качества поддержки
 const submitRating = async () => {
     if (!chat.value || !selectedRating.value) return;
@@ -1261,32 +1195,6 @@ const submitRating = async () => {
 };
 
 // Получить имя отправителя
-const getMessageSender = (message: any): string => {
-    if (message.sender_type === 'admin') {
-        return message.user?.name || t('supportChat.admin');
-    }
-    if (message.sender_type === 'guest') {
-        return chat.value?.guest_name || t('supportChat.guest');
-    }
-    return message.user?.name || authStore.user?.name || t('supportChat.you');
-};
-
-// Форматирование времени
-const formatTime = (dateString: string): string => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diff = now.getTime() - date.getTime();
-    const minutes = Math.floor(diff / 60000);
-
-    if (minutes < 1) return t('supportChat.justNow');
-    if (minutes < 60) return `${minutes} ${t('supportChat.minutesAgo')}`;
-
-    const hours = Math.floor(minutes / 60);
-    if (hours < 24) return `${hours} ${t('supportChat.hoursAgo')}`;
-
-    return date.toLocaleDateString();
-};
-
 // Загрузка истории чатов
 const loadChatHistory = async () => {
     if (!authStore.isAuthenticated || isLoadingChatHistory.value) return;
@@ -1375,36 +1283,6 @@ const selectChatFromHistory = async (historyChat: any) => {
 };
 
 // Форматирование даты для истории чатов
-const formatDate = (dateString: string | null | undefined): string => {
-    if (!dateString) return '';
-
-    try {
-        const date = new Date(dateString);
-        if (isNaN(date.getTime())) return '';
-
-        const now = new Date();
-        const diff = now.getTime() - date.getTime();
-        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-
-        if (days === 0) {
-            return date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
-        } else if (days === 1) {
-            return t('supportChat.yesterday');
-        } else if (days < 7) {
-            return date.toLocaleDateString('ru-RU', { weekday: 'short' });
-        } else {
-            return date.toLocaleDateString('ru-RU', {
-                day: '2-digit',
-                month: '2-digit',
-                year: '2-digit'
-            });
-        }
-    } catch (error) {
-        console.error('[SupportChat] Error formatting date:', error);
-        return '';
-    }
-};
-
 const newLine = () => {
     // Shift+Enter добавляет новую строку
 };
