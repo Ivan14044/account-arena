@@ -467,5 +467,19 @@ code { color: var(--aa-accent-700); background: var(--aa-accent-soft); padding: 
     .content-header h1, .content-header-modern h1 { font-size: 1.35rem !important; }
     .card { border-radius: var(--aa-r) !important; }
     .btn { width: 100%; }
-    .btn-group .btn, .btn.btn-sm, td .btn { width: auto; }
+    .btn-group .btn, .btn.btn-sm, td .btn, .pagination .btn, .page-link { width: auto; }
+
+    /* Stat-card grids: always 2-per-row on mobile (beats generic .row.mb-4 stacking) */
+    .row.mb-4 > .col-lg-3.col-md-6.col-6,
+    .row[class*="-stats"] > .col-6,
+    .row[class*="-stats"] > .col-lg-3,
+    .row.dashboard-stats-row > [class*="col-"] {
+        flex: 0 0 50% !important;
+        max-width: 50% !important;
+        padding-left: .35rem !important;
+        padding-right: .35rem !important;
+    }
+    .row.mb-4, .row[class*="-stats"] { margin-left: -.35rem; margin-right: -.35rem; }
+    .stat-card { padding: 1.1rem .8rem !important; }
+    .stat-card .stat-value, .stat-value { font-size: 1.5rem !important; }
 }
