@@ -79,6 +79,8 @@
 - User enumeration в forgot/reset (`exists:users,email`).
 - Dead code: `SupportMessageReaction`, `extractKeywords()`, `EmptyLayout`, осиротевшие Lottie.
 - Полная sqlite-портируемость остальных миграций (для зелёного тест-сьюта в CI).
+- **SSR `/categories` отдаёт 500** (`SQLSTATE 42S22: Unknown column 'is_active'`) — `SpaController::getCategoriesListMetaTags` строит запрос по несуществующей на этой таблице колонке `is_active`. Найдено при рефакторинге (step 12.12, SSR before/after diff); поведение сохранено намеренно. Фикс — отдельным PR.
+- **ProfilePage: автообновление processing-заказов и таймер «времени в обработке» никогда не работали** — `startProcessingOrdersPolling`/`startProcessingTimer` нигде не вызывались (мёртвый код удалён в step 12.5). Если автообновление нужно как фича — подключить `start*` в `onMounted` и `stop*` в `onBeforeUnmount`.
 
 ---
 
