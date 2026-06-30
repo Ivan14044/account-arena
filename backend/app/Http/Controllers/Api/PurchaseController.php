@@ -135,7 +135,7 @@ class PurchaseController extends Controller
 
         // Используем Policy для проверки прав
         if (!Gate::forUser($user)->allows('view', [$purchase, $guestEmail])) {
-            return response()->json(['error' => 'Forbidden'], 403);
+            return response()->json(['error' => 'Not found'], 404);
         }
         
         $productTitle = $purchase->serviceAccount ? [
@@ -186,7 +186,7 @@ class PurchaseController extends Controller
 
         // Используем Policy для проверки прав
         if (!Gate::forUser($user)->allows('download', [$purchase, $guestEmail])) {
-            return response()->json(['error' => 'Forbidden'], 403);
+            return response()->json(['error' => 'Not found'], 404);
         }
         
         $accountData = $purchase->account_data;
@@ -216,7 +216,7 @@ class PurchaseController extends Controller
 
         // Используем Policy для проверки прав
         if (!Gate::forUser($user)->allows('view', [$purchase, $guestEmail])) {
-            return response()->json(['error' => 'Forbidden'], 403);
+            return response()->json(['error' => 'Not found'], 404);
         }
 
         // Валидация причины отмены
@@ -292,7 +292,7 @@ class PurchaseController extends Controller
 
         // Используем Policy для проверки прав
         if (!Gate::forUser($user)->allows('view', [$purchase, $guestEmail])) {
-            return response()->json(['error' => 'Forbidden'], 403);
+            return response()->json(['error' => 'Not found'], 404);
         }
         
         // Получаем полную историю статусов (без лимита)
