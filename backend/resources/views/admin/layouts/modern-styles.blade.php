@@ -348,7 +348,7 @@
 
 .sort-label {
     font-size: 0.875rem;
-    color: #6c757d;
+    color: #64708a;
     margin-bottom: 0;
     white-space: nowrap;
 }
@@ -575,7 +575,7 @@
 
 .alert-info {
     background: #dbeafe;
-    border-left-color: #3b82f6;
+    border-left-color: #4f46e5;
     color: #1e3a8a;
 }
 

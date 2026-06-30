@@ -880,7 +880,7 @@
         }
         
         .drag-handle:hover {
-            color: #007bff !important;
+            color: #4f46e5 !important;
         }
         
         .sortable-row:hover {
