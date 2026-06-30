@@ -85,8 +85,8 @@
 - ✅ **SSR `/categories` → 500 — ИСПРАВЛЕНО** (PR #44): `categories` не имеет колонок `is_active`/`sort_order` (запрос падал дважды). Теперь `Category::productCategories()->orderBy('id')`. Проверено реальным SSR на MySQL (500→200).
 - **ProfilePage: автообновление processing-заказов/таймер никогда не работали** — `start*` не вызывались (мёртвый код удалён в step 12.5). Это **фича-решение** (нужно ли авто-refresh + нагрузка на сервер), а не баг рефакторинга — намеренно НЕ включал. Если нужно — `start*` в `onMounted`, `stop*` в `onBeforeUnmount`.
 
-### ⏳ Новая находка (отдельный баг, требует разбора)
-- **SSR страница-деталь `/categories/{slug}` → 404 даже для существующего slug** — `SpaController::getCategoryMetaTags` не резолвит категорию (slug есть в списке `/categories`, но деталь отдаёт 404 → плохо для SEO). Найдено при QA фикса #44. Требует разбора логики lookup (slug/id/видимость).
+### ✅ Исправлено (продолжение)
+- ✅ **SSR `/categories/{slug}` деталь → 404 — ИСПРАВЛЕНО** (PR #47): причина — `generateCategoryContent` запрашивал несуществующую колонку `service_accounts.stock_count`; QueryException молча сворачивался в 404 в `getCategoryMetaTags`. Убран `stock_count`, фильтр продуктов приведён к каталожному (`is_active` + видимость по модерации); в catch добавлен `\Log::warning` (ошибки рендера больше не маскируются под 404). Проверено реальным SSR на MySQL: 404→200.
 
 ---
 
