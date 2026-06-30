@@ -6,7 +6,14 @@ use App\Models\Promocode;
 
 class PromocodeValidationService
 {
-    public function validate(string $code, ?int $userId = null): array
+    /**
+     * Лимит использований одного промокода одним гостем (по email).
+     * У гостей нет user_id, поэтому per_user_limit к ним не применяется —
+     * вместо этого действует фиксированный гостевой лимит.
+     */
+    public const GUEST_USAGE_LIMIT = 5;
+
+    public function validate(string $code, ?int $userId = null, ?string $guestEmail = null): array
     {
         $code = trim($code);
         if ($code === '') {
@@ -67,9 +74,21 @@ class PromocodeValidationService
             }
         }
         
-        // ПРИМЕЧАНИЕ: Для гостей (userId = null) per_user_limit не проверяется
-        // Это может позволить гостю использовать промокод несколько раз
-        // Если требуется ограничение для гостей, нужно добавить проверку по email или IP
+        // Гостевой лимит: один email может использовать промокод не более
+        // GUEST_USAGE_LIMIT раз (у гостей нет user_id для per_user_limit).
+        if (!$userId && $guestEmail) {
+            $guestUsed = \DB::table('promocode_usages')
+                ->where('promocode_id', $promocode->id)
+                ->where('guest_email', mb_strtolower(trim($guestEmail)))
+                ->count();
+            if ($guestUsed >= self::GUEST_USAGE_LIMIT) {
+                return [
+                    'ok' => false,
+                    'status' => 'guest_limit',
+                    'message' => __('promocodes.per_user_limit'),
+                ];
+            }
+        }
 
         $payload = [
             'ok' => true,
