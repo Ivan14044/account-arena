@@ -186,7 +186,7 @@
                                 <span class="badge badge-light font-weight-bold">#{{ $promocode->id }}</span>
                             </td>
                             <td class="align-middle">
-                                <code style="font-size: 0.95rem; background: #f8f9fc; padding: 0.25rem 0.5rem; border-radius: 0.25rem; border: 1px solid #e3e6f0; font-weight: 600;">
+                                <code style="font-size: 0.95rem; background: #f8f9fc; padding: 0.25rem 0.5rem; border-radius: 0.25rem; border: 1px solid #e8ebf3; font-weight: 600;">
                                     {{ $promocode->code }}
                                 </code>
                                 @if($promocode->prefix)

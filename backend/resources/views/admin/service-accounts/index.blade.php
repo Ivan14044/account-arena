@@ -286,12 +286,12 @@
                                     <img src="{{ $serviceAccount->image_url }}" 
                                          alt="{{ $serviceAccount->title }}" 
                                          class="rounded"
-                                         style="width: 50px; height: 50px; object-fit: cover; border: 1px solid #e3e6f0;">
+                                         style="width: 50px; height: 50px; object-fit: cover; border: 1px solid #e8ebf3;">
                                 @else
                                     <img src="{{ asset('img/logo_trans.webp') }}" 
                                          alt="Логотип" 
                                          class="rounded"
-                                         style="width: 50px; height: 50px; object-fit: contain; padding: 5px; background: #f8f9fc; border: 1px solid #e3e6f0; opacity: 0.6;">
+                                         style="width: 50px; height: 50px; object-fit: contain; padding: 5px; background: #f8f9fc; border: 1px solid #e8ebf3; opacity: 0.6;">
                                 @endif
                             </td>
                             <td class="align-middle">
@@ -798,7 +798,7 @@
             left: 0;
             right: 0;
             background: #ffffff;
-            border-top: 2px solid #e3e6f0;
+            border-top: 2px solid #e8ebf3;
             box-shadow: 0 -2px 8px rgba(0,0,0,0.08);
             z-index: 1050;
         }
@@ -808,13 +808,13 @@
         }
 
         .bulk-actions-panel strong {
-            color: #2c3e50;
+            color: #1e2433;
             font-weight: 600;
             font-size: 0.9375rem;
         }
 
         .bulk-actions-panel #selected-count {
-            color: #4e73df;
+            color: #4f46e5;
             font-weight: 700;
         }
 
@@ -844,8 +844,8 @@
         }
 
         .product-checkbox:checked {
-            background-color: #4e73df;
-            border-color: #4e73df;
+            background-color: #4f46e5;
+            border-color: #4f46e5;
         }
 
         /* Выделение выбранных строк */
@@ -880,7 +880,7 @@
         }
         
         .drag-handle:hover {
-            color: #007bff !important;
+            color: #4f46e5 !important;
         }
         
         .sortable-row:hover {
@@ -1023,7 +1023,7 @@
         
         .btn-category-sub.active {
             background: white;
-            color: #4e73df;
+            color: #4f46e5;
             box-shadow: 0 2px 4px rgba(0,0,0,0.08);
         }
         
@@ -1056,7 +1056,7 @@
         /* Стили для бейджей с количеством товаров */
         .badge-light {
             background-color: rgba(255, 255, 255, 0.8);
-            color: #5a6c7d;
+            color: #64708a;
             font-weight: 600;
             font-size: 0.75rem;
             padding: 0.25rem 0.5rem;
@@ -1066,7 +1066,7 @@
         
         .btn-filter.active .badge-light {
             background-color: rgba(255, 255, 255, 0.95);
-            color: #4e73df;
+            color: #4f46e5;
         }
         
         .btn-category-sub .badge-light {
@@ -1077,7 +1077,7 @@
         
         .btn-category-sub.active .badge-light {
             background-color: rgba(255, 255, 255, 0.9);
-            color: #4e73df;
+            color: #4f46e5;
         }
         
         /* Адаптивность */

@@ -17,13 +17,13 @@
 /* ЗАГОЛОВОК СТРАНИЦЫ */
 .content-header-modern h1 {
     font-size: 1.75rem;
-    color: #2c3e50;
+    color: #1e2433;
     letter-spacing: -0.5px;
     font-weight: 300;
 }
 
 .content-header-modern p {
-    color: #858796;
+    color: #64708a;
     font-size: 0.875rem;
     margin-top: 0.5rem;
 }
@@ -50,7 +50,7 @@
 /* STAT CARDS (Карточки статистики) */
 .stat-card {
     background: white;
-    border: 1px solid #e3e6f0;
+    border: 1px solid #e8ebf3;
     border-radius: 0.75rem;
     padding: 1.5rem;
     margin-bottom: 1rem;
@@ -97,23 +97,23 @@
 
 .stat-card-primary .stat-icon {
     background: rgba(78, 115, 223, 0.1);
-    color: #4e73df;
+    color: #4f46e5;
 }
 .stat-card-success .stat-icon {
     background: rgba(28, 200, 138, 0.1);
-    color: #1cc88a;
+    color: #16a34a;
 }
 .stat-card-info .stat-icon {
     background: rgba(54, 185, 204, 0.1);
-    color: #36b9cc;
+    color: #0e7490;
 }
 .stat-card-warning .stat-icon {
     background: rgba(246, 194, 62, 0.1);
-    color: #f6c23e;
+    color: #c2740a;
 }
 .stat-card-danger .stat-icon {
     background: rgba(231, 74, 59, 0.1);
-    color: #e74a3b;
+    color: #dc2626;
 }
 
 .stat-content {
@@ -128,7 +128,7 @@
 
 .stat-label {
     font-size: 0.75rem;
-    color: #858796;
+    color: #64708a;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     font-weight: 500;
@@ -148,7 +148,7 @@
 .stat-value {
     font-size: 2.25rem;
     font-weight: 700;
-    color: #2c3e50;
+    color: #1e2433;
     line-height: 1.2;
     margin-bottom: 0.75rem;
     text-align: center;
@@ -168,24 +168,24 @@
     justify-content: center;
     margin-bottom: 0.75rem;
     font-size: 2rem;
-    color: #4e73df;
+    color: #4f46e5;
     opacity: 0.8;
 }
 
 .stat-card-primary .stat-icon-bottom {
-    color: #4e73df;
+    color: #4f46e5;
 }
 .stat-card-success .stat-icon-bottom {
-    color: #1cc88a;
+    color: #16a34a;
 }
 .stat-card-info .stat-icon-bottom {
-    color: #36b9cc;
+    color: #0e7490;
 }
 .stat-card-warning .stat-icon-bottom {
-    color: #f6c23e;
+    color: #c2740a;
 }
 .stat-card-danger .stat-icon-bottom {
-    color: #e74a3b;
+    color: #dc2626;
 }
 
 /* Ссылки "Подробнее" в карточках статистики */
@@ -197,24 +197,24 @@
     align-items: center;
     align-self: flex-start;
     margin-top: auto;
-    color: #4e73df;
+    color: #4f46e5;
     transition: all 0.2s ease;
 }
 
 .stat-card-primary .stat-link {
-    color: #4e73df;
+    color: #4f46e5;
 }
 .stat-card-success .stat-link {
-    color: #1cc88a;
+    color: #16a34a;
 }
 .stat-card-info .stat-link {
-    color: #36b9cc;
+    color: #0e7490;
 }
 .stat-card-warning .stat-link {
-    color: #f6c23e;
+    color: #c2740a;
 }
 .stat-card-danger .stat-link {
-    color: #e74a3b;
+    color: #dc2626;
 }
 
 .stat-link:hover {
@@ -291,7 +291,7 @@
 
 /* КАРТОЧКИ */
 .card-modern {
-    border: 1px solid #e3e6f0;
+    border: 1px solid #e8ebf3;
     border-radius: 0.5rem;
     box-shadow: 0 2px 8px rgba(0,0,0,0.05);
     overflow: hidden;
@@ -299,7 +299,7 @@
 
 .card-header-modern {
     background: white;
-    border-bottom: 2px solid #e3e6f0;
+    border-bottom: 2px solid #e8ebf3;
     padding: 1.25rem 1.5rem;
     overflow: hidden;
 }
@@ -310,13 +310,13 @@
 
 .card-header-modern h5,
 .card-header-modern h3 {
-    color: #2c3e50;
+    color: #1e2433;
     font-weight: 500;
     margin-bottom: 0;
 }
 
 .card-header-modern small {
-    color: #858796;
+    color: #64708a;
     font-size: 0.875rem;
 }
 
@@ -348,7 +348,7 @@
 
 .sort-label {
     font-size: 0.875rem;
-    color: #6c757d;
+    color: #64708a;
     margin-bottom: 0;
     white-space: nowrap;
 }
@@ -379,7 +379,7 @@
 .btn-filter {
     background: transparent;
     border: none;
-    color: #5a6c7d;
+    color: #64708a;
     padding: 0.5rem 1rem;
     font-size: 0.875rem;
     font-weight: 500;
@@ -389,12 +389,12 @@
 
 .btn-filter:hover {
     background: rgba(0,0,0,0.05);
-    color: #2c3e50;
+    color: #1e2433;
 }
 
 .btn-filter.active {
     background: white;
-    color: #4e73df;
+    color: #4f46e5;
     box-shadow: 0 2px 4px rgba(0,0,0,0.08);
 }
 
@@ -407,8 +407,8 @@
 .modern-table thead th {
     background: #f8f9fc;
     border-top: none;
-    border-bottom: 2px solid #e3e6f0;
-    color: #5a6c7d;
+    border-bottom: 2px solid #e8ebf3;
+    color: #64708a;
     font-weight: 600;
     text-transform: uppercase;
     font-size: 0.75rem;
@@ -480,7 +480,7 @@
 
 .form-label-modern {
     font-weight: 600;
-    color: #2c3e50;
+    color: #1e2433;
     font-size: 0.875rem;
     margin-bottom: 0.5rem;
     display: block;
@@ -497,7 +497,7 @@
 }
 
 .form-control-modern:focus {
-    border-color: #4e73df;
+    border-color: #4f46e5;
     box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.1);
     outline: none;
 }
@@ -506,14 +506,14 @@
 .section-title {
     font-size: 1.125rem;
     font-weight: 600;
-    color: #2c3e50;
+    color: #1e2433;
     margin-bottom: 1.5rem;
     padding-bottom: 0.75rem;
-    border-bottom: 2px solid #e3e6f0;
+    border-bottom: 2px solid #e8ebf3;
 }
 
 .section-divider {
-    border-top: 2px solid #e3e6f0;
+    border-top: 2px solid #e8ebf3;
     margin: 2rem 0;
 }
 
@@ -526,13 +526,13 @@
 
 .modal-header-modern {
     background: #f8f9fc;
-    border-bottom: 2px solid #e3e6f0;
+    border-bottom: 2px solid #e8ebf3;
     padding: 1.5rem 2rem;
 }
 
 .modal-header-modern .modal-title {
     font-weight: 600;
-    color: #2c3e50;
+    color: #1e2433;
     font-size: 1.125rem;
 }
 
@@ -542,7 +542,7 @@
 
 .modal-footer-modern {
     background: #f8f9fc;
-    border-top: 2px solid #e3e6f0;
+    border-top: 2px solid #e8ebf3;
     padding: 1.25rem 2rem;
 }
 
@@ -575,7 +575,7 @@
 
 .alert-info {
     background: #dbeafe;
-    border-left-color: #3b82f6;
+    border-left-color: #4f46e5;
     color: #1e3a8a;
 }
 
@@ -614,27 +614,27 @@
 
 /* ПАГИНАЦИЯ */
 .pagination-modern .page-link {
-    border: 1px solid #e3e6f0;
-    color: #5a6c7d;
+    border: 1px solid #e8ebf3;
+    color: #64708a;
     margin: 0 2px;
     border-radius: 0.25rem;
 }
 
 .pagination-modern .page-link:hover {
     background: #f8f9fc;
-    border-color: #4e73df;
-    color: #4e73df;
+    border-color: #4f46e5;
+    color: #4f46e5;
 }
 
 .pagination-modern .page-item.active .page-link {
-    background: #4e73df;
-    border-color: #4e73df;
+    background: #4f46e5;
+    border-color: #4f46e5;
 }
 
 /* ТИПОГРАФИКА */
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    color: #2c3e50;
+    color: #1e2433;
 }
 
 .font-weight-light {
@@ -646,14 +646,14 @@ body {
 }
 
 .text-muted {
-    color: #858796 !important;
+    color: #64708a !important;
 }
 
 /* EMPTY STATE */
 .empty-state {
     text-align: center;
     padding: 4rem 2rem;
-    color: #858796;
+    color: #64708a;
 }
 
 .empty-state i {
@@ -673,7 +673,7 @@ body {
 
 /* ТАБЫ */
 .nav-tabs-modern {
-    border-bottom: 2px solid #e3e6f0;
+    border-bottom: 2px solid #e8ebf3;
     padding: 0 1.5rem;
     display: flex;
     flex-wrap: nowrap;
@@ -708,7 +708,7 @@ body {
 
 .nav-tabs-modern .nav-link {
     border: none;
-    color: #5a6c7d;
+    color: #64708a;
     padding: 1rem 1.5rem;
     font-weight: 500;
     transition: all 0.2s ease;
@@ -717,19 +717,19 @@ body {
 }
 
 .nav-tabs-modern .nav-link:hover {
-    color: #4e73df;
-    border-bottom-color: #e3e6f0;
+    color: #4f46e5;
+    border-bottom-color: #e8ebf3;
 }
 
 .nav-tabs-modern .nav-link.active {
-    color: #4e73df;
+    color: #4f46e5;
     background: transparent;
-    border-bottom-color: #4e73df;
+    border-bottom-color: #4f46e5;
 }
 
 /* ДОПОЛНИТЕЛЬНЫЕ УТИЛИТЫ */
 .border-modern {
-    border: 1px solid #e3e6f0 !important;
+    border: 1px solid #e8ebf3 !important;
 }
 
 .bg-modern {
@@ -737,15 +737,15 @@ body {
 }
 
 .text-primary-modern {
-    color: #4e73df !important;
+    color: #4f46e5 !important;
 }
 
 .text-success-modern {
-    color: #1cc88a !important;
+    color: #16a34a !important;
 }
 
 .text-danger-modern {
-    color: #e74a3b !important;
+    color: #dc2626 !important;
 }
 
 /* RESPONSIVE - MOBILE OPTIMIZATIONS */
@@ -902,7 +902,7 @@ body {
     
     .btn-category-sub {
         background-color: #f8f9fa;
-        border-left: 3px solid #4e73df;
+        border-left: 3px solid #4f46e5;
     }
     
     /* ========================================
@@ -977,7 +977,7 @@ body {
         .products-table tr {
             display: block;
             width: 100%;
-            border: 1px solid #e3e6f0;
+            border: 1px solid #e8ebf3;
             border-radius: 0.75rem;
             margin-bottom: 1rem;
             padding: 1rem;
@@ -1011,17 +1011,17 @@ body {
             right: 1rem;
             width: auto;
             padding: 0.25rem 0.75rem;
-            background: #e3e6f0;
+            background: #e8ebf3;
             border-radius: 1rem;
             font-size: 0.75rem;
             font-weight: 600;
-            color: #5a6c7d;
+            color: #64708a;
         }
         
         /* SKU */
         .products-table td:nth-child(4) {
             font-size: 0.75rem;
-            color: #858796;
+            color: #64708a;
             margin-bottom: 0.5rem;
         }
         
@@ -1045,7 +1045,7 @@ body {
         .products-table td:nth-child(6) {
             font-size: 1rem;
             font-weight: 600;
-            color: #2c3e50;
+            color: #1e2433;
             margin-bottom: 0.75rem;
             padding-top: 0;
         }
@@ -1054,7 +1054,7 @@ body {
         .products-table td:nth-child(7) {
             clear: both;
             font-size: 0.875rem;
-            color: #5a6c7d;
+            color: #64708a;
             margin-bottom: 0.5rem;
         }
         
@@ -1065,7 +1065,7 @@ body {
         /* Supplier */
         .products-table td:nth-child(8) {
             font-size: 0.875rem;
-            color: #5a6c7d;
+            color: #64708a;
             margin-bottom: 0.5rem;
         }
         
@@ -1077,7 +1077,7 @@ body {
         .products-table td:nth-child(9) {
             font-size: 1.25rem;
             font-weight: 700;
-            color: #1cc88a;
+            color: #16a34a;
             margin-bottom: 0.5rem;
         }
         
@@ -1090,7 +1090,7 @@ body {
             border-radius: 0.375rem;
             font-size: 0.875rem;
             font-weight: 600;
-            color: #4e73df;
+            color: #4f46e5;
             margin-right: 0.5rem;
             margin-bottom: 0.5rem;
         }
@@ -1108,7 +1108,7 @@ body {
             border-radius: 0.375rem;
             font-size: 0.875rem;
             font-weight: 600;
-            color: #f6c23e;
+            color: #c2740a;
             margin-bottom: 0.5rem;
         }
         
@@ -1125,7 +1125,7 @@ body {
         /* Actions */
         .products-table td:nth-child(13) {
             padding-top: 1rem;
-            border-top: 1px solid #e3e6f0;
+            border-top: 1px solid #e8ebf3;
             margin-top: 1rem;
         }
         
@@ -1149,7 +1149,7 @@ body {
         /* Created Date */
         .products-table td:nth-child(14) {
             font-size: 0.75rem;
-            color: #858796;
+            color: #64708a;
             text-align: center;
             padding-top: 0.5rem;
             border-top: 1px solid #f8f9fa;
@@ -1595,7 +1595,7 @@ body {
 .input-group-sm .input-group-prepend .input-group-text {
     background-color: #f8f9fc;
     border-color: #d1d3e2;
-    color: #5a6c7d;
+    color: #64708a;
     padding: 0.375rem 0.75rem;
 }
 
@@ -1612,14 +1612,14 @@ body {
 }
 
 .input-group-sm .form-control:focus {
-    border-color: #4e73df;
+    border-color: #4f46e5;
     box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.1);
 }
 
 /* Улучшение spacing для форм с фильтрами */
 .form-label {
     font-weight: 500;
-    color: #5a6c7d;
+    color: #64708a;
     margin-bottom: 0.5rem;
     font-size: 0.875rem;
 }
@@ -1643,7 +1643,7 @@ body {
 /* Улучшение spacing для card-body с формами */
 .card-body.border-bottom {
     padding: 1.25rem;
-    border-bottom: 1px solid #e3e6f0 !important;
+    border-bottom: 1px solid #e8ebf3 !important;
 }
 
 /* Улучшение spacing для элементов в d-flex */
@@ -1663,14 +1663,14 @@ body {
 .dashboard-section-header {
     font-size: 1rem;
     font-weight: 600;
-    color: #5a6c7d;
+    color: #64708a;
     margin-bottom: 1rem;
     padding-bottom: 0.5rem;
-    border-bottom: 2px solid #e3e6f0;
+    border-bottom: 2px solid #e8ebf3;
 }
 
 .dashboard-section-header i {
-    color: #4e73df;
+    color: #4f46e5;
     margin-right: 0.5rem;
 }
 
@@ -1795,10 +1795,10 @@ body {
     }
     
     /* Force specific colors */
-    .manual-delivery-stats .stat-card-warning .stat-icon i { color: #f6c23e !important; }
-    .manual-delivery-stats .stat-card-success .stat-icon i { color: #1cc88a !important; }
-    .manual-delivery-stats .stat-card-info .stat-icon i { color: #36b9cc !important; }
-    .manual-delivery-stats .stat-card-primary .stat-icon i { color: #4e73df !important; }
+    .manual-delivery-stats .stat-card-warning .stat-icon i { color: #c2740a !important; }
+    .manual-delivery-stats .stat-card-success .stat-icon i { color: #16a34a !important; }
+    .manual-delivery-stats .stat-card-info .stat-icon i { color: #0e7490 !important; }
+    .manual-delivery-stats .stat-card-primary .stat-icon i { color: #4f46e5 !important; }
     
     /* Ensure content container is centered and full width */
     .manual-delivery-stats .stat-content {
@@ -1813,7 +1813,7 @@ body {
         font-size: 1.5rem !important;
         font-weight: 800 !important;
         margin-bottom: 0.25rem;
-        color: #2c3e50;
+        color: #1e2433;
         text-align: center !important;
         width: 100%;
         display: block;
@@ -1822,7 +1822,7 @@ body {
     .manual-delivery-stats .stat-label {
         font-size: 0.7rem !important;
         line-height: 1.2;
-        color: #858796;
+        color: #64708a;
         text-transform: uppercase;
         font-weight: 700;
         text-align: center !important;
@@ -1854,7 +1854,7 @@ body {
     .manual-delivery-table tr {
         display: block;
         width: 100%;
-        border: 1px solid #e3e6f0;
+        border: 1px solid #e8ebf3;
         border-radius: 0.75rem;
         margin-bottom: 1rem;
         padding: 1rem;
@@ -1875,7 +1875,7 @@ body {
     .manual-delivery-table td:nth-child(1) {
         font-size: 1.125rem;
         font-weight: 700;
-        color: #4e73df;
+        color: #4f46e5;
         border-bottom: 1px solid #f8f9fa;
         padding-bottom: 0.5rem !important;
         margin-bottom: 0.5rem;
@@ -1921,7 +1921,7 @@ body {
         display: block;
         font-size: 0.75rem;
         margin-top: 0.125rem;
-        color: #858796;
+        color: #64708a;
     }
     
     /* Product */
@@ -1929,7 +1929,7 @@ body {
         font-weight: 600;
         margin-bottom: 0.5rem;
         font-size: 0.9375rem;
-        color: #2c3e50;
+        color: #1e2433;
     }
     
     .manual-delivery-table td:nth-child(4):before {
@@ -1950,7 +1950,7 @@ body {
         width: 100%;
         text-align: center;
         background-color: #e7f3ff;
-        color: #4e73df;
+        color: #4f46e5;
     }
     
     .manual-delivery-table td:nth-child(6) {
@@ -1963,13 +1963,13 @@ body {
     
     .manual-delivery-table td:nth-child(6) strong {
         font-size: 1.125rem;
-        color: #1cc88a;
+        color: #16a34a;
     }
     
     /* Created */
     .manual-delivery-table td:nth-child(7) {
         font-size: 0.75rem;
-        color: #858796;
+        color: #64708a;
         margin-top: 0.5rem;
     }
     
@@ -1986,7 +1986,7 @@ body {
     .manual-delivery-table td:nth-child(9) {
         margin-top: 0.75rem;
         padding-top: 0.75rem !important;
-        border-top: 1px solid #e3e6f0;
+        border-top: 1px solid #e8ebf3;
     }
     
     .manual-delivery-table td:nth-child(9) .btn {
@@ -2072,7 +2072,7 @@ body {
     .purchases-table tr {
         display: block;
         width: 100%;
-        border: 1px solid #e3e6f0;
+        border: 1px solid #e8ebf3;
         border-radius: 0.75rem;
         margin-bottom: 1rem;
         padding: 1rem;
@@ -2113,7 +2113,7 @@ body {
         font-weight: 700;
         margin-bottom: 0.75rem;
         padding-bottom: 0.75rem !important;
-        border-bottom: 2px solid #e3e6f0;
+        border-bottom: 2px solid #e8ebf3;
     }
     
     .purchases-table td:nth-child(2):before {
@@ -2138,7 +2138,7 @@ body {
         display: block;
         font-size: 0.75rem;
         font-weight: 600;
-        color: #5a6c7d;
+        color: #64708a;
         text-transform: uppercase;
         margin-bottom: 0.375rem;
     }
@@ -2164,7 +2164,7 @@ body {
     .purchases-table td:nth-child(4) {
         font-size: 1rem;
         font-weight: 600;
-        color: #2c3e50;
+        color: #1e2433;
         margin-bottom: 0.75rem;
     }
     
@@ -2173,7 +2173,7 @@ body {
     }
     
     .purchases-table td:nth-child(4) a {
-        color: #2c3e50 !important;
+        color: #1e2433 !important;
         text-decoration: none;
     }
     
@@ -2199,7 +2199,7 @@ body {
     
     .purchases-table td:nth-child(6) .font-weight-bold {
         font-size: 1.25rem;
-        color: #1cc88a;
+        color: #16a34a;
     }
     
     .purchases-table td:nth-child(6) small {
@@ -2216,7 +2216,7 @@ body {
     .purchases-table td:nth-child(7):before {
         content: "📊 Статус: ";
         font-weight: 600;
-        color: #5a6c7d;
+        color: #64708a;
         margin-right: 0.5rem;
     }
     
@@ -2228,7 +2228,7 @@ body {
     /* Date */
     .purchases-table td:nth-child(8) {
         font-size: 0.875rem;
-        color: #858796;
+        color: #64708a;
         margin-bottom: 1rem;
     }
     
@@ -2251,7 +2251,7 @@ body {
     /* Actions */
     .purchases-table td:nth-child(9) {
         padding-top: 1rem !important;
-        border-top: 1px solid #e3e6f0;
+        border-top: 1px solid #e8ebf3;
     }
     
     .purchases-table td:nth-child(9) .btn {
@@ -2317,7 +2317,7 @@ body {
     .support-chats-table tr {
         display: block;
         width: 100%;
-        border: 1px solid #e3e6f0;
+        border: 1px solid #e8ebf3;
         border-radius: 0.75rem;
         margin-bottom: 1rem;
         padding: 1rem;
@@ -2328,7 +2328,7 @@ body {
     
     .support-chats-table tr.row-unread {
         background: rgba(78, 115, 223, 0.05);
-        border-left: 4px solid #4e73df;
+        border-left: 4px solid #4f46e5;
     }
     
     .support-chats-table tr:hover {
@@ -2361,7 +2361,7 @@ body {
     .support-chats-table td:nth-child(2) {
         margin-bottom: 0.75rem;
         padding-bottom: 0.75rem !important;
-        border-bottom: 2px solid #e3e6f0;
+        border-bottom: 2px solid #e8ebf3;
     }
     
     .support-chats-table td:nth-child(2) .d-flex {
@@ -2391,7 +2391,7 @@ body {
     /* Email/Contact */
     .support-chats-table td:nth-child(3) {
         font-size: 0.875rem;
-        color: #858796;
+        color: #64708a;
         margin-bottom: 0.75rem;
     }
     
@@ -2400,7 +2400,7 @@ body {
     }
     
     .support-chats-table td:nth-child(3) .text-info {
-        color: #36b9cc !important;
+        color: #0e7490 !important;
     }
     
     /* Source */
@@ -2439,7 +2439,7 @@ body {
     .support-chats-table td:nth-child(6):before {
         content: "👤 Назначен: ";
         font-weight: 600;
-        color: #5a6c7d;
+        color: #64708a;
     }
     
     .support-chats-table td:nth-child(6) .text-dark {
@@ -2453,7 +2453,7 @@ body {
     /* Last Activity */
     .support-chats-table td:nth-child(7) {
         font-size: 0.875rem;
-        color: #858796;
+        color: #64708a;
         margin-bottom: 0.75rem;
     }
     
@@ -2469,7 +2469,7 @@ body {
     .support-chats-table td:nth-child(8):before {
         content: "⭐ Оценка: ";
         font-weight: 600;
-        color: #5a6c7d;
+        color: #64708a;
         margin-right: 0.5rem;
     }
     
@@ -2490,7 +2490,7 @@ body {
     /* Actions */
     .support-chats-table td:nth-child(9) {
         padding-top: 1rem !important;
-        border-top: 1px solid #e3e6f0;
+        border-top: 1px solid #e8ebf3;
     }
     
     .support-chats-table td:nth-child(9) .action-buttons {
@@ -2587,7 +2587,7 @@ body {
     .dashboard-stats-row .stat-label {
         font-size: 0.7rem !important;
         font-weight: 600;
-        color: #5a6c7d;
+        color: #64708a;
         white-space: normal;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -2619,7 +2619,7 @@ body {
     .top-products-table tr {
         display: block;
         width: 100%;
-        border: 1px solid #e3e6f0;
+        border: 1px solid #e8ebf3;
         border-radius: 0.75rem;
         margin-bottom: 1rem;
         padding: 1rem;
@@ -2660,7 +2660,7 @@ body {
     
     .top-products-table td:nth-child(2):before {
         content: "Продано:";
-        color: #858796;
+        color: #64708a;
         font-size: 0.875rem;
     }
     
@@ -2674,7 +2674,7 @@ body {
     
     .top-products-table td:nth-child(3):before {
         content: "Выручка:";
-        color: #858796;
+        color: #64708a;
         font-size: 0.875rem;
     }
     
@@ -2761,10 +2761,10 @@ body {
     }
     
     /* Force specific colors */
-    .disputes-stats .stat-card-warning .stat-icon i { color: #f6c23e !important; }
-    .disputes-stats .stat-card-success .stat-icon i { color: #1cc88a !important; }
-    .disputes-stats .stat-card-info .stat-icon i { color: #36b9cc !important; }
-    .disputes-stats .stat-card-danger .stat-icon i { color: #e74a3b !important; }
+    .disputes-stats .stat-card-warning .stat-icon i { color: #c2740a !important; }
+    .disputes-stats .stat-card-success .stat-icon i { color: #16a34a !important; }
+    .disputes-stats .stat-card-info .stat-icon i { color: #0e7490 !important; }
+    .disputes-stats .stat-card-danger .stat-icon i { color: #dc2626 !important; }
     
     .disputes-stats .stat-content {
         width: 100% !important;
@@ -2778,7 +2778,7 @@ body {
         font-size: 1.5rem !important;
         font-weight: 800 !important;
         margin-bottom: 0.25rem;
-        color: #2c3e50;
+        color: #1e2433;
         text-align: center !important;
         width: 100%;
         display: block;
@@ -2787,7 +2787,7 @@ body {
     .disputes-stats .stat-label {
         font-size: 0.7rem !important;
         line-height: 1.2;
-        color: #858796;
+        color: #64708a;
         text-transform: uppercase;
         font-weight: 700;
         text-align: center !important;
@@ -2814,7 +2814,7 @@ body {
     .disputes-table tr {
         display: block;
         width: 100%;
-        border: 1px solid #e3e6f0;
+        border: 1px solid #e8ebf3;
         border-radius: 0.75rem;
         margin-bottom: 1rem;
         padding: 1rem;
@@ -2849,7 +2849,7 @@ body {
         width: auto;
         font-size: 0.8rem;
         text-align: right !important;
-        color: #858796;
+        color: #64708a;
         padding: 0 !important;
     }
     
@@ -2886,9 +2886,9 @@ body {
         font-size: 0.9rem;
     }
     
-    .disputes-table td:nth-child(3):before { content: "Заказ: "; color: #858796; font-size: 0.8rem; }
-    .disputes-table td:nth-child(4):before { content: "Товар: "; color: #858796; font-size: 0.8rem; }
-    .disputes-table td:nth-child(5):before { content: "Поставщик: "; color: #858796; font-size: 0.8rem; }
+    .disputes-table td:nth-child(3):before { content: "Заказ: "; color: #64708a; font-size: 0.8rem; }
+    .disputes-table td:nth-child(4):before { content: "Товар: "; color: #64708a; font-size: 0.8rem; }
+    .disputes-table td:nth-child(5):before { content: "Поставщик: "; color: #64708a; font-size: 0.8rem; }
     
     /* Reason & Amount */
     .disputes-table td:nth-child(6) { /* Reason */
@@ -2896,14 +2896,14 @@ body {
         margin-bottom: 0.25rem;
         font-weight: 500;
     }
-    .disputes-table td:nth-child(6):before { content: "Причина: "; color: #858796; }
+    .disputes-table td:nth-child(6):before { content: "Причина: "; color: #64708a; }
     
     .disputes-table td:nth-child(7) { /* Amount */
         font-weight: 700;
-        color: #1cc88a;
+        color: #16a34a;
         margin-bottom: 0.5rem;
     }
-    .disputes-table td:nth-child(7):before { content: "Сумма: "; color: #858796; font-weight: normal; }
+    .disputes-table td:nth-child(7):before { content: "Сумма: "; color: #64708a; font-weight: normal; }
 
     /* Actions */
     .disputes-table td:nth-child(10) {
@@ -2986,10 +2986,10 @@ body {
     }
     
     /* Specific Colors */
-    .users-stats .stat-card-primary .stat-icon i { color: #4e73df !important; }
-    .users-stats .stat-card-success .stat-icon i { color: #1cc88a !important; }
-    .users-stats .stat-card-info .stat-icon i { color: #36b9cc !important; }
-    .users-stats .stat-card-danger .stat-icon i { color: #e74a3b !important; }
+    .users-stats .stat-card-primary .stat-icon i { color: #4f46e5 !important; }
+    .users-stats .stat-card-success .stat-icon i { color: #16a34a !important; }
+    .users-stats .stat-card-info .stat-icon i { color: #0e7490 !important; }
+    .users-stats .stat-card-danger .stat-icon i { color: #dc2626 !important; }
     
     .users-stats .stat-content {
         width: 100% !important;
@@ -3003,7 +3003,7 @@ body {
         font-size: 1.5rem !important;
         font-weight: 800 !important;
         margin-bottom: 0.25rem;
-        color: #2c3e50;
+        color: #1e2433;
         text-align: center !important;
         width: 100%;
         display: block;
@@ -3012,7 +3012,7 @@ body {
     .users-stats .stat-label {
         font-size: 0.7rem !important;
         line-height: 1.2;
-        color: #858796;
+        color: #64708a;
         text-transform: uppercase;
         font-weight: 700;
         text-align: center !important;
@@ -3071,7 +3071,7 @@ body {
     .users-table tr {
         display: block;
         width: 100%;
-        border: 1px solid #e3e6f0;
+        border: 1px solid #e8ebf3;
         border-radius: 0.75rem;
         margin-bottom: 1rem;
         padding: 1rem;
@@ -3116,7 +3116,7 @@ body {
     
     .users-table td:nth-child(2) .font-weight-bold {
         font-size: 1.1rem;
-        color: #2c3e50;
+        color: #1e2433;
     }
     
     /* Balance */
@@ -3169,14 +3169,14 @@ body {
     .users-table td:nth-child(5):before {
         content: "История покупок:";
         font-weight: 600;
-        color: #5a6c7d;
+        color: #64708a;
         font-size: 0.9rem;
     }
     
     /* Registered Date */
     .users-table td:nth-child(6) {
         font-size: 0.8rem;
-        color: #858796;
+        color: #64708a;
         margin-bottom: 1rem;
         padding-top: 0.5rem !important;
     }
@@ -3254,7 +3254,7 @@ body {
         font-size: 1.5rem;
         font-weight: 800;
         margin-bottom: 0.25rem;
-        color: #2c3e50;
+        color: #1e2433;
     }
     
     .product-categories-stats .small-box p {
@@ -3281,9 +3281,9 @@ body {
          opacity: 0.8 !important; /* Make icons visible */
     }
     /* Fix icon colors specifically */
-    .product-categories-stats .col-md-4:nth-child(1) .icon i { color: #4e73df !important; }
-    .product-categories-stats .col-md-4:nth-child(2) .icon i { color: #36b9cc !important; }
-    .product-categories-stats .col-md-4:nth-child(3) .icon i { color: #1cc88a !important; }
+    .product-categories-stats .col-md-4:nth-child(1) .icon i { color: #4f46e5 !important; }
+    .product-categories-stats .col-md-4:nth-child(2) .icon i { color: #0e7490 !important; }
+    .product-categories-stats .col-md-4:nth-child(3) .icon i { color: #16a34a !important; }
 
     /* Table - Card View */
     .product-categories-table {
@@ -3303,7 +3303,7 @@ body {
     .product-categories-table tr {
         display: block;
         background: #fff;
-        border: 1px solid #e3e6f0;
+        border: 1px solid #e8ebf3;
         border-radius: 0.75rem;
         margin-bottom: 1rem;
         padding: 1rem;
@@ -3381,7 +3381,7 @@ body {
         display: block;
         font-size: 0.75rem;
         font-weight: 700;
-        color: #858796;
+        color: #64708a;
         margin-bottom: 0.5rem;
         text-transform: uppercase;
     }
@@ -3399,13 +3399,13 @@ body {
     .product-categories-table td:nth-child(5):before {
         content: "Товары:";
         font-weight: 600;
-        color: #5a6c7d;
+        color: #64708a;
         margin-right: 0.5rem;
     }
     
     /* Actions */
     .product-categories-table td:nth-child(6) {
-        border-top: 1px solid #e3e6f0;
+        border-top: 1px solid #e8ebf3;
         padding-top: 0.75rem !important;
         margin-top: 0.5rem;
         margin-bottom: 0;
@@ -3484,10 +3484,10 @@ body {
     }
     
     /* Specific colors */
-    .articles-stats .stat-card-primary .stat-icon i { color: #4e73df !important; }
-    .articles-stats .stat-card-success .stat-icon i { color: #1cc88a !important; }
-    .articles-stats .stat-card-warning .stat-icon i { color: #f6c23e !important; }
-    .articles-stats .stat-card-info .stat-icon i { color: #36b9cc !important; }
+    .articles-stats .stat-card-primary .stat-icon i { color: #4f46e5 !important; }
+    .articles-stats .stat-card-success .stat-icon i { color: #16a34a !important; }
+    .articles-stats .stat-card-warning .stat-icon i { color: #c2740a !important; }
+    .articles-stats .stat-card-info .stat-icon i { color: #0e7490 !important; }
 
     .articles-stats .stat-content {
         width: 100% !important;
@@ -3501,7 +3501,7 @@ body {
         font-size: 1.5rem !important;
         font-weight: 800 !important;
         margin-bottom: 0.25rem;
-        color: #2c3e50;
+        color: #1e2433;
         text-align: center !important;
         width: 100%;
         display: block;
@@ -3510,7 +3510,7 @@ body {
     .articles-stats .stat-label {
         font-size: 0.7rem !important;
         line-height: 1.2;
-        color: #858796;
+        color: #64708a;
         text-transform: uppercase;
         font-weight: 700;
         text-align: center !important;
@@ -3537,7 +3537,7 @@ body {
     .articles-table tr {
         display: block;
         background: #fff;
-        border: 1px solid #e3e6f0;
+        border: 1px solid #e8ebf3;
         border-radius: 0.75rem;
         margin-bottom: 1rem;
         padding: 1rem;
@@ -3597,7 +3597,7 @@ body {
         font-size: 1.1rem;
         font-weight: 700;
         line-height: 1.3;
-        color: #2c3e50;
+        color: #1e2433;
     }
 
     /* Categories */
@@ -3622,7 +3622,7 @@ body {
     /* Date */
     .articles-table td:nth-child(6) {
         font-size: 0.8rem;
-        color: #858796;
+        color: #64708a;
         margin-bottom: 1rem;
         display: block;
         border-bottom: 1px solid #f8f9fa;
@@ -3670,7 +3670,7 @@ body {
     .article-categories-table tr {
         display: block;
         background: #fff;
-        border: 1px solid #e3e6f0;
+        border: 1px solid #e8ebf3;
         border-radius: 0.75rem;
         margin-bottom: 1rem;
         padding: 1rem;
@@ -3701,14 +3701,14 @@ body {
     .article-categories-table td:nth-child(2) {
         font-size: 1.1rem;
         font-weight: 700;
-        color: #2c3e50;
+        color: #1e2433;
         margin-bottom: 1rem;
         padding-right: 3rem !important; /* Avoid overlap with ID */
     }
     
     /* Actions */
     .article-categories-table td:nth-child(3) {
-        border-top: 1px solid #e3e6f0;
+        border-top: 1px solid #e8ebf3;
         padding-top: 0.75rem !important;
         margin-top: 0.5rem;
         margin-bottom: 0;
@@ -3790,9 +3790,9 @@ body {
     }
     
     /* Specific colors */
-    .pages-stats .stat-card-primary .stat-icon i { color: #4e73df !important; }
-    .pages-stats .stat-card-success .stat-icon i { color: #1cc88a !important; }
-    .pages-stats .stat-card-danger .stat-icon i { color: #e74a3b !important; }
+    .pages-stats .stat-card-primary .stat-icon i { color: #4f46e5 !important; }
+    .pages-stats .stat-card-success .stat-icon i { color: #16a34a !important; }
+    .pages-stats .stat-card-danger .stat-icon i { color: #dc2626 !important; }
 
     .pages-stats .stat-content {
         width: 100% !important;
@@ -3806,7 +3806,7 @@ body {
         font-size: 1.5rem !important;
         font-weight: 800 !important;
         margin-bottom: 0.25rem;
-        color: #2c3e50;
+        color: #1e2433;
         text-align: center !important;
         width: 100%;
         display: block;
@@ -3815,7 +3815,7 @@ body {
     .pages-stats .stat-label {
         font-size: 0.7rem !important;
         line-height: 1.2;
-        color: #858796;
+        color: #64708a;
         text-transform: uppercase;
         font-weight: 700;
         text-align: center !important;
@@ -3842,7 +3842,7 @@ body {
     .pages-table tr {
         display: block;
         background: #fff;
-        border: 1px solid #e3e6f0;
+        border: 1px solid #e8ebf3;
         border-radius: 0.75rem;
         margin-bottom: 1rem;
         padding: 1rem;
@@ -3873,7 +3873,7 @@ body {
     .pages-table td:nth-child(2) {
         font-size: 1.1rem;
         font-weight: 700;
-        color: #2c3e50;
+        color: #1e2433;
         margin-bottom: 0.25rem;
         padding-right: 3rem !important; /* Avoid overlap with ID */
     }
@@ -3901,7 +3901,7 @@ body {
     /* Date */
     .pages-table td:nth-child(5) {
         font-size: 0.8rem;
-        color: #858796;
+        color: #64708a;
         margin-bottom: 1rem;
         border-bottom: 1px solid #f8f9fa;
         padding-bottom: 0.5rem !important;
@@ -3990,10 +3990,10 @@ body {
     }
     
     /* Specific Colors */
-    .promocodes-stats .stat-card-primary .stat-icon i { color: #4e73df !important; }
-    .promocodes-stats .stat-card-success .stat-icon i { color: #1cc88a !important; }
-    .promocodes-stats .stat-card-info .stat-icon i { color: #36b9cc !important; }
-    .promocodes-stats .stat-card-warning .stat-icon i { color: #f6c23e !important; }
+    .promocodes-stats .stat-card-primary .stat-icon i { color: #4f46e5 !important; }
+    .promocodes-stats .stat-card-success .stat-icon i { color: #16a34a !important; }
+    .promocodes-stats .stat-card-info .stat-icon i { color: #0e7490 !important; }
+    .promocodes-stats .stat-card-warning .stat-icon i { color: #c2740a !important; }
 
     .promocodes-stats .stat-content {
         width: 100% !important;
@@ -4007,7 +4007,7 @@ body {
         font-size: 1.5rem !important;
         font-weight: 800 !important;
         margin-bottom: 0.25rem;
-        color: #2c3e50;
+        color: #1e2433;
         text-align: center !important;
         width: 100%;
         display: block;
@@ -4016,7 +4016,7 @@ body {
     .promocodes-stats .stat-label {
         font-size: 0.7rem !important;
         line-height: 1.2;
-        color: #858796;
+        color: #64708a;
         text-transform: uppercase;
         font-weight: 700;
         text-align: center !important;
@@ -4043,7 +4043,7 @@ body {
     .promocodes-table tr {
         display: block;
         background: #fff;
-        border: 1px solid #e3e6f0;
+        border: 1px solid #e8ebf3;
         border-radius: 0.75rem;
         margin-bottom: 1rem;
         padding: 1rem;
@@ -4099,7 +4099,7 @@ body {
     /* Batch - Hidden or Small */
     .promocodes-table td:nth-child(4) {
         font-size: 0.75rem;
-        color: #858796;
+        color: #64708a;
         margin-bottom: 0.5rem;
         display: block;
         margin-left: 30px;
@@ -4120,8 +4120,8 @@ body {
     
     /* Usages - Full block with label */
     .promocodes-table td:nth-child(7) {
-        border-top: 1px dotted #e3e6f0;
-        border-bottom: 1px dotted #e3e6f0;
+        border-top: 1px dotted #e8ebf3;
+        border-bottom: 1px dotted #e8ebf3;
         padding: 0.5rem 0 !important;
         margin: 0.5rem 0;
         background: #f8f9fa;
@@ -4130,7 +4130,7 @@ body {
     .promocodes-table td:nth-child(7):before {
         content: "Использовано: ";
         font-weight: 600;
-        color: #5a6c7d;
+        color: #64708a;
     }
 
     /* Status */
@@ -4216,9 +4216,9 @@ body {
     }
     
     /* Specific Colors */
-    .banners-stats .stat-card-primary .stat-icon i { color: #4e73df !important; }
-    .banners-stats .stat-card-success .stat-icon i { color: #1cc88a !important; }
-    .banners-stats .stat-card-danger .stat-icon i { color: #e74a3b !important; }
+    .banners-stats .stat-card-primary .stat-icon i { color: #4f46e5 !important; }
+    .banners-stats .stat-card-success .stat-icon i { color: #16a34a !important; }
+    .banners-stats .stat-card-danger .stat-icon i { color: #dc2626 !important; }
 
     .banners-stats .stat-content {
         width: 100% !important;
@@ -4232,7 +4232,7 @@ body {
         font-size: 1.5rem !important;
         font-weight: 800 !important;
         margin-bottom: 0.25rem;
-        color: #2c3e50;
+        color: #1e2433;
         text-align: center !important;
         width: 100%;
         display: block;
@@ -4241,7 +4241,7 @@ body {
     .banners-stats .stat-label {
         font-size: 0.7rem !important;
         line-height: 1.2;
-        color: #858796;
+        color: #64708a;
         text-transform: uppercase;
         font-weight: 700;
         text-align: center !important;
@@ -4268,7 +4268,7 @@ body {
     .banners-table tr {
         display: block;
         background: #fff;
-        border: 1px solid #e3e6f0;
+        border: 1px solid #e8ebf3;
         border-radius: 0.75rem;
         margin-bottom: 1rem;
         padding: 1rem;
@@ -4313,7 +4313,7 @@ body {
     .banners-table td:nth-child(3) {
         font-size: 1.1rem;
         font-weight: 700;
-        color: #2c3e50;
+        color: #1e2433;
         margin-bottom: 0.5rem;
         text-align: center !important;
         padding: 0 1rem !important;
@@ -4344,10 +4344,10 @@ body {
     /* Period */
     .banners-table td:nth-child(7) {
         font-size: 0.8rem;
-        color: #858796;
+        color: #64708a;
         margin-bottom: 1rem;
-        border-top: 1px dotted #e3e6f0;
-        border-bottom: 1px dotted #e3e6f0;
+        border-top: 1px dotted #e8ebf3;
+        border-bottom: 1px dotted #e8ebf3;
         padding: 0.5rem !important;
         background: #f8f9fa;
     }
@@ -4423,23 +4423,23 @@ body {
         text-align: center !important;
         width: 100%;
         display: block;
-        color: #2c3e50;
+        color: #1e2433;
     }
     .vouchers-stats .stat-label {
         font-size: 0.65rem !important;
         text-align: center !important;
         width: 100%;
         display: block;
-        color: #858796;
+        color: #64708a;
         text-transform: uppercase;
         font-weight: 700;
     }
     
     /* Specific Colors */
-    .vouchers-stats .stat-card-primary .stat-icon i { color: #4e73df !important; }
-    .vouchers-stats .stat-card-success .stat-icon i { color: #1cc88a !important; }
-    .vouchers-stats .stat-card-warning .stat-icon i { color: #f6c23e !important; }
-    .vouchers-stats .stat-card-info .stat-icon i { color: #36b9cc !important; }
+    .vouchers-stats .stat-card-primary .stat-icon i { color: #4f46e5 !important; }
+    .vouchers-stats .stat-card-success .stat-icon i { color: #16a34a !important; }
+    .vouchers-stats .stat-card-warning .stat-icon i { color: #c2740a !important; }
+    .vouchers-stats .stat-card-info .stat-icon i { color: #0e7490 !important; }
 
     /* Vouchers Table */
     .vouchers-table, .vouchers-table tbody, .vouchers-table tr, .vouchers-table td {
@@ -4449,7 +4449,7 @@ body {
     .vouchers-table thead { display: none; }
     .vouchers-table tr {
         background: #fff;
-        border: 1px solid #e3e6f0;
+        border: 1px solid #e8ebf3;
         border-radius: 0.75rem;
         margin-bottom: 1rem;
         padding: 1rem;
@@ -4502,7 +4502,7 @@ body {
     .vouchers-table td:nth-child(8) {
         margin-top: 1rem;
         padding-top: 0.5rem !important;
-        border-top: 1px dashed #e3e6f0;
+        border-top: 1px dashed #e8ebf3;
     }
     .vouchers-table td:nth-child(8) .action-buttons {
         display: flex;
@@ -4558,9 +4558,9 @@ body {
         background: rgba(0,0,0,0.05) !important;
     }
     
-    .suppliers-stats .stat-card-primary .stat-icon i { color: #4e73df !important; }
-    .suppliers-stats .stat-card-success .stat-icon i { color: #1cc88a !important; }
-    .suppliers-stats .stat-card-info .stat-icon i { color: #36b9cc !important; }
+    .suppliers-stats .stat-card-primary .stat-icon i { color: #4f46e5 !important; }
+    .suppliers-stats .stat-card-success .stat-icon i { color: #16a34a !important; }
+    .suppliers-stats .stat-card-info .stat-icon i { color: #0e7490 !important; }
     
     .suppliers-stats .stat-value {
         font-size: 1.25rem !important;
@@ -4568,14 +4568,14 @@ body {
         text-align: center !important;
         width: 100%;
         display: block;
-        color: #2c3e50;
+        color: #1e2433;
     }
     .suppliers-stats .stat-label {
         font-size: 0.65rem !important;
         text-align: center !important;
         width: 100%;
         display: block;
-        color: #858796;
+        color: #64708a;
         text-transform: uppercase;
         font-weight: 700;
     }
@@ -4588,7 +4588,7 @@ body {
     .suppliers-table thead { display: none; }
     .suppliers-table tr {
         background: #fff;
-        border: 1px solid #e3e6f0;
+        border: 1px solid #e8ebf3;
         border-radius: 0.75rem;
         margin-bottom: 1rem;
         padding: 1rem;
@@ -4613,12 +4613,12 @@ body {
         font-size: 1.2rem;
         font-weight: 700;
         padding-right: 3rem !important;
-        color: #2c3e50;
+        color: #1e2433;
     }
     /* Email */
     .suppliers-table td:nth-child(3) {
         font-size: 0.85rem;
-        color: #5a6c7d;
+        color: #64708a;
         margin-bottom: 1rem;
         border-bottom: 1px solid #f0f2f5;
         padding-bottom: 0.5rem !important;
@@ -4694,10 +4694,10 @@ body {
         background: rgba(0,0,0,0.05) !important;
     }
     
-    .withdrawals-stats .stat-card-primary .stat-icon i { color: #4e73df !important; }
-    .withdrawals-stats .stat-card-success .stat-icon i { color: #1cc88a !important; }
-    .withdrawals-stats .stat-card-warning .stat-icon i { color: #f6c23e !important; }
-    .withdrawals-stats .stat-card-info .stat-icon i { color: #36b9cc !important; }
+    .withdrawals-stats .stat-card-primary .stat-icon i { color: #4f46e5 !important; }
+    .withdrawals-stats .stat-card-success .stat-icon i { color: #16a34a !important; }
+    .withdrawals-stats .stat-card-warning .stat-icon i { color: #c2740a !important; }
+    .withdrawals-stats .stat-card-info .stat-icon i { color: #0e7490 !important; }
 
     .withdrawals-stats .stat-value {
         font-size: 1.25rem !important;
@@ -4705,14 +4705,14 @@ body {
         text-align: center !important;
         width: 100%;
         display: block;
-        color: #2c3e50;
+        color: #1e2433;
     }
     .withdrawals-stats .stat-label {
         font-size: 0.65rem !important;
         text-align: center !important;
         width: 100%;
         display: block;
-        color: #858796;
+        color: #64708a;
         text-transform: uppercase;
         font-weight: 700;
     }
@@ -4726,7 +4726,7 @@ body {
     .withdrawals-table tr {
         display: block;
         background: #fff;
-        border: 1px solid #e3e6f0;
+        border: 1px solid #e8ebf3;
         border-radius: 0.75rem;
         margin-bottom: 1rem;
         padding: 1rem;
@@ -4761,7 +4761,7 @@ body {
     .withdrawals-table td:nth-child(3) {
         font-size: 1.5rem;
         font-weight: 800;
-        color: #2c3e50;
+        color: #1e2433;
         margin-bottom: 0.25rem;
     }
     
@@ -4794,7 +4794,7 @@ body {
     .withdrawals-table td:nth-child(8) {
         margin-top: 0.5rem;
         padding-top: 0.5rem !important;
-        border-top: 1px dashed #e3e6f0;
+        border-top: 1px dashed #e8ebf3;
     }
     .withdrawals-table td:nth-child(8) .btn {
         width: 100%;
@@ -4849,9 +4849,9 @@ body {
         background: rgba(0,0,0,0.05) !important;
     }
     
-    .notifications-stats .stat-card-primary .stat-icon i { color: #4e73df !important; }
-    .notifications-stats .stat-card-success .stat-icon i { color: #1cc88a !important; }
-    .notifications-stats .stat-card-warning .stat-icon i { color: #f6c23e !important; }
+    .notifications-stats .stat-card-primary .stat-icon i { color: #4f46e5 !important; }
+    .notifications-stats .stat-card-success .stat-icon i { color: #16a34a !important; }
+    .notifications-stats .stat-card-warning .stat-icon i { color: #c2740a !important; }
 
     .notifications-stats .stat-value {
         font-size: 1.25rem !important;
@@ -4859,14 +4859,14 @@ body {
         text-align: center !important;
         width: 100%;
         display: block;
-        color: #2c3e50;
+        color: #1e2433;
     }
     .notifications-stats .stat-label {
         font-size: 0.65rem !important;
         text-align: center !important;
         width: 100%;
         display: block;
-        color: #858796;
+        color: #64708a;
         text-transform: uppercase;
         font-weight: 700;
     }
@@ -4880,7 +4880,7 @@ body {
     .notifications-table tr {
         display: block;
         background: #fff;
-        border: 1px solid #e3e6f0;
+        border: 1px solid #e8ebf3;
         border-radius: 0.75rem;
         margin-bottom: 1rem;
         padding: 1rem;
@@ -4939,7 +4939,7 @@ body {
 @media (max-width: 575px) {
     .settings-page .card-header-modern {
         background: #fff;
-        border-bottom: 1px solid #e3e6f0;
+        border-bottom: 1px solid #e8ebf3;
     }
     
     /* Horizontal Scrollable Tabs */
@@ -4969,13 +4969,13 @@ body {
         border-radius: 2rem !important; /* Pill shape looks good on mobile */
         background: #f8f9fc;
         border: 1px solid #eaecf4;
-        color: #858796;
+        color: #64708a;
     }
     
     .settings-page .nav-link.active {
-        background: #4e73df;
+        background: #4f46e5;
         color: #fff;
-        border-color: #4e73df;
+        border-color: #4f46e5;
     }
 
     /* Forms */
@@ -5066,10 +5066,10 @@ body {
         font-size: 1.25rem !important;
         color: inherit !important;
     }
-    .service-accounts-stats .stat-card-primary .stat-icon i { color: #4e73df !important; }
-    .service-accounts-stats .stat-card-success .stat-icon i { color: #1cc88a !important; }
-    .service-accounts-stats .stat-card-warning .stat-icon i { color: #f6c23e !important; }
-    .service-accounts-stats .stat-card-info .stat-icon i { color: #36b9cc !important; }
+    .service-accounts-stats .stat-card-primary .stat-icon i { color: #4f46e5 !important; }
+    .service-accounts-stats .stat-card-success .stat-icon i { color: #16a34a !important; }
+    .service-accounts-stats .stat-card-warning .stat-icon i { color: #c2740a !important; }
+    .service-accounts-stats .stat-card-info .stat-icon i { color: #0e7490 !important; }
     .service-accounts-stats .stat-content {
         width: 100% !important;
         text-align: center !important;
@@ -5081,7 +5081,7 @@ body {
         font-size: 1.5rem !important;
         font-weight: 800 !important;
         margin-bottom: 0.25rem;
-        color: #2c3e50;
+        color: #1e2433;
         text-align: center !important;
         width: 100%;
         display: block;
@@ -5089,7 +5089,7 @@ body {
     .service-accounts-stats .stat-label {
         font-size: 0.7rem !important;
         line-height: 1.2;
-        color: #858796;
+        color: #64708a;
         text-transform: uppercase;
         font-weight: 700;
         text-align: center !important;

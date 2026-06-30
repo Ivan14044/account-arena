@@ -529,7 +529,7 @@
         /* ЗАГОЛОВОК СТРАНИЦЫ */
         .content-header-modern h1 {
             font-size: 1.75rem;
-            color: #2c3e50;
+            color: #1e2433;
             letter-spacing: -0.5px;
         }
 
@@ -587,7 +587,7 @@
 
         /* ТАБЫ */
         .nav-tabs-modern {
-            border-bottom: 2px solid #e3e6f0;
+            border-bottom: 2px solid #e8ebf3;
             padding: 0 1.5rem;
         }
 
@@ -597,7 +597,7 @@
 
         .nav-tabs-modern .nav-link {
             border: none;
-            color: #5a6c7d;
+            color: #64708a;
             padding: 1rem 1.5rem;
             font-weight: 500;
             transition: all 0.2s ease;
@@ -605,19 +605,19 @@
         }
 
         .nav-tabs-modern .nav-link:hover {
-            color: #4e73df;
-            border-bottom-color: #e3e6f0;
+            color: #4f46e5;
+            border-bottom-color: #e8ebf3;
         }
 
         .nav-tabs-modern .nav-link.active {
-            color: #4e73df;
+            color: #4f46e5;
             background: transparent;
-            border-bottom-color: #4e73df;
+            border-bottom-color: #4f46e5;
         }
 
         /* КАРТОЧКА */
         .card-modern {
-            border: 1px solid #e3e6f0;
+            border: 1px solid #e8ebf3;
             border-radius: 0.75rem;
             box-shadow: 0 2px 8px rgba(0,0,0,0.05);
             overflow: hidden;
@@ -639,7 +639,7 @@
 
         .form-label-modern {
             font-weight: 600;
-            color: #2c3e50;
+            color: #1e2433;
             font-size: 0.875rem;
             margin-bottom: 0.5rem;
             display: block;
@@ -654,7 +654,7 @@
         }
 
         .form-control-modern:focus {
-            border-color: #4e73df;
+            border-color: #4f46e5;
             box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.1);
         }
 
@@ -662,14 +662,14 @@
         .section-title {
             font-size: 1.125rem;
             font-weight: 600;
-            color: #2c3e50;
+            color: #1e2433;
             margin-bottom: 1.5rem;
             padding-bottom: 0.75rem;
-            border-bottom: 2px solid #e3e6f0;
+            border-bottom: 2px solid #e8ebf3;
         }
 
         .section-divider {
-            border-top: 2px solid #e3e6f0;
+            border-top: 2px solid #e8ebf3;
             margin: 2rem 0;
         }
 
@@ -696,7 +696,7 @@
             flex-direction: column;
             align-items: center;
             padding: 1.25rem;
-            border: 2px solid #e3e6f0;
+            border: 2px solid #e8ebf3;
             border-radius: 0.5rem;
             background: white;
             transition: all 0.2s ease;
@@ -713,29 +713,29 @@
         }
 
         .operation-btn:hover .operation-btn-content {
-            border-color: #4e73df;
+            border-color: #4f46e5;
             background: #f8f9fc;
         }
 
         .operation-btn.active .operation-btn-content {
-            border-color: #4e73df;
-            background: #4e73df;
+            border-color: #4f46e5;
+            background: #4f46e5;
             color: white;
         }
 
         .operation-btn-add.active .operation-btn-content {
-            background: #1cc88a;
-            border-color: #1cc88a;
+            background: #16a34a;
+            border-color: #16a34a;
         }
 
         .operation-btn-subtract.active .operation-btn-content {
-            background: #e74a3b;
-            border-color: #e74a3b;
+            background: #dc2626;
+            border-color: #dc2626;
         }
 
         .operation-btn-set.active .operation-btn-content {
-            background: #f6c23e;
-            border-color: #f6c23e;
+            background: #c2740a;
+            border-color: #c2740a;
         }
 
         /* МОДАЛЬНОЕ ОКНО */
@@ -747,18 +747,18 @@
 
         .modal-header-modern {
             background: #f8f9fc;
-            border-bottom: 2px solid #e3e6f0;
+            border-bottom: 2px solid #e8ebf3;
             padding: 1.5rem 2rem;
         }
 
         .modal-header-modern .modal-title {
             font-weight: 600;
-            color: #2c3e50;
+            color: #1e2433;
         }
 
         .modal-footer-modern {
             background: #f8f9fc;
-            border-top: 2px solid #e3e6f0;
+            border-top: 2px solid #e8ebf3;
             padding: 1.25rem 2rem;
         }
 
@@ -770,8 +770,8 @@
         .modern-table-clean thead th {
             background: #f8f9fc;
             border: none;
-            border-bottom: 2px solid #e3e6f0;
-            color: #5a6c7d;
+            border-bottom: 2px solid #e8ebf3;
+            color: #64708a;
             font-weight: 600;
             text-transform: uppercase;
             font-size: 0.75rem;

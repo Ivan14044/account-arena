@@ -159,7 +159,7 @@
             height: 31px !important;
             padding: 2px 5px !important;
             font-size: 0.875rem !important;
-            border-color: #e3e6f0 !important;
+            border-color: #e8ebf3 !important;
         }
         .select2-container--default .select2-selection--single .select2-selection__arrow {
             height: 29px !important;

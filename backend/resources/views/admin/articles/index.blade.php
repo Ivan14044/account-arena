@@ -104,9 +104,9 @@
                             <td class="text-center align-middle">
                                 @if($article->img)
                                     @php($imgSrc = \Illuminate\Support\Str::startsWith($article->img, ['http://', 'https://', '/storage/']) ? $article->img : asset('img/articles/' . $article->img))
-                                    <img src="{{ $imgSrc }}" alt="" class="rounded shadow-sm" width="50" height="50" style="object-fit: cover; border: 1px solid #e3e6f0;">
+                                    <img src="{{ $imgSrc }}" alt="" class="rounded shadow-sm" width="50" height="50" style="object-fit: cover; border: 1px solid #e8ebf3;">
                                 @else
-                                    <div class="rounded d-flex align-items-center justify-content-center" style="width: 50px; height: 50px; background: #f8f9fc; border: 1px solid #e3e6f0;">
+                                    <div class="rounded d-flex align-items-center justify-content-center" style="width: 50px; height: 50px; background: #f8f9fc; border: 1px solid #e8ebf3;">
                                         <i class="fas fa-image text-muted"></i>
                                     </div>
                                 @endif

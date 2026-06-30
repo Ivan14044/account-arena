@@ -712,6 +712,19 @@ return [
                 ],
             ],
         ],
+
+        // Account Arena premium design system — loaded globally on every page.
+        // Kept last so it overrides AdminLTE core + other plugin styles.
+        'AAPremium' => [
+            'active' => true,
+            'files' => [
+                [
+                    'type' => 'css',
+                    'asset' => true,
+                    'location' => 'assets/admin/css/premium.css',
+                ],
+            ],
+        ],
     ],
 
     /*

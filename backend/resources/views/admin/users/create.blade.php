@@ -293,10 +293,10 @@
                     strengthText.text('Слабый пароль').css('color', '#dc3545');
                 } else if (strength < 70) {
                     progressBar.removeClass().addClass('progress-bar bg-warning');
-                    strengthText.text('Средний пароль').css('color', '#ffc107');
+                    strengthText.text('Средний пароль').css('color', '#c2740a');
                 } else {
                     progressBar.removeClass().addClass('progress-bar bg-success');
-                    strengthText.text('Надежный пароль').css('color', '#28a745');
+                    strengthText.text('Надежный пароль').css('color', '#16a34a');
                 }
             }
 

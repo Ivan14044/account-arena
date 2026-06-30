@@ -232,13 +232,13 @@
             margin-left: -1.5rem;
             margin-right: -1.5rem;
             margin-bottom: -1.5rem;
-            border-top: 2px solid #e3e6f0;
+            border-top: 2px solid #e8ebf3;
         }
         
         /* ЧЕКБОКСЫ В ТАБЛИЦЕ СЕРВИСОВ */
         .custom-control-input:checked ~ .custom-control-label::before {
-            background-color: #4e73df;
-            border-color: #4e73df;
+            background-color: #4f46e5;
+            border-color: #4f46e5;
         }
         
         .custom-control-label {
@@ -249,7 +249,7 @@
         .input-group-text {
             background-color: #f8f9fc;
             border: 1px solid #d1d3e2;
-            color: #5a6c7d;
+            color: #64708a;
             font-weight: 500;
         }
         
@@ -266,7 +266,7 @@
         
         /* ТАБЛИЦА СЕРВИСОВ */
         .table-responsive.bg-modern {
-            border: 1px solid #e3e6f0;
+            border: 1px solid #e8ebf3;
         }
         
         .table-responsive.bg-modern table {
@@ -274,17 +274,17 @@
         }
         
         .table-bordered {
-            border-color: #e3e6f0;
+            border-color: #e8ebf3;
         }
         
         .table-bordered th,
         .table-bordered td {
-            border-color: #e3e6f0;
+            border-color: #e8ebf3;
         }
         
         .thead-light th {
             background-color: #f8f9fc;
-            color: #5a6c7d;
+            color: #64708a;
             font-weight: 600;
             text-transform: uppercase;
             font-size: 0.75rem;
@@ -295,7 +295,7 @@
         .form-text.text-muted {
             font-size: 0.8125rem;
             margin-top: 0.5rem;
-            color: #858796;
+            color: #64708a;
         }
         
         .form-text.text-muted i {
@@ -312,7 +312,7 @@
             background: white;
             padding: 0 1rem 0.75rem 0;
             display: inline-block;
-            border-bottom: 2px solid #e3e6f0;
+            border-bottom: 2px solid #e8ebf3;
             width: 100%;
         }
         
@@ -323,11 +323,11 @@
         }
         
         .is-invalid {
-            border-color: #e74a3b !important;
+            border-color: #dc2626 !important;
         }
         
         .is-invalid:focus {
-            border-color: #e74a3b !important;
+            border-color: #dc2626 !important;
             box-shadow: 0 0 0 0.2rem rgba(231, 74, 59, 0.1) !important;
         }
         
