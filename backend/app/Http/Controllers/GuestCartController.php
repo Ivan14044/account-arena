@@ -37,8 +37,8 @@ class GuestCartController extends Controller
         $promoData = null;
         $promocodeParam = trim((string)$request->promocode);
         if ($promocodeParam !== '') {
-            // Для гостей передаем null как user_id
-            $promoData = $promoService->validate($promocodeParam, null);
+            // Для гостей передаем null как user_id + email для гостевого лимита
+            $promoData = $promoService->validate($promocodeParam, null, $guestEmail);
             if (!($promoData['ok'] ?? false)) {
                 return response()->json(['success' => false, 'message' => $promoData['message'] ?? 'Invalid promocode'], 422);
             }

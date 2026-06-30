@@ -216,7 +216,7 @@ class MonoController extends Controller
         $promoData = null;
         $promocodeParam = trim((string) $request->promocode);
         if ($promocodeParam !== '') {
-            $promoData = $promoService->validate($promocodeParam, null); // null = гость
+            $promoData = $promoService->validate($promocodeParam, null, $guestEmail); // null = гость
             if (!($promoData['ok'] ?? false)) {
                 return response()->json(['success' => false, 'message' => $promoData['message'] ?? 'Invalid promocode'], 422);
             }

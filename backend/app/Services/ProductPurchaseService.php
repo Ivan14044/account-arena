@@ -323,7 +323,7 @@ class ProductPurchaseService
             // ВАЖНО: Записываем использование промокода ВНУТРИ транзакции создания покупок
             // Это гарантирует атомарность: или покупка и промокод применены, или ничего.
             if ($promocode) {
-                $this->recordPromocodeUsage($promocode, $userId, $orderId);
+                $this->recordPromocodeUsage($promocode, $userId, $orderId, $guestEmail);
             }
         });
 
@@ -418,7 +418,7 @@ class ProductPurchaseService
     /**
      * Записать использование промокода (внутри транзакции)
      */
-    protected function recordPromocodeUsage(string $code, ?int $userId, ?string $orderId): void
+    protected function recordPromocodeUsage(string $code, ?int $userId, ?string $orderId, ?string $guestEmail = null): void
     {
         if (empty($code)) {
             return;
@@ -450,6 +450,8 @@ class ProductPurchaseService
                 \App\Models\PromocodeUsage::create([
                     'promocode_id' => $promo->id,
                     'user_id' => $userId,
+                    // Нормализуем email (lowercase) — так же считаем в validate()
+                    'guest_email' => (!$userId && $guestEmail) ? mb_strtolower(trim($guestEmail)) : null,
                     'order_id' => $orderId ? (string)$orderId : null,
                 ]);
             } catch (\Illuminate\Database\QueryException $e) {

@@ -9,6 +9,7 @@ class PromocodeUsage extends Model
     protected $fillable = [
         'promocode_id',
         'user_id',
+        'guest_email',
         'order_id',
     ];
 

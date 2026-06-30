@@ -182,7 +182,7 @@ class CryptomusController extends Controller
         $promoData = null;
         $promocodeParam = trim((string) $request->promocode);
         if ($promocodeParam !== '') {
-            $promoData = $promoService->validate($promocodeParam, null);
+            $promoData = $promoService->validate($promocodeParam, null, $guestEmail);
             if (!($promoData['ok'] ?? false)) {
                 return response()->json(['success' => false, 'message' => $promoData['message'] ?? 'Invalid promocode'], 422);
             }
