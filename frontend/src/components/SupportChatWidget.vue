@@ -522,7 +522,7 @@
                         <button
                             class="attach-button"
                             :disabled="isSending"
-                            title="Прикрепить файл"
+                            :title="$t('supportChat.attachFile')"
                             @click.stop.prevent="triggerFileInput"
                         >
                             <svg

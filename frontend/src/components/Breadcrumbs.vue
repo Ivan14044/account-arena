@@ -1,5 +1,5 @@
 <template>
-    <nav v-if="crumbs.length > 0" class="flex mb-6" aria-label="Breadcrumb">
+    <nav v-if="crumbs.length > 0" class="flex mb-6" :aria-label="$t('common.breadcrumb')">
         <ol class="inline-flex items-center space-x-1 md:space-x-3 list-none p-0">
             <li class="inline-flex items-center">
                 <router-link
