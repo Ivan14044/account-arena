@@ -52,9 +52,15 @@ class AuthController extends Controller
             }
         );
 
-        return $status === Password::PASSWORD_RESET
-            ? response()->json(['message' => __($status)])
-            : response()->json(['errors' => ['message' => [__($status)]]], 400);
+        if ($status === Password::PASSWORD_RESET) {
+            return response()->json(['message' => __($status)]);
+        }
+
+        // Anti-enumeration: не раскрываем, что именно неверно (email vs токен) —
+        // одна generic-ошибка на любой сбой сброса.
+        return response()->json([
+            'errors' => ['message' => [__('passwords.token')]],
+        ], 400);
     }
 
     public function forgotPassword(\App\Http\Requests\Auth\ForgotPasswordRequest $request)
@@ -65,9 +71,13 @@ class AuthController extends Controller
 
         $status = Password::sendResetLink($request->only('email'));
 
-        return $status === Password::RESET_LINK_SENT
-            ? response()->json(['message' => __($status)])
-            : response()->json(['errors' => ['message' => [__($status)]]], 400);
+        // Anti-enumeration: одинаковый успех и когда письмо отправлено, и когда
+        // пользователя нет — атакующий не отличит зарегистрированный email.
+        if ($status === Password::RESET_LINK_SENT || $status === Password::INVALID_USER) {
+            return response()->json(['message' => __(Password::RESET_LINK_SENT)]);
+        }
+
+        return response()->json(['errors' => ['message' => [__($status)]]], 400);
     }
 
     public function register(\App\Http\Requests\Auth\RegisterRequest $request)

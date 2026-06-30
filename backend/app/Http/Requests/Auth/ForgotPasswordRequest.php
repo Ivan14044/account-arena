@@ -8,8 +8,10 @@ class ForgotPasswordRequest extends ApiRequest
 {
     public function rules(): array
     {
+        // Без `exists:users,email`: не раскрываем, зарегистрирован ли email
+        // (user enumeration). Существование проверяет broker, ответ — generic.
         return [
-            'email' => ['required', 'email', 'exists:users,email'],
+            'email' => ['required', 'email'],
         ];
     }
 }
