@@ -3,8 +3,18 @@
 @section('title', 'Категории')
 
 @section('content_header')
-    <h1>Категории</h1>
-@endsection
+    <div class="content-header-modern">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
+            <div>
+                <h1 class="m-0 font-weight-light">Категории</h1>
+                <p class="text-muted mb-0 mt-1 d-none d-md-block">Управление категориями раздела</p>
+            </div>
+            <div class="w-100 w-md-auto">
+                <a href="{{ route('admin.categories.create', ['type' => $type ?? 'article']) }}" class="btn btn-primary btn-modern w-100 w-md-auto"><i class="fas fa-plus mr-2"></i>Добавить</a>
+            </div>
+        </div>
+    </div>
+@stop
 
 @section('content')
     <div class="row">
@@ -87,6 +97,10 @@
             });
         });
     </script>
+@endsection
+
+@section('css')
+    @include('admin.layouts.modern-styles')
 @endsection
 
 

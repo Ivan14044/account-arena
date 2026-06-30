@@ -3,7 +3,14 @@
 @section('title', 'Профиль')
 
 @section('content_header')
-    <h1>Профиль</h1>
+    <div class="content-header-modern">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
+            <div>
+                <h1 class="m-0 font-weight-light">Профиль</h1>
+                <p class="text-muted mb-0 mt-1 d-none d-md-block">Изменение учётных данных администратора</p>
+            </div>
+        </div>
+    </div>
 @stop
 
 @section('content')
@@ -38,10 +45,14 @@
                             <label>Подтвердите пароль</label>
                             <input type="password" name="password_confirmation" class="form-control">
                         </div>
-                        <button type="submit" class="btn btn-primary">Сохранить</button>
+                        <button type="submit" class="btn btn-primary btn-modern"><i class="fas fa-save mr-2"></i>Сохранить</button>
                     </form>
                 </div>
             </div>
         </div>
     </div>
+@endsection
+
+@section('css')
+    @include('admin.layouts.modern-styles')
 @endsection

@@ -3,7 +3,19 @@
 @section('title', 'Редактировать шаблон уведомления #' . $notificationTemplate->id)
 
 @section('content_header')
-    <h1>Редактировать шаблон уведомления #{{ $notificationTemplate->id }}</h1>
+    <div class="content-header-modern">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
+            <div>
+                <h1 class="m-0 font-weight-light">Редактировать шаблон уведомления #{{ $notificationTemplate->id }}</h1>
+                <p class="text-muted mb-0 mt-1 d-none d-md-block">Изменение данных шаблона уведомления</p>
+            </div>
+            <div class="w-100 w-md-auto">
+                <a href="{{ route('admin.notification-templates.index') }}" class="btn btn-secondary btn-modern w-100 w-md-auto">
+                    <i class="fas fa-arrow-left mr-2"></i>Назад к списку
+                </a>
+            </div>
+        </div>
+    </div>
 @stop
 
 @section('content')
@@ -82,9 +94,11 @@
                             </div>
                         </div>
 
-                        <button type="submit" class="btn btn-primary">Сохранить</button>
-                        <button type="submit" name="save" class="btn btn-primary">Сохранить и продолжить</button>
-                        <a href="{{ route('admin.notification-templates.index') }}" class="btn btn-secondary">Отмена</a>
+                        <div class="d-flex flex-column flex-sm-row gap-2 mt-3">
+                            <button type="submit" class="btn btn-primary btn-modern"><i class="fas fa-save mr-2"></i>Сохранить</button>
+                            <button type="submit" name="save" class="btn btn-primary btn-modern"><i class="fas fa-save mr-2"></i>Сохранить и продолжить</button>
+                            <a href="{{ route('admin.notification-templates.index') }}" class="btn btn-secondary btn-modern">Отмена</a>
+                        </div>
                     </form>
                 </div>
             </div>
@@ -107,5 +121,9 @@
                 });
         });
     </script>
+@endsection
+
+@section('css')
+    @include('admin.layouts.modern-styles')
 @endsection
 
