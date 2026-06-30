@@ -3,7 +3,10 @@
 namespace App\Exceptions;
 
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
+use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpFoundation\Response;
 use Throwable;
@@ -44,6 +47,27 @@ class Handler extends ExceptionHandler
                 return response()->json([
                     'message' => 'Not Found',
                 ], 404);
+            }
+
+            // Ошибки валидации → 422 со стандартным `errors` (фронт читает error.response.data.errors)
+            if ($exception instanceof ValidationException) {
+                return response()->json([
+                    'message' => $exception->getMessage(),
+                    'errors' => $exception->errors(),
+                ], $exception->status);
+            }
+
+            // Аутентификация → 401, авторизация → 403 (иначе маскировались под 500)
+            if ($exception instanceof AuthenticationException) {
+                return response()->json([
+                    'message' => $exception->getMessage() ?: 'Unauthenticated.',
+                ], 401);
+            }
+
+            if ($exception instanceof AuthorizationException) {
+                return response()->json([
+                    'message' => $exception->getMessage() ?: 'This action is unauthorized.',
+                ], 403);
             }
 
             return response()->json([
