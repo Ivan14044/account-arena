@@ -70,7 +70,7 @@
                     <form method="POST" action="{{ route('admin.settings.store') }}">
                         @csrf
                         <input type="hidden" name="form" value="cookie">
-                        <label for="">Display cookie consent for these countries</label>
+                        <label for="">Показывать запрос согласия на cookie для этих стран</label>
                         <div class="row">
                             @foreach(config('countries') as $code => $name)
                                 <div class="col-md-4">
@@ -89,7 +89,7 @@
                             @enderror
                         </div>
 
-                        <button type="submit" class="btn btn-primary mt-3">Save</button>
+                        <button type="submit" class="btn btn-primary mt-3">Сохранить</button>
                     </form>
                 </div>
                 <div class="tab-pane fade show active" id="content_smtp" role="tabpanel">
@@ -97,7 +97,7 @@
                         @csrf
                         <input type="hidden" name="form" value="smtp">
                         <div class="form-group">
-                            <label for="smtp_from_address">From address</label>
+                            <label for="smtp_from_address">Адрес отправителя</label>
                             <input type="email" name="smtp_from_address" id="smtp_from_address"
                                 class="form-control @error('smtp_from_address') is-invalid @enderror"
                                 value="{{ old('smtp_from_address', \App\Models\Option::get('smtp_from_address')) }}">
@@ -106,7 +106,7 @@
                             @enderror
                         </div>
                         <div class="form-group">
-                            <label for="smtp_from_name">From name</label>
+                            <label for="smtp_from_name">Имя отправителя</label>
                             <input type="text" name="smtp_from_name" id="smtp_from_name"
                                 class="form-control @error('smtp_from_name') is-invalid @enderror"
                                 value="{{ old('smtp_from_name', \App\Models\Option::get('smtp_from_name')) }}">
@@ -115,7 +115,7 @@
                             @enderror
                         </div>
                         <div class="form-group">
-                            <label for="smtp_host">Host</label>
+                            <label for="smtp_host">Хост</label>
                             <input type="text" name="smtp_host" id="smtp_host"
                                 class="form-control @error('smtp_host') is-invalid @enderror"
                                 value="{{ old('smtp_host', \App\Models\Option::get('smtp_host')) }}">
@@ -124,7 +124,7 @@
                             @enderror
                         </div>
                         <div class="form-group">
-                            <label for="smtp_port">Port</label>
+                            <label for="smtp_port">Порт</label>
                             <input type="text" name="smtp_port" id="smtp_port"
                                 class="form-control @error('smtp_port') is-invalid @enderror"
                                 value="{{ old('smtp_port', \App\Models\Option::get('smtp_port')) }}">
@@ -133,40 +133,40 @@
                             @enderror
                         </div>
                         <div class="form-group">
-                            <label for="smtp_encryption">Encryption</label>
+                            <label for="smtp_encryption">Шифрование</label>
                             <select name="smtp_encryption" id="smtp_encryption"
                                 class="form-control @error('smtp_encryption') is-invalid @enderror">
-                                <option value="">None</option>
-                                <option value="tls" {{ old('smtp_encryption', \App\Models\Option::get('smtp_encryption')) === 'tls' ? 'selected' : '' }}>TLS (usually
-                                    port 587)</option>
-                                <option value="ssl" {{ old('smtp_encryption', \App\Models\Option::get('smtp_encryption')) === 'ssl' ? 'selected' : '' }}>SSL (usually
-                                    port 465)</option>
+                                <option value="">Нет</option>
+                                <option value="tls" {{ old('smtp_encryption', \App\Models\Option::get('smtp_encryption')) === 'tls' ? 'selected' : '' }}>TLS (обычно
+                                    порт 587)</option>
+                                <option value="ssl" {{ old('smtp_encryption', \App\Models\Option::get('smtp_encryption')) === 'ssl' ? 'selected' : '' }}>SSL (обычно
+                                    порт 465)</option>
                             </select>
-                            <small class="form-text text-muted">TLS for port 587, SSL for port 465</small>
+                            <small class="form-text text-muted">TLS для порта 587, SSL для порта 465</small>
                             @error('smtp_encryption')
                                 <div class="invalid-feedback d-block">{{ $message }}</div>
                             @enderror
                         </div>
                         <div class="form-group">
-                            <label for="smtp_username">Username</label>
+                            <label for="smtp_username">Имя пользователя</label>
                             <input type="text" name="smtp_username" id="smtp_username"
                                 class="form-control @error('smtp_username') is-invalid @enderror"
                                 value="{{ old('smtp_username', \App\Models\Option::get('smtp_username')) }}"
-                                placeholder="info@account-arena.com or just username">
-                            <small class="form-text text-muted">Usually your full email address, but some servers require
-                                just username</small>
+                                placeholder="info@account-arena.com или просто имя пользователя">
+                            <small class="form-text text-muted">Обычно это ваш полный email-адрес, но некоторые серверы требуют
+                                только имя пользователя</small>
                             @error('smtp_username')
                                 <div class="invalid-feedback d-block">{{ $message }}</div>
                             @enderror
                         </div>
                         <div class="form-group">
-                            <label for="smtp_password">Password</label>
+                            <label for="smtp_password">Пароль</label>
                             <input type="password" name="smtp_password" id="smtp_password"
                                 class="form-control @error('smtp_password') is-invalid @enderror"
                                 value="{{ old('smtp_password', $smtpPassword) }}"
-                                placeholder="Your email password or app-specific password">
-                            <small class="form-text text-muted">For Gmail, use App Password (not your regular
-                                password)</small>
+                                placeholder="Пароль от вашей почты или пароль приложения">
+                            <small class="form-text text-muted">Для Gmail используйте пароль приложения (а не ваш обычный
+                                пароль)</small>
                             @error('smtp_password')
                                 <div class="invalid-feedback d-block">{{ $message }}</div>
                             @enderror
@@ -545,7 +545,7 @@
 
                         <div class="form-group">
                             <label for="dispute_auto_close_hours">
-                                <i class="fas fa-clock mr-2"></i>Тауймаут бездействия (часов)
+                                <i class="fas fa-clock mr-2"></i>Таймаут бездействия (часов)
                             </label>
                             <input type="number" class="form-control @error('dispute_auto_close_hours') is-invalid @enderror" 
                                 id="dispute_auto_close_hours" name="dispute_auto_close_hours"

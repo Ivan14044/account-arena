@@ -1,9 +1,21 @@
 @extends('adminlte::page')
 
-@section('title', 'Edit email template #' . $emailTemplate->id)
+@section('title', 'Редактировать email-шаблон #' . $emailTemplate->id)
 
 @section('content_header')
-    <h1>Edit email template #{{ $emailTemplate->id }}</h1>
+    <div class="content-header-modern">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
+            <div>
+                <h1 class="m-0 font-weight-light">Редактировать email-шаблон #{{ $emailTemplate->id }}</h1>
+                <p class="text-muted mb-0 mt-1 d-none d-md-block">Изменение шаблона письма и переводов</p>
+            </div>
+            <div class="w-100 w-md-auto">
+                <a href="{{ route('admin.email-templates.index') }}" class="btn btn-secondary btn-modern w-100 w-md-auto">
+                    <i class="fas fa-arrow-left mr-2"></i>Назад к списку
+                </a>
+            </div>
+        </div>
+    </div>
 @stop
 
 @section('content')
@@ -19,14 +31,14 @@
 
             <div class="card">
                 <div class="card-header">
-                    <h3 class="card-title">Template data</h3>
+                    <h3 class="card-title">Данные шаблона</h3>
                 </div>
                 <div class="card-body">
                     <form method="POST" action="{{ route('admin.email-templates.update', $emailTemplate) }}" enctype="multipart/form-data">
                         @csrf
                         @method('PUT')
                         <div class="form-group">
-                            <label for="name">Name</label>
+                            <label for="name">Название</label>
                             <input type="text" name="name" id="name" class="form-control @error('name') is-invalid @enderror" value="{{ old('name', $emailTemplate->name) }}">
                             @error('name')
                                 <div class="invalid-feedback d-block">{{ $message }}</div>
@@ -34,7 +46,7 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="slug">Code</label>
+                            <label for="slug">Код</label>
                             <input type="text" id="code" readonly class="form-control" value="{{ $emailTemplate->code }}">
                         </div>
 
@@ -57,7 +69,7 @@
                                     @foreach(config('langs') as $code => $flag)
                                         <div class="tab-pane fade show {{ $code == 'ru' ? 'active' : null }}" id="tab_message_{{ $code }}" role="tabpanel">
                                             <div class="form-group">
-                                                <label for="title_{{ $code }}">Title</label>
+                                                <label for="title_{{ $code }}">Заголовок</label>
                                                 <input type="text" name="title[{{ $code }}]" id="title_{{ $code }}"
                                                        class="form-control @error('title.' . $code) is-invalid @enderror"
                                                        value="{{ old('title.' . $code, $emailTemplateData[$code]['title'] ?? null) }}">
@@ -66,26 +78,26 @@
                                                 @enderror
                                             </div>
                                             <div class="form-group">
-                                                <label for="message_{{ $code }}">Message</label>
+                                                <label for="message_{{ $code }}">Текст</label>
                                                 @if ($emailTemplate->code === 'payment_confirmation')
                                                     <div class="alert alert-info">
-                                                        Available variables: <code>@{{amount}}</code>
+                                                        Доступные переменные: <code>@{{amount}}</code>
                                                     </div>
                                                 @elseif ($emailTemplate->code === 'product_purchase_confirmation')
                                                     <div class="alert alert-info">
-                                                        Available variables: <code>@{{products_count}}</code>, <code>@{{total_amount}}</code>
+                                                        Доступные переменные: <code>@{{products_count}}</code>, <code>@{{total_amount}}</code>
                                                     </div>
                                                 @elseif ($emailTemplate->code === 'guest_purchase_confirmation')
                                                     <div class="alert alert-info">
-                                                        Available variables: <code>@{{products_count}}</code>, <code>@{{total_amount}}</code>, <code>@{{guest_email}}</code>
+                                                        Доступные переменные: <code>@{{products_count}}</code>, <code>@{{total_amount}}</code>, <code>@{{guest_email}}</code>
                                                     </div>
                                                 @elseif ($emailTemplate->code === 'reset_password')
                                                     <div class="alert alert-info">
-                                                        Available variables: <code>@{{url}}</code>, <code>@{{email}}</code>, <code>@{{button}}</code> (special placeholder for button HTML)
+                                                        Доступные переменные: <code>@{{url}}</code>, <code>@{{email}}</code>, <code>@{{button}}</code> (специальный плейсхолдер для HTML кнопки)
                                                     </div>
                                                 @else
                                                     <div class="alert alert-info">
-                                                        You can use variables in format <code>@{{variable_name}}</code>
+                                                        Вы можете использовать переменные в формате <code>@{{variable_name}}</code>
                                                     </div>
                                                 @endif
                                                 <textarea style="height: 210px"
@@ -102,9 +114,11 @@
                             </div>
                         </div>
 
-                        <button type="submit" class="btn btn-primary">Save</button>
-                        <button type="submit" name="save" class="btn btn-primary">Save & Continue</button>
-                        <a href="{{ route('admin.email-templates.index') }}" class="btn btn-secondary">Cancel</a>
+                        <div class="d-flex flex-column flex-sm-row gap-2 mt-3">
+                            <button type="submit" class="btn btn-primary btn-modern"><i class="fas fa-save mr-2"></i>Сохранить</button>
+                            <button type="submit" name="save" class="btn btn-primary btn-modern"><i class="fas fa-save mr-2"></i>Сохранить и продолжить</button>
+                            <a href="{{ route('admin.email-templates.index') }}" class="btn btn-secondary btn-modern">Отмена</a>
+                        </div>
                     </form>
                 </div>
             </div>
@@ -112,13 +126,13 @@
             <!-- Test Email Section -->
             <div class="card mt-4">
                 <div class="card-header">
-                    <h3 class="card-title">Test Email</h3>
+                    <h3 class="card-title">Тестовое письмо</h3>
                 </div>
                 <div class="card-body">
                     <form method="POST" action="{{ route('admin.email-templates.send-test', $emailTemplate) }}">
                         @csrf
                         <div class="form-group">
-                            <label for="test_email">Test Email Address</label>
+                            <label for="test_email">Email для теста</label>
                             <input type="email" name="test_email" id="test_email" 
                                    class="form-control @error('test_email') is-invalid @enderror" 
                                    value="{{ old('test_email', auth()->user()->email ?? '') }}" 
@@ -126,10 +140,10 @@
                             @error('test_email')
                                 <div class="invalid-feedback d-block">{{ $message }}</div>
                             @enderror
-                            <small class="form-text text-muted">Enter email address to send test email</small>
+                            <small class="form-text text-muted">Введите email-адрес для отправки тестового письма</small>
                         </div>
                         <div class="form-group">
-                            <label for="test_locale">Language</label>
+                            <label for="test_locale">Язык</label>
                             <select name="locale" id="test_locale" class="form-control">
                                 @foreach(config('langs') as $code => $flag)
                                     <option value="{{ $code }}" {{ $code === 'en' ? 'selected' : '' }}>
@@ -139,13 +153,17 @@
                             </select>
                         </div>
                         <button type="submit" class="btn btn-info">
-                            <i class="fas fa-paper-plane mr-2"></i> Send Test Email
+                            <i class="fas fa-paper-plane mr-2"></i> Отправить тест
                         </button>
                     </form>
                 </div>
             </div>
         </div>
     </div>
+@endsection
+
+@section('css')
+    @include('admin.layouts.modern-styles')
 @endsection
 
 @section('js')

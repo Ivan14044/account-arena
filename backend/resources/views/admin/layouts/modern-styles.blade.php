@@ -5,6 +5,15 @@
    Единая система дизайна для всех страниц
    ============================================ */
 
+/* УТИЛИТЫ FLEX/ШИРИНА (Bootstrap 4 не содержит gap-* и w-md-auto, добавляем сами) */
+.gap-1 { gap: 0.25rem !important; }
+.gap-2 { gap: 0.5rem !important; }
+.gap-3 { gap: 1rem !important; }
+.w-md-auto { width: 100%; }
+@media (min-width: 768px) {
+    .w-md-auto { width: auto !important; }
+}
+
 /* ЗАГОЛОВОК СТРАНИЦЫ */
 .content-header-modern h1 {
     font-size: 1.75rem;

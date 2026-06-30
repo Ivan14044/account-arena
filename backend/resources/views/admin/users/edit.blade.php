@@ -115,7 +115,7 @@
                                     <select name="is_blocked" id="is_blocked" class="form-control form-control-modern @error('is_blocked') is-invalid @enderror">
                                         <option value="0" {{ old('is_blocked', $user->getStatus()) == 'active' ? 'selected' : '' }}>✅ Активен</option>
                                         <option value="1" {{ old('is_blocked', $user->getStatus()) == 'blocked' ? 'selected' : '' }}>🚫 Заблокирован</option>
-                                        <option value="2" {{ old('is_blocked', $user->getStatus()) == 'pending' ? 'selected' : '' }}>⏳ Ожидает (Pending)</option>
+                                        <option value="2" {{ old('is_blocked', $user->getStatus()) == 'pending' ? 'selected' : '' }}>⏳ Ожидает</option>
                                     </select>
                                     @error('is_blocked')
                                         <div class="invalid-feedback d-block">{{ $message }}</div>

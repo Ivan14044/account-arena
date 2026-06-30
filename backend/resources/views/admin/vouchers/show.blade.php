@@ -3,7 +3,17 @@
 @section('title', 'Ваучер #' . $voucher->id)
 
 @section('content_header')
-    <h1>Ваучер #{{ $voucher->id }}</h1>
+    <div class="content-header-modern">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
+            <div>
+                <h1 class="m-0 font-weight-light">Ваучер #{{ $voucher->id }}</h1>
+                <p class="text-muted mb-0 mt-1 d-none d-md-block">Просмотр информации о ваучере</p>
+            </div>
+            <div class="w-100 w-md-auto">
+                <a href="{{ route('admin.vouchers.index') }}" class="btn btn-secondary btn-modern w-100 w-md-auto"><i class="fas fa-arrow-left mr-2"></i>Назад к списку</a>
+            </div>
+        </div>
+    </div>
 @stop
 
 @section('content')
@@ -68,5 +78,9 @@
             </div>
         </div>
     </div>
+@endsection
+
+@section('css')
+    @include('admin.layouts.modern-styles')
 @endsection
 

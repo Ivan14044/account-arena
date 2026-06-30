@@ -1,6 +1,9 @@
 # Dependencies
 node_modules/
 vendor/
+# …but keep AdminLTE translation overrides (source, not Composer's vendor dir)
+!backend/resources/lang/vendor/
+!backend/resources/lang/vendor/**
 
 # Environment files
 .env

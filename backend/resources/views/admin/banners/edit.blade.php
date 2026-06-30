@@ -3,7 +3,17 @@
 @section('title', 'Редактировать баннер')
 
 @section('content_header')
-    <h1>Редактировать баннер: {{ $banner->title }}</h1>
+    <div class="content-header-modern">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
+            <div>
+                <h1 class="m-0 font-weight-light">Редактировать баннер: {{ $banner->title }}</h1>
+                <p class="text-muted mb-0 mt-1 d-none d-md-block">Изменение параметров рекламного баннера</p>
+            </div>
+            <div class="w-100 w-md-auto">
+                <a href="{{ route('admin.banners.index') }}" class="btn btn-secondary btn-modern w-100 w-md-auto"><i class="fas fa-arrow-left mr-2"></i>Назад к списку</a>
+            </div>
+        </div>
+    </div>
 @stop
 
 @section('content')
@@ -250,12 +260,14 @@
                 </div>
 
                 <div class="form-group">
-                    <button type="submit" class="btn btn-success">
-                        <i class="fas fa-save"></i> Сохранить изменения
-                    </button>
-                    <a href="{{ route('admin.banners.index') }}" class="btn btn-secondary">
-                        <i class="fas fa-arrow-left"></i> Назад к списку
-                    </a>
+                    <div class="d-flex flex-column flex-sm-row gap-2 mt-3">
+                        <button type="submit" class="btn btn-success btn-modern">
+                            <i class="fas fa-save"></i> Сохранить изменения
+                        </button>
+                        <a href="{{ route('admin.banners.index') }}" class="btn btn-secondary btn-modern">
+                            <i class="fas fa-arrow-left"></i> Назад к списку
+                        </a>
+                    </div>
                 </div>
             </form>
         </div>
@@ -379,5 +391,9 @@
             }
         });
     </script>
+@endsection
+
+@section('css')
+    @include('admin.layouts.modern-styles')
 @endsection
 

@@ -3,7 +3,17 @@
 @section('title', 'Создать ваучер')
 
 @section('content_header')
-    <h1>Создать ваучер</h1>
+    <div class="content-header-modern">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
+            <div>
+                <h1 class="m-0 font-weight-light">Создать ваучер</h1>
+                <p class="text-muted mb-0 mt-1 d-none d-md-block">Создание новых ваучеров для пополнения баланса</p>
+            </div>
+            <div class="w-100 w-md-auto">
+                <a href="{{ route('admin.vouchers.index') }}" class="btn btn-secondary btn-modern w-100 w-md-auto"><i class="fas fa-arrow-left mr-2"></i>Назад к списку</a>
+            </div>
+        </div>
+    </div>
 @stop
 
 @section('content')
@@ -77,11 +87,13 @@
                             @enderror
                         </div>
 
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-save"></i> Создать ваучер(ы)
-                        </button>
-                        <a href="{{ route('admin.vouchers.index') }}" class="btn btn-secondary">
-                            <i class="fas fa-times"></i>Отмена</a>
+                        <div class="d-flex flex-column flex-sm-row gap-2 mt-3">
+                            <button type="submit" class="btn btn-primary btn-modern">
+                                <i class="fas fa-save"></i> Создать ваучер(ы)
+                            </button>
+                            <a href="{{ route('admin.vouchers.index') }}" class="btn btn-secondary btn-modern">
+                                <i class="fas fa-times"></i>Отмена</a>
+                        </div>
                     </form>
                 </div>
             </div>
@@ -100,5 +112,9 @@
             document.getElementById('code').value = code;
         });
     </script>
+@endsection
+
+@section('css')
+    @include('admin.layouts.modern-styles')
 @endsection
 

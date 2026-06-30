@@ -65,13 +65,13 @@ class LoginController extends Controller
 
         if (!$user) {
             throw ValidationException::withMessages([
-                $this->username() => ['User not found or not an admin.'],
+                $this->username() => ['Пользователь не найден или не является администратором.'],
             ]);
         }
 
         if ($user && $user->is_blocked) {
             throw ValidationException::withMessages([
-                $this->username() => ['Your account has been blocked.'],
+                $this->username() => ['Ваш аккаунт заблокирован.'],
             ]);
         }
 
