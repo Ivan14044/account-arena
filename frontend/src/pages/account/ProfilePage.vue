@@ -1836,7 +1836,7 @@
 import { ref, onMounted } from 'vue';
 import { Lock, Mail, User } from 'lucide-vue-next';
 import { useAuthStore } from '../../stores/auth';
-import { POSITION, useToast } from 'vue-toastification';
+import { useToast } from 'vue-toastification';
 import { useI18n } from 'vue-i18n';
 import { useRouter, useRoute } from 'vue-router';
 import { useLoadingStore } from '@/stores/loading';
@@ -1848,6 +1848,7 @@ import { useUserPurchases } from '@/composables/useUserPurchases';
 import { useAccountDownload } from '@/composables/useAccountDownload';
 import { useProfileDisputes } from '@/composables/useProfileDisputes';
 import { useOrderActions } from '@/composables/useOrderActions';
+import { useVoucher } from '@/composables/useVoucher';
 import { PurchaseStatus, purchaseStatusClass } from '@/constants/purchaseStatus';
 
 const { t } = useI18n();
@@ -1873,10 +1874,9 @@ type FormErrors = Record<string, string[]>;
 const errors = ref<FormErrors>({});
 
 // Voucher
-const voucherCode = ref('');
-const voucherLoading = ref(false);
-const voucherError = ref('');
-const voucherSuccess = ref('');
+// Активация ваучера вынесена в композабл
+const { voucherCode, voucherLoading, voucherError, voucherSuccess, activateVoucher } =
+    useVoucher();
 
 // Purchases (data layer вынесен в композабл)
 const {
@@ -2004,49 +2004,6 @@ const getProcessingDuration = (purchase: any) => {
 // Рендер/копирование/скачивание выданных аккаунтов вынесено в композабл
 const { formatAccountData, copyToClipboard, downloadSingleAccount, downloadAllAccounts } =
     useAccountDownload({ formatDate });
-
-const activateVoucher = async () => {
-    if (!voucherCode.value.trim()) {
-        return;
-    }
-
-    voucherLoading.value = true;
-    voucherError.value = '';
-    voucherSuccess.value = '';
-
-    try {
-        const response = await axios.post('/vouchers/activate', {
-            code: voucherCode.value.trim().toUpperCase()
-        });
-
-        voucherSuccess.value = response.data.message;
-        voucherCode.value = '';
-
-        // Обновляем баланс пользователя
-        await authStore.fetchUser();
-
-        // Показываем toast уведомление
-        toast.success(response.data.message, {
-            position: POSITION.TOP_RIGHT,
-            timeout: 5000
-        });
-    } catch (error: any) {
-        if (error.response?.data?.errors?.code) {
-            voucherError.value = error.response.data.errors.code[0];
-        } else if (error.response?.data?.message) {
-            voucherError.value = error.response.data.message;
-        } else {
-            voucherError.value = t('profile.voucher.error');
-        }
-
-        // Очищаем ошибку через 5 секунд
-        setTimeout(() => {
-            voucherError.value = '';
-        }, 5000);
-    } finally {
-        voucherLoading.value = false;
-    }
-};
 
 const handleSubmit = async () => {
     const payload: any = {
