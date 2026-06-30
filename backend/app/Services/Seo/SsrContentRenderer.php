@@ -139,8 +139,9 @@ class SsrContentRenderer
     public function generateCategoryContent($title, $description, $locale)
     {
         // Ищем товары этой категории для перелинковки в боте
-        // Сначала найдем саму категорию по названию (т.к. метод получает уже готовое название)
-        $category = Category::where('is_active', true)
+        // Сначала найдем саму категорию по названию (т.к. метод получает уже готовое название).
+        // Колонки is_active у categories нет — берём товарные категории по типу.
+        $category = Category::productCategories()
             ->get()
             ->filter(function ($c) use ($title, $locale) {
                 return ($c->translate('name', $locale) ?: $c->name) === $title;
