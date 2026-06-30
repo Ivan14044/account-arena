@@ -75,12 +75,18 @@
 
 ### Прочее (Low/Med)
 - M3: audit-log не должен писать секреты/`account_data`; логировать только на 2xx.
-- Per-user лимит промокодов для гостей (fallback по email/IP).
-- User enumeration в forgot/reset (`exists:users,email`).
-- Dead code: `SupportMessageReaction`, `extractKeywords()`, `EmptyLayout`, осиротевшие Lottie.
-- Полная sqlite-портируемость остальных миграций (для зелёного тест-сьюта в CI).
-- **SSR `/categories` отдаёт 500** (`SQLSTATE 42S22: Unknown column 'is_active'`) — `SpaController::getCategoriesListMetaTags` строит запрос по несуществующей на этой таблице колонке `is_active`. Найдено при рефакторинге (step 12.12, SSR before/after diff); поведение сохранено намеренно. Фикс — отдельным PR.
-- **ProfilePage: автообновление processing-заказов и таймер «времени в обработке» никогда не работали** — `startProcessingOrdersPolling`/`startProcessingTimer` нигде не вызывались (мёртвый код удалён в step 12.5). Если автообновление нужно как фича — подключить `start*` в `onMounted` и `stop*` в `onBeforeUnmount`.
+- Per-user лимит промокодов для гостей (fallback по email/IP). — *остаётся (нужна политика лимита)*.
+- ✅ **User enumeration в forgot/reset — ИСПРАВЛЕНО** (PR #45): убран `exists:users,email`, generic-ответы forgot/reset (broker не раскрывает существование email).
+- Dead code: `extractKeywords()`/`EmptyLayout`/осиротевшие Lottie — удалены ранее (step 11). `SupportMessageReaction` — **используется** (`SupportMessage`/`SupportChatController`), не мёртвый; не трогаем.
+- Полная sqlite-портируемость остальных миграций (для зелёного тест-сьюта в CI) — *остаётся* (~13 пред-существующих падений: case-insensitive collation в promocode-тестах, cart-флоу на sqlite, `/`→404, supplier_id NOT NULL, IDOR-тесты). Высокий риск (миграции) — отдельной задачей.
+
+### ✅ Исправлено (баги, найденные при рефакторинге)
+- ✅ **API exception handler маскировал ошибки под 500** (PR #43): `Handler::render` для api/* отдавал 500 на любой контроллерный `ValidationException` (без `errors`), `AuthenticationException`, `AuthorizationException`. Теперь 422+errors / 401 / 403. Это был корень симптома **`POST /vouchers/activate` → 500 вместо 422**. Регресс-тест `ExceptionHandlerTest`; сьют 16→13 падений.
+- ✅ **SSR `/categories` → 500 — ИСПРАВЛЕНО** (PR #44): `categories` не имеет колонок `is_active`/`sort_order` (запрос падал дважды). Теперь `Category::productCategories()->orderBy('id')`. Проверено реальным SSR на MySQL (500→200).
+- **ProfilePage: автообновление processing-заказов/таймер никогда не работали** — `start*` не вызывались (мёртвый код удалён в step 12.5). Это **фича-решение** (нужно ли авто-refresh + нагрузка на сервер), а не баг рефакторинга — намеренно НЕ включал. Если нужно — `start*` в `onMounted`, `stop*` в `onBeforeUnmount`.
+
+### ⏳ Новая находка (отдельный баг, требует разбора)
+- **SSR страница-деталь `/categories/{slug}` → 404 даже для существующего slug** — `SpaController::getCategoryMetaTags` не резолвит категорию (slug есть в списке `/categories`, но деталь отдаёт 404 → плохо для SEO). Найдено при QA фикса #44. Требует разбора логики lookup (slug/id/видимость).
 
 ---
 
