@@ -45,9 +45,9 @@
                                 name="{{ $fieldName }}"
                                 id="{{ $fieldId }}"
                                 class="form-control {{ $hasError ? 'is-invalid' : '' }}">
-                                <option value="">-- select service --</option>
+                                <option value="">-- выберите сервис --</option>
                                 @foreach(($services ?? []) as $service)
-                                    @php($serviceName = $service->getTranslation('name', $code) ?? $service->name ?? ('Service #' . $service->id))
+                                    @php($serviceName = $service->getTranslation('name', $code) ?? $service->name ?? ('Сервис #' . $service->id))
                                     <option value="{{ $service->id }}" @if((string)$value === (string)$service->id) selected @endif>
                                         {{ $serviceName }}
                                     </option>
@@ -63,7 +63,7 @@
                             @if(!empty($value))
                                 <div class="mt-2">
                                     <img src="{{ url($value) }}" alt="preview" class="img-fluid img-bordered" style="max-width: 150px;">
-                                    <a href="#" class="d-block mt-1 text-danger remove-file">Delete</a>
+                                    <a href="#" class="d-block mt-1 text-danger remove-file">Удалить</a>
                                 </div>
                             @endif
                         @endif
@@ -77,5 +77,5 @@
         @endforeach
     </div>
 
-    <button type="button" class="btn btn-success add-block" data-lang="{{ $code }}">+ Add</button>
+    <button type="button" class="btn btn-success add-block" data-lang="{{ $code }}">+ Добавить</button>
 </div>

@@ -1,9 +1,9 @@
 @extends('adminlte::page')
 
-@section('title', 'Edit page #' . $page->id)
+@section('title', 'Редактировать страницу #' . $page->id)
 
 @section('content_header')
-    <h1>Edit page #{{ $page->id }}</h1>
+    <h1>Редактировать страницу #{{ $page->id }}</h1>
 @stop
 
 @section('content')
@@ -15,14 +15,14 @@
 
             <div class="card">
                 <div class="card-header">
-                    <h3 class="card-title">Page data</h3>
+                    <h3 class="card-title">Данные страницы</h3>
                 </div>
                 <div class="card-body">
                     <form method="POST" action="{{ route('admin.pages.update', $page) }}" enctype="multipart/form-data">
                         @csrf
                         @method('PUT')
                         <div class="form-group">
-                            <label for="name">Name</label>
+                            <label for="name">Название</label>
                             <input type="text" name="name" id="name" class="form-control @error('name') is-invalid @enderror" value="{{ old('name', $page->name) }}">
                             @error('name')
                                 <div class="invalid-feedback d-block">{{ $message }}</div>
@@ -39,10 +39,10 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="is_active">Status</label>
+                            <label for="is_active">Статус</label>
                             <select name="is_active" id="is_active" class="form-control @error('is_active') is-invalid @enderror">
-                                <option value="1" {{ old('is_active', $page->is_active) == 1 ? 'selected' : '' }}>Active</option>
-                                <option value="0" {{ old('is_active', $page->is_active) == 0 ? 'selected' : '' }}>Inactive</option>
+                                <option value="1" {{ old('is_active', $page->is_active) == 1 ? 'selected' : '' }}>Активно</option>
+                                <option value="0" {{ old('is_active', $page->is_active) == 0 ? 'selected' : '' }}>Неактивно</option>
                             </select>
                             @error('is_active')
                                 <div class="invalid-feedback d-block">{{ $message }}</div>
@@ -68,7 +68,7 @@
                                     @foreach(config('langs') as $code => $flag)
                                         <div class="tab-pane fade show {{ $code == 'ru' ? 'active' : null }}" id="tab_content_{{ $code }}" role="tabpanel">
                                             <div class="form-group">
-                                                <label for="meta_title_{{ $code }}">Meta title</label>
+                                                <label for="meta_title_{{ $code }}">Meta-заголовок</label>
                                                 <input type="text" name="meta_title[{{ $code }}]" id="meta_title_{{ $code }}"
                                                        class="form-control @error('meta_title_.' . $code) is-invalid @enderror"
                                                        value="{{ old('meta_title_.' . $code, $pageData[$code]['meta_title'] ?? null) }}">
@@ -77,7 +77,7 @@
                                                 @enderror
                                             </div>
                                             <div class="form-group">
-                                                <label for="meta_description_{{ $code }}">Meta description</label>
+                                                <label for="meta_description_{{ $code }}">Meta-описание</label>
                                                 <input type="text" name="meta_description[{{ $code }}]" id="meta_description_{{ $code }}"
                                                        class="form-control @error('meta_description_.' . $code) is-invalid @enderror"
                                                        value="{{ old('meta_description_.' . $code, $pageData[$code]['meta_description'] ?? null) }}">
@@ -86,7 +86,7 @@
                                                 @enderror
                                             </div>
                                             <div class="form-group">
-                                                <label for="title_{{ $code }}">Title</label>
+                                                <label for="title_{{ $code }}">Заголовок</label>
                                                 <input type="text" name="title[{{ $code }}]" id="title_{{ $code }}"
                                                        class="form-control @error('title.' . $code) is-invalid @enderror"
                                                        value="{{ old('title.' . $code, $pageData[$code]['title'] ?? null) }}">
@@ -95,7 +95,7 @@
                                                 @enderror
                                             </div>
                                             <div class="form-group">
-                                                <label for="content_{{ $code }}">Content</label>
+                                                <label for="content_{{ $code }}">Содержимое</label>
                                                 <textarea style="height: 210px"
                                                           name="content[{{ $code }}]"
                                                           class="ckeditor form-control @error('content.' . $code) is-invalid @enderror"
@@ -110,9 +110,9 @@
                             </div>
                         </div>
 
-                        <button type="submit" class="btn btn-primary">Save</button>
-                        <button type="submit" name="save" class="btn btn-primary">Save & Continue</button>
-                        <a href="{{ route('admin.pages.index') }}" class="btn btn-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary">Сохранить</button>
+                        <button type="submit" name="save" class="btn btn-primary">Сохранить и продолжить</button>
+                        <a href="{{ route('admin.pages.index') }}" class="btn btn-secondary">Отмена</a>
                     </form>
                 </div>
             </div>

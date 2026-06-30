@@ -117,7 +117,7 @@
                                 <!-- English Tab -->
                                 <div class="tab-pane fade" id="en" role="tabpanel">
                                     <div class="form-group">
-                                        <label for="title_en">Product Name (English)</label>
+                                        <label for="title_en">Название товара (английский)</label>
                                         <input type="text" name="title_en" id="title_en"
                                                class="form-control @error('title_en') is-invalid @enderror"
                                                value="{{ old('title_en', $serviceAccount->title_en) }}">
@@ -127,7 +127,7 @@
                                     </div>
 
                                     <div class="form-group">
-                                        <label for="description_en">Product Description (HTML available)</label>
+                                        <label for="description_en">Описание товара (английский, HTML доступен)</label>
                                         <textarea name="description_en" id="description_en" rows="5"
                                                   class="ckeditor form-control @error('description_en') is-invalid @enderror">{{ old('description_en', $serviceAccount->description_en) }}</textarea>
                                         @error('description_en')
@@ -136,7 +136,7 @@
                                     </div>
 
                                     <div class="form-group">
-                                        <label for="additional_description_en">Additional Description (HTML available)</label>
+                                        <label for="additional_description_en">Дополнительное описание (английский, HTML доступен)</label>
                                         <textarea name="additional_description_en" id="additional_description_en" rows="5"
                                                   class="ckeditor form-control @error('additional_description_en') is-invalid @enderror">{{ old('additional_description_en', $serviceAccount->additional_description_en) }}</textarea>
                                         @error('additional_description_en')
@@ -145,7 +145,7 @@
                                     </div>
 
                                     <div class="form-group">
-                                        <label for="meta_title_en">Meta Title (SEO)</label>
+                                        <label for="meta_title_en">Мета заголовок (английский, SEO)</label>
                                         <input type="text" name="meta_title_en" id="meta_title_en"
                                                class="form-control @error('meta_title_en') is-invalid @enderror"
                                                value="{{ old('meta_title_en', $serviceAccount->meta_title_en) }}">
@@ -155,7 +155,7 @@
                                     </div>
 
                                     <div class="form-group">
-                                        <label for="meta_description_en">Meta Description (SEO)</label>
+                                        <label for="meta_description_en">Мета описание (английский, SEO)</label>
                                         <textarea name="meta_description_en" id="meta_description_en" rows="3"
                                                   class="form-control @error('meta_description_en') is-invalid @enderror">{{ old('meta_description_en', $serviceAccount->meta_description_en) }}</textarea>
                                         @error('meta_description_en')
@@ -497,8 +497,8 @@
                                         <label for="is_active">Статус</label>
                                         <select name="is_active" id="is_active"
                                                 class="form-control @error('is_active') is-invalid @enderror">
-                                            <option value="1" {{ old('is_active', $serviceAccount->is_active) == 1 ? 'selected' : '' }}>Active</option>
-                                            <option value="0" {{ old('is_active', $serviceAccount->is_active) == 0 ? 'selected' : '' }}>Inactive</option>
+                                            <option value="1" {{ old('is_active', $serviceAccount->is_active) == 1 ? 'selected' : '' }}>Активен</option>
+                                            <option value="0" {{ old('is_active', $serviceAccount->is_active) == 0 ? 'selected' : '' }}>Неактивен</option>
                                         </select>
                                         @error('is_active')
                                         <div class="invalid-feedback d-block">{{ $message }}</div>

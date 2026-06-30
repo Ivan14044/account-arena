@@ -1,9 +1,9 @@
 @extends('adminlte::page')
 
-@section('title', 'Profile')
+@section('title', 'Профиль')
 
 @section('content_header')
-    <h1>Profile</h1>
+    <h1>Профиль</h1>
 @stop
 
 @section('content')
@@ -15,7 +15,7 @@
         </div>
         <div class="col-md-6">
             <div class="card card-primary">
-                <div class="card-header">Account credentials</div>
+                <div class="card-header">Учётные данные</div>
                 <div class="card-body">
                     <form method="POST" action="{{ route('admin.profile.store') }}">
                         @csrf
@@ -27,18 +27,18 @@
                             @enderror
                         </div>
                         <div class="form-group">
-                            <label>New password</label>
-                            <small>Leave empty to keep current</small>
+                            <label>Новый пароль</label>
+                            <small>Оставьте пустым, чтобы не менять</small>
                             <input type="password" name="password" class="form-control @error('password') is-invalid @enderror">
                             @error('password')
                                 <div class="invalid-feedback d-block">{{ $message }}</div>
                             @enderror
                         </div>
                         <div class="form-group">
-                            <label>Password confirmation</label>
+                            <label>Подтвердите пароль</label>
                             <input type="password" name="password_confirmation" class="form-control">
                         </div>
-                        <button type="submit" class="btn btn-primary">Save</button>
+                        <button type="submit" class="btn btn-primary">Сохранить</button>
                     </form>
                 </div>
             </div>

@@ -1,9 +1,9 @@
 @extends('adminlte::page')
 
-@section('title', 'Add Article')
+@section('title', 'Создание статьи')
 
 @section('content_header')
-    <h1>Articles create</h1>
+    <h1>Создание статьи</h1>
 @endsection
 
 @section('content')
@@ -14,14 +14,14 @@
             @endif
             <div class="card">
                 <div class="card-header">
-                    <h3 class="card-title">Article data</h3>
+                    <h3 class="card-title">Данные статьи</h3>
                 </div>
                 <div class="card-body">
                     <form method="POST" action="{{ route('admin.articles.store') }}" enctype="multipart/form-data">
                         @csrf
 
                         <div class="form-group">
-                            <label for="categories">Categories</label>
+                            <label for="categories">Категории</label>
                             <select name="categories[]" id="categories" class="select2 form-control @error('categories') is-invalid @enderror" multiple>
                                 @foreach ($categories as $category)
                                     <option value="{{ $category->id }}" {{ collect(old('categories', []))->contains($category->id) ? 'selected' : '' }}>
@@ -35,10 +35,10 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="is_active">Status</label>
+                            <label for="is_active">Статус</label>
                             <select name="is_active" id="is_active" class="form-control @error('is_active') is-invalid @enderror">
-                                <option value="1" {{ old('is_active', 1) == 1 ? 'selected' : '' }}>Published</option>
-                                <option value="0" {{ old('is_active', 1) == 0 ? 'selected' : '' }}>Draft</option>
+                                <option value="1" {{ old('is_active', 1) == 1 ? 'selected' : '' }}>Опубликовано</option>
+                                <option value="0" {{ old('is_active', 1) == 0 ? 'selected' : '' }}>Черновик</option>
                             </select>
                             @error('is_active')
                                 <div class="invalid-feedback d-block">{{ $message }}</div>
@@ -46,7 +46,7 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="img">Article Image</label>
+                            <label for="img">Изображение статьи</label>
                             <input type="file" accept="image/*" class="form-control-file @error('img') is-invalid @enderror" id="img" name="img">
                             @error('img')
                                 <div class="invalid-feedback d-block">{{ $message }}</div>
@@ -72,35 +72,35 @@
                                     @foreach (config('langs') as $code => $flag)
                                         <div class="tab-pane fade show {{ $code == 'ru' ? 'active' : null }}" id="content_{{ $code }}" role="tabpanel">
                                             <div class="form-group">
-                                                <label for="meta_title_{{ $code }}">Meta title</label>
+                                                <label for="meta_title_{{ $code }}">Meta-заголовок</label>
                                                 <input type="text" name="meta_title[{{ $code }}]" id="meta_title_{{ $code }}" class="form-control @error('meta_title.' . $code) is-invalid @enderror" value="{{ old('meta_title.' . $code) }}">
                                                 @error('meta_title.' . $code)
                                                     <div class="invalid-feedback d-block">{{ $message }}</div>
                                                 @enderror
                                             </div>
                                             <div class="form-group">
-                                                <label for="meta_description_{{ $code }}">Meta description</label>
+                                                <label for="meta_description_{{ $code }}">Meta-описание</label>
                                                 <input type="text" name="meta_description[{{ $code }}]" id="meta_description_{{ $code }}" class="form-control @error('meta_description.' . $code) is-invalid @enderror" value="{{ old('meta_description.' . $code) }}">
                                                 @error('meta_description.' . $code)
                                                     <div class="invalid-feedback d-block">{{ $message }}</div>
                                                 @enderror
                                             </div>
                                             <div class="form-group">
-                                                <label for="short_{{ $code }}">Short text</label>
+                                                <label for="short_{{ $code }}">Краткий текст</label>
                                                 <textarea name="short[{{ $code }}]" id="short_{{ $code }}" class="form-control @error('short.' . $code) is-invalid @enderror" rows="3">{{ old('short.' . $code) }}</textarea>
                                                 @error('short.' . $code)
                                                     <div class="invalid-feedback d-block">{{ $message }}</div>
                                                 @enderror
                                             </div>
                                             <div class="form-group">
-                                                <label for="title_{{ $code }}">Title</label>
+                                                <label for="title_{{ $code }}">Заголовок</label>
                                                 <input type="text" name="title[{{ $code }}]" id="title_{{ $code }}" class="form-control @error('title.' . $code) is-invalid @enderror" value="{{ old('title.' . $code) }}">
                                                 @error('title.' . $code)
                                                     <div class="invalid-feedback d-block">{{ $message }}</div>
                                                 @enderror
                                             </div>
                                             <div class="form-group">
-                                                <label for="content_{{ $code }}">Content</label>
+                                                <label for="content_{{ $code }}">Содержимое</label>
                                                 <textarea style="height: 210px" name="content[{{ $code }}]" class="ckeditor form-control @error('content.' . $code) is-invalid @enderror" id="content_{{ $code }}">{!! old('content.' . $code) !!}</textarea>
                                                 @error('content.' . $code)
                                                     <div class="invalid-feedback d-block">{{ $message }}</div>
@@ -112,8 +112,8 @@
                             </div>
                         </div>
 
-                        <button type="submit" class="btn btn-primary">Create</button>
-                        <a href="{{ route('admin.articles.index') }}" class="btn btn-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary">Создать</button>
+                        <a href="{{ route('admin.articles.index') }}" class="btn btn-secondary">Отмена</a>
                     </form>
                 </div>
             </div>
@@ -143,7 +143,7 @@
 
         $(document).ready(function () {
             $('#categories').select2({
-                placeholder: 'Select categories',
+                placeholder: 'Выберите категории',
                 allowClear: true
             });
         });
