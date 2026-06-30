@@ -5012,6 +5012,92 @@ body {
         margin-left: 0 !important;
     }
 }
+
+/* ========================================
+   SERVICE ACCOUNTS (ТОВАРЫ) STATS — 2x2 (как на остальных страницах)
+   ======================================== */
+@media (max-width: 575px) {
+    .row.service-accounts-stats {
+        display: flex;
+        flex-wrap: wrap;
+        margin-right: -0.25rem;
+        margin-left: -0.25rem;
+    }
+    .row.service-accounts-stats > .col-lg-3.col-md-6.col-6 {
+        flex: 0 0 50% !important;
+        max-width: 50% !important;
+        width: 50% !important;
+        padding-right: 0.25rem;
+        padding-left: 0.25rem;
+        margin-bottom: 0.5rem !important;
+        display: flex;
+    }
+    .service-accounts-stats .stat-card {
+        padding: 1rem 0.5rem !important;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 0 !important;
+    }
+    .service-accounts-stats .stat-card-body {
+        padding: 0 !important;
+        width: 100%;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        text-align: center !important;
+    }
+    .service-accounts-stats .stat-icon {
+        position: static !important;
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        width: 44px !important;
+        height: 44px !important;
+        border-radius: 50%;
+        background: rgba(0,0,0,0.05) !important;
+        margin: 0 auto 0.5rem auto !important;
+        opacity: 1 !important;
+    }
+    .service-accounts-stats .stat-icon i {
+        font-size: 1.25rem !important;
+        color: inherit !important;
+    }
+    .service-accounts-stats .stat-card-primary .stat-icon i { color: #4e73df !important; }
+    .service-accounts-stats .stat-card-success .stat-icon i { color: #1cc88a !important; }
+    .service-accounts-stats .stat-card-warning .stat-icon i { color: #f6c23e !important; }
+    .service-accounts-stats .stat-card-info .stat-icon i { color: #36b9cc !important; }
+    .service-accounts-stats .stat-content {
+        width: 100% !important;
+        text-align: center !important;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    .service-accounts-stats .stat-value {
+        font-size: 1.5rem !important;
+        font-weight: 800 !important;
+        margin-bottom: 0.25rem;
+        color: #2c3e50;
+        text-align: center !important;
+        width: 100%;
+        display: block;
+    }
+    .service-accounts-stats .stat-label {
+        font-size: 0.7rem !important;
+        line-height: 1.2;
+        color: #858796;
+        text-transform: uppercase;
+        font-weight: 700;
+        text-align: center !important;
+        width: 100%;
+        display: block;
+        padding: 0 !important;
+    }
+}
 </style>
 
 
