@@ -22,7 +22,7 @@
                         <button 
                             class="text-white hover:text-gray-300 transition-colors p-1"
                             @click="$emit('close')"
-                            aria-label="Close menu"
+                            :aria-label="$t('common.close_menu')"
                         >
                             <svg
                                 width="24"

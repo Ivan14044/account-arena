@@ -1,6 +1,6 @@
 <template>
     <fieldset class="theme-switcher">
-        <legend class="theme-switcher__legend">Выбрать тему</legend>
+        <legend class="theme-switcher__legend">{{ $t('theme.select') }}</legend>
         
         <!-- SVG фильтры для liquid glass эффекта -->
         <svg style="display: none" class="theme-switcher__filter">
@@ -14,7 +14,7 @@
         <label 
             class="theme-switcher__option" 
             :class="{ 'theme-switcher__option--active': !isDark }"
-            aria-label="Светлая тема"
+            :aria-label="$t('theme.light')"
         >
             <input 
                 class="theme-switcher__input" 
@@ -22,7 +22,7 @@
                 name="theme" 
                 value="light" 
                 :checked="!isDark"
-                aria-label="Светлая тема"
+                :aria-label="$t('theme.light')"
                 @change="setTheme(false)"
             />
             <svg class="theme-switcher__icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 36 36">
@@ -34,7 +34,7 @@
         <label 
             class="theme-switcher__option" 
             :class="{ 'theme-switcher__option--active': isDark }"
-            aria-label="Тёмная тема"
+            :aria-label="$t('theme.dark')"
         >
             <input 
                 class="theme-switcher__input" 
@@ -42,7 +42,7 @@
                 name="theme" 
                 value="dark" 
                 :checked="isDark"
-                aria-label="Тёмная тема"
+                :aria-label="$t('theme.dark')"
                 @change="setTheme(true)"
             />
             <svg class="theme-switcher__icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 36 36">

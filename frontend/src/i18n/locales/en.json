@@ -1,6 +1,9 @@
 {
     "common": {
-        "home": "Home"
+        "home": "Home",
+        "scroll_to_top": "Scroll to top",
+        "breadcrumb": "Breadcrumb",
+        "close_menu": "Close menu"
     },
     "auth": {
         "loginTitle": "Welcome back",
@@ -610,6 +613,7 @@
     },
     "supportChat": {
         "openChat": "Open support chat",
+        "attachFile": "Attach file",
         "title": "Support Chat",
         "description": "Choose a convenient way to contact our support team",
         "chooseMethod": "Choose contact method",
@@ -832,5 +836,14 @@
             "submit": "Submit",
             "success": "Your message has been successfully sent! We will contact you shortly."
         }
+    },
+    "notFound": {
+        "message": "Page not found",
+        "back_home": "Go back to home"
+    },
+    "theme": {
+        "select": "Choose theme",
+        "light": "Light theme",
+        "dark": "Dark theme"
     }
 }

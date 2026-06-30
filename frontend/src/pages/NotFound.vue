@@ -5,14 +5,14 @@
                 404
             </div>
             <div class="mx-auto text-center text-2xl font-light text-gray-900 dark:text-gray-300">
-                Page not found
+                {{ $t('notFound.message') }}
             </div>
             <div class="mx-auto text-center mt-10">
                 <button
                     class="bg-blue-500 dark:bg-blue-900 hover:bg-blue-600 dark:hover:bg-blue-800 text-center text-sm font-light text-white rounded-md px-4 py-2"
                     @click="goBack"
                 >
-                    Go back to home
+                    {{ $t('notFound.back_home') }}
                 </button>
             </div>
         </div>

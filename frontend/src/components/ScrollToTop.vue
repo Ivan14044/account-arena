@@ -2,7 +2,7 @@
     <button
         class="scroll-to-top-btn dark:bg-gray-700 dark:hover:bg-gray-600"
         :class="{ visible: isVisible }"
-        aria-label="Scroll to top"
+        :aria-label="$t('common.scroll_to_top')"
         @click="scrollToTop"
     >
         <svg
