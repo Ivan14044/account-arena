@@ -1836,17 +1836,19 @@
 import { ref, onMounted } from 'vue';
 import { Lock, Mail, User } from 'lucide-vue-next';
 import { useAuthStore } from '../../stores/auth';
-import { POSITION, useToast } from 'vue-toastification';
+import { useToast } from 'vue-toastification';
 import { useI18n } from 'vue-i18n';
 import { useRouter, useRoute } from 'vue-router';
 import { useLoadingStore } from '@/stores/loading';
 import { useSeo } from '@/composables/useSeo';
 import axios from '@/bootstrap'; // Используем настроенный axios из bootstrap
 import { useProductTitle } from '@/composables/useProductTitle';
-import { formatPrice } from '@/utils/money';
 import { useUserPurchases } from '@/composables/useUserPurchases';
 import { useAccountDownload } from '@/composables/useAccountDownload';
-import { PurchaseStatus, purchaseStatusClass } from '@/constants/purchaseStatus';
+import { useProfileDisputes } from '@/composables/useProfileDisputes';
+import { useOrderActions } from '@/composables/useOrderActions';
+import { useVoucher } from '@/composables/useVoucher';
+import { useProfileFormatters } from '@/composables/useProfileFormatters';
 
 const { t } = useI18n();
 
@@ -1871,10 +1873,9 @@ type FormErrors = Record<string, string[]>;
 const errors = ref<FormErrors>({});
 
 // Voucher
-const voucherCode = ref('');
-const voucherLoading = ref(false);
-const voucherError = ref('');
-const voucherSuccess = ref('');
+// Активация ваучера вынесена в композабл
+const { voucherCode, voucherLoading, voucherError, voucherSuccess, activateVoucher } =
+    useVoucher();
 
 // Purchases (data layer вынесен в композабл)
 const {
@@ -1890,160 +1891,62 @@ const {
     togglePurchaseDetails
 } = useUserPurchases();
 
-// Disputes (Претензии)
-const disputes = ref<any[]>([]);
-const loadingDisputes = ref(false);
-const expandedDisputes = ref<Set<number>>(new Set());
+// Disputes (Претензии) вынесены в композабл
+const {
+    disputes,
+    loadingDisputes,
+    expandedDisputes,
+    showDisputeModal,
+    selectedPurchase,
+    screenshotMethod,
+    screenshotPreview,
+    screenshotLinkError,
+    isSubmittingDispute,
+    disputeForm,
+    toggleDisputeDetails,
+    canCreateDispute,
+    openDisputeModal,
+    getDisputeStatusText,
+    getDisputeStatusClass,
+    closeDisputeModal,
+    handleFileUpload,
+    submitDispute,
+    fetchDisputes,
+    getDecisionColor
+} = useProfileDisputes({ refreshPurchases: fetchPurchases });
 
-// Dispute modal
-const showDisputeModal = ref(false);
-const selectedPurchase = ref<any>(null);
-const screenshotMethod = ref<'file' | 'link'>('file');
-const screenshotFile = ref<File | null>(null);
-const screenshotPreview = ref<string | null>(null);
-const screenshotLinkError = ref(false);
-const isSubmittingDispute = ref(false);
+// Действия с заказом (отмена / история статусов / связь с менеджером) вынесены в композабл
+const {
+    showCancelModal,
+    cancellationReason,
+    showStatusHistoryModal,
+    fullStatusHistory,
+    loadingStatusHistory,
+    openCancelModal,
+    closeCancelModal,
+    openStatusHistoryModal,
+    closeStatusHistoryModal,
+    cancelProcessingOrder,
+    contactManagerAboutOrder
+} = useOrderActions({ refreshPurchases: fetchPurchases });
 
-// Cancel order modal
-const showCancelModal = ref(false);
-const cancellationReason = ref('');
-const selectedPurchaseForCancel = ref<any>(null);
 
-// Status History Modal
-const showStatusHistoryModal = ref(false);
-const fullStatusHistory = ref<any[]>([]);
-const loadingStatusHistory = ref(false);
-const selectedPurchaseForHistory = ref<any>(null);
+// Форматтеры отображения вынесены в композабл
+const {
+    formatBalance,
+    formatAmount,
+    formatPaymentMethod,
+    formatStatus,
+    getStatusClass,
+    getProgressStage,
+    formatDate,
+    getProcessingDuration
+} = useProfileFormatters();
 
-const disputeForm = ref({
-    reason: '',
-    description: '',
-    screenshot_link: ''
-});
-
-const formatBalance = (balance: number | string) => {
-    return formatPrice(balance, 'USD');
-};
-
-const formatAmount = (amount: number, currency: string = 'USD') => {
-    return formatPrice(amount, currency || 'USD');
-};
-
-const formatPaymentMethod = (method: string) => {
-    const methods: Record<string, string> = {
-        credit_card: t('profile.purchases.methods.card'),
-        crypto: t('profile.purchases.methods.crypto'),
-        free: t('profile.purchases.methods.free'),
-        admin_bypass: t('profile.purchases.methods.admin'),
-        balance: t('profile.purchases.methods.balance'),
-        balance_deduction: t('profile.purchases.methods.balance')
-    };
-    return methods[method] || method;
-};
-
-const formatStatus = (status: string) => {
-    const statuses: Record<string, string> = {
-        completed: t('profile.purchases.statuses.completed'),
-        pending: t('profile.purchases.statuses.pending'),
-        processing: t('profile.purchases.statuses.processing'),
-        failed: t('profile.purchases.statuses.failed'),
-        cancelled: t('profile.purchases.statuses.cancelled'),
-        refunded: t('profile.purchases.statuses.refunded')
-    };
-    return statuses[status] || status;
-};
-
-const getStatusClass = (status: string) => purchaseStatusClass(status);
-
-// Определение текущего этапа прогресс-бара
-const getProgressStage = (purchase: any): number => {
-    if (purchase.status === PurchaseStatus.COMPLETED) return 3;
-    if (purchase.status === PurchaseStatus.PROCESSING) return 2;
-    return 1;
-};
-
-const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return new Intl.DateTimeFormat('ru-RU', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-    }).format(date);
-};
-
-// Расчет времени обработки заказа
-const getProcessingDuration = (purchase: any) => {
-    const start = new Date(purchase.created_at);
-    const now = new Date();
-    const diffMs = now.getTime() - start.getTime();
-    const hours = Math.floor(diffMs / (1000 * 60 * 60));
-    const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-    
-    if (hours >= 24) {
-        const days = Math.floor(hours / 24);
-        const remainingHours = hours % 24;
-        return t('profile.purchases.processing_duration_days', { days, hours: remainingHours });
-    }
-    return t('profile.purchases.processing_duration_hours', { hours, minutes });
-};
-
-const toggleDisputeDetails = (disputeId: number) => {
-    if (expandedDisputes.value.has(disputeId)) {
-        expandedDisputes.value.delete(disputeId);
-    } else {
-        expandedDisputes.value.add(disputeId);
-    }
-    expandedDisputes.value = new Set(expandedDisputes.value);
-};
 
 // Рендер/копирование/скачивание выданных аккаунтов вынесено в композабл
 const { formatAccountData, copyToClipboard, downloadSingleAccount, downloadAllAccounts } =
     useAccountDownload({ formatDate });
-
-const activateVoucher = async () => {
-    if (!voucherCode.value.trim()) {
-        return;
-    }
-
-    voucherLoading.value = true;
-    voucherError.value = '';
-    voucherSuccess.value = '';
-
-    try {
-        const response = await axios.post('/vouchers/activate', {
-            code: voucherCode.value.trim().toUpperCase()
-        });
-
-        voucherSuccess.value = response.data.message;
-        voucherCode.value = '';
-
-        // Обновляем баланс пользователя
-        await authStore.fetchUser();
-
-        // Показываем toast уведомление
-        toast.success(response.data.message, {
-            position: POSITION.TOP_RIGHT,
-            timeout: 5000
-        });
-    } catch (error: any) {
-        if (error.response?.data?.errors?.code) {
-            voucherError.value = error.response.data.errors.code[0];
-        } else if (error.response?.data?.message) {
-            voucherError.value = error.response.data.message;
-        } else {
-            voucherError.value = t('profile.voucher.error');
-        }
-
-        // Очищаем ошибку через 5 секунд
-        setTimeout(() => {
-            voucherError.value = '';
-        }, 5000);
-    } finally {
-        voucherLoading.value = false;
-    }
-};
 
 const handleSubmit = async () => {
     const payload: any = {
@@ -2064,347 +1967,7 @@ const handleSubmit = async () => {
 };
 
 // Функции для работы с претензиями
-const canCreateDispute = (purchase: any): boolean => {
-    // Только для completed транзакций (не для processing и других статусов)
-    if (purchase.status !== PurchaseStatus.COMPLETED) return false;
-
-    // Проверяем наличие transaction_id
-    if (!purchase.transaction_id) return false;
-
-    // Не старше 30 дней
-    const daysSince = Math.floor(
-        (new Date().getTime() - new Date(purchase.created_at).getTime()) / (1000 * 60 * 60 * 24)
-    );
-    if (daysSince > 30) return false;
-
-    // Только если есть данные аккаунтов (это покупка товара, а не подписка)
-    if (!purchase.account_data || purchase.account_data.length === 0) return false;
-
-    // Проверяем, нет ли уже претензии на эту покупку
-    if (purchase.has_dispute) return false;
-
-    return true;
-};
-
 // Открытие модального окна отмены заказа
-const openCancelModal = (purchase: any) => {
-    selectedPurchaseForCancel.value = purchase;
-    cancellationReason.value = '';
-    showCancelModal.value = true;
-};
-
-// Закрытие модального окна отмены
-const closeCancelModal = () => {
-    showCancelModal.value = false;
-    selectedPurchaseForCancel.value = null;
-    cancellationReason.value = '';
-};
-
-// Открытие модального окна истории статусов
-const openStatusHistoryModal = async (purchase: any) => {
-    selectedPurchaseForHistory.value = purchase;
-    showStatusHistoryModal.value = true;
-    loadingStatusHistory.value = true;
-    fullStatusHistory.value = [];
-    
-    try {
-        const token = authStore.token;
-        if (!token) {
-            toast.error(t('profile.purchases.not_authorized'));
-            return;
-        }
-        
-        const response = await axios.get(`/purchases/${purchase.id}/status-history`);
-
-        if (response.data.success && response.data.status_history) {
-            fullStatusHistory.value = response.data.status_history;
-        } else {
-            toast.error(t('profile.purchases.status_history_error'));
-        }
-    } catch (error: any) {
-        console.error('Error fetching status history:', error);
-        toast.error(error.response?.data?.message || t('profile.purchases.status_history_error'));
-    } finally {
-        loadingStatusHistory.value = false;
-    }
-};
-
-// Закрытие модального окна истории статусов
-const closeStatusHistoryModal = () => {
-    showStatusHistoryModal.value = false;
-    selectedPurchaseForHistory.value = null;
-    fullStatusHistory.value = [];
-    loadingStatusHistory.value = false;
-};
-
-// Отмена заказа в статусе processing
-const cancelProcessingOrder = async () => {
-    const { t } = useI18n();
-    
-    if (!selectedPurchaseForCancel.value) {
-        return;
-    }
-
-    const purchase = selectedPurchaseForCancel.value;
-
-    // Валидация причины отмены
-    const reason = cancellationReason.value.trim();
-    if (reason.length < 10) {
-        toast.error(t('profile.purchases.cancel_reason_min_length'));
-        return;
-    }
-    if (reason.length > 500) {
-        toast.error(t('profile.purchases.cancel_reason_max_length'));
-        return;
-    }
-
-    try {
-        const token = authStore.token;
-        
-        if (!token) {
-            toast.error(t('profile.purchases.not_authorized'));
-            return;
-        }
-
-        const config: any = {};
-
-        // Для гостевых покупок добавляем email в query параметры
-        if (!purchase.user_id && purchase.guest_email) {
-            config.params = { guest_email: purchase.guest_email };
-        }
-
-        const response = await axios.post(
-            `/purchases/${purchase.id}/cancel`,
-            {
-                cancellation_reason: reason
-            },
-            config
-        );
-
-        if (response.data.success) {
-            toast.success(t('profile.purchases.order_cancelled'));
-            closeCancelModal();
-            // Обновляем список покупок
-            await fetchPurchases();
-        }
-    } catch (error: any) {
-        toast.error(error.response?.data?.error || t('profile.purchases.cancel_order_error'));
-    }
-};
-
-// Связаться с менеджером по заказу
-const contactManagerAboutOrder = async (purchase: any) => {
-    const { t } = useI18n();
-    
-    try {
-        const productTitle = getProductTitle(purchase.service_name || purchase.product?.title || {});
-        const orderNumber = purchase.order_number || purchase.id;
-        
-        // Формируем сообщение с контекстом заказа
-        const initialMessage = t('profile.purchases.contact_manager_message', {
-            order_number: orderNumber,
-            product_title: productTitle
-        });
-
-        // Проверяем, что чат поддержки доступен
-        const chatWidget = document.querySelector('.support-chat-widget');
-        if (!chatWidget) {
-            toast.info(t('profile.purchases.chat_not_available'), {
-                timeout: 5000
-            });
-            return;
-        }
-
-        // Открываем чат поддержки через событие
-        const event = new CustomEvent('openSupportChat', {
-            detail: {
-                initialMessage: initialMessage
-            }
-        });
-        window.dispatchEvent(event);
-
-        // Проверяем, что событие обработалось (fallback через 1 секунду)
-        let eventHandled = false;
-        const checkInterval = setTimeout(() => {
-            if (!eventHandled) {
-                toast.info(t('profile.purchases.contact_manager_hint'), {
-                    timeout: 5000
-                });
-            }
-        }, 1000);
-
-        // Слушаем событие об успешном открытии чата (если есть)
-        const handleChatOpened = () => {
-            eventHandled = true;
-            clearTimeout(checkInterval);
-            window.removeEventListener('supportChatOpened', handleChatOpened);
-        };
-        window.addEventListener('supportChatOpened', handleChatOpened);
-        
-        // Очищаем слушатель через 2 секунды
-        setTimeout(() => {
-            window.removeEventListener('supportChatOpened', handleChatOpened);
-            clearTimeout(checkInterval);
-        }, 2000);
-    } catch (error: any) {
-        console.error('Error opening support chat:', error);
-        toast.error(t('profile.purchases.contact_manager_error'));
-    }
-};
-
-const openDisputeModal = (purchase: any) => {
-    selectedPurchase.value = purchase;
-    showDisputeModal.value = true;
-};
-
-const getDisputeStatusText = (status: string): string => {
-    const statuses: Record<string, string> = {
-        new: t('profile.purchases.disputes.status.new'),
-        in_review: t('profile.purchases.disputes.status.in_review'),
-        resolved: t('profile.purchases.disputes.status.resolved'),
-        rejected: t('profile.purchases.disputes.status.rejected')
-    };
-    return statuses[status] || status;
-};
-
-const getDisputeStatusClass = (status: string): string => {
-    const classes: Record<string, string> = {
-        new: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400',
-        in_review: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400',
-        resolved: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
-        rejected: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
-    };
-    return classes[status] || 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400';
-};
-
-const closeDisputeModal = () => {
-    showDisputeModal.value = false;
-    selectedPurchase.value = null;
-    disputeForm.value = {
-        reason: '',
-        description: '',
-        screenshot_link: ''
-    };
-    screenshotMethod.value = 'file';
-    screenshotFile.value = null;
-    screenshotPreview.value = null;
-    screenshotLinkError.value = false;
-};
-
-const handleFileUpload = (event: Event) => {
-    const target = event.target as HTMLInputElement;
-    const file = target.files?.[0];
-
-    if (file) {
-        // Проверка размера (5MB)
-        if (file.size > 5 * 1024 * 1024) {
-            toast.error(t('profile.purchases.disputes.file_too_large'));
-            return;
-        }
-
-        // Проверка типа
-        const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
-        if (!allowedTypes.includes(file.type)) {
-            toast.error(t('profile.purchases.disputes.unsupported_format'));
-            return;
-        }
-
-        screenshotFile.value = file;
-
-        // Создать preview
-        const reader = new FileReader();
-        reader.onload = e => {
-            screenshotPreview.value = e.target?.result as string;
-        };
-        reader.readAsDataURL(file);
-    }
-};
-
-const submitDispute = async () => {
-    if (!selectedPurchase.value) return;
-
-    // Проверка наличия transaction_id
-    if (!selectedPurchase.value.transaction_id) {
-        toast.error(t('profile.purchases.disputes.transaction_not_found'));
-        return;
-    }
-
-    // Проверка наличия скриншота
-    if (screenshotMethod.value === 'file' && !screenshotFile.value) {
-        toast.error(t('profile.purchases.disputes.please_attach_screenshot'));
-        return;
-    }
-
-    if (screenshotMethod.value === 'link' && !disputeForm.value.screenshot_link) {
-        toast.error(t('profile.purchases.disputes.please_provide_link'));
-        return;
-    }
-
-    isSubmittingDispute.value = true;
-
-    try {
-        // ИСПРАВЛЕНО: Используем transaction_id вместо purchase.id
-        const formData = new FormData();
-        formData.append('transaction_id', selectedPurchase.value.transaction_id.toString());
-        formData.append('reason', disputeForm.value.reason);
-        formData.append('description', disputeForm.value.description);
-
-        if (screenshotMethod.value === 'file' && screenshotFile.value) {
-            formData.append('screenshot_file', screenshotFile.value);
-        } else if (screenshotMethod.value === 'link') {
-            formData.append('screenshot_link', disputeForm.value.screenshot_link);
-        }
-
-        const response = await axios.post('/disputes', formData, {
-            headers: {
-                'Content-Type': 'multipart/form-data'
-            }
-        });
-
-        if (response.data.success) {
-            toast.success(t('profile.purchases.disputes.success'));
-            closeDisputeModal();
-            // Обновляем список покупок и претензий
-            await fetchPurchases();
-            await fetchDisputes();
-        }
-    } catch (error: any) {
-        const message = error.response?.data?.message || t('profile.purchases.disputes.error');
-        toast.error(message);
-    } finally {
-        isSubmittingDispute.value = false;
-    }
-};
-
-const fetchDisputes = async () => {
-    loadingDisputes.value = true;
-    try {
-        const { data } = await axios.get('/disputes');
-
-        if (data.disputes && Array.isArray(data.disputes.data)) {
-            disputes.value = data.disputes.data;
-        } else if (Array.isArray(data.disputes)) {
-            disputes.value = data.disputes;
-        } else {
-            disputes.value = [];
-        }
-    } catch (error) {
-        console.error('Error fetching disputes:', error);
-        disputes.value = [];
-    } finally {
-        loadingDisputes.value = false;
-    }
-};
-
-const getDecisionColor = (decision: string): string => {
-    const colors: Record<string, string> = {
-        refund: 'text-green-600 dark:text-green-400',
-        replacement: 'text-blue-600 dark:text-blue-400',
-        rejected: 'text-red-600 dark:text-red-400'
-    };
-    return colors[decision] || 'text-gray-600 dark:text-gray-400';
-};
-
 onMounted(async () => {
     // УЛУЧШЕНИЕ: Показываем прелоадер при загрузке данных профиля
     loadingStore.start();
