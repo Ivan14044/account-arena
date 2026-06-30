@@ -7,12 +7,18 @@ use App\Models\ServiceAccount;
 use App\Models\Article;
 use App\Models\Category;
 use App\Models\Page;
+use App\Services\Seo\SsrContentRenderer;
+use App\Support\Seo\SeoText;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
 
 class SpaController extends Controller
 {
+    public function __construct(private readonly SsrContentRenderer $ssr)
+    {
+    }
+
     /**
      * Отдает index.html с инжектированными мета-тегами для SPA-роутов
      */
@@ -160,12 +166,12 @@ class SpaController extends Controller
                 return ['status' => 404];
             }
             
-            $title = $this->getLocalizedField($product, 'title', $locale);
-            $rawDesc = $this->getLocalizedField($product, 'description', $locale);
+            $title = SeoText::localized($product, 'title', $locale);
+            $rawDesc = SeoText::localized($product, 'description', $locale);
             // Очищаем описание для мета-тегов (URL + эмодзи)
             $cleanDesc = $this->sanitizeMetaDescription($rawDesc);
-            $desc = $this->getLocalizedField($product, 'meta_description', $locale)
-                ?: $this->smartTruncate(strip_tags($cleanDesc), 160);
+            $desc = SeoText::localized($product, 'meta_description', $locale)
+                ?: SeoText::truncate(strip_tags($cleanDesc), 160);
             
             // Микроразметка Breadcrumbs
             $breadcrumbs = [
@@ -220,7 +226,7 @@ class SpaController extends Controller
             ];
 
              // Генерируем HTML контент для бота
-             $htmlContent = $this->generateProductContent($product, $title, $rawDesc, $locale);
+             $htmlContent = $this->ssr->generateProductContent($product, $title, $rawDesc, $locale);
  
              return [
                  'title' => ($title ?: 'Product ' . $idOrSku) . ' - Account Arena',
@@ -264,7 +270,7 @@ class SpaController extends Controller
             }
             
             $title = $article->translate('title', $locale);
-            $desc = $article->translate('meta_description', $locale) ?: $this->smartTruncate(strip_tags($article->translate('content', $locale)), 160);
+            $desc = $article->translate('meta_description', $locale) ?: SeoText::truncate(strip_tags($article->translate('content', $locale)), 160);
             
             // Микроразметка Article
             $schema = [
@@ -321,7 +327,7 @@ class SpaController extends Controller
             // Generate Content for Injection
             $content = $article->translate('content', $locale);
             $image = $article->img ? $this->normalizeArticleImageUrl($article->img) : url('/img/logo_trans.webp');
-            $htmlContent = $this->generateArticleContent($title, $content, $article->created_at->toIso8601String(), $image);
+            $htmlContent = $this->ssr->generateArticleContent($title, $content, $article->created_at->toIso8601String(), $image);
 
             return [
                 'title' => ($title ?: 'Article ' . $id) . ' - Account Arena',
@@ -399,7 +405,7 @@ class SpaController extends Controller
             }
             
             // Генерируем HTML описание категории
-            $htmlContent = $this->generateCategoryContent($name, $desc, $locale);
+            $htmlContent = $this->ssr->generateCategoryContent($name, $desc, $locale);
 
             // Микроразметка Breadcrumbs
             $schema = [
@@ -464,7 +470,7 @@ class SpaController extends Controller
 
         // Generate Content (List of all active categories)
         $categories = Category::where('is_active', true)->orderBy('sort_order')->get();
-        $htmlContent = $this->generateCategoriesListContent($title, $description, $categories, $locale);
+        $htmlContent = $this->ssr->generateCategoriesListContent($title, $description, $categories, $locale);
 
         return [
             'title' => $title,
@@ -554,7 +560,7 @@ class SpaController extends Controller
         ];
 
         // Generate Home Content (Categories, Top Products, Recent Articles for Bots)
-        $htmlContent = $this->generateHomeContent($title, $description, $locale);
+        $htmlContent = $this->ssr->generateHomeContent($title, $description, $locale);
 
         return [
             'title' => $title,
@@ -567,89 +573,6 @@ class SpaController extends Controller
         ];
     }
 
-    /**
-     * Генерирует расширенный контент для главной страницы (для поисковых роботов)
-     */
-    private function generateHomeContent($title, $description, $locale)
-    {
-        $html = '<div class="home-seo-content" style="padding: 20px;">';
-        $html .= '<h1>' . htmlspecialchars($title) . '</h1>';
-        
-        if ($description) {
-            $html .= '<p class="description" style="margin-top: 15px; line-height: 1.6;">' . htmlspecialchars($description) . '</p>';
-        }
-
-        // 1. Секция категорий (Только родительские товарные категории)
-        $categories = Category::productCategories()->parentCategories()->limit(20)->get();
-        if ($categories->count() > 0) {
-            $catLabel = [
-                'ru' => 'Популярные категории аккаунтов:',
-                'en' => 'Popular Account Categories:',
-                'uk' => 'Популярні категорії акаунтів:'
-            ];
-            $html .= '<section style="margin-top: 30px;">';
-            $html .= '<h2>' . ($catLabel[$locale] ?? $catLabel['ru']) . '</h2>';
-            $html .= '<ul style="columns: 2; -webkit-columns: 2; -moz-columns: 2;">';
-            foreach ($categories as $cat) {
-                $catName = $cat->translate('name', $locale) ?: $cat->name;
-                $catUrl = url('/categories/' . ($cat->slug ?: $cat->id));
-                $html .= '<li><a href="' . $catUrl . '">' . htmlspecialchars($catName) . '</a></li>';
-            }
-            $html .= '</ul>';
-            $html .= '</section>';
-        }
-
-        // 2. Секция популярных товаров (По просмотрам)
-        $products = ServiceAccount::where('is_active', true)
-            ->orderBy('views', 'desc')
-            ->limit(10)
-            ->get();
-            
-        if ($products->count() > 0) {
-            $prodLabel = [
-                'ru' => 'Топ товаров сегодня:',
-                'en' => 'Top products today:',
-                'uk' => 'Топ товарів сьогодні:'
-            ];
-            $html .= '<section style="margin-top: 30px;">';
-            $html .= '<h2>' . ($prodLabel[$locale] ?? $prodLabel['ru']) . '</h2>';
-            $html .= '<div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-top: 15px;">';
-            foreach ($products as $product) {
-                $prodName = $this->getLocalizedField($product, 'title', $locale);
-                $prodUrl = url('/products/' . ($product->slug ?: $product->id));
-                $html .= '<div style="border: 1px solid #eee; padding: 10px;">';
-                $html .= '<strong><a href="' . $prodUrl . '">' . htmlspecialchars($prodName) . '</a></strong><br>';
-                $html .= '<span>Price: ' . $product->price . ' USD</span>';
-                $html .= '</div>';
-            }
-            $html .= '</div>';
-            $html .= '</section>';
-        }
-
-        // 3. Последние статьи блога
-        $articles = Article::where('status', 'published')->orderBy('created_at', 'desc')->limit(5)->get();
-        if ($articles->count() > 0) {
-            $artLabel = [
-                'ru' => 'Полезные инструкции и новости:',
-                'en' => 'Useful instructions and news:',
-                'uk' => 'Корисні інструкції та новини:'
-            ];
-            $html .= '<section style="margin-top: 30px;">';
-            $html .= '<h2>' . ($artLabel[$locale] ?? $artLabel['ru']) . '</h2>';
-            foreach ($articles as $article) {
-                $artTitle = $article->translate('title', $locale) ?: $article->title;
-                $artUrl = url('/articles/' . $article->id);
-                $html .= '<div style="margin-bottom: 10px;">';
-                $html .= '<h3><a href="' . $artUrl . '">' . htmlspecialchars($artTitle) . '</a></h3>';
-                $html .= '</div>';
-            }
-            $html .= '</section>';
-        }
-
-        $html .= '</div>';
-        return $html;
-    }
-    
     private function getServicePageMetaTags(string $page, string $locale, string $requestPath = null): array
     {
         $data = [
@@ -678,7 +601,7 @@ class SpaController extends Controller
         $pageData = $data[$page][$locale] ?? $data[$page]['ru'];
 
         // Generate Content
-        $htmlContent = $this->generatePageContent($pageData['title'], $pageData['desc']);
+        $htmlContent = $this->ssr->generatePageContent($pageData['title'], $pageData['desc']);
 
         return [
             'title' => $pageData['title'],
@@ -700,10 +623,10 @@ class SpaController extends Controller
             }
 
             $title = $page->translate('meta_title', $locale) ?: $page->translate('title', $locale);
-            $desc = $page->translate('meta_description', $locale) ?: $this->smartTruncate(strip_tags($page->translate('content', $locale)), 160);
+            $desc = $page->translate('meta_description', $locale) ?: SeoText::truncate(strip_tags($page->translate('content', $locale)), 160);
 
             // Generate Page Content
-            $htmlContent = $this->generatePageContent($title, $page->translate('content', $locale));
+            $htmlContent = $this->ssr->generatePageContent($title, $page->translate('content', $locale));
 
             return [
                 'title' => ($title ?: 'Page') . ' - Account Arena',
@@ -752,7 +675,7 @@ class SpaController extends Controller
         $pageData = $data[$page][$locale] ?? $data[$page]['ru'];
         
         // Generate Content (Stub for now, as these are usually static Vue files or simple content)
-        $htmlContent = $this->generatePageContent($pageData['title'], $pageData['desc']);
+        $htmlContent = $this->ssr->generatePageContent($pageData['title'], $pageData['desc']);
 
         $meta = [
             'title' => $pageData['title'],
@@ -860,7 +783,7 @@ class SpaController extends Controller
 
         // Generate Content (Recent articles list)
         $articles = Article::where('status', 'published')->orderBy('created_at', 'desc')->limit(20)->get();
-        $htmlContent = $this->generateArticlesListContent($title, $description, $articles, $locale);
+        $htmlContent = $this->ssr->generateArticlesListContent($title, $description, $articles, $locale);
 
         return [
             'title' => $title,
@@ -973,220 +896,4 @@ class SpaController extends Controller
         return $html;
     }
     
-    private function getLocalizedField($model, string $field, string $locale): ?string
-    {
-        $localizedField = ($locale === 'ru') ? $field : $field . '_' . $locale;
-        return $model->$localizedField ?: $model->$field;
-    }
-
-    /**
-     * Smart truncation that respects word boundaries
-     */
-    private function smartTruncate(string $text, int $limit = 160): string
-    {
-        $text = trim($text);
-        if (mb_strlen($text) <= $limit) {
-            return $text;
-        }
-
-        $text = mb_substr($text, 0, $limit);
-        // Find last space to avoid cutting words
-        $lastSpace = mb_strrpos($text, ' ');
-        
-        if ($lastSpace !== false) {
-            $text = mb_substr($text, 0, $lastSpace);
-        }
-        
-        return $text . '...';
-    }
-
-    /**
-     * Helper to generate SEO content for Products (Server-Side Injection)
-     */
-    private function generateProductContent($product, $title, $description, $locale)
-    {
-        $price = $product->price . ' USD'; // Simplified currency
-        $sku = $product->sku ?: $product->id;
-        $img = $product->image_url ? (str_starts_with($product->image_url, 'http') ? $product->image_url : url($product->image_url)) : url('/img/logo_trans.webp');
-        
-        // Semantic HTML for crawlers inside #app
-        // We use inline styles to ensure it doesn't break layout before Vue hydration removes/replaces it.
-        // Or we rely on Vue replacing '#app' content entirely.
-        
-        $html = '<div class="product-seo-content" style="padding: 20px;">';
-        $html .= '<article itemscope itemtype="https://schema.org/Product">';
-        
-        // H1 Title
-        $html .= '<h1 itemprop="name" style="font-size: 2em; margin-bottom: 10px;">' . htmlspecialchars($title) . '</h1>';
-        
-        // Main Image
-        $html .= '<div class="product-image" style="margin-bottom: 20px;">';
-        $html .= '<img itemprop="image" src="' . htmlspecialchars($img) . '" alt="' . htmlspecialchars($title) . '" style="max-width: 100%; height: auto;">';
-        $html .= '</div>';
-        
-        // Price & Offer
-        $html .= '<div itemprop="offers" itemscope itemtype="https://schema.org/Offer" style="margin-bottom: 20px; font-size: 1.5em; font-weight: bold;">';
-        $html .= 'Price: <span itemprop="price">' . $product->price . '</span> ';
-        $html .= '<span itemprop="priceCurrency">USD</span>';
-        $html .= '<link itemprop="availability" href="https://schema.org/InStock" />';
-        $html .= '</div>';
-        
-        // SKU
-        $html .= '<div class="sku" style="margin-bottom: 15px; color: #666;">SKU: <span itemprop="sku">' . htmlspecialchars($sku) . '</span></div>';
-        
-        // Description
-        if ($description) {
-            $html .= '<div itemprop="description" style="line-height: 1.6;">' . $description . '</div>';
-        }
-        
-        $html .= '</article>';
-        $html .= '</div>';
-        
-        return $html;
-    }
-
-    /**
-     * Helper to generate SEO content for Categories
-     */
-    private function generateCategoryContent($title, $description, $locale)
-    {
-        // Ищем товары этой категории для перелинковки в боте
-        // Сначала найдем саму категорию по названию (т.к. метод получает уже готовое название)
-        $category = Category::where('is_active', true)
-            ->get()
-            ->filter(function($c) use ($title, $locale) {
-                return ($c->translate('name', $locale) ?: $c->name) === $title;
-            })->first();
-
-        $html = '<div class="category-seo-content" style="padding: 20px;">';
-        $html .= '<h1>' . htmlspecialchars($title) . '</h1>';
-        
-        if ($description) {
-            $html .= '<div class="description" style="margin-top: 15px; line-height: 1.6;">' . htmlspecialchars($description) . '</div>';
-        }
-
-        if ($category) {
-            $products = ServiceAccount::where('category_id', $category->id)
-                ->where('is_active', true)
-                ->where('stock_count', '>', 0)
-                ->limit(20)
-                ->get();
-
-            if ($products->count() > 0) {
-                $html .= '<h2 style="margin-top: 30px;">Доступные товары в категории ' . htmlspecialchars($title) . ':</h2>';
-                $html .= '<div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-top: 15px;">';
-                foreach ($products as $product) {
-                    $prodName = $this->getLocalizedField($product, 'title', $locale);
-                    $prodUrl = url('/products/' . ($product->slug ?: $product->id));
-                    $html .= '<div style="border: 1px solid #eee; padding: 10px;">';
-                    $html .= '<strong><a href="' . $prodUrl . '">' . htmlspecialchars($prodName) . '</a></strong><br>';
-                    $html .= '<span>' . $product->price . ' USD</span>';
-                    $html .= '</div>';
-                }
-                $html .= '</div>';
-            }
-        }
-
-        $html .= '</div>';
-        return $html;
-    }
-
-    /**
-     * Helper to generate SEO content for Articles
-     */
-    private function generateArticleContent($title, $content, $date, $image)
-    {
-        $html = '<div class="article-seo-content" style="padding: 20px;">';
-        $html .= '<article itemscope itemtype="https://schema.org/Article">';
-        $html .= '<h1 itemprop="headline" style="font-size: 2em; margin-bottom: 20px;">' . htmlspecialchars($title) . '</h1>';
-        
-        if ($image) {
-            $html .= '<div class="article-image" style="margin-bottom: 20px;">';
-            $html .= '<img itemprop="image" src="' . htmlspecialchars($image) . '" alt="' . htmlspecialchars($title) . '" style="max-width: 100%; height: auto;">';
-            $html .= '</div>';
-        }
-        
-        $html .= '<div class="meta" style="color: #666; margin-bottom: 20px;">';
-        $html .= 'Published: <time itemprop="datePublished" datetime="' . $date . '">' . date('Y-m-d', strtotime($date)) . '</time>';
-        $html .= '</div>';
-        
-        $html .= '<div itemprop="articleBody" style="line-height: 1.8;">' . $content . '</div>';
-        $html .= '</article>';
-
-        // Добавляем блок "Читайте также" для ботов
-        $recentArticles = Article::where('status', 'published')->orderBy('created_at', 'desc')->limit(3)->get();
-        if ($recentArticles->count() > 0) {
-            $html .= '<div style="margin-top: 50px; border-top: 1px solid #eee; padding-top: 20px;">';
-            $html .= '<h3>Читайте также:</h3>';
-            foreach ($recentArticles as $art) {
-                $artTitle = $art->admin_name ?: $art->id;
-                $artUrl = url('/articles/' . $art->id);
-                $html .= '<p><a href="' . $artUrl . '">' . htmlspecialchars($artTitle) . '</a></p>';
-            }
-            $html .= '</div>';
-        }
-
-        $html .= '</div>';
-        return $html;
-    }
-
-    /**
-     * Генерирует HTML для страницы списка категорий
-     */
-    private function generateCategoriesListContent($title, $description, $categories, $locale)
-    {
-        $html = '<div class="categories-list-seo" style="padding: 20px;">';
-        $html .= '<h1>' . htmlspecialchars($title) . '</h1>';
-        $html .= '<p>' . htmlspecialchars($description) . '</p>';
-        
-        if ($categories->count() > 0) {
-            $html .= '<ul style="margin-top: 30px; columns: 2;">';
-            foreach ($categories as $cat) {
-                $name = $cat->translate('name', $locale) ?: $cat->name;
-                $url = url('/categories/' . ($cat->slug ?: $cat->id));
-                $html .= '<li><a href="' . $url . '">' . htmlspecialchars($name) . '</a></li>';
-            }
-            $html .= '</ul>';
-        }
-        $html .= '</div>';
-        return $html;
-    }
-
-    /**
-     * Генерирует HTML для страницы списка статей
-     */
-    private function generateArticlesListContent($title, $description, $articles, $locale)
-    {
-        $html = '<div class="articles-list-seo" style="padding: 20px;">';
-        $html .= '<h1>' . htmlspecialchars($title) . '</h1>';
-        $html .= '<p>' . htmlspecialchars($description) . '</p>';
-        
-        if ($articles->count() > 0) {
-            $html .= '<div style="margin-top: 30px;">';
-            foreach ($articles as $art) {
-                $name = $art->translate('title', $locale) ?: $art->title;
-                $url = url('/articles/' . $art->id);
-                $html .= '<div style="margin-bottom: 20px;">';
-                $html .= '<h3><a href="' . $url . '">' . htmlspecialchars($name) . '</a></h3>';
-                $html .= '</div>';
-            }
-            $html .= '</div>';
-        }
-        $html .= '</div>';
-        return $html;
-    }
-
-    /**
-     * Helper to generate SEO content for simple pages (Home, Lists, Info)
-     */
-    private function generatePageContent($title, $description)
-    {
-        $html = '<div class="seo-content" style="padding: 20px;">';
-        $html .= '<h1>' . htmlspecialchars($title) . '</h1>';
-        if ($description) {
-            $html .= '<div class="description" style="margin-top: 15px; line-height: 1.6;">' . $description . '</div>';
-        }
-        $html .= '</div>';
-        return $html;
-    }
 }
