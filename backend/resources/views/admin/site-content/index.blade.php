@@ -620,64 +620,64 @@
 
                                     <!-- ENGLISH CONTENT -->
                                     <div class="tab-pane fade" id="lang-en" role="tabpanel">
-                                        <h5 class="mb-3">Hero Section</h5>
+                                        <h5 class="mb-3">Hero секция (Главный заголовок)</h5>
                                         <div class="form-group">
-                                            <label for="hero_title_en">Title</label>
+                                            <label for="hero_title_en">Заголовок</label>
                                             <textarea name="hero_title_en" id="hero_title_en" rows="2"
                                                    class="form-control">{{ old('hero_title_en', \App\Models\Option::get('hero_title_en')) }}</textarea>
                                         </div>
                                         <div class="form-group">
-                                            <label for="hero_description_en">Description</label>
+                                            <label for="hero_description_en">Описание</label>
                                             <textarea name="hero_description_en" id="hero_description_en" rows="3"
                                                    class="form-control">{{ old('hero_description_en', \App\Models\Option::get('hero_description_en')) }}</textarea>
                                         </div>
                                         <div class="form-group">
-                                            <label for="hero_button_en">Button Text</label>
+                                            <label for="hero_button_en">Текст кнопки</label>
                                             <input type="text" name="hero_button_en" id="hero_button_en"
                                                    class="form-control" value="{{ old('hero_button_en', \App\Models\Option::get('hero_button_en')) }}">
                                         </div>
 
                                         <hr class="my-4">
-                                        <h5 class="mb-3">About Us</h5>
+                                        <h5 class="mb-3">О нас</h5>
                                         <div class="form-group">
-                                            <label for="about_title_en">Title</label>
+                                            <label for="about_title_en">Заголовок</label>
                                             <input type="text" name="about_title_en" id="about_title_en"
                                                    class="form-control" value="{{ old('about_title_en', \App\Models\Option::get('about_title_en')) }}">
                                         </div>
                                         <div class="form-group">
-                                            <label for="about_description_en">Description</label>
+                                            <label for="about_description_en">Описание</label>
                                             <textarea name="about_description_en" id="about_description_en" rows="4"
                                                    class="form-control">{{ old('about_description_en', \App\Models\Option::get('about_description_en')) }}</textarea>
                                         </div>
 
                                         <hr class="my-4">
-                                        <h5 class="mb-3">Why Choose Our Platform</h5>
+                                        <h5 class="mb-3">Почему выбирают нашу платформу</h5>
                                         <div class="form-group">
-                                            <label for="promote_title_en">Section Title</label>
+                                            <label for="promote_title_en">Заголовок секции</label>
                                             <textarea name="promote_title_en" id="promote_title_en" rows="2"
                                                    class="form-control">{{ old('promote_title_en', \App\Models\Option::get('promote_title_en')) }}</textarea>
                                         </div>
 
                                         <div class="row">
                                             <div class="col-md-6">
-                                                <h6>1. Instant Delivery</h6>
+                                                <h6>1. Мгновенная доставка</h6>
                                                 <div class="form-group">
-                                                    <input type="text" name="promote_access_title_en" placeholder="Title"
+                                                    <input type="text" name="promote_access_title_en" placeholder="Заголовок"
                                                            class="form-control" value="{{ old('promote_access_title_en', \App\Models\Option::get('promote_access_title_en')) }}">
                                                 </div>
                                                 <div class="form-group">
-                                                    <textarea name="promote_access_description_en" rows="2" placeholder="Description"
+                                                    <textarea name="promote_access_description_en" rows="2" placeholder="Описание"
                                                            class="form-control">{{ old('promote_access_description_en', \App\Models\Option::get('promote_access_description_en')) }}</textarea>
                                                 </div>
                                             </div>
                                             <div class="col-md-6">
-                                                <h6>2. Best Prices</h6>
+                                                <h6>2. Лучшие цены</h6>
                                                 <div class="form-group">
-                                                    <input type="text" name="promote_pricing_title_en" placeholder="Title"
+                                                    <input type="text" name="promote_pricing_title_en" placeholder="Заголовок"
                                                            class="form-control" value="{{ old('promote_pricing_title_en', \App\Models\Option::get('promote_pricing_title_en')) }}">
                                                 </div>
                                                 <div class="form-group">
-                                                    <textarea name="promote_pricing_description_en" rows="2" placeholder="Description"
+                                                    <textarea name="promote_pricing_description_en" rows="2" placeholder="Описание"
                                                            class="form-control">{{ old('promote_pricing_description_en', \App\Models\Option::get('promote_pricing_description_en')) }}</textarea>
                                                 </div>
                                             </div>
@@ -685,24 +685,24 @@
 
                                         <div class="row">
                                             <div class="col-md-6">
-                                                <h6>3. Quality Guarantee</h6>
+                                                <h6>3. Гарантия качества</h6>
                                                 <div class="form-group">
-                                                    <input type="text" name="promote_refund_title_en" placeholder="Title"
+                                                    <input type="text" name="promote_refund_title_en" placeholder="Заголовок"
                                                            class="form-control" value="{{ old('promote_refund_title_en', \App\Models\Option::get('promote_refund_title_en')) }}">
                                                 </div>
                                                 <div class="form-group">
-                                                    <textarea name="promote_refund_description_en" rows="2" placeholder="Description"
+                                                    <textarea name="promote_refund_description_en" rows="2" placeholder="Описание"
                                                            class="form-control">{{ old('promote_refund_description_en', \App\Models\Option::get('promote_refund_description_en')) }}</textarea>
                                                 </div>
                                             </div>
                                             <div class="col-md-6">
-                                                <h6>4. Verified Products</h6>
+                                                <h6>4. Проверенные товары</h6>
                                                 <div class="form-group">
-                                                    <input type="text" name="promote_activation_title_en" placeholder="Title"
+                                                    <input type="text" name="promote_activation_title_en" placeholder="Заголовок"
                                                            class="form-control" value="{{ old('promote_activation_title_en', \App\Models\Option::get('promote_activation_title_en')) }}">
                                                 </div>
                                                 <div class="form-group">
-                                                    <textarea name="promote_activation_description_en" rows="2" placeholder="Description"
+                                                    <textarea name="promote_activation_description_en" rows="2" placeholder="Описание"
                                                            class="form-control">{{ old('promote_activation_description_en', \App\Models\Option::get('promote_activation_description_en')) }}</textarea>
                                                 </div>
                                             </div>
@@ -710,78 +710,78 @@
 
                                         <div class="row">
                                             <div class="col-md-6">
-                                                <h6>5. 24/7 Support</h6>
+                                                <h6>5. Поддержка 24/7</h6>
                                                 <div class="form-group">
-                                                    <input type="text" name="promote_support_title_en" placeholder="Title"
+                                                    <input type="text" name="promote_support_title_en" placeholder="Заголовок"
                                                            class="form-control" value="{{ old('promote_support_title_en', \App\Models\Option::get('promote_support_title_en')) }}">
                                                 </div>
                                                 <div class="form-group">
-                                                    <textarea name="promote_support_description_en" rows="2" placeholder="Description"
+                                                    <textarea name="promote_support_description_en" rows="2" placeholder="Описание"
                                                            class="form-control">{{ old('promote_support_description_en', \App\Models\Option::get('promote_support_description_en')) }}</textarea>
                                                 </div>
                                             </div>
                                             <div class="col-md-6">
-                                                <h6>6. Secure Payments</h6>
+                                                <h6>6. Безопасные платежи</h6>
                                                 <div class="form-group">
-                                                    <input type="text" name="promote_payment_title_en" placeholder="Title"
+                                                    <input type="text" name="promote_payment_title_en" placeholder="Заголовок"
                                                            class="form-control" value="{{ old('promote_payment_title_en', \App\Models\Option::get('promote_payment_title_en')) }}">
                                                 </div>
                                                 <div class="form-group">
-                                                    <textarea name="promote_payment_description_en" rows="2" placeholder="Description"
+                                                    <textarea name="promote_payment_description_en" rows="2" placeholder="Описание"
                                                            class="form-control">{{ old('promote_payment_description_en', \App\Models\Option::get('promote_payment_description_en')) }}</textarea>
                                                 </div>
                                             </div>
                                         </div>
 
                                         <hr class="my-4">
-                                        <h5 class="mb-3">How to Buy in 3 Steps</h5>
+                                        <h5 class="mb-3">Как купить товар в 3 шага</h5>
                                         <div class="form-group">
-                                            <label for="steps_title_en">Title</label>
+                                            <label for="steps_title_en">Заголовок</label>
                                             <textarea name="steps_title_en" id="steps_title_en" rows="2"
                                                    class="form-control">{{ old('steps_title_en', \App\Models\Option::get('steps_title_en')) }}</textarea>
                                         </div>
                                         <div class="form-group">
-                                            <label for="steps_description_en">Subtitle</label>
+                                            <label for="steps_description_en">Подзаголовок</label>
                                             <input type="text" name="steps_description_en" id="steps_description_en"
                                                    class="form-control" value="{{ old('steps_description_en', \App\Models\Option::get('steps_description_en')) }}">
                                         </div>
 
                                         <hr class="my-4">
-                                        <h5 class="mb-3">Become Supplier - Welcome Banner</h5>
+                                        <h5 class="mb-3">Стать поставщиком - Приветственный баннер</h5>
                                         <div class="form-group">
-                                            <label for="become_supplier_welcome_headline_en">Headline</label>
+                                            <label for="become_supplier_welcome_headline_en">Заголовок</label>
                                             <textarea name="become_supplier_welcome_headline_en" id="become_supplier_welcome_headline_en" rows="2"
                                                    class="form-control">{{ old('become_supplier_welcome_headline_en', \App\Models\Option::get('become_supplier_welcome_headline_en')) }}</textarea>
                                         </div>
                                         <div class="form-group">
-                                            <label for="become_supplier_welcome_subtitle_en">Subtitle</label>
+                                            <label for="become_supplier_welcome_subtitle_en">Подзаголовок</label>
                                             <textarea name="become_supplier_welcome_subtitle_en" id="become_supplier_welcome_subtitle_en" rows="2"
                                                    class="form-control">{{ old('become_supplier_welcome_subtitle_en', \App\Models\Option::get('become_supplier_welcome_subtitle_en')) }}</textarea>
                                         </div>
                                         <div class="form-group">
-                                            <label for="become_supplier_welcome_cta_en">CTA Button Text</label>
+                                            <label for="become_supplier_welcome_cta_en">Текст кнопки</label>
                                             <input type="text" name="become_supplier_welcome_cta_en" id="become_supplier_welcome_cta_en"
                                                    class="form-control" value="{{ old('become_supplier_welcome_cta_en', \App\Models\Option::get('become_supplier_welcome_cta_en')) }}">
                                         </div>
 
                                         <hr class="my-4">
-                                        <h5 class="mb-3">Become Supplier - Supplier Stats</h5>
+                                        <h5 class="mb-3">Стать поставщиком - Статистика поставщиков</h5>
                                         <div class="form-group">
-                                            <label for="become_supplier_stats_title_en">Title</label>
+                                            <label for="become_supplier_stats_title_en">Заголовок</label>
                                             <input type="text" name="become_supplier_stats_title_en" id="become_supplier_stats_title_en"
                                                    class="form-control" value="{{ old('become_supplier_stats_title_en', \App\Models\Option::get('become_supplier_stats_title_en')) }}">
                                         </div>
                                         <div class="row">
                                             <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label for="become_supplier_stats_active_suppliers_en">Active Suppliers</label>
+                                                    <label for="become_supplier_stats_active_suppliers_en">Активных поставщиков</label>
                                                     <input type="text" name="become_supplier_stats_active_suppliers_en" id="become_supplier_stats_active_suppliers_en"
                                                            class="form-control" value="{{ old('become_supplier_stats_active_suppliers_en', \App\Models\Option::get('become_supplier_stats_active_suppliers_en')) }}">
                                                 </div>
                                             </div>
                                             <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label for="become_supplier_stats_total_sales_en">Total Sales</label>
+                                                    <label for="become_supplier_stats_total_sales_en">Всего продаж</label>
                                                     <input type="text" name="become_supplier_stats_total_sales_en" id="become_supplier_stats_total_sales_en"
                                                            class="form-control" value="{{ old('become_supplier_stats_total_sales_en', \App\Models\Option::get('become_supplier_stats_total_sales_en')) }}">
                                                 </div>
@@ -790,14 +790,14 @@
                                         <div class="row">
                                             <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label for="become_supplier_stats_average_rating_en">Average Rating</label>
+                                                    <label for="become_supplier_stats_average_rating_en">Средний рейтинг</label>
                                                     <input type="text" name="become_supplier_stats_average_rating_en" id="become_supplier_stats_average_rating_en"
                                                            class="form-control" value="{{ old('become_supplier_stats_average_rating_en', \App\Models\Option::get('become_supplier_stats_average_rating_en')) }}">
                                                 </div>
                                             </div>
                                             <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label for="become_supplier_stats_countries_en">Countries</label>
+                                                    <label for="become_supplier_stats_countries_en">Стран</label>
                                                     <input type="text" name="become_supplier_stats_countries_en" id="become_supplier_stats_countries_en"
                                                            class="form-control" value="{{ old('become_supplier_stats_countries_en', \App\Models\Option::get('become_supplier_stats_countries_en')) }}">
                                                 </div>
@@ -805,35 +805,35 @@
                                         </div>
 
                                         <hr class="my-4">
-                                        <h5 class="mb-3">Become Supplier - Process Steps</h5>
+                                        <h5 class="mb-3">Стать поставщиком - Шаги процесса</h5>
                                         <div class="form-group">
-                                            <label for="become_supplier_process_title_en">Title</label>
+                                            <label for="become_supplier_process_title_en">Заголовок</label>
                                             <input type="text" name="become_supplier_process_title_en" id="become_supplier_process_title_en"
                                                    class="form-control" value="{{ old('become_supplier_process_title_en', \App\Models\Option::get('become_supplier_process_title_en')) }}">
                                         </div>
                                         <div class="row">
                                             <div class="col-md-6">
-                                                <h6>Step 1</h6>
+                                                <h6>Шаг 1</h6>
                                                 <div class="form-group">
-                                                    <label for="become_supplier_process_step1_title_en">Title</label>
+                                                    <label for="become_supplier_process_step1_title_en">Заголовок</label>
                                                     <input type="text" name="become_supplier_process_step1_title_en" id="become_supplier_process_step1_title_en"
                                                            class="form-control" value="{{ old('become_supplier_process_step1_title_en', \App\Models\Option::get('become_supplier_process_step1_title_en')) }}">
                                                 </div>
                                                 <div class="form-group">
-                                                    <label for="become_supplier_process_step1_description_en">Description</label>
+                                                    <label for="become_supplier_process_step1_description_en">Описание</label>
                                                     <textarea name="become_supplier_process_step1_description_en" id="become_supplier_process_step1_description_en" rows="2"
                                                            class="form-control">{{ old('become_supplier_process_step1_description_en', \App\Models\Option::get('become_supplier_process_step1_description_en')) }}</textarea>
                                                 </div>
                                             </div>
                                             <div class="col-md-6">
-                                                <h6>Step 2</h6>
+                                                <h6>Шаг 2</h6>
                                                 <div class="form-group">
-                                                    <label for="become_supplier_process_step2_title_en">Title</label>
+                                                    <label for="become_supplier_process_step2_title_en">Заголовок</label>
                                                     <input type="text" name="become_supplier_process_step2_title_en" id="become_supplier_process_step2_title_en"
                                                            class="form-control" value="{{ old('become_supplier_process_step2_title_en', \App\Models\Option::get('become_supplier_process_step2_title_en')) }}">
                                                 </div>
                                                 <div class="form-group">
-                                                    <label for="become_supplier_process_step2_description_en">Description</label>
+                                                    <label for="become_supplier_process_step2_description_en">Описание</label>
                                                     <textarea name="become_supplier_process_step2_description_en" id="become_supplier_process_step2_description_en" rows="2"
                                                            class="form-control">{{ old('become_supplier_process_step2_description_en', \App\Models\Option::get('become_supplier_process_step2_description_en')) }}</textarea>
                                                 </div>
@@ -841,27 +841,27 @@
                                         </div>
                                         <div class="row">
                                             <div class="col-md-6">
-                                                <h6>Step 3</h6>
+                                                <h6>Шаг 3</h6>
                                                 <div class="form-group">
-                                                    <label for="become_supplier_process_step3_title_en">Title</label>
+                                                    <label for="become_supplier_process_step3_title_en">Заголовок</label>
                                                     <input type="text" name="become_supplier_process_step3_title_en" id="become_supplier_process_step3_title_en"
                                                            class="form-control" value="{{ old('become_supplier_process_step3_title_en', \App\Models\Option::get('become_supplier_process_step3_title_en')) }}">
                                                 </div>
                                                 <div class="form-group">
-                                                    <label for="become_supplier_process_step3_description_en">Description</label>
+                                                    <label for="become_supplier_process_step3_description_en">Описание</label>
                                                     <textarea name="become_supplier_process_step3_description_en" id="become_supplier_process_step3_description_en" rows="2"
                                                            class="form-control">{{ old('become_supplier_process_step3_description_en', \App\Models\Option::get('become_supplier_process_step3_description_en')) }}</textarea>
                                                 </div>
                                             </div>
                                             <div class="col-md-6">
-                                                <h6>Step 4</h6>
+                                                <h6>Шаг 4</h6>
                                                 <div class="form-group">
-                                                    <label for="become_supplier_process_step4_title_en">Title</label>
+                                                    <label for="become_supplier_process_step4_title_en">Заголовок</label>
                                                     <input type="text" name="become_supplier_process_step4_title_en" id="become_supplier_process_step4_title_en"
                                                            class="form-control" value="{{ old('become_supplier_process_step4_title_en', \App\Models\Option::get('become_supplier_process_step4_title_en')) }}">
                                                 </div>
                                                 <div class="form-group">
-                                                    <label for="become_supplier_process_step4_description_en">Description</label>
+                                                    <label for="become_supplier_process_step4_description_en">Описание</label>
                                                     <textarea name="become_supplier_process_step4_description_en" id="become_supplier_process_step4_description_en" rows="2"
                                                            class="form-control">{{ old('become_supplier_process_step4_description_en', \App\Models\Option::get('become_supplier_process_step4_description_en')) }}</textarea>
                                                 </div>
@@ -869,35 +869,35 @@
                                         </div>
 
                                         <hr class="my-4">
-                                        <h5 class="mb-3">Become Supplier - Digital Goods Categories</h5>
+                                        <h5 class="mb-3">Стать поставщиком - Категории цифровых товаров</h5>
                                         <div class="form-group">
-                                            <label for="become_supplier_categories_title_en">Title</label>
+                                            <label for="become_supplier_categories_title_en">Заголовок</label>
                                             <input type="text" name="become_supplier_categories_title_en" id="become_supplier_categories_title_en"
                                                    class="form-control" value="{{ old('become_supplier_categories_title_en', \App\Models\Option::get('become_supplier_categories_title_en')) }}">
                                         </div>
                                         <div class="form-group">
-                                            <label for="become_supplier_categories_subtitle_en">Subtitle</label>
+                                            <label for="become_supplier_categories_subtitle_en">Подзаголовок</label>
                                             <textarea name="become_supplier_categories_subtitle_en" id="become_supplier_categories_subtitle_en" rows="2"
                                                    class="form-control">{{ old('become_supplier_categories_subtitle_en', \App\Models\Option::get('become_supplier_categories_subtitle_en')) }}</textarea>
                                         </div>
                                         <div class="row">
                                             <div class="col-md-4">
                                                 <div class="form-group">
-                                                    <label for="become_supplier_categories_social_media_en">Social Media Accounts</label>
+                                                    <label for="become_supplier_categories_social_media_en">Аккаунты соцсетей</label>
                                                     <input type="text" name="become_supplier_categories_social_media_en" id="become_supplier_categories_social_media_en"
                                                            class="form-control" value="{{ old('become_supplier_categories_social_media_en', \App\Models\Option::get('become_supplier_categories_social_media_en')) }}">
                                                 </div>
                                             </div>
                                             <div class="col-md-4">
                                                 <div class="form-group">
-                                                    <label for="become_supplier_categories_gaming_en">Gaming Accounts</label>
+                                                    <label for="become_supplier_categories_gaming_en">Игровые аккаунты</label>
                                                     <input type="text" name="become_supplier_categories_gaming_en" id="become_supplier_categories_gaming_en"
                                                            class="form-control" value="{{ old('become_supplier_categories_gaming_en', \App\Models\Option::get('become_supplier_categories_gaming_en')) }}">
                                                 </div>
                                             </div>
                                             <div class="col-md-4">
                                                 <div class="form-group">
-                                                    <label for="become_supplier_categories_streaming_en">Streaming Subscriptions</label>
+                                                    <label for="become_supplier_categories_streaming_en">Подписки на стриминги</label>
                                                     <input type="text" name="become_supplier_categories_streaming_en" id="become_supplier_categories_streaming_en"
                                                            class="form-control" value="{{ old('become_supplier_categories_streaming_en', \App\Models\Option::get('become_supplier_categories_streaming_en')) }}">
                                                 </div>
@@ -906,14 +906,14 @@
                                         <div class="row">
                                             <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label for="become_supplier_categories_software_en">Software Licenses</label>
+                                                    <label for="become_supplier_categories_software_en">Лицензии ПО</label>
                                                     <input type="text" name="become_supplier_categories_software_en" id="become_supplier_categories_software_en"
                                                            class="form-control" value="{{ old('become_supplier_categories_software_en', \App\Models\Option::get('become_supplier_categories_software_en')) }}">
                                                 </div>
                                             </div>
                                             <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label for="become_supplier_categories_other_en">Other</label>
+                                                    <label for="become_supplier_categories_other_en">Другое</label>
                                                     <input type="text" name="become_supplier_categories_other_en" id="become_supplier_categories_other_en"
                                                            class="form-control" value="{{ old('become_supplier_categories_other_en', \App\Models\Option::get('become_supplier_categories_other_en')) }}">
                                                 </div>
@@ -921,58 +921,58 @@
                                         </div>
 
                                         <hr class="my-4">
-                                        <h5 class="mb-3">Become Supplier - Restricted Items</h5>
+                                        <h5 class="mb-3">Стать поставщиком - Ограниченные товары</h5>
                                         <div class="form-group">
-                                            <label for="become_supplier_restricted_title_en">Title</label>
+                                            <label for="become_supplier_restricted_title_en">Заголовок</label>
                                             <input type="text" name="become_supplier_restricted_title_en" id="become_supplier_restricted_title_en"
                                                    class="form-control" value="{{ old('become_supplier_restricted_title_en', \App\Models\Option::get('become_supplier_restricted_title_en')) }}">
                                         </div>
                                         <div class="form-group">
-                                            <label for="become_supplier_restricted_subtitle_en">Subtitle</label>
+                                            <label for="become_supplier_restricted_subtitle_en">Подзаголовок</label>
                                             <textarea name="become_supplier_restricted_subtitle_en" id="become_supplier_restricted_subtitle_en" rows="2"
                                                    class="form-control">{{ old('become_supplier_restricted_subtitle_en', \App\Models\Option::get('become_supplier_restricted_subtitle_en')) }}</textarea>
                                         </div>
                                         <div class="form-group">
-                                            <label for="become_supplier_restricted_items_en">Items List (one per line)</label>
+                                            <label for="become_supplier_restricted_items_en">Список товаров (каждый с новой строки)</label>
                                             <textarea name="become_supplier_restricted_items_en" id="become_supplier_restricted_items_en" rows="4"
                                                    class="form-control">{{ old('become_supplier_restricted_items_en', \App\Models\Option::get('become_supplier_restricted_items_en')) }}</textarea>
                                         </div>
                                         <div class="form-group">
-                                            <label for="become_supplier_restricted_contact_en">Contact Message</label>
+                                            <label for="become_supplier_restricted_contact_en">Сообщение для связи</label>
                                             <textarea name="become_supplier_restricted_contact_en" id="become_supplier_restricted_contact_en" rows="2"
                                                    class="form-control">{{ old('become_supplier_restricted_contact_en', \App\Models\Option::get('become_supplier_restricted_contact_en')) }}</textarea>
                                         </div>
 
                                         <hr class="my-4">
-                                        <h5 class="mb-3">Become Supplier - Partner Benefits</h5>
+                                        <h5 class="mb-3">Стать поставщиком - Преимущества партнерства</h5>
                                         <div class="form-group">
-                                            <label for="become_supplier_benefits_title_en">Title</label>
+                                            <label for="become_supplier_benefits_title_en">Заголовок</label>
                                             <input type="text" name="become_supplier_benefits_title_en" id="become_supplier_benefits_title_en"
                                                    class="form-control" value="{{ old('become_supplier_benefits_title_en', \App\Models\Option::get('become_supplier_benefits_title_en')) }}">
                                         </div>
                                         <div class="row">
                                             <div class="col-md-6">
-                                                <h6>Benefit 1</h6>
+                                                <h6>Преимущество 1</h6>
                                                 <div class="form-group">
-                                                    <label for="become_supplier_benefits_benefit1_title_en">Title</label>
+                                                    <label for="become_supplier_benefits_benefit1_title_en">Заголовок</label>
                                                     <input type="text" name="become_supplier_benefits_benefit1_title_en" id="become_supplier_benefits_benefit1_title_en"
                                                            class="form-control" value="{{ old('become_supplier_benefits_benefit1_title_en', \App\Models\Option::get('become_supplier_benefits_benefit1_title_en')) }}">
                                                 </div>
                                                 <div class="form-group">
-                                                    <label for="become_supplier_benefits_benefit1_description_en">Description</label>
+                                                    <label for="become_supplier_benefits_benefit1_description_en">Описание</label>
                                                     <textarea name="become_supplier_benefits_benefit1_description_en" id="become_supplier_benefits_benefit1_description_en" rows="2"
                                                            class="form-control">{{ old('become_supplier_benefits_benefit1_description_en', \App\Models\Option::get('become_supplier_benefits_benefit1_description_en')) }}</textarea>
                                                 </div>
                                             </div>
                                             <div class="col-md-6">
-                                                <h6>Benefit 2</h6>
+                                                <h6>Преимущество 2</h6>
                                                 <div class="form-group">
-                                                    <label for="become_supplier_benefits_benefit2_title_en">Title</label>
+                                                    <label for="become_supplier_benefits_benefit2_title_en">Заголовок</label>
                                                     <input type="text" name="become_supplier_benefits_benefit2_title_en" id="become_supplier_benefits_benefit2_title_en"
                                                            class="form-control" value="{{ old('become_supplier_benefits_benefit2_title_en', \App\Models\Option::get('become_supplier_benefits_benefit2_title_en')) }}">
                                                 </div>
                                                 <div class="form-group">
-                                                    <label for="become_supplier_benefits_benefit2_description_en">Description</label>
+                                                    <label for="become_supplier_benefits_benefit2_description_en">Описание</label>
                                                     <textarea name="become_supplier_benefits_benefit2_description_en" id="become_supplier_benefits_benefit2_description_en" rows="2"
                                                            class="form-control">{{ old('become_supplier_benefits_benefit2_description_en', \App\Models\Option::get('become_supplier_benefits_benefit2_description_en')) }}</textarea>
                                                 </div>
@@ -980,27 +980,27 @@
                                         </div>
                                         <div class="row">
                                             <div class="col-md-6">
-                                                <h6>Benefit 3</h6>
+                                                <h6>Преимущество 3</h6>
                                                 <div class="form-group">
-                                                    <label for="become_supplier_benefits_benefit3_title_en">Title</label>
+                                                    <label for="become_supplier_benefits_benefit3_title_en">Заголовок</label>
                                                     <input type="text" name="become_supplier_benefits_benefit3_title_en" id="become_supplier_benefits_benefit3_title_en"
                                                            class="form-control" value="{{ old('become_supplier_benefits_benefit3_title_en', \App\Models\Option::get('become_supplier_benefits_benefit3_title_en')) }}">
                                                 </div>
                                                 <div class="form-group">
-                                                    <label for="become_supplier_benefits_benefit3_description_en">Description</label>
+                                                    <label for="become_supplier_benefits_benefit3_description_en">Описание</label>
                                                     <textarea name="become_supplier_benefits_benefit3_description_en" id="become_supplier_benefits_benefit3_description_en" rows="2"
                                                            class="form-control">{{ old('become_supplier_benefits_benefit3_description_en', \App\Models\Option::get('become_supplier_benefits_benefit3_description_en')) }}</textarea>
                                                 </div>
                                             </div>
                                             <div class="col-md-6">
-                                                <h6>Benefit 4</h6>
+                                                <h6>Преимущество 4</h6>
                                                 <div class="form-group">
-                                                    <label for="become_supplier_benefits_benefit4_title_en">Title</label>
+                                                    <label for="become_supplier_benefits_benefit4_title_en">Заголовок</label>
                                                     <input type="text" name="become_supplier_benefits_benefit4_title_en" id="become_supplier_benefits_benefit4_title_en"
                                                            class="form-control" value="{{ old('become_supplier_benefits_benefit4_title_en', \App\Models\Option::get('become_supplier_benefits_benefit4_title_en')) }}">
                                                 </div>
                                                 <div class="form-group">
-                                                    <label for="become_supplier_benefits_benefit4_description_en">Description</label>
+                                                    <label for="become_supplier_benefits_benefit4_description_en">Описание</label>
                                                     <textarea name="become_supplier_benefits_benefit4_description_en" id="become_supplier_benefits_benefit4_description_en" rows="2"
                                                            class="form-control">{{ old('become_supplier_benefits_benefit4_description_en', \App\Models\Option::get('become_supplier_benefits_benefit4_description_en')) }}</textarea>
                                                 </div>
@@ -1008,58 +1008,58 @@
                                         </div>
 
                                         <hr class="my-4">
-                                        <h5 class="mb-3">Become Supplier - Payout Methods</h5>
+                                        <h5 class="mb-3">Стать поставщиком - Способы вывода средств</h5>
                                         <div class="form-group">
-                                            <label for="become_supplier_payout_title_en">Title</label>
+                                            <label for="become_supplier_payout_title_en">Заголовок</label>
                                             <input type="text" name="become_supplier_payout_title_en" id="become_supplier_payout_title_en"
                                                    class="form-control" value="{{ old('become_supplier_payout_title_en', \App\Models\Option::get('become_supplier_payout_title_en')) }}">
                                         </div>
                                         <div class="form-group">
-                                            <label for="become_supplier_payout_subtitle_en">Subtitle</label>
+                                            <label for="become_supplier_payout_subtitle_en">Подзаголовок</label>
                                             <textarea name="become_supplier_payout_subtitle_en" id="become_supplier_payout_subtitle_en" rows="2"
                                                    class="form-control">{{ old('become_supplier_payout_subtitle_en', \App\Models\Option::get('become_supplier_payout_subtitle_en')) }}</textarea>
                                         </div>
                                         <div class="form-group">
-                                            <label for="become_supplier_payout_methods_en">Payout Methods (one per line)</label>
+                                            <label for="become_supplier_payout_methods_en">Способы вывода (каждый с новой строки)</label>
                                             <textarea name="become_supplier_payout_methods_en" id="become_supplier_payout_methods_en" rows="3"
                                                    class="form-control">{{ old('become_supplier_payout_methods_en', \App\Models\Option::get('become_supplier_payout_methods_en')) }}</textarea>
                                         </div>
                                         <div class="form-group">
-                                            <label for="become_supplier_payout_cta_en">CTA Button Text</label>
+                                            <label for="become_supplier_payout_cta_en">Текст кнопки</label>
                                             <input type="text" name="become_supplier_payout_cta_en" id="become_supplier_payout_cta_en"
                                                    class="form-control" value="{{ old('become_supplier_payout_cta_en', \App\Models\Option::get('become_supplier_payout_cta_en')) }}">
                                         </div>
 
                                         <hr class="my-4">
-                                        <h5 class="mb-3">Become Supplier - FAQ</h5>
+                                        <h5 class="mb-3">Стать поставщиком - FAQ</h5>
                                         <div class="form-group">
-                                            <label for="become_supplier_faq_title_en">Title</label>
+                                            <label for="become_supplier_faq_title_en">Заголовок</label>
                                             <input type="text" name="become_supplier_faq_title_en" id="become_supplier_faq_title_en"
                                                    class="form-control" value="{{ old('become_supplier_faq_title_en', \App\Models\Option::get('become_supplier_faq_title_en')) }}">
                                         </div>
                                         <div class="row">
                                             <div class="col-md-6">
-                                                <h6>Question 1</h6>
+                                                <h6>Вопрос 1</h6>
                                                 <div class="form-group">
-                                                    <label for="become_supplier_faq_question1_en">Question</label>
+                                                    <label for="become_supplier_faq_question1_en">Вопрос</label>
                                                     <input type="text" name="become_supplier_faq_question1_en" id="become_supplier_faq_question1_en"
                                                            class="form-control" value="{{ old('become_supplier_faq_question1_en', \App\Models\Option::get('become_supplier_faq_question1_en')) }}">
                                                 </div>
                                                 <div class="form-group">
-                                                    <label for="become_supplier_faq_answer1_en">Answer</label>
+                                                    <label for="become_supplier_faq_answer1_en">Ответ</label>
                                                     <textarea name="become_supplier_faq_answer1_en" id="become_supplier_faq_answer1_en" rows="2"
                                                            class="form-control">{{ old('become_supplier_faq_answer1_en', \App\Models\Option::get('become_supplier_faq_answer1_en')) }}</textarea>
                                                 </div>
                                             </div>
                                             <div class="col-md-6">
-                                                <h6>Question 2</h6>
+                                                <h6>Вопрос 2</h6>
                                                 <div class="form-group">
-                                                    <label for="become_supplier_faq_question2_en">Question</label>
+                                                    <label for="become_supplier_faq_question2_en">Вопрос</label>
                                                     <input type="text" name="become_supplier_faq_question2_en" id="become_supplier_faq_question2_en"
                                                            class="form-control" value="{{ old('become_supplier_faq_question2_en', \App\Models\Option::get('become_supplier_faq_question2_en')) }}">
                                                 </div>
                                                 <div class="form-group">
-                                                    <label for="become_supplier_faq_answer2_en">Answer</label>
+                                                    <label for="become_supplier_faq_answer2_en">Ответ</label>
                                                     <textarea name="become_supplier_faq_answer2_en" id="become_supplier_faq_answer2_en" rows="2"
                                                            class="form-control">{{ old('become_supplier_faq_answer2_en', \App\Models\Option::get('become_supplier_faq_answer2_en')) }}</textarea>
                                                 </div>
@@ -1067,27 +1067,27 @@
                                         </div>
                                         <div class="row">
                                             <div class="col-md-6">
-                                                <h6>Question 3</h6>
+                                                <h6>Вопрос 3</h6>
                                                 <div class="form-group">
-                                                    <label for="become_supplier_faq_question3_en">Question</label>
+                                                    <label for="become_supplier_faq_question3_en">Вопрос</label>
                                                     <input type="text" name="become_supplier_faq_question3_en" id="become_supplier_faq_question3_en"
                                                            class="form-control" value="{{ old('become_supplier_faq_question3_en', \App\Models\Option::get('become_supplier_faq_question3_en')) }}">
                                                 </div>
                                                 <div class="form-group">
-                                                    <label for="become_supplier_faq_answer3_en">Answer</label>
+                                                    <label for="become_supplier_faq_answer3_en">Ответ</label>
                                                     <textarea name="become_supplier_faq_answer3_en" id="become_supplier_faq_answer3_en" rows="2"
                                                            class="form-control">{{ old('become_supplier_faq_answer3_en', \App\Models\Option::get('become_supplier_faq_answer3_en')) }}</textarea>
                                                 </div>
                                             </div>
                                             <div class="col-md-6">
-                                                <h6>Question 4</h6>
+                                                <h6>Вопрос 4</h6>
                                                 <div class="form-group">
-                                                    <label for="become_supplier_faq_question4_en">Question</label>
+                                                    <label for="become_supplier_faq_question4_en">Вопрос</label>
                                                     <input type="text" name="become_supplier_faq_question4_en" id="become_supplier_faq_question4_en"
                                                            class="form-control" value="{{ old('become_supplier_faq_question4_en', \App\Models\Option::get('become_supplier_faq_question4_en')) }}">
                                                 </div>
                                                 <div class="form-group">
-                                                    <label for="become_supplier_faq_answer4_en">Answer</label>
+                                                    <label for="become_supplier_faq_answer4_en">Ответ</label>
                                                     <textarea name="become_supplier_faq_answer4_en" id="become_supplier_faq_answer4_en" rows="2"
                                                            class="form-control">{{ old('become_supplier_faq_answer4_en', \App\Models\Option::get('become_supplier_faq_answer4_en')) }}</textarea>
                                                 </div>
@@ -1601,10 +1601,10 @@
                                                     <div class="mb-4">
                                                         <div class="row g-1 align-items-center">
                                                             <div class="col-md-4">
-                                                                <input type="text" class="form-control" name="title" placeholder="Title">
+                                                                <input type="text" class="form-control" name="title" placeholder="Заголовок">
                                                             </div>
                                                             <div class="col-md-4">
-                                                                <input type="text" class="form-control" name="link" placeholder="Link">
+                                                                <input type="text" class="form-control" name="link" placeholder="Ссылка">
                                                             </div>
                                                             <div class="col-md-2">
                                                                 <div class="form-check">
@@ -1623,7 +1623,7 @@
                                                     <ul class="list-group mb-3 menu-list" data-type="header" data-lang="{{ $code }}"></ul>
                                                 </div>
                                             @endforeach
-                                            <button type="submit" class="btn btn-primary">Save</button>
+                                            <button type="submit" class="btn btn-primary">Сохранить</button>
                                         </div>
                                     </form>
                                 </div>
@@ -1654,10 +1654,10 @@
                                                     <div class="mb-4">
                                                         <div class="row g-1 align-items-center">
                                                             <div class="col-md-4">
-                                                                <input type="text" class="form-control" name="title" placeholder="Title">
+                                                                <input type="text" class="form-control" name="title" placeholder="Заголовок">
                                                             </div>
                                                             <div class="col-md-4">
-                                                                <input type="text" class="form-control" name="link" placeholder="Link">
+                                                                <input type="text" class="form-control" name="link" placeholder="Ссылка">
                                                             </div>
                                                             <div class="col-md-2">
                                                                 <div class="form-check">
@@ -1676,7 +1676,7 @@
                                                     <ul class="list-group mb-3 menu-list" data-type="footer" data-lang="{{ $code }}"></ul>
                                                 </div>
                                             @endforeach
-                                            <button type="submit" class="btn btn-primary">Save</button>
+                                            <button type="submit" class="btn btn-primary">Сохранить</button>
                                         </div>
                                     </form>
                                 </div>
