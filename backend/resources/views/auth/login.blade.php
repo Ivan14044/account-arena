@@ -9,20 +9,21 @@
     <title>Вход в админ-панель</title>
     <link rel="icon" href="{{ asset(config('adminlte.logo_img', 'vendor/adminlte/dist/img/AdminLTELogo.png')) }}">
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
         :root {
-            --aa-primary: #4e73df;
-            --aa-primary-dark: #3a56b0;
-            --aa-dark: #2c3e50;
-            --aa-muted: #858796;
-            --aa-border: #e3e6f0;
-            --aa-danger: #e74a3b;
+            --aa-primary: #4f46e5;
+            --aa-primary-dark: #4338ca;
+            --aa-dark: #1e2433;
+            --aa-muted: #64708a;
+            --aa-border: #e8ebf3;
+            --aa-danger: #dc2626;
         }
         * { box-sizing: border-box; }
         html, body { height: 100%; margin: 0; }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             color: var(--aa-dark);
-            background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+            background: linear-gradient(135deg, #4f46e5 0%, #6d28d9 100%);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -102,7 +103,7 @@
         .input-wrap input:focus {
             outline: none;
             border-color: var(--aa-primary);
-            box-shadow: 0 0 0 3px rgba(78, 115, 223, .15);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, .18);
         }
         .input-wrap input.is-invalid { border-color: var(--aa-danger); }
         .toggle-pass {
