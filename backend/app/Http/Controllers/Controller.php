@@ -13,14 +13,21 @@ class Controller extends BaseController
 
     protected function getApiUser(Request $request)
     {
+        // Сначала пользователь из sanctum-guard: резолвит и реальный Bearer-токен,
+        // и `actingAs($user, 'sanctum')` в тестах.
+        if ($user = $request->user('sanctum')) {
+            return $user;
+        }
+
+        // Fallback: ручной разбор токена (для роутов без auth:sanctum middleware).
         $token = $request->bearerToken();
         if (!$token) {
-            return false;
+            return null;
         }
 
         $accessToken = \Laravel\Sanctum\PersonalAccessToken::findToken($token);
         if (!$accessToken) {
-            return false;
+            return null;
         }
 
         return $accessToken->tokenable;
