@@ -2370,12 +2370,12 @@
         /* Улучшенные стили для заголовков карточек */
         .card-header-modern {
             background: linear-gradient(135deg, #f8f9fc 0%, #ffffff 100%);
-            border-bottom: 2px solid #e3e6f0;
+            border-bottom: 2px solid #e8ebf3;
             padding: 1.25rem 1.5rem;
         }
         
         .card-header-modern h5 {
-            color: #2c3e50;
+            color: #1e2433;
             font-weight: 600;
             font-size: 1.1rem;
             letter-spacing: -0.3px;
@@ -2389,14 +2389,14 @@
             display: inline-block;
             width: 4px;
             height: 20px;
-            background: #4e73df;
+            background: #4f46e5;
             border-radius: 2px;
             margin-right: 12px;
         }
         
         /* Улучшенные стили для карточек */
         .card-modern {
-            border: 1px solid #e3e6f0;
+            border: 1px solid #e8ebf3;
             border-radius: 0.5rem;
             box-shadow: 0 2px 8px rgba(0,0,0,0.05);
             overflow: hidden;
@@ -2409,13 +2409,13 @@
         
         /* Улучшенные стили для формы поиска */
         .search-messages-wrapper input {
-            border: 1px solid #e3e6f0;
+            border: 1px solid #e8ebf3;
             border-radius: 0.375rem;
             transition: all 0.2s ease;
         }
         
         .search-messages-wrapper input:focus {
-            border-color: #4e73df;
+            border-color: #4f46e5;
             box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.15);
         }
         
@@ -2441,13 +2441,13 @@
         }
         
         .message-header strong {
-            color: #2c3e50;
+            color: #1e2433;
             font-weight: 600;
             font-size: 0.9rem;
         }
         
         .message-text {
-            color: #2c3e50;
+            color: #1e2433;
             line-height: 1.5;
         }
     </style>

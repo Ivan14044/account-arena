@@ -130,9 +130,9 @@
                             <td class="text-center align-middle">
                                 @if($banner->image_url)
                                     <img src="{{ $banner->image_url }}" alt="{{ $banner->title }}" 
-                                         class="rounded shadow-sm" style="max-width: 120px; max-height: 60px; object-fit: contain; border: 1px solid #e3e6f0;">
+                                         class="rounded shadow-sm" style="max-width: 120px; max-height: 60px; object-fit: contain; border: 1px solid #e8ebf3;">
                                 @else
-                                    <div class="rounded d-flex align-items-center justify-content-center mx-auto" style="width: 100px; height: 50px; background: #f8f9fc; border: 1px solid #e3e6f0;">
+                                    <div class="rounded d-flex align-items-center justify-content-center mx-auto" style="width: 100px; height: 50px; background: #f8f9fc; border: 1px solid #e8ebf3;">
                                         <i class="fas fa-image text-muted"></i>
                                     </div>
                                 @endif

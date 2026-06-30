@@ -333,10 +333,10 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            color: #4e73df;
+            color: #4f46e5;
             font-weight: 600;
             font-size: 0.85rem;
-            border: 1px solid #e3e6f0;
+            border: 1px solid #e8ebf3;
             overflow: hidden;
         }
 
@@ -359,13 +359,13 @@
 
         .user-name {
             font-weight: 600;
-            color: #2c3e50;
+            color: #1e2433;
             line-height: 1.2;
         }
 
         .user-email {
             font-size: 0.75rem;
-            color: #858796;
+            color: #64708a;
         }
 
         .balance-badge {
