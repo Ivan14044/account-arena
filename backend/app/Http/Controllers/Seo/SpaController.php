@@ -468,8 +468,10 @@ class SpaController extends Controller
         $title = $titles[$locale] ?? $titles['ru'];
         $description = $descriptions[$locale] ?? $descriptions['ru'];
 
-        // Generate Content (List of all active categories)
-        $categories = Category::where('is_active', true)->orderBy('sort_order')->get();
+        // Список товарных категорий (страница «Категории аккаунтов»).
+        // У categories нет колонок is_active/sort_order (исходный запрос падал 500) —
+        // фильтруем по типу (product, как на главной) и упорядочиваем по id (детерминированно).
+        $categories = Category::productCategories()->orderBy('id')->get();
         $htmlContent = $this->ssr->generateCategoriesListContent($title, $description, $categories, $locale);
 
         return [
