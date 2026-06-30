@@ -99,13 +99,15 @@ class ProductPurchaseServiceTest extends TestCase
             'accounts_data' => $accounts,
             'used' => 0,
         ]);
+        // user_id ссылается на transactions.user_id (FK) — нужен реальный пользователь
+        $user = User::factory()->create();
 
         $result = $this->service->createProductPurchase(
             product: $product,
             quantity: 2,
             price: 10.00,
             total: 20.00,
-            userId: 1
+            userId: $user->id
         );
 
         $assignedAccounts = $result['purchase']->account_data;
