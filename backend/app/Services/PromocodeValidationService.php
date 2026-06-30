@@ -17,7 +17,9 @@ class PromocodeValidationService
             ];
         }
 
-        $promocode = Promocode::where('code', $code)->first();
+        // Регистронезависимый поиск, не зависящий от collation БД
+        // (MySQL по умолчанию case-insensitive, sqlite — нет).
+        $promocode = Promocode::whereRaw('LOWER(code) = ?', [mb_strtolower($code)])->first();
         if (!$promocode) {
             return [
                 'ok' => false,
