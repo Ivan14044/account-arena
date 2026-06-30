@@ -443,7 +443,13 @@ class SpaController extends Controller
                 'html_content' => $htmlContent,
                 'schema' => $schema
             ];
-        } catch (\Exception $e) { 
+        } catch (\Exception $e) {
+            // Логируем, чтобы реальные ошибки рендера категории не маскировались молча
+            // под 404 (этот silent-catch скрывал баг с несуществующей колонкой stock_count).
+            \Log::warning('SSR category meta failed', [
+                'idOrSlug' => $idOrSlug,
+                'error' => $e->getMessage(),
+            ]);
             return ['status' => 404];
         }
     }
