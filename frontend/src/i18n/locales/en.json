@@ -832,5 +832,14 @@
             "submit": "Submit",
             "success": "Your message has been successfully sent! We will contact you shortly."
         }
+    },
+    "notFound": {
+        "message": "Page not found",
+        "back_home": "Go back to home"
+    },
+    "theme": {
+        "select": "Choose theme",
+        "light": "Light theme",
+        "dark": "Dark theme"
     }
 }
