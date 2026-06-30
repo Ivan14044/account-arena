@@ -27,7 +27,7 @@ class PromocodeValidationServiceTest extends TestCase
         $promo = Promocode::create([
             'code' => 'DISCOUNT20',
             'type' => 'discount',
-            'discount_percent' => 20,
+            'percent_discount' => 20,
             'usage_limit' => 100,
             'usage_count' => 0,
             'expires_at' => Carbon::now()->addDays(30),
@@ -46,7 +46,7 @@ class PromocodeValidationServiceTest extends TestCase
         Promocode::create([
             'code' => 'EXPIRED',
             'type' => 'discount',
-            'discount_percent' => 10,
+            'percent_discount' => 10,
             'usage_limit' => 100,
             'usage_count' => 0,
             'expires_at' => Carbon::now()->subDays(1),
@@ -55,7 +55,8 @@ class PromocodeValidationServiceTest extends TestCase
         $result = $this->service->validate('EXPIRED', null);
 
         $this->assertFalse($result['ok']);
-        $this->assertStringContainsString('истек', $result['message']);
+        // Проверяем статус (locale-независимо), а не текст сообщения
+        $this->assertEquals('expired', $result['status']);
     }
 
     /** @test */
@@ -72,7 +73,7 @@ class PromocodeValidationServiceTest extends TestCase
         Promocode::create([
             'code' => 'LIMITED',
             'type' => 'discount',
-            'discount_percent' => 15,
+            'percent_discount' => 15,
             'usage_limit' => 10,
             'usage_count' => 10,
             'expires_at' => Carbon::now()->addDays(30),
@@ -81,7 +82,8 @@ class PromocodeValidationServiceTest extends TestCase
         $result = $this->service->validate('LIMITED', null);
 
         $this->assertFalse($result['ok']);
-        $this->assertStringContainsString('использован', $result['message']);
+        // Проверяем статус (locale-независимо), а не текст сообщения
+        $this->assertEquals('exhausted', $result['status']);
     }
 
     /** @test */
@@ -90,7 +92,7 @@ class PromocodeValidationServiceTest extends TestCase
         Promocode::create([
             'code' => 'SAVE10',
             'type' => 'discount',
-            'discount_percent' => 10,
+            'percent_discount' => 10,
             'usage_limit' => 100,
             'usage_count' => 0,
             'expires_at' => Carbon::now()->addDays(30),
