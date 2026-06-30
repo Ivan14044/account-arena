@@ -77,7 +77,7 @@
 
 ### Прочее (Low/Med)
 - M3: audit-log не должен писать секреты/`account_data`; логировать только на 2xx.
-- Per-user лимит промокодов для гостей (fallback по email/IP). — *остаётся (нужна политика лимита)*.
+- ✅ **Лимит промокодов для гостей — ИСПРАВЛЕНО** (PR #55): один email — не более 5 использований одного промокода (`PromocodeValidationService::GUEST_USAGE_LIMIT`). Колонка `promocode_usages.guest_email` (миграция проверена на чистой MySQL: up+down), запись при гостевых покупках, проверка в Guest/Mono/Cryptomus. +2 теста.
 - ✅ **User enumeration в forgot/reset — ИСПРАВЛЕНО** (PR #45): убран `exists:users,email`, generic-ответы forgot/reset (broker не раскрывает существование email).
 - Dead code: `extractKeywords()`/`EmptyLayout`/осиротевшие Lottie — удалены ранее (step 11). `SupportMessageReaction` — **используется** (`SupportMessage`/`SupportChatController`), не мёртвый; не трогаем.
 - Полная sqlite-портируемость остальных миграций (для зелёного тест-сьюта в CI) — *остаётся* (~13 пред-существующих падений: case-insensitive collation в promocode-тестах, cart-флоу на sqlite, `/`→404, supplier_id NOT NULL, IDOR-тесты). Высокий риск (миграции) — отдельной задачей.
