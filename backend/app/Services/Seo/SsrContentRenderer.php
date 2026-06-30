@@ -155,9 +155,15 @@ class SsrContentRenderer
         }
 
         if ($category) {
+            // У service_accounts нет колонки stock_count (сток считается из accounts_data) —
+            // прежний запрос всегда падал 500 (→ страница-деталь категории отдавала 404).
+            // Фильтруем как каталог: активные + публично видимые (одобренные или без поставщика).
             $products = ServiceAccount::where('category_id', $category->id)
                 ->where('is_active', true)
-                ->where('stock_count', '>', 0)
+                ->where(function ($q) {
+                    $q->where('moderation_status', ServiceAccount::MODERATION_APPROVED)
+                        ->orWhereNull('supplier_id');
+                })
                 ->limit(20)
                 ->get();
 
